@@ -1,92 +1,102 @@
-# ConnectHub - Social Media & Dating App
+# 💜 ConnectHub - Social Media & Dating Platform
 
-ConnectHub is a comprehensive social media and dating platform that combines the best features of social networking and online dating. Built with modern web technologies, it offers a seamless experience for users to connect, share, and find meaningful relationships.
+A comprehensive social media and dating application built for web, iOS, and Android platforms with modern technology stack and advanced features.
 
 ## 🚀 Features
 
 ### Social Media Features
-- **User Profiles**: Complete user profiles with photos, bio, and statistics
-- **Post Creation**: Share text, images, and videos with your network
-- **News Feed**: Personalized feed with "For You" and "Following" sections
-- **Interactions**: Like, comment, share, and save posts
-- **Real-time Notifications**: Stay updated with activities and mentions
-- **Direct Messaging**: Private conversations with other users
-- **Search & Discovery**: Find users and content across the platform
+- **User Authentication**: Secure login/registration with JWT tokens
+- **News Feed**: Create, like, comment, and share posts
+- **Image Sharing**: Photo upload and sharing capabilities
+- **User Profiles**: Customizable profiles with personal information
+- **Real-time Notifications**: Instant notifications for interactions
+- **Social Interactions**: Follow/unfollow users, like posts, comments
 
 ### Dating Features
-- **Profile Discovery**: Swipe-style interface to discover potential matches
-- **Smart Matching**: AI-powered matching based on interests and compatibility
-- **Interest Tags**: Display and match based on common interests
-- **Dating Chat**: Dedicated messaging for matched users
-- **Match Management**: View and manage your matches
-- **Date Planning**: Integrated tools for planning dates
+- **Profile Discovery**: Swipe through dating profiles
+- **Smart Matching**: Algorithm-based profile matching
+- **Real-time Messaging**: Instant messaging between matched users
+- **Location-based Discovery**: Find users nearby
+- **Privacy Controls**: Advanced privacy and safety settings
 
-### Technical Features
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
-- **Real-time Updates**: Live updates for messages and notifications
-- **Progressive Web App**: App-like experience with offline capabilities
-- **Secure Authentication**: JWT-based authentication with refresh tokens
-- **Media Management**: Image and video upload with optimization
-- **Content Moderation**: AI-powered content filtering and safety features
+### Security Features
+- **JWT Authentication**: Secure token-based authentication
+- **Password Encryption**: Bcrypt password hashing
+- **Data Validation**: Comprehensive input validation
+- **Rate Limiting**: API rate limiting for security
+- **Content Moderation**: Built-in content safety features
 
-## 🏗 Architecture
+## 🏗️ Architecture
 
-### Backend Architecture
-```
-ConnectHub-Backend/
-├── src/
-│   ├── config/         # Database and app configuration
-│   ├── middleware/     # Authentication, validation, error handling
-│   ├── routes/         # API route handlers
-│   ├── types/          # TypeScript type definitions
-│   ├── services/       # Business logic and external services
-│   └── server.ts       # Main server file
-├── prisma/             # Database schema and migrations
-└── package.json        # Dependencies and scripts
-```
+### Backend (Node.js/TypeScript)
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Real-time**: Socket.io for live messaging
+- **Caching**: Redis for session management
+- **Security**: Helmet, CORS, rate limiting
+- **Email**: SMTP integration for notifications
 
-### Frontend Architecture
-```
-ConnectHub-Frontend/
-├── src/
-│   ├── css/           # Stylesheets
-│   └── js/            # JavaScript application logic
-├── index.html         # Main HTML file
-└── package.json       # Dependencies and scripts
-```
+### Frontend (Web)
+- **Technologies**: HTML5, CSS3, JavaScript (ES6+)
+- **Design**: Responsive, mobile-first approach
+- **UI/UX**: Modern interface with smooth animations
+- **API Integration**: RESTful API consumption
 
-## 🛠 Tech Stack
+### Mobile (React Native)
+- **Framework**: React Native 0.72+
+- **Navigation**: React Navigation 6
+- **State Management**: Redux Toolkit
+- **Cross-platform**: Single codebase for iOS & Android
+- **Native Features**: Camera, location, biometrics
+
+## 📱 Platform Support
+
+- **Web**: Modern browsers (Chrome, Firefox, Safari, Edge)
+- **iOS**: iOS 12+ (iPhone, iPad)
+- **Android**: Android 8+ (API Level 26+)
+
+## 🛠️ Technology Stack
 
 ### Backend
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT tokens with bcrypt
-- **Validation**: Joi validation library
-- **Logging**: Winston logging framework
-- **Email**: Nodemailer for transactional emails
-- **Security**: Helmet, CORS, rate limiting
+```
+- Node.js 18+
+- Express.js 4.18+
+- TypeScript 5.0+
+- Prisma ORM 5.0+
+- PostgreSQL 14+
+- Redis 7.0+
+- Socket.io 4.7+
+- JWT Authentication
+- Bcrypt encryption
+- Nodemailer
+```
 
-### Frontend
-- **Languages**: HTML5, CSS3, ES6+ JavaScript
-- **Styling**: CSS Custom Properties (CSS Variables)
-- **Icons**: Font Awesome
-- **Images**: Unsplash API for demo content
-- **PWA**: Service Worker ready
-- **Responsive**: Mobile-first design approach
+### Frontend Web
+```
+- HTML5
+- CSS3 (Flexbox, Grid)
+- JavaScript ES6+
+- Responsive Design
+- PWA capabilities
+```
 
-### Infrastructure
-- **Containerization**: Docker support
-- **Process Management**: PM2
-- **Environment**: Development, staging, production configs
-- **Monitoring**: Health checks and logging
+### Mobile (React Native)
+```
+- React Native 0.72+
+- React Navigation 6+
+- Redux Toolkit
+- AsyncStorage
+- React Native Vector Icons
+- Native device features
+```
 
-## 📦 Installation
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- PostgreSQL (v12 or higher)
-- npm or yarn package manager
+- Node.js 18+ installed
+- PostgreSQL database
+- Redis server
+- Git
 
 ### Backend Setup
 
@@ -104,56 +114,23 @@ npm install
 3. **Environment Configuration**
 ```bash
 cp .env.example .env
-```
-
-Edit `.env` with your configuration:
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/connecthub"
-
-# JWT Secrets
-JWT_SECRET="your-super-secret-jwt-key"
-JWT_REFRESH_SECRET="your-refresh-secret-key"
-
-# Email Configuration
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-
-# Application
-NODE_ENV="development"
-PORT=3001
-CLIENT_URL="http://localhost:3000"
-
-# Upload Configuration
-MAX_FILE_SIZE=10485760
-UPLOAD_PATH="uploads/"
+# Edit .env with your database credentials and API keys
 ```
 
 4. **Database Setup**
 ```bash
-# Generate Prisma client
 npx prisma generate
-
-# Run database migrations
-npx prisma migrate dev
-
-# Seed the database (optional)
-npx prisma db seed
+npx prisma db push
 ```
 
 5. **Start the server**
 ```bash
-# Development mode
 npm run dev
-
-# Production mode
-npm run build
-npm start
 ```
 
-### Frontend Setup
+The backend will be running at `http://localhost:5000`
+
+### Frontend Web Setup
 
 1. **Navigate to frontend directory**
 ```bash
@@ -167,268 +144,229 @@ npm install
 
 3. **Start development server**
 ```bash
-npm run dev
+npm start
 ```
 
-4. **Build for production**
+The web app will be available at `http://localhost:3000`
+
+### Mobile App Setup
+
+1. **Navigate to mobile directory**
 ```bash
-npm run build
+cd ConnectHub-Mobile
 ```
 
-## 🚀 Running the Application
+2. **Install dependencies**
+```bash
+npm install
+```
 
-### Development Mode
-1. Start the backend server: `cd ConnectHub-Backend && npm run dev`
-2. Start the frontend server: `cd ConnectHub-Frontend && npm run dev`
-3. Open your browser to `http://localhost:3000`
+3. **iOS Setup (macOS only)**
+```bash
+cd ios && pod install
+cd ..
+npm run ios
+```
 
-### Production Mode
-1. Build both applications: `npm run build` in both directories
-2. Start the backend: `cd ConnectHub-Backend && npm start`
-3. Serve the frontend through a web server (nginx, Apache, etc.)
+4. **Android Setup**
+```bash
+npm run android
+```
 
-## 📱 Usage
+## 📁 Project Structure
 
-### Getting Started
-1. **Registration**: Create a new account with email verification
-2. **Profile Setup**: Complete your profile with photos and information
-3. **Explore**: Browse the social feed and discover new content
-4. **Connect**: Follow other users and engage with their content
-5. **Date**: Switch to dating mode to find potential matches
+```
+ConnectHub/
+├── ConnectHub-Backend/          # Node.js/Express API server
+│   ├── src/
+│   │   ├── config/             # Configuration files
+│   │   ├── middleware/         # Custom middleware
+│   │   ├── routes/             # API routes
+│   │   ├── services/           # Business logic
+│   │   ├── types/              # TypeScript definitions
+│   │   └── server.ts           # Main server file
+│   ├── prisma/                 # Database schema
+│   └── package.json
+├── ConnectHub-Frontend/         # Web application
+│   ├── src/
+│   │   ├── css/                # Stylesheets
+│   │   ├── js/                 # JavaScript files
+│   │   └── assets/             # Images, icons
+│   ├── index.html              # Main HTML file
+│   └── package.json
+├── ConnectHub-Mobile/           # React Native mobile app
+│   ├── src/                    # Source code
+│   ├── android/                # Android configuration
+│   ├── ios/                    # iOS configuration
+│   ├── App.js                  # Main app component
+│   └── package.json
+└── Test-project/               # Development plans & guides
+```
 
-### Social Features
-- **Creating Posts**: Click the post input or "+" button to create content
-- **Interacting**: Like, comment, and share posts from your feed
-- **Messaging**: Use the messages section for private conversations
-- **Notifications**: Stay updated with the notifications panel
+## 🔧 Environment Variables
 
-### Dating Features
-- **Discovery**: Swipe through potential matches in the dating section
-- **Matching**: Like profiles to potentially create matches
-- **Chatting**: Message your matches through the dating chat feature
-- **Profile Management**: Update your dating preferences and information
+### Backend (.env)
+```
+NODE_ENV=development
+PORT=5000
+DATABASE_URL=postgresql://username:password@localhost:5432/connecthub
+JWT_SECRET=your-jwt-secret
+REDIS_URL=redis://localhost:6379
+SMTP_HOST=smtp.gmail.com
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-password
+```
 
-## 🔧 API Documentation
+## 📱 Mobile App Features
+
+### Authentication
+- Secure login/signup with biometric support
+- JWT token storage
+- Auto-login functionality
+
+### Social Feed
+- Infinite scroll posts feed
+- Create posts with images
+- Like, comment, share functionality
+- Pull-to-refresh
+
+### Dating Section
+- Tinder-like card interface
+- Swipe gestures for like/pass
+- Profile details view
+- Match notifications
+
+### Messaging
+- Real-time chat interface
+- Message history
+- Unread message indicators
+- Push notifications
+
+### Profile Management
+- Edit profile information
+- Settings and preferences
+- Logout functionality
+
+## 🔐 Security Features
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- Rate limiting on API endpoints
+- Input validation and sanitization
+- CORS configuration
+- SQL injection prevention
+- XSS protection
+
+## 🌐 API Documentation
 
 ### Authentication Endpoints
 ```
-POST /api/auth/register     - Register new user
-POST /api/auth/login        - User login
-POST /api/auth/logout       - User logout
-POST /api/auth/refresh      - Refresh JWT token
-POST /api/auth/verify-email - Verify email address
-POST /api/auth/forgot-password - Request password reset
-POST /api/auth/reset-password  - Reset password
+POST /api/v1/auth/register - User registration
+POST /api/v1/auth/login - User login
+POST /api/v1/auth/logout - User logout
+GET /api/v1/auth/verify - Verify token
 ```
 
-### User Endpoints
+### Social Media Endpoints
 ```
-GET    /api/users/profile   - Get user profile
-PUT    /api/users/profile   - Update user profile
-GET    /api/users/search    - Search users
-POST   /api/users/follow    - Follow/unfollow user
-GET    /api/users/followers - Get followers list
-GET    /api/users/following - Get following list
-```
-
-### Posts Endpoints
-```
-GET    /api/posts          - Get user feed
-POST   /api/posts          - Create new post
-PUT    /api/posts/:id      - Update post
-DELETE /api/posts/:id      - Delete post
-POST   /api/posts/:id/like - Like/unlike post
-GET    /api/posts/:id/comments - Get post comments
-POST   /api/posts/:id/comments - Add comment
+GET /api/v1/posts - Get posts feed
+POST /api/v1/posts - Create new post
+PUT /api/v1/posts/:id - Update post
+DELETE /api/v1/posts/:id - Delete post
+POST /api/v1/posts/:id/like - Like/unlike post
 ```
 
 ### Dating Endpoints
 ```
-GET    /api/dating/profiles    - Get potential matches
-POST   /api/dating/swipe       - Swipe on profile
-GET    /api/dating/matches     - Get user matches
-POST   /api/dating/unmatch     - Unmatch with user
-PUT    /api/dating/preferences - Update dating preferences
+GET /api/v1/dating/discover - Get dating profiles
+POST /api/v1/dating/swipe - Swipe on profile
+GET /api/v1/dating/matches - Get matches
 ```
 
-### Messages Endpoints
+### Messaging Endpoints
 ```
-GET    /api/messages/conversations - Get user conversations
-GET    /api/messages/:conversationId - Get conversation messages
-POST   /api/messages/:conversationId - Send message
-PUT    /api/messages/:messageId - Mark message as read
-DELETE /api/messages/:messageId - Delete message
+GET /api/v1/messages - Get conversations
+POST /api/v1/messages - Send message
+GET /api/v1/messages/:id - Get conversation
 ```
-
-## 🎨 Frontend Components
-
-### Core Components
-- **App Container**: Main application shell with navigation
-- **Feed System**: Post creation, display, and interaction
-- **Dating Interface**: Swipe cards and match management
-- **Messaging**: Chat interface with real-time updates
-- **Profile Management**: User profile display and editing
-- **Notifications**: Alert system with filtering
-- **Modals**: Overlay components for various actions
-
-### UI Features
-- **Responsive Navigation**: Adaptive menu for all screen sizes
-- **Toast Notifications**: Non-intrusive feedback messages
-- **Loading States**: Smooth loading animations and skeletons
-- **Error Handling**: Graceful error display and recovery
-- **Accessibility**: WCAG 2.1 compliant interface elements
-- **Dark Mode Ready**: CSS custom properties for theming
-
-## 🔐 Security Features
-
-### Backend Security
-- **Authentication**: JWT-based with refresh token rotation
-- **Password Hashing**: bcrypt with configurable salt rounds
-- **Rate Limiting**: Protection against brute force attacks
-- **Input Validation**: Comprehensive request validation with Joi
-- **SQL Injection Protection**: Parameterized queries with Prisma
-- **CORS Configuration**: Controlled cross-origin resource sharing
-- **Security Headers**: Helmet.js for security headers
-- **Environment Variables**: Sensitive data protection
-
-### Frontend Security
-- **XSS Protection**: Content sanitization and CSP headers
-- **HTTPS Enforcement**: Secure communication requirements
-- **Token Management**: Secure storage and automatic refresh
-- **Input Sanitization**: Client-side validation and sanitization
-- **Content Security**: Image and file upload restrictions
 
 ## 🧪 Testing
 
-### Backend Testing
+Run the test suite:
 ```bash
-# Run all tests
+# Backend tests
+cd ConnectHub-Backend
 npm test
 
-# Run tests with coverage
-npm run test:coverage
+# Frontend tests
+cd ConnectHub-Frontend
+npm test
 
-# Run tests in watch mode
-npm run test:watch
+# Mobile tests
+cd ConnectHub-Mobile
+npm test
 ```
 
-### Frontend Testing
-```bash
-# Run frontend tests
-npm run test
+## 📈 Performance Optimization
 
-# Run E2E tests
-npm run test:e2e
-```
-
-## 📊 Performance Optimizations
-
-### Backend Optimizations
-- **Database Indexing**: Optimized queries with proper indexes
-- **Caching**: Redis caching for frequently accessed data
-- **Pagination**: Efficient data loading with cursor-based pagination
-- **Image Processing**: Automatic image optimization and resizing
-- **Connection Pooling**: Database connection optimization
-
-### Frontend Optimizations
-- **Lazy Loading**: Images and components loaded on demand
-- **Code Splitting**: JavaScript bundles split by route
-- **Minification**: CSS and JavaScript compression
-- **CDN Ready**: Static assets optimized for CDN delivery
-- **Service Worker**: Offline functionality and caching strategies
+- Redis caching for frequent queries
+- Image optimization and compression
+- Lazy loading implementation
+- Database indexing
+- API response compression
+- CDN integration ready
 
 ## 🚀 Deployment
 
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
+### Backend Deployment
+- Supports Docker containerization
+- Environment-based configuration
+- PM2 process management
+- Nginx reverse proxy ready
 
-# Scale services
-docker-compose up -d --scale backend=3
-```
+### Frontend Deployment
+- Static file hosting (Netlify, Vercel)
+- PWA capabilities
+- Service worker for offline functionality
 
-### Manual Deployment
-```bash
-# Backend deployment
-cd ConnectHub-Backend
-npm run build
-pm2 start ecosystem.config.js
-
-# Frontend deployment
-cd ConnectHub-Frontend
-npm run build
-# Deploy dist/ folder to your web server
-```
-
-### Environment Variables for Production
-```env
-NODE_ENV=production
-DATABASE_URL=your_production_database_url
-JWT_SECRET=your_production_jwt_secret
-SMTP_HOST=your_production_smtp_host
-# ... other production configurations
-```
-
-## 🔮 Future Enhancements
-
-### Planned Features
-- **Video Calling**: Integrated video chat for dating matches
-- **Stories**: Instagram-style stories feature
-- **Groups**: Community groups and discussions
-- **Events**: Event creation and management
-- **Marketplace**: Local marketplace integration
-- **Live Streaming**: Live video broadcasting
-- **Advanced Analytics**: User engagement insights
-- **AI Recommendations**: Machine learning-powered suggestions
-
-### Technical Roadmap
-- **Mobile Apps**: Native iOS and Android applications
-- **WebRTC Integration**: Real-time video and voice calling
-- **Microservices**: Service-oriented architecture migration
-- **GraphQL API**: Alternative to REST endpoints
-- **Real-time Features**: WebSocket integration for live updates
-- **Advanced Security**: Two-factor authentication, biometric login
-- **Performance**: Edge computing and global CDN
-- **Monitoring**: Advanced application monitoring and alerts
+### Mobile Deployment
+- iOS App Store ready
+- Google Play Store ready
+- Over-the-air updates support
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow TypeScript/JavaScript best practices
-- Write comprehensive tests for new features
-- Update documentation for any changes
-- Follow the existing code style and formatting
-- Ensure all tests pass before submitting PR
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## 👥 Team
 
-- **Design Inspiration**: Modern social media platforms
-- **Icons**: Font Awesome icon library
-- **Images**: Unsplash for demo images
-- **Community**: Open source contributors and feedback
+Built with comprehensive planning and modern development practices for a scalable, secure, and user-friendly social media and dating platform.
+
+## 🔮 Roadmap
+
+- [ ] Video calling integration
+- [ ] AI-powered matching algorithm
+- [ ] Advanced content moderation
+- [ ] Multi-language support
+- [ ] Analytics dashboard
+- [ ] Premium features
+- [ ] Group messaging
+- [ ] Stories feature
+- [ ] Live streaming
+- [ ] Advanced search filters
 
 ## 📞 Support
 
-For support, please email support@connecthub.com or join our community Discord server.
-
-## 🔗 Links
-
-- **Live Demo**: [https://demo.connecthub.com](https://demo.connecthub.com)
-- **Documentation**: [https://docs.connecthub.com](https://docs.connecthub.com)
-- **API Docs**: [https://api.connecthub.com/docs](https://api.connecthub.com/docs)
-- **Community**: [https://community.connecthub.com](https://community.connecthub.com)
+For support and questions, please open an issue in the repository or contact the development team.
 
 ---
 
-Built with ❤️ by the ConnectHub Team
+**ConnectHub** - Connecting hearts and minds in the digital age! 💜
