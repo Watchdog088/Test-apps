@@ -1,0 +1,326 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  username          String    @unique
+  firstName         String?
+  lastName          String?
+  avatar            String?
+  bio               String?
+  dateOfBirth       DateTime?
+  gender            String?
+  phone             String?
+  isVerified        Boolean   @default(false)
+  isPrivate         Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  lastActiveAt      DateTime  @default(now())
+  emailVerifiedAt   DateTime?
+  passwordHash      String
+  refreshToken      String?
+  followersCount    Int       @default(0)
+  followingCount    Int       @default(0)
+  postsCount        Int       @default(0)
+  location          String?
+  website           String?
+  settings          Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  posts             Post[]
+  comments          Comment[]
+  postEngagements   PostEngagement[]
+  followers         Follow[] @relation("UserFollowers")
+  following         Follow[] @relation("UserFollowing")
+  sentMessages      Message[] @relation("MessageSender")
+  receivedMessages  Message[] @relation("MessageReceiver")
+  conversations     ConversationParticipant[]
+  datingProfile     DatingProfile?
+  swipesMade        Swipe[] @relation("SwipeMaker")
+  swipesReceived    Swipe[] @relation("SwipeReceiver")
+  matches1          Match[] @relation("MatchUser1")
+  matches2          Match[] @relation("MatchUser2")
+  dateRequestsSent  DateRequest[] @relation("DateRequestSender")
+  dateRequestsReceived DateRequest[] @relation("DateRequestReceiver")
+  notifications     Notification[]
+  reports           Report[] @relation("ReportMaker")
+  reportsReceived   Report[] @relation("ReportTarget")
+
+  @@map("users")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Post {
+  id            String     @id @default(cuid())
+  userId        String
+  content       String
+  contentType   String     // 'text', 'image', 'video', 'mixed'
+  mediaUrls     String[]   @default([])
+  hashtags      String[]   @default([])
+  mentions      String[]   @default([])
+  likesCount    Int        @default(0)
+  commentsCount Int        @default(0)
+  sharesCount   Int        @default(0)
+  savesCount    Int        @default(0)
+  isEdited      Boolean    @default(false)
+  visibility    String     @default("public") // 'public', 'followers', 'private'
+  location      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments      Comment[]
+  engagements   PostEngagement[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id              String   @id @default(cuid())
+  postId          String
+  userId          String
+  content         String
+  likesCount      Int      @default(0)
+  repliesCount    Int      @default(0)
+  parentCommentId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  post            Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+
+  @@map("comments")
+}
+
+model PostEngagement {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  type      String   // 'like', 'save', 'share', 'view'
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@map("post_engagements")
+}
+
+model DatingProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  age          Int
+  bio          String
+  interests    String[] @default([])
+  photos       String[] @default([])
+  location     Json     // {latitude, longitude, city, country}
+  preferences  Json     // {ageMin, ageMax, maxDistance, interestedIn}
+  isActive     Boolean  @default(true)
+  isVerified   Boolean  @default(false)
+  lastActive   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dating_profiles")
+}
+
+model Swipe {
+  id           String   @id @default(cuid())
+  swiperId     String
+  swipedUserId String
+  action       String   // 'like', 'pass', 'superlike'
+  createdAt    DateTime @default(now())
+
+  // Relations
+  swiper       User @relation("SwipeMaker", fields: [swiperId], references: [id], onDelete: Cascade)
+  swipedUser   User @relation("SwipeReceiver", fields: [swipedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipedUserId])
+  @@map("swipes")
+}
+
+model Match {
+  id            String        @id @default(cuid())
+  user1Id       String
+  user2Id       String
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  lastMessageAt DateTime?
+
+  // Relations
+  user1         User          @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2         User          @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  dateRequests  DateRequest[]
+  conversations Conversation[]
+
+  @@unique([user1Id, user2Id])
+  @@map("matches")
+}
+
+model DateRequest {
+  id           String   @id @default(cuid())
+  fromUserId   String
+  toUserId     String
+  matchId      String
+  message      String
+  proposedDate DateTime
+  location     String
+  dateType     String   // 'coffee', 'dinner', 'activity', 'drinks', 'lunch', 'custom'
+  status       String   @default("pending") // 'pending', 'accepted', 'declined', 'cancelled'
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  fromUser     User  @relation("DateRequestSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser       User  @relation("DateRequestReceiver", fields: [toUserId], references: [id], onDelete: Cascade)
+  match        Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("date_requests")
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  matchId       String?
+  lastMessageAt DateTime @default(now())
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  match         Match?                      @relation(fields: [matchId], references: [id])
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  unreadCount    Int      @default(0)
+  joinedAt       DateTime @default(now())
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id               String    @id @default(cuid())
+  conversationId   String
+  senderId         String
+  receiverId       String
+  content          String
+  messageType      String    // 'text', 'image', 'video', 'audio', 'file', 'location', 'date_request'
+  mediaUrl         String?
+  isRead           Boolean   @default(false)
+  isDelivered      Boolean   @default(false)
+  replyToMessageId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  // Relations
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender           User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver         User         @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  replyToMessage   Message?     @relation("MessageReplies", fields: [replyToMessageId], references: [id])
+  replies          Message[]    @relation("MessageReplies")
+
+  @@map("messages")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // 'like', 'comment', 'follow', 'mention', 'match', 'message', 'date_request'
+  title     String
+  content   String
+  data      Json?     // Additional data like postId, userId, etc.
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetId    String
+  targetType  String   // 'user', 'post', 'comment', 'message'
+  reason      String
+  description String?
+  status      String   @default("pending") // 'pending', 'reviewed', 'resolved', 'dismissed'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  reporter    User @relation("ReportMaker", fields: [reporterId], references: [id], onDelete: Cascade)
+  target      User @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model MediaUpload {
+  id          String   @id @default(cuid())
+  userId      String
+  filename    String
+  originalName String
+  mimetype    String
+  size        Int
+  url         String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@map("media_uploads")
+}
+
+model Analytics {
+  id          String   @id @default(cuid())
+  userId      String?
+  eventType   String   // 'page_view', 'post_create', 'post_like', 'match_made', etc.
+  eventData   Json?
+  userAgent   String?
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  @@map("analytics")
+}
