@@ -27,12 +27,12 @@ const notFound = (req: any, res: any, next: any) => {
 };
 
 // Import routes
-// import authRoutes from './routes/auth';
+import authRoutes from './routes/auth';
 // import userRoutes from './routes/users';
 // import postRoutes from './routes/posts';
 // import datingRoutes from './routes/dating';
 // import messageRoutes from './routes/messages';
-import uploadRoutes from './routes/upload';
+// import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
 
 // Import socket handlers
@@ -111,7 +111,7 @@ app.get('/health', (req, res) => {
 // API routes
 const API_VERSION = process.env.API_VERSION || 'v1';
 app.use(`/api/${API_VERSION}/health`, healthRoutes);
-// app.use(`/api/${API_VERSION}/auth`, authRoutes);
+app.use(`/api/${API_VERSION}/auth`, authRoutes);
 // app.use(`/api/${API_VERSION}/users`, userRoutes);
 // app.use(`/api/${API_VERSION}/posts`, postRoutes);
 // app.use(`/api/${API_VERSION}/dating`, datingRoutes);

@@ -16,3 +16,23 @@
 {"level":"info","message":"GET /favicon.ico - ::1","service":"connecthub-api","timestamp":"2025-08-15 16:13:59"}
 {"level":"info","message":"GET /health - ::1","service":"connecthub-api","timestamp":"2025-08-15 16:14:12"}
 {"level":"info","message":"GET /favicon.ico - ::1","service":"connecthub-api","timestamp":"2025-08-15 16:14:12"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-15 16:18:06"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-15 16:18:06"}
+{"level":"info","message":"🚀 Server running on port 5000 in development mode","service":"connecthub-api","timestamp":"2025-08-15 16:18:06"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:5000/api-docs","service":"connecthub-api","timestamp":"2025-08-15 16:18:06"}
+{"level":"info","message":"🏥 Health check available at http://localhost:5000/health","service":"connecthub-api","timestamp":"2025-08-15 16:18:06"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-15 16:18:40"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-15 16:18:40"}
+{"level":"info","message":"🚀 Server running on port 5000 in development mode","service":"connecthub-api","timestamp":"2025-08-15 16:18:40"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:5000/api-docs","service":"connecthub-api","timestamp":"2025-08-15 16:18:40"}
+{"level":"info","message":"🏥 Health check available at http://localhost:5000/health","service":"connecthub-api","timestamp":"2025-08-15 16:18:40"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-15 16:19:16"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-15 16:19:16"}
+{"level":"info","message":"🚀 Server running on port 5000 in development mode","service":"connecthub-api","timestamp":"2025-08-15 16:19:16"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:5000/api-docs","service":"connecthub-api","timestamp":"2025-08-15 16:19:16"}
+{"level":"info","message":"🏥 Health check available at http://localhost:5000/health","service":"connecthub-api","timestamp":"2025-08-15 16:19:16"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-15 16:19:32"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-15 16:19:32"}
+{"level":"info","message":"🚀 Server running on port 5000 in development mode","service":"connecthub-api","timestamp":"2025-08-15 16:19:32"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:5000/api-docs","service":"connecthub-api","timestamp":"2025-08-15 16:19:32"}
+{"level":"info","message":"🏥 Health check available at http://localhost:5000/health","service":"connecthub-api","timestamp":"2025-08-15 16:19:32"}
