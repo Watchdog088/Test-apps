@@ -29,7 +29,7 @@ const notFound = (req: any, res: any, next: any) => {
 // Import routes
 import authRoutes from './routes/auth';
 // import userRoutes from './routes/users';
-// import postRoutes from './routes/posts';
+import postRoutes from './routes/posts';
 // import datingRoutes from './routes/dating';
 // import messageRoutes from './routes/messages';
 // import uploadRoutes from './routes/upload';
@@ -113,7 +113,7 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 app.use(`/api/${API_VERSION}/health`, healthRoutes);
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 // app.use(`/api/${API_VERSION}/users`, userRoutes);
-// app.use(`/api/${API_VERSION}/posts`, postRoutes);
+app.use(`/api/${API_VERSION}/posts`, postRoutes);
 // app.use(`/api/${API_VERSION}/dating`, datingRoutes);
 // app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 // app.use(`/api/${API_VERSION}/upload`, uploadRoutes);

@@ -1,548 +1,657 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
-import { validateBody } from '../middleware/validation';
-import { schemas } from '../middleware/validation';
-import { getDB } from '../config/database';
+import express from 'express';
+import { prisma } from '../config/database';
+import { body, validationResult, param, query } from 'express-validator';
+import { authenticate } from '../middleware/auth';
 import logger from '../config/logger';
 
-const router = Router();
+const router = express.Router();
 
-// Get posts feed
-router.get('/feed', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+// Validation rules
+const createPostValidation = [
+  body('content').isLength({ min: 1, max: 2000 }).withMessage('Content must be 1-2000 characters'),
+  body('contentType').optional().isIn(['text', 'image', 'video', 'mixed']).withMessage('Invalid content type'),
+  body('mediaUrls').optional().isArray().withMessage('Media URLs must be an array'),
+  body('hashtags').optional().isArray().withMessage('Hashtags must be an array'),
+  body('mentions').optional().isArray().withMessage('Mentions must be an array'),
+  body('visibility').optional().isIn(['public', 'followers', 'private']).withMessage('Invalid visibility'),
+  body('location').optional().isString().withMessage('Location must be a string')
+];
+
+const updatePostValidation = [
+  param('postId').isString().withMessage('Post ID is required'),
+  body('content').optional().isLength({ min: 1, max: 2000 }).withMessage('Content must be 1-2000 characters'),
+  body('visibility').optional().isIn(['public', 'followers', 'private']).withMessage('Invalid visibility'),
+  body('location').optional().isString().withMessage('Location must be a string')
+];
+
+const commentValidation = [
+  param('postId').isString().withMessage('Post ID is required'),
+  body('content').isLength({ min: 1, max: 500 }).withMessage('Comment must be 1-500 characters'),
+  body('parentCommentId').optional().isString().withMessage('Parent comment ID must be a string')
+];
+
+// Create a new post
+router.post('/', authenticate, createPostValidation, async (req, res) => {
   try {
-    const { page = 1, limit = 20, type = 'for-you' } = req.query;
-    const userId = (req as any).user.id;
-    const skip = (Number(page) - 1) * Number(limit);
-    const db = getDB();
-
-    let query: string;
-    let params: any[];
-
-    if (type === 'following') {
-      // Get posts from followed users
-      query = `
-        SELECT 
-          p.id,
-          p.content,
-          p.media_urls,
-          p.media_type as content_type,
-          p.hashtags,
-          p.mentions,
-          p.created_at,
-          p.updated_at,
-          u.id as author_id,
-          u.username,
-          u.full_name,
-          u.avatar_url,
-          (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'like') as likes_count,
-          (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comments_count,
-          (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'save') as shares_count,
-          EXISTS(SELECT 1 FROM post_interactions pi WHERE pi.post_id = p.id AND pi.user_id = $1 AND pi.type = 'like') as is_liked
-        FROM posts p
-        JOIN users u ON p.author_id = u.id
-        WHERE p.author_id IN (
-          SELECT following_id FROM follows WHERE follower_id = $1
-        )
-        ORDER BY p.created_at DESC
-        LIMIT $2 OFFSET $3
-      `;
-      params = [userId, Number(limit), skip];
-    } else {
-      // For You feed - personalized algorithm (simplified for now)
-      query = `
-        SELECT 
-          p.id,
-          p.content,
-          p.media_urls,
-          p.media_type as content_type,
-          p.hashtags,
-          p.mentions,
-          p.created_at,
-          p.updated_at,
-          u.id as author_id,
-          u.username,
-          u.full_name,
-          u.avatar_url,
-          (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'like') as likes_count,
-          (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comments_count,
-          (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'save') as shares_count,
-          EXISTS(SELECT 1 FROM post_interactions pi WHERE pi.post_id = p.id AND pi.user_id = $1 AND pi.type = 'like') as is_liked
-        FROM posts p
-        JOIN users u ON p.author_id = u.id
-        WHERE p.is_public = true
-        ORDER BY p.created_at DESC
-        LIMIT $2 OFFSET $3
-      `;
-      params = [userId, Number(limit), skip];
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
     }
 
-    const result = await db.query(query, params);
-    const posts = result.rows;
+    const { content, contentType, mediaUrls, hashtags, mentions, visibility, location } = req.body;
+    const userId = (req as any).user.id;
 
-    // Format posts for response
-    const formattedPosts = posts.map(post => ({
-      id: post.id,
-      content: post.content,
-      mediaUrls: post.media_urls || [],
-      contentType: post.content_type,
-      hashtags: post.hashtags || [],
-      mentions: post.mentions || [],
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-      author: {
-        id: post.author_id,
-        username: post.username,
-        fullName: post.full_name,
-        avatarUrl: post.avatar_url
+    const post = await prisma.post.create({
+      data: {
+        userId,
+        content,
+        contentType: contentType || 'text',
+        mediaUrls: JSON.stringify(mediaUrls || []),
+        hashtags: JSON.stringify(hashtags || []),
+        mentions: JSON.stringify(mentions || []),
+        visibility: visibility || 'public',
+        location: location || null,
+        likesCount: 0,
+        commentsCount: 0,
+        sharesCount: 0,
+        savesCount: 0,
+        isEdited: false
       },
-      stats: {
-        likesCount: parseInt(post.likes_count),
-        commentsCount: parseInt(post.comments_count),
-        sharesCount: parseInt(post.shares_count)
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        }
+      }
+    });
+
+    // Update user's posts count
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        postsCount: { increment: 1 },
+        updatedAt: new Date()
+      }
+    });
+
+    // Parse JSON fields for response
+    const responsePost = {
+      ...post,
+      mediaUrls: JSON.parse(post.mediaUrls),
+      hashtags: JSON.parse(post.hashtags),
+      mentions: JSON.parse(post.mentions)
+    };
+
+    res.status(201).json({
+      success: true,
+      message: 'Post created successfully',
+      data: { post: responsePost }
+    });
+
+  } catch (error) {
+    logger.error('Create post error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Get posts feed (with pagination)
+router.get('/feed', authenticate, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip = (page - 1) * limit;
+    const userId = (req as any).user.id;
+
+    // Get posts from followed users and own posts
+    const posts = await prisma.post.findMany({
+      where: {
+        OR: [
+          { userId: userId }, // Own posts
+          { 
+            user: {
+              followers: {
+                some: {
+                  followerId: userId
+                }
+              }
+            },
+            visibility: { in: ['public', 'followers'] }
+          }, // Posts from followed users
+          { visibility: 'public' } // All public posts
+        ]
       },
-      isLiked: post.is_liked
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        },
+        _count: {
+          select: {
+            comments: true,
+            engagements: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
+
+    // Get user's engagements with these posts
+    const postIds = posts.map(post => post.id);
+    const userEngagements = await prisma.postEngagement.findMany({
+      where: {
+        userId: userId,
+        postId: { in: postIds }
+      }
+    });
+
+    const engagementMap = userEngagements.reduce((acc, engagement) => {
+      if (!acc[engagement.postId]) acc[engagement.postId] = [];
+      acc[engagement.postId].push(engagement.type);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    // Format response posts
+    const responsePosts = posts.map(post => ({
+      ...post,
+      mediaUrls: JSON.parse(post.mediaUrls),
+      hashtags: JSON.parse(post.hashtags),
+      mentions: JSON.parse(post.mentions),
+      isLiked: engagementMap[post.id]?.includes('like') || false,
+      isSaved: engagementMap[post.id]?.includes('save') || false,
+      commentsCount: post._count.comments,
+      actualLikesCount: post.likesCount
     }));
 
-    res.json({
-      posts: formattedPosts,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        hasNext: formattedPosts.length === Number(limit)
+    res.status(200).json({
+      success: true,
+      data: {
+        posts: responsePosts,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(responsePosts.length / limit),
+          hasMore: responsePosts.length === limit
+        }
       }
     });
 
   } catch (error) {
     logger.error('Get feed error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 });
 
-// Create a post
-router.post('/', authenticateToken, validateBody(schemas.postCreate), async (req: AuthenticatedRequest, res: Response) => {
+// Get single post by ID
+router.get('/:postId', authenticate, async (req, res) => {
   try {
-    const { content, contentType = 'text', mediaUrls, hashtags, mentions } = req.body;
+    const { postId } = req.params;
     const userId = (req as any).user.id;
-    const db = getDB();
 
-    const query = `
-      INSERT INTO posts (author_id, content, media_urls, media_type, hashtags, mentions)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `;
-    const params = [
-      userId,
-      content,
-      mediaUrls || [],
-      contentType,
-      hashtags || [],
-      mentions || []
-    ];
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        },
+        _count: {
+          select: {
+            comments: true
+          }
+        }
+      }
+    });
 
-    const result = await db.query(query, params);
-    const post = result.rows[0];
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
 
-    // Get author info
-    const authorQuery = 'SELECT id, username, full_name, avatar_url FROM users WHERE id = $1';
-    const authorResult = await db.query(authorQuery, [userId]);
-    const author = authorResult.rows[0];
+    // Check if user can view this post
+    if (post.visibility === 'private' && post.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
 
-    const formattedPost = {
-      id: post.id,
-      content: post.content,
-      mediaUrls: post.media_urls || [],
-      contentType: post.media_type,
-      hashtags: post.hashtags || [],
-      mentions: post.mentions || [],
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-      author: {
-        id: author.id,
-        username: author.username,
-        fullName: author.full_name,
-        avatarUrl: author.avatar_url
-      },
-      stats: {
-        likesCount: 0,
-        commentsCount: 0,
-        sharesCount: 0
-      },
-      isLiked: false
+    // Get user's engagement with this post
+    const userEngagements = await prisma.postEngagement.findMany({
+      where: {
+        userId: userId,
+        postId: postId
+      }
+    });
+
+    const engagementTypes = userEngagements.map(e => e.type);
+
+    // Record view if not the post owner
+    if (post.userId !== userId && !engagementTypes.includes('view')) {
+      await prisma.postEngagement.create({
+        data: {
+          postId: postId,
+          userId: userId,
+          type: 'view'
+        }
+      });
+    }
+
+    const responsePost = {
+      ...post,
+      mediaUrls: JSON.parse(post.mediaUrls),
+      hashtags: JSON.parse(post.hashtags),
+      mentions: JSON.parse(post.mentions),
+      isLiked: engagementTypes.includes('like'),
+      isSaved: engagementTypes.includes('save'),
+      commentsCount: post._count.comments
     };
 
-    res.status(201).json({
-      message: 'Post created successfully',
-      post: formattedPost
+    res.status(200).json({
+      success: true,
+      data: { post: responsePost }
     });
 
   } catch (error) {
-    logger.error('Create post error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Get single post
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const userId = (req as any).user.id;
-    const db = getDB();
-
-    const query = `
-      SELECT 
-        p.id,
-        p.content,
-        p.media_urls,
-        p.media_type as content_type,
-        p.hashtags,
-        p.mentions,
-        p.created_at,
-        p.updated_at,
-        u.id as author_id,
-        u.username,
-        u.full_name,
-        u.avatar_url,
-        (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'like') as likes_count,
-        (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comments_count,
-        (SELECT COUNT(*) FROM post_interactions pi WHERE pi.post_id = p.id AND pi.type = 'save') as shares_count,
-        EXISTS(SELECT 1 FROM post_interactions pi WHERE pi.post_id = p.id AND pi.user_id = $2 AND pi.type = 'like') as is_liked
-      FROM posts p
-      JOIN users u ON p.author_id = u.id
-      WHERE p.id = $1
-    `;
-    
-    const result = await db.query(query, [id, userId]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const post = result.rows[0];
-
-    // Get comments
-    const commentsQuery = `
-      SELECT 
-        c.id,
-        c.content,
-        c.created_at,
-        u.id as author_id,
-        u.username,
-        u.full_name,
-        u.avatar_url
-      FROM comments c
-      JOIN users u ON c.author_id = u.id
-      WHERE c.post_id = $1
-      ORDER BY c.created_at DESC
-      LIMIT 10
-    `;
-    const commentsResult = await db.query(commentsQuery, [id]);
-
-    const formattedPost = {
-      id: post.id,
-      content: post.content,
-      mediaUrls: post.media_urls || [],
-      contentType: post.content_type,
-      hashtags: post.hashtags || [],
-      mentions: post.mentions || [],
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-      author: {
-        id: post.author_id,
-        username: post.username,
-        fullName: post.full_name,
-        avatarUrl: post.avatar_url
-      },
-      stats: {
-        likesCount: parseInt(post.likes_count),
-        commentsCount: parseInt(post.comments_count),
-        sharesCount: parseInt(post.shares_count)
-      },
-      isLiked: post.is_liked,
-      comments: commentsResult.rows.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        createdAt: comment.created_at,
-        author: {
-          id: comment.author_id,
-          username: comment.username,
-          fullName: comment.full_name,
-          avatarUrl: comment.avatar_url
-        }
-      }))
-    };
-
-    res.json({ post: formattedPost });
-
-  } catch (error) {
     logger.error('Get post error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 });
 
 // Update post
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:postId', authenticate, updatePostValidation, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { content, hashtags } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const { postId } = req.params;
+    const { content, visibility, location } = req.body;
     const userId = (req as any).user.id;
-    const db = getDB();
 
     // Check if post exists and user owns it
-    const checkQuery = 'SELECT author_id FROM posts WHERE id = $1';
-    const checkResult = await db.query(checkQuery, [id]);
+    const existingPost = await prisma.post.findUnique({
+      where: { id: postId }
+    });
 
-    if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+    if (!existingPost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
     }
 
-    if (checkResult.rows[0].author_id !== userId) {
-      return res.status(403).json({ error: 'Not authorized to edit this post' });
+    if (existingPost.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
     }
 
-    const updateQuery = `
-      UPDATE posts 
-      SET content = $1, hashtags = $2, updated_at = NOW()
-      WHERE id = $3
-      RETURNING *
-    `;
-    const result = await db.query(updateQuery, [content, hashtags || [], id]);
-    const post = result.rows[0];
-
-    // Get author info
-    const authorQuery = 'SELECT id, username, full_name, avatar_url FROM users WHERE id = $1';
-    const authorResult = await db.query(authorQuery, [userId]);
-    const author = authorResult.rows[0];
-
-    const formattedPost = {
-      id: post.id,
-      content: post.content,
-      mediaUrls: post.media_urls || [],
-      contentType: post.media_type,
-      hashtags: post.hashtags || [],
-      mentions: post.mentions || [],
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-      author: {
-        id: author.id,
-        username: author.username,
-        fullName: author.full_name,
-        avatarUrl: author.avatar_url
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        content: content || existingPost.content,
+        visibility: visibility || existingPost.visibility,
+        location: location !== undefined ? location : existingPost.location,
+        isEdited: true,
+        updatedAt: new Date()
       },
-      stats: {
-        likesCount: 0, // Would need separate query for exact counts
-        commentsCount: 0,
-        sharesCount: 0
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        }
       }
+    });
+
+    const responsePost = {
+      ...updatedPost,
+      mediaUrls: JSON.parse(updatedPost.mediaUrls),
+      hashtags: JSON.parse(updatedPost.hashtags),
+      mentions: JSON.parse(updatedPost.mentions)
     };
 
-    res.json({
+    res.status(200).json({
+      success: true,
       message: 'Post updated successfully',
-      post: formattedPost
+      data: { post: responsePost }
     });
 
   } catch (error) {
     logger.error('Update post error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 });
 
-// Delete post (soft delete)
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+// Delete post
+router.delete('/:postId', authenticate, async (req, res) => {
   try {
-    const { id } = req.params;
+    const { postId } = req.params;
     const userId = (req as any).user.id;
-    const db = getDB();
 
     // Check if post exists and user owns it
-    const checkQuery = 'SELECT author_id FROM posts WHERE id = $1';
-    const checkResult = await db.query(checkQuery, [id]);
+    const existingPost = await prisma.post.findUnique({
+      where: { id: postId }
+    });
 
-    if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+    if (!existingPost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
     }
 
-    if (checkResult.rows[0].author_id !== userId) {
-      return res.status(403).json({ error: 'Not authorized to delete this post' });
+    if (existingPost.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
     }
 
-    // For now, we'll do hard delete since we don't have is_deleted column
-    const deleteQuery = 'DELETE FROM posts WHERE id = $1';
-    await db.query(deleteQuery, [id]);
+    // Delete post (cascade will handle comments and engagements)
+    await prisma.post.delete({
+      where: { id: postId }
+    });
 
-    res.json({ message: 'Post deleted successfully' });
+    // Update user's posts count
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        postsCount: { decrement: 1 },
+        updatedAt: new Date()
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Post deleted successfully'
+    });
 
   } catch (error) {
     logger.error('Delete post error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 });
 
 // Like/Unlike post
-router.post('/:id/like', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:postId/like', authenticate, async (req, res) => {
   try {
-    const { id } = req.params;
+    const { postId } = req.params;
     const userId = (req as any).user.id;
-    const db = getDB();
 
     // Check if post exists
-    const postQuery = 'SELECT id FROM posts WHERE id = $1';
-    const postResult = await db.query(postQuery, [id]);
+    const post = await prisma.post.findUnique({
+      where: { id: postId }
+    });
 
-    if (postResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
     }
 
-    // Check if like exists
-    const existingLikeQuery = `
-      SELECT id FROM post_interactions 
-      WHERE user_id = $1 AND post_id = $2 AND type = 'like'
-    `;
-    const existingLikeResult = await db.query(existingLikeQuery, [userId, id]);
+    // Check if user already liked this post
+    const existingLike = await prisma.postEngagement.findUnique({
+      where: {
+        postId_userId_type: {
+          postId: postId,
+          userId: userId,
+          type: 'like'
+        }
+      }
+    });
 
-    if (existingLikeResult.rows.length > 0) {
-      // Unlike - remove the like
-      const deleteLikeQuery = `
-        DELETE FROM post_interactions 
-        WHERE user_id = $1 AND post_id = $2 AND type = 'like'
-      `;
-      await db.query(deleteLikeQuery, [userId, id]);
+    if (existingLike) {
+      // Unlike: remove like and decrement count
+      await prisma.postEngagement.delete({
+        where: { id: existingLike.id }
+      });
 
-      res.json({ 
+      await prisma.post.update({
+        where: { id: postId },
+        data: { likesCount: { decrement: 1 } }
+      });
+
+      res.status(200).json({
+        success: true,
         message: 'Post unliked successfully',
-        isLiked: false
+        data: { isLiked: false }
       });
     } else {
-      // Like - add the like
-      const insertLikeQuery = `
-        INSERT INTO post_interactions (user_id, post_id, type)
-        VALUES ($1, $2, 'like')
-      `;
-      await db.query(insertLikeQuery, [userId, id]);
+      // Like: create like and increment count
+      await prisma.postEngagement.create({
+        data: {
+          postId: postId,
+          userId: userId,
+          type: 'like'
+        }
+      });
 
-      res.json({ 
+      await prisma.post.update({
+        where: { id: postId },
+        data: { likesCount: { increment: 1 } }
+      });
+
+      res.status(200).json({
+        success: true,
         message: 'Post liked successfully',
-        isLiked: true
+        data: { isLiked: true }
       });
     }
 
   } catch (error) {
     logger.error('Like post error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 });
 
-// Get post comments
-router.get('/:id/comments', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+// Add comment to post
+router.post('/:postId/comments', authenticate, commentValidation, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
-    const db = getDB();
-
-    // Check if post exists
-    const postQuery = 'SELECT id FROM posts WHERE id = $1';
-    const postResult = await db.query(postQuery, [id]);
-
-    if (postResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
     }
 
-    const commentsQuery = `
-      SELECT 
-        c.id,
-        c.content,
-        c.created_at,
-        c.updated_at,
-        u.id as author_id,
-        u.username,
-        u.full_name,
-        u.avatar_url
-      FROM comments c
-      JOIN users u ON c.author_id = u.id
-      WHERE c.post_id = $1
-      ORDER BY c.created_at DESC
-      LIMIT $2 OFFSET $3
-    `;
-    const result = await db.query(commentsQuery, [id, Number(limit), skip]);
+    const { postId } = req.params;
+    const { content, parentCommentId } = req.body;
+    const userId = (req as any).user.id;
 
-    const formattedComments = result.rows.map(comment => ({
-      id: comment.id,
-      content: comment.content,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
-      author: {
-        id: comment.author_id,
-        username: comment.username,
-        fullName: comment.full_name,
-        avatarUrl: comment.avatar_url
+    // Check if post exists
+    const post = await prisma.post.findUnique({
+      where: { id: postId }
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    // Create comment
+    const comment = await prisma.comment.create({
+      data: {
+        postId: postId,
+        userId: userId,
+        content: content,
+        parentCommentId: parentCommentId || null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        }
       }
-    }));
+    });
 
-    res.json({
-      comments: formattedComments,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        hasNext: formattedComments.length === Number(limit)
+    // Update post comments count
+    await prisma.post.update({
+      where: { id: postId },
+      data: { commentsCount: { increment: 1 } }
+    });
+
+    // If it's a reply, update parent comment replies count
+    if (parentCommentId) {
+      await prisma.comment.update({
+        where: { id: parentCommentId },
+        data: { repliesCount: { increment: 1 } }
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Comment added successfully',
+      data: { comment }
+    });
+
+  } catch (error) {
+    logger.error('Add comment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Get comments for a post
+router.get('/:postId/comments', authenticate, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+    const skip = (page - 1) * limit;
+
+    // Check if post exists
+    const post = await prisma.post.findUnique({
+      where: { id: postId }
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    // Get top-level comments (not replies)
+    const comments = await prisma.comment.findMany({
+      where: {
+        postId: postId,
+        parentCommentId: null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            isVerified: true
+          }
+        },
+        replies: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+                isVerified: true
+              }
+            }
+          },
+          take: 3, // Only show first 3 replies
+          orderBy: { createdAt: 'asc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          currentPage: page,
+          hasMore: comments.length === limit
+        }
       }
     });
 
   } catch (error) {
     logger.error('Get comments error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Add comment
-router.post('/:id/comments', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { content, parentCommentId } = req.body;
-    const userId = (req as any).user.id;
-    const db = getDB();
-
-    // Check if post exists
-    const postQuery = 'SELECT id FROM posts WHERE id = $1';
-    const postResult = await db.query(postQuery, [id]);
-
-    if (postResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const insertQuery = `
-      INSERT INTO comments (post_id, author_id, content, parent_comment_id)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *
-    `;
-    const result = await db.query(insertQuery, [id, userId, content, parentCommentId || null]);
-    const comment = result.rows[0];
-
-    // Get author info
-    const authorQuery = 'SELECT id, username, full_name, avatar_url FROM users WHERE id = $1';
-    const authorResult = await db.query(authorQuery, [userId]);
-    const author = authorResult.rows[0];
-
-    const formattedComment = {
-      id: comment.id,
-      content: comment.content,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
-      author: {
-        id: author.id,
-        username: author.username,
-        fullName: author.full_name,
-        avatarUrl: author.avatar_url
-      }
-    };
-
-    res.status(201).json({
-      message: 'Comment added successfully',
-      comment: formattedComment
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
     });
-
-  } catch (error) {
-    logger.error('Add comment error:', error);
-    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
