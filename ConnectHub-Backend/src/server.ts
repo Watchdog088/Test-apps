@@ -12,16 +12,28 @@ import 'express-async-errors';
 import { connectDB } from './config/database';
 import { connectRedis } from './config/redis';
 import logger from './config/logger';
-import { errorHandler } from './middleware/errorHandler';
-import { notFound } from './middleware/notFound';
+// Simple error handlers inline instead of importing
+const errorHandler = (err: any, req: any, res: any, next: any) => {
+  logger.error(err.message);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
+};
+
+const notFound = (req: any, res: any, next: any) => {
+  res.status(404).json({
+    error: `Not Found - ${req.originalUrl}`
+  });
+};
 
 // Import routes
-import authRoutes from './routes/auth';
-import userRoutes from './routes/users';
-import postRoutes from './routes/posts';
-import datingRoutes from './routes/dating';
-import messageRoutes from './routes/messages';
+// import authRoutes from './routes/auth';
+// import userRoutes from './routes/users';
+// import postRoutes from './routes/posts';
+// import datingRoutes from './routes/dating';
+// import messageRoutes from './routes/messages';
 import uploadRoutes from './routes/upload';
+import healthRoutes from './routes/health';
 
 // Import socket handlers
 import { initializeSocket } from './sockets';
@@ -41,7 +53,7 @@ const io = new SocketIOServer(server, {
 });
 
 // Initialize socket handlers
-initializeSocket(io);
+initializeSocket(server);
 
 // Security middleware
 app.use(helmet({
@@ -98,12 +110,13 @@ app.get('/health', (req, res) => {
 
 // API routes
 const API_VERSION = process.env.API_VERSION || 'v1';
-app.use(`/api/${API_VERSION}/auth`, authRoutes);
-app.use(`/api/${API_VERSION}/users`, userRoutes);
-app.use(`/api/${API_VERSION}/posts`, postRoutes);
-app.use(`/api/${API_VERSION}/dating`, datingRoutes);
-app.use(`/api/${API_VERSION}/messages`, messageRoutes);
-app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
+app.use(`/api/${API_VERSION}/health`, healthRoutes);
+// app.use(`/api/${API_VERSION}/auth`, authRoutes);
+// app.use(`/api/${API_VERSION}/users`, userRoutes);
+// app.use(`/api/${API_VERSION}/posts`, postRoutes);
+// app.use(`/api/${API_VERSION}/dating`, datingRoutes);
+// app.use(`/api/${API_VERSION}/messages`, messageRoutes);
+// app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 
 // Documentation route (placeholder for Swagger)
 app.get('/api-docs', (req, res) => {

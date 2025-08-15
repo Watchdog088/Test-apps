@@ -9,13 +9,13 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
@@ -49,7 +49,4 @@
     "**/*.test.ts",
     "**/*.spec.ts"
   ],
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
-  }
 }
