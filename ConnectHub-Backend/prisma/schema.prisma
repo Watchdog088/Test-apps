@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -33,7 +33,7 @@ model User {
   postsCount        Int       @default(0)
   location          String?
   website           String?
-  settings          Json?
+  settings          String?   // JSON string for SQLite
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -78,9 +78,9 @@ model Post {
   userId        String
   content       String
   contentType   String     // 'text', 'image', 'video', 'mixed'
-  mediaUrls     String[]   @default([])
-  hashtags      String[]   @default([])
-  mentions      String[]   @default([])
+  mediaUrls     String     @default("[]")   // JSON string for SQLite
+  hashtags      String     @default("[]")   // JSON string for SQLite
+  mentions      String     @default("[]")   // JSON string for SQLite
   likesCount    Int        @default(0)
   commentsCount Int        @default(0)
   sharesCount   Int        @default(0)
@@ -139,10 +139,10 @@ model DatingProfile {
   userId       String   @unique
   age          Int
   bio          String
-  interests    String[] @default([])
-  photos       String[] @default([])
-  location     Json     // {latitude, longitude, city, country}
-  preferences  Json     // {ageMin, ageMax, maxDistance, interestedIn}
+  interests    String   @default("[]")   // JSON string for SQLite
+  photos       String   @default("[]")   // JSON string for SQLite
+  location     String   @default("{}")   // JSON string for SQLite {latitude, longitude, city, country}
+  preferences  String   @default("{}")   // JSON string for SQLite {ageMin, ageMax, maxDistance, interestedIn}
   isActive     Boolean  @default(true)
   isVerified   Boolean  @default(false)
   lastActive   DateTime @default(now())
@@ -271,7 +271,7 @@ model Notification {
   type      String    // 'like', 'comment', 'follow', 'mention', 'match', 'message', 'date_request'
   title     String
   content   String
-  data      Json?     // Additional data like postId, userId, etc.
+  data      String?   @default("{}")  // JSON string for SQLite - Additional data like postId, userId, etc.
   isRead    Boolean   @default(false)
   createdAt DateTime  @default(now())
 
@@ -307,7 +307,7 @@ model MediaUpload {
   mimetype    String
   size        Int
   url         String
-  metadata    Json?
+  metadata    String?   @default("{}")  // JSON string for SQLite
   createdAt   DateTime @default(now())
 
   @@map("media_uploads")
@@ -317,7 +317,7 @@ model Analytics {
   id          String   @id @default(cuid())
   userId      String?
   eventType   String   // 'page_view', 'post_create', 'post_like', 'match_made', etc.
-  eventData   Json?
+  eventData   String?   @default("{}")  // JSON string for SQLite
   userAgent   String?
   ipAddress   String?
   timestamp   DateTime @default(now())

@@ -12,3 +12,12 @@ declare global {
     }
   }
 }
+
+export interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    isVerified: boolean;
+  };
+}
