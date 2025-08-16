@@ -36,6 +36,7 @@ import callRoutes from './routes/calls';
 import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
 import contentControlRoutes from './routes/content-control';
+import monetizationRoutes from './routes/monetization';
 
 // Import socket handlers
 import { initializeSocket } from './sockets';
@@ -124,6 +125,7 @@ app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 app.use(`/api/${API_VERSION}/calls`, callRoutes);
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
+app.use(`/api/${API_VERSION}/monetization`, monetizationRoutes);
 
 // Documentation route (placeholder for Swagger)
 app.get('/api-docs', (req, res) => {

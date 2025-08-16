@@ -58,6 +58,10 @@ model User {
   reportsReceived   Report[] @relation("ReportTarget")
   callsMade         Call[] @relation("CallsMade")
   callsReceived     Call[] @relation("CallsReceived")
+  subscriptions     Subscription[]
+  paymentMethods    PaymentMethod[]
+  payments          Payment[]
+  analytics         UserAnalytics?
 
   @@map("users")
 }
@@ -346,4 +350,217 @@ model Analytics {
   timestamp   DateTime @default(now())
 
   @@map("analytics")
+}
+
+// MONETIZATION MODELS
+
+model SubscriptionPlan {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  currency        String   @default("USD")
+  billingCycle    String   // 'monthly', 'yearly'
+  features        String   @default("[]")  // JSON string for SQLite
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  subscriptions   Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id              String           @id @default(cuid())
+  userId          String
+  planId          String
+  status          String           @default("active") // 'active', 'cancelled', 'expired', 'pending'
+  startDate       DateTime
+  endDate         DateTime
+  autoRenew       Boolean          @default(true)
+  paymentMethodId String?
+  amount          Float
+  currency        String           @default("USD")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  paymentMethod   PaymentMethod?   @relation(fields: [paymentMethodId], references: [id])
+  payments        Payment[]
+
+  @@map("subscriptions")
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // 'card', 'paypal', 'apple_pay', 'google_pay'
+  isDefault   Boolean  @default(false)
+  cardLast4   String?
+  cardBrand   String?
+  expiryMonth Int?
+  expiryYear  Int?
+  paypalEmail String?
+  stripeId    String?  // Stripe payment method ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  userId           String
+  subscriptionId   String?
+  paymentMethodId  String?
+  amount           Float
+  currency         String        @default("USD")
+  status           String        // 'pending', 'completed', 'failed', 'refunded'
+  paymentGateway   String        // 'stripe', 'paypal', 'apple_pay', 'google_pay'
+  gatewayPaymentId String?       // External payment ID
+  description      String?
+  metadata         String?       @default("{}")  // JSON string for SQLite
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relations
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription?  @relation(fields: [subscriptionId], references: [id])
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("payments")
+}
+
+model Advertisement {
+  id           String   @id @default(cuid())
+  advertiserId String
+  title        String
+  description  String
+  imageUrl     String
+  targetUrl    String
+  targeting    String   @default("{}")  // JSON string for SQLite - AdTargeting
+  budget       Float
+  spent        Float    @default(0)
+  impressionCount  Int      @default(0)
+  clicks       Int      @default(0)
+  conversions  Int      @default(0)
+  status       String   @default("active") // 'active', 'paused', 'completed', 'rejected'
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  advertiser   Advertiser       @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  adImpressions AdImpression[]
+
+  @@map("advertisements")
+}
+
+model Advertiser {
+  id            String   @id @default(cuid())
+  companyName   String
+  contactEmail  String
+  contactPhone  String?
+  website       String?
+  isActive      Boolean  @default(true)
+  totalSpent    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  advertisements Advertisement[]
+
+  @@map("advertisers")
+}
+
+model AdImpression {
+  id          String   @id @default(cuid())
+  adId        String
+  userId      String?
+  timestamp   DateTime @default(now())
+  placement   String   // 'feed', 'story', 'sidebar', 'interstitial'
+  clicked     Boolean  @default(false)
+  converted   Boolean  @default(false)
+  revenue     Float    @default(0)
+  ipAddress   String?
+  userAgent   String?
+  metadata    String?  @default("{}")  // JSON string for SQLite
+
+  // Relations
+  advertisement Advertisement @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@map("ad_impressions")
+}
+
+model PremiumFeature {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String   // 'dating', 'social', 'messaging', 'analytics'
+  requiredPlan String  @default("[]")  // JSON array of plan IDs
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("premium_features")
+}
+
+model UserAnalytics {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  totalSessions       Int      @default(0)
+  totalTimeSpent      Int      @default(0)  // in seconds
+  postsCreated        Int      @default(0)
+  postsLiked          Int      @default(0)
+  matchesMade         Int      @default(0)
+  messagesExchanged   Int      @default(0)
+  profileViews        Int      @default(0)
+  adInteractions      Int      @default(0)
+  revenueDirect       Float    @default(0)
+  revenueIndirect     Float    @default(0)
+  lastActive          DateTime @default(now())
+  deviceTypes         String   @default("[]")  // JSON string for SQLite
+  locations           String   @default("[]")  // JSON string for SQLite
+  interests           String   @default("[]")  // JSON string for SQLite
+  engagementScore     Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_analytics")
+}
+
+model BusinessAnalytics {
+  id                    String   @id @default(cuid())
+  period                String   // 'daily', 'weekly', 'monthly', 'yearly'
+  date                  DateTime
+  activeUsers           Int      @default(0)
+  newSignups            Int      @default(0)
+  premiumConversions    Int      @default(0)
+  subscriptionRevenue   Float    @default(0)
+  adRevenue             Float    @default(0)
+  totalRevenue          Float    @default(0)
+  averageSessionTime    Int      @default(0)  // in seconds
+  retentionRate         Float    @default(0)
+  churnRate             Float    @default(0)
+  ltv                   Float    @default(0)  // Lifetime Value
+  cac                   Float    @default(0)  // Customer Acquisition Cost
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([period, date])
+  @@map("business_analytics")
 }
