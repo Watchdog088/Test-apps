@@ -1,488 +1,810 @@
 import express from 'express';
-import { z } from 'zod';
-import { getDB } from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { validateBody, validateParams, validateQuery, schemas } from '../middleware/validation';
-import { AuthenticatedRequest } from '../middleware/auth';
+import { prisma } from '../config/database';
+import { body, validationResult, param, query } from 'express-validator';
+import { authenticate } from '../middleware/auth';
 import logger from '../config/logger';
 
 const router = express.Router();
 
-// Additional validation schemas specific to messages
-const messageSchemas = {
-  conversationId: z.object({
-    conversationId: z.string().uuid('Invalid conversation ID format'),
-  }),
+// Validation rules
+const createConversationValidation = [
+  body('participantIds').isArray({ min: 1, max: 10 }).withMessage('1-10 participants required'),
+  body('participantIds.*').isLength({ min: 1 }).withMessage('Valid participant IDs required'),
+  body('matchId').optional().isLength({ min: 1 }).withMessage('Valid match ID required')
+];
 
-  messageId: z.object({
-    messageId: z.string().uuid('Invalid message ID format'),
-  }),
+const sendMessageValidation = [
+  body('conversationId').isLength({ min: 1 }).withMessage('Conversation ID required'),
+  body('content').isLength({ min: 1, max: 1000 }).withMessage('Content 1-1000 characters'),
+  body('messageType').isIn(['text', 'image', 'video', 'audio', 'file', 'location', 'date_request']).withMessage('Invalid message type'),
+  body('mediaUrl').optional().isURL().withMessage('Invalid media URL'),
+  body('replyToMessageId').optional().isLength({ min: 1 }).withMessage('Valid reply message ID required')
+];
 
-  getMessages: z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
-    before: z.string().uuid().optional(),
-  }),
+const paginationValidation = [
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be 1-50'),
+  query('before').optional().isLength({ min: 1 }).withMessage('Valid before cursor required')
+];
 
-  createMessage: z.object({
-    conversationId: z.string().uuid('Invalid conversation ID format'),
-    content: z.string().min(1, 'Message content is required').max(1000),
-    messageType: z.enum(['text', 'image', 'video', 'audio', 'file', 'location']).default('text'),
-    mediaUrl: z.string().url().optional(),
-    replyToMessageId: z.string().uuid().optional(),
-  }),
+const markReadValidation = [
+  body('messageIds').isArray({ min: 1 }).withMessage('Message IDs array required'),
+  body('messageIds.*').isLength({ min: 1 }).withMessage('Valid message IDs required')
+];
 
-  createConversation: z.object({
-    participantIds: z.array(z.string().uuid()).min(1, 'At least one participant is required'),
-    isGroup: z.boolean().default(false),
-    name: z.string().max(100).optional(),
-  }),
+// GET /api/v1/messages/conversations - Get user's conversations
+router.get('/conversations', authenticate, paginationValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
 
-  markAsRead: z.object({
-    messageIds: z.array(z.string().uuid()).min(1, 'At least one message ID is required'),
-  }),
-};
+    const userId = (req as any).user.id;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip = (page - 1) * limit;
 
-// GET /api/messages/conversations - Get user's conversations
-router.get('/conversations', 
-  authenticateToken,
-  validateQuery(schemas.pagination),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { page = 1, limit = 20 } = req.query as any;
-      const offset = (page - 1) * limit;
+    // Get conversations where user is a participant
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            userId: userId
+          }
+        },
+        isActive: true
+      },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+                isActive: true,
+                lastActiveAt: true
+              }
+            }
+          }
+        },
+        messages: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 1,
+          include: {
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        match: {
+          select: {
+            id: true,
+            user1: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            },
+            user2: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        lastMessageAt: 'desc'
+      },
+      skip,
+      take: limit
+    });
 
-      // Get conversations with last message and unread count
-      const conversationsQuery = `
-        WITH conversation_messages AS (
-          SELECT DISTINCT
-            CASE 
-              WHEN m.sender_id = $1 THEN m.recipient_id
-              ELSE m.sender_id
-            END as other_user_id,
-            m.created_at,
-            m.content,
-            m.media_type,
-            m.is_read,
-            ROW_NUMBER() OVER (
-              PARTITION BY 
-                CASE 
-                  WHEN m.sender_id = $1 THEN m.recipient_id
-                  ELSE m.sender_id
-                END 
-              ORDER BY m.created_at DESC
-            ) as rn
-          FROM messages m
-          WHERE m.sender_id = $1 OR m.recipient_id = $1
-        ),
-        unread_counts AS (
-          SELECT 
-            sender_id as other_user_id,
-            COUNT(*) as unread_count
-          FROM messages
-          WHERE recipient_id = $1 AND is_read = FALSE
-          GROUP BY sender_id
-        )
-        SELECT 
-          u.id,
-          u.username,
-          u.full_name,
-          u.avatar_url,
-          u.is_active,
-          u.last_active,
-          cm.content as last_message,
-          cm.media_type as last_message_type,
-          cm.created_at as last_message_at,
-          COALESCE(uc.unread_count, 0) as unread_count
-        FROM conversation_messages cm
-        JOIN users u ON u.id = cm.other_user_id
-        LEFT JOIN unread_counts uc ON uc.other_user_id = u.id
-        WHERE cm.rn = 1
-        ORDER BY cm.created_at DESC
-        LIMIT $2 OFFSET $3
-      `;
+    // Format conversations with additional info
+    const formattedConversations = conversations.map(conversation => {
+      const otherParticipants = conversation.participants
+        .filter(p => p.userId !== userId)
+        .map(p => p.user);
+      
+      const currentUserParticipant = conversation.participants.find(p => p.userId === userId);
+      const lastMessage = conversation.messages[0];
 
-      const conversations = await db.query(conversationsQuery, [req.user!.id, limit, offset]);
+      return {
+        id: conversation.id,
+        matchId: conversation.matchId,
+        participants: otherParticipants,
+        lastMessage: lastMessage ? {
+          id: lastMessage.id,
+          content: lastMessage.content,
+          messageType: lastMessage.messageType,
+          createdAt: lastMessage.createdAt,
+          sender: lastMessage.sender,
+          isFromCurrentUser: lastMessage.senderId === userId
+        } : null,
+        lastMessageAt: conversation.lastMessageAt,
+        unreadCount: currentUserParticipant?.unreadCount || 0,
+        createdAt: conversation.createdAt
+      };
+    });
 
-      // Get total count for pagination
-      const countQuery = `
-        SELECT COUNT(DISTINCT 
-          CASE 
-            WHEN m.sender_id = $1 THEN m.recipient_id
-            ELSE m.sender_id
-          END
-        ) as total
-        FROM messages m
-        WHERE m.sender_id = $1 OR m.recipient_id = $1
-      `;
-      const countResult = await db.query(countQuery, [req.user!.id]);
-      const total = parseInt(countResult.rows[0].total);
+    // Get total count
+    const total = await prisma.conversation.count({
+      where: {
+        participants: {
+          some: {
+            userId: userId
+          }
+        },
+        isActive: true
+      }
+    });
 
-      res.json({
-        conversations: conversations.rows,
+    res.status(200).json({
+      success: true,
+      data: {
+        conversations: formattedConversations,
         pagination: {
           page,
           limit,
           total,
           totalPages: Math.ceil(total / limit),
           hasNext: page * limit < total,
-          hasPrev: page > 1,
-        },
-      });
-    } catch (error) {
-      logger.error('Get conversations error:', error);
-      res.status(500).json({ error: 'Failed to fetch conversations' });
-    }
-  }
-);
-
-// GET /api/messages/conversations/:conversationId - Get messages in a conversation
-router.get('/conversations/:conversationId',
-  authenticateToken,
-  validateParams(messageSchemas.conversationId),
-  validateQuery(messageSchemas.getMessages),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { conversationId } = req.params;
-      const { page = 1, limit = 20, before } = req.query as any;
-      const offset = (page - 1) * limit;
-
-      // Validate that the conversation exists and user has access
-      // For direct messages, conversationId is the other user's ID
-      const accessQuery = `
-        SELECT COUNT(*) as count
-        FROM messages
-        WHERE (sender_id = $1 OR recipient_id = $1)
-        AND (sender_id = $2 OR recipient_id = $2)
-      `;
-      const accessResult = await db.query(accessQuery, [req.user!.id, conversationId]);
-      
-      if (parseInt(accessResult.rows[0].count) === 0) {
-        return res.status(403).json({ error: 'Access denied to this conversation' });
-      }
-
-      // Build the messages query
-      let messagesQuery = `
-        SELECT 
-          m.id,
-          m.sender_id,
-          m.recipient_id,
-          m.content,
-          m.media_url,
-          m.media_type,
-          m.is_read,
-          m.created_at,
-          u.username as sender_username,
-          u.full_name as sender_name,
-          u.avatar_url as sender_avatar
-        FROM messages m
-        JOIN users u ON u.id = m.sender_id
-        WHERE ((m.sender_id = $1 AND m.recipient_id = $2) 
-               OR (m.sender_id = $2 AND m.recipient_id = $1))
-      `;
-      
-      const queryParams = [req.user!.id, conversationId];
-      
-      if (before) {
-        messagesQuery += ' AND m.created_at < (SELECT created_at FROM messages WHERE id = $3)';
-        queryParams.push(before);
-      }
-      
-      messagesQuery += ' ORDER BY m.created_at DESC LIMIT $' + (queryParams.length + 1) + ' OFFSET $' + (queryParams.length + 2);
-      queryParams.push(limit.toString(), offset.toString());
-
-      const messages = await db.query(messagesQuery, queryParams);
-
-      // Mark messages as read
-      const markReadQuery = `
-        UPDATE messages 
-        SET is_read = TRUE 
-        WHERE recipient_id = $1 AND sender_id = $2 AND is_read = FALSE
-      `;
-      await db.query(markReadQuery, [req.user!.id, conversationId]);
-
-      // Get total count for pagination
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM messages
-        WHERE (sender_id = $1 AND recipient_id = $2) 
-           OR (sender_id = $2 AND recipient_id = $1)
-      `;
-      const countResult = await db.query(countQuery, [req.user!.id, conversationId]);
-      const total = parseInt(countResult.rows[0].total);
-
-      res.json({
-        messages: messages.rows.reverse(), // Return in chronological order
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: page * limit < total,
-          hasPrev: page > 1,
-        },
-      });
-    } catch (error) {
-      logger.error('Get messages error:', error);
-      res.status(500).json({ error: 'Failed to fetch messages' });
-    }
-  }
-);
-
-// POST /api/messages - Send a message
-router.post('/',
-  authenticateToken,
-  validateBody(messageSchemas.createMessage),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { conversationId, content, messageType = 'text', mediaUrl, replyToMessageId } = req.body;
-
-      // Validate recipient exists and is not blocked
-      const recipientQuery = `
-        SELECT id, username, is_active
-        FROM users
-        WHERE id = $1 AND is_active = TRUE
-      `;
-      const recipientResult = await db.query(recipientQuery, [conversationId]);
-      
-      if (recipientResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Recipient not found or inactive' });
-      }
-
-      const recipient = recipientResult.rows[0];
-
-      // For dating app context, check if users have matched (optional - can be enabled later)
-      /*
-      const matchQuery = `
-        SELECT id FROM matches
-        WHERE (user1_id = $1 AND user2_id = $2) 
-           OR (user1_id = $2 AND user2_id = $1)
-        AND is_active = TRUE
-      `;
-      const matchResult = await db.query(matchQuery, [req.user!.id, conversationId]);
-      
-      if (matchResult.rows.length === 0) {
-        return res.status(403).json({ error: 'Cannot send message - no active match found' });
-      }
-      */
-
-      // Validate reply-to message if provided
-      if (replyToMessageId) {
-        const replyToQuery = `
-          SELECT id FROM messages
-          WHERE id = $1 
-          AND ((sender_id = $2 AND recipient_id = $3) OR (sender_id = $3 AND recipient_id = $2))
-        `;
-        const replyToResult = await db.query(replyToQuery, [replyToMessageId, req.user!.id, conversationId]);
-        
-        if (replyToResult.rows.length === 0) {
-          return res.status(404).json({ error: 'Reply-to message not found in this conversation' });
+          hasPrev: page > 1
         }
       }
+    });
 
-      // Insert the message
-      const insertQuery = `
-        INSERT INTO messages (sender_id, recipient_id, content, media_url, media_type, is_read)
-        VALUES ($1, $2, $3, $4, $5, FALSE)
-        RETURNING id, sender_id, recipient_id, content, media_url, media_type, is_read, created_at
-      `;
-      const result = await db.query(insertQuery, [
-        req.user!.id,
-        conversationId,
-        content,
-        mediaUrl || null,
-        messageType
-      ]);
-
-      const message = result.rows[0];
-
-      // Add sender info to response
-      const messageWithSender = {
-        ...message,
-        sender_username: req.user!.username,
-        sender_name: req.user!.username, // You might want to fetch full name
-        sender_avatar: null, // You might want to fetch avatar
-      };
-
-      // TODO: Implement real-time notification via WebSocket/Socket.IO
-      logger.info(`Message sent from ${req.user!.id} to ${conversationId}`);
-
-      res.status(201).json({
-        message: messageWithSender,
-        success: true,
-      });
-    } catch (error) {
-      logger.error('Send message error:', error);
-      res.status(500).json({ error: 'Failed to send message' });
-    }
+  } catch (error) {
+    logger.error('Get conversations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
-);
+});
 
-// PUT /api/messages/:messageId/read - Mark message as read
-router.put('/:messageId/read',
-  authenticateToken,
-  validateParams(messageSchemas.messageId),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { messageId } = req.params;
+// POST /api/v1/messages/conversations - Create a new conversation
+router.post('/conversations', authenticate, createConversationValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
 
-      // Update message read status
-      const updateQuery = `
-        UPDATE messages 
-        SET is_read = TRUE 
-        WHERE id = $1 AND recipient_id = $2 AND is_read = FALSE
-        RETURNING id, is_read
-      `;
-      const result = await db.query(updateQuery, [messageId, req.user!.id]);
+    const userId = (req as any).user.id;
+    const { participantIds, matchId } = req.body;
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Message not found or already read' });
+    // Add current user to participants if not included
+    const allParticipantIds = [...new Set([userId, ...participantIds])];
+
+    // Validate all participants exist and are active
+    const participants = await prisma.user.findMany({
+      where: {
+        id: { in: allParticipantIds },
+        isActive: true
+      },
+      select: { id: true }
+    });
+
+    if (participants.length !== allParticipantIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'One or more participants not found or inactive'
+      });
+    }
+
+    // For direct messages (2 participants), check if conversation already exists
+    if (allParticipantIds.length === 2) {
+      const existingConversation = await prisma.conversation.findFirst({
+        where: {
+          participants: {
+            every: {
+              userId: { in: allParticipantIds }
+            }
+          },
+          isActive: true
+        },
+        include: {
+          participants: true
+        }
+      });
+
+      // If conversation exists and has exactly 2 participants, return it
+      if (existingConversation && existingConversation.participants.length === 2) {
+        return res.status(200).json({
+          success: true,
+          message: 'Existing conversation found',
+          data: { conversation: { id: existingConversation.id } }
+        });
       }
-
-      res.json({
-        message: 'Message marked as read',
-        messageId: result.rows[0].id,
-      });
-    } catch (error) {
-      logger.error('Mark message as read error:', error);
-      res.status(500).json({ error: 'Failed to mark message as read' });
     }
-  }
-);
 
-// POST /api/messages/mark-read - Mark multiple messages as read
-router.post('/mark-read',
-  authenticateToken,
-  validateBody(messageSchemas.markAsRead),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { messageIds } = req.body;
-
-      // Update multiple messages read status
-      const updateQuery = `
-        UPDATE messages 
-        SET is_read = TRUE 
-        WHERE id = ANY($1::uuid[]) AND recipient_id = $2 AND is_read = FALSE
-        RETURNING id
-      `;
-      const result = await db.query(updateQuery, [messageIds, req.user!.id]);
-
-      res.json({
-        message: 'Messages marked as read',
-        updatedCount: result.rows.length,
-        updatedIds: result.rows.map(row => row.id),
+    // If matchId provided, validate the match
+    if (matchId) {
+      const match = await prisma.match.findFirst({
+        where: {
+          id: matchId,
+          OR: [
+            { user1Id: userId },
+            { user2Id: userId }
+          ],
+          isActive: true
+        }
       });
-    } catch (error) {
-      logger.error('Mark messages as read error:', error);
-      res.status(500).json({ error: 'Failed to mark messages as read' });
-    }
-  }
-);
 
-// DELETE /api/messages/:messageId - Delete a message
-router.delete('/:messageId',
-  authenticateToken,
-  validateParams(messageSchemas.messageId),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { messageId } = req.params;
-
-      // Check if user owns the message
-      const checkQuery = `
-        SELECT id, sender_id, content
-        FROM messages
-        WHERE id = $1 AND sender_id = $2
-      `;
-      const checkResult = await db.query(checkQuery, [messageId, req.user!.id]);
-
-      if (checkResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Message not found or access denied' });
+      if (!match) {
+        return res.status(404).json({
+          success: false,
+          message: 'Match not found or access denied'
+        });
       }
-
-      // Delete the message (or mark as deleted)
-      const deleteQuery = `
-        DELETE FROM messages
-        WHERE id = $1 AND sender_id = $2
-        RETURNING id
-      `;
-      const result = await db.query(deleteQuery, [messageId, req.user!.id]);
-
-      res.json({
-        message: 'Message deleted successfully',
-        deletedId: result.rows[0].id,
-      });
-    } catch (error) {
-      logger.error('Delete message error:', error);
-      res.status(500).json({ error: 'Failed to delete message' });
     }
-  }
-);
 
-// GET /api/messages/search - Search messages
-router.get('/search',
-  authenticateToken,
-  validateQuery(z.object({
-    q: z.string().min(1, 'Search query is required'),
-    conversationId: z.string().uuid().optional(),
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
-  })),
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const db = getDB();
-      const { q, conversationId, page = 1, limit = 20 } = req.query as any;
-      const offset = (page - 1) * limit;
-
-      let searchQuery = `
-        SELECT 
-          m.id,
-          m.sender_id,
-          m.recipient_id,
-          m.content,
-          m.media_type,
-          m.created_at,
-          u.username as sender_username,
-          u.full_name as sender_name,
-          u.avatar_url as sender_avatar
-        FROM messages m
-        JOIN users u ON u.id = m.sender_id
-        WHERE (m.sender_id = $1 OR m.recipient_id = $1)
-        AND m.content ILIKE $2
-      `;
-      
-      const queryParams = [req.user!.id, `%${q}%`];
-
-      if (conversationId) {
-        searchQuery += ' AND ((m.sender_id = $1 AND m.recipient_id = $3) OR (m.sender_id = $3 AND m.recipient_id = $1))';
-        queryParams.push(conversationId);
+    // Create conversation
+    const conversation = await prisma.conversation.create({
+      data: {
+        matchId: matchId || null,
+        participants: {
+          create: allParticipantIds.map(participantId => ({
+            userId: participantId,
+            unreadCount: 0
+          }))
+        }
+      },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
+        }
       }
+    });
 
-      searchQuery += ' ORDER BY m.created_at DESC LIMIT $' + (queryParams.length + 1) + ' OFFSET $' + (queryParams.length + 2);
-      queryParams.push(limit.toString(), offset.toString());
+    res.status(201).json({
+      success: true,
+      message: 'Conversation created successfully',
+      data: { conversation }
+    });
 
-      const messages = await db.query(searchQuery, queryParams);
+  } catch (error) {
+    logger.error('Create conversation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
 
-      res.json({
-        messages: messages.rows,
-        query: q,
+// GET /api/v1/messages/conversations/:conversationId - Get messages in a conversation
+router.get('/conversations/:conversationId', authenticate, paginationValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const userId = (req as any).user.id;
+    const { conversationId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip = (page - 1) * limit;
+    const before = req.query.before as string;
+
+    // Verify user has access to conversation
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        participants: {
+          some: {
+            userId: userId
+          }
+        },
+        isActive: true
+      }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found or access denied'
+      });
+    }
+
+    // Build message query conditions
+    const whereConditions: any = {
+      conversationId: conversationId,
+      deletedAt: null
+    };
+
+    if (before) {
+      // Get messages before the specified message
+      const beforeMessage = await prisma.message.findUnique({
+        where: { id: before }
+      });
+      if (beforeMessage) {
+        whereConditions.createdAt = {
+          lt: beforeMessage.createdAt
+        };
+      }
+    }
+
+    // Get messages with pagination
+    const messages = await prisma.message.findMany({
+      where: whereConditions,
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true
+          }
+        },
+        replyToMessage: {
+          select: {
+            id: true,
+            content: true,
+            messageType: true,
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limit
+    });
+
+    // Mark messages as read for current user
+    await prisma.message.updateMany({
+      where: {
+        conversationId: conversationId,
+        receiverId: userId,
+        isRead: false
+      },
+      data: {
+        isRead: true
+      }
+    });
+
+    // Update unread count for current user
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId: conversationId,
+        userId: userId
+      },
+      data: {
+        unreadCount: 0
+      }
+    });
+
+    // Get total count
+    const total = await prisma.message.count({
+      where: {
+        conversationId: conversationId,
+        deletedAt: null
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        messages: messages.reverse(), // Return in chronological order
         pagination: {
           page,
           limit,
-          hasNext: messages.rows.length === limit,
-          hasPrev: page > 1,
-        },
-      });
-    } catch (error) {
-      logger.error('Search messages error:', error);
-      res.status(500).json({ error: 'Failed to search messages' });
-    }
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Get conversation messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
-);
+});
+
+// POST /api/v1/messages - Send a message
+router.post('/', authenticate, sendMessageValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const userId = (req as any).user.id;
+    const { conversationId, content, messageType = 'text', mediaUrl, replyToMessageId } = req.body;
+
+    // Verify user has access to conversation
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        participants: {
+          some: {
+            userId: userId
+          }
+        },
+        isActive: true
+      },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                isActive: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found or access denied'
+      });
+    }
+
+    // Get the other participant (for direct messages)
+    const otherParticipants = conversation.participants
+      .filter(p => p.userId !== userId && p.user.isActive);
+
+    if (otherParticipants.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active recipients in conversation'
+      });
+    }
+
+    // For direct messages, get the main recipient
+    const receiverId = otherParticipants[0].userId;
+
+    // Validate reply-to message if provided
+    if (replyToMessageId) {
+      const replyToMessage = await prisma.message.findFirst({
+        where: {
+          id: replyToMessageId,
+          conversationId: conversationId
+        }
+      });
+
+      if (!replyToMessage) {
+        return res.status(404).json({
+          success: false,
+          message: 'Reply-to message not found in this conversation'
+        });
+      }
+    }
+
+    // Create message
+    const message = await prisma.message.create({
+      data: {
+        conversationId,
+        senderId: userId,
+        receiverId,
+        content,
+        messageType,
+        mediaUrl: mediaUrl || null,
+        replyToMessageId: replyToMessageId || null,
+        isRead: false,
+        isDelivered: true
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true
+          }
+        },
+        replyToMessage: {
+          select: {
+            id: true,
+            content: true,
+            messageType: true,
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Update conversation last message timestamp
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: new Date() }
+    });
+
+    // Update unread count for other participants
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId: conversationId,
+        userId: { not: userId }
+      },
+      data: {
+        unreadCount: { increment: 1 }
+      }
+    });
+
+    // TODO: Implement real-time notification via Socket.IO
+    logger.info(`Message sent in conversation ${conversationId} by user ${userId}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Message sent successfully',
+      data: { message }
+    });
+
+  } catch (error) {
+    logger.error('Send message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// POST /api/v1/messages/mark-read - Mark messages as read
+router.post('/mark-read', authenticate, markReadValidation, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const userId = (req as any).user.id;
+    const { messageIds } = req.body;
+
+    // Update messages as read where user is the receiver
+    const result = await prisma.message.updateMany({
+      where: {
+        id: { in: messageIds },
+        receiverId: userId,
+        isRead: false
+      },
+      data: {
+        isRead: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Messages marked as read',
+      data: {
+        updatedCount: result.count
+      }
+    });
+
+  } catch (error) {
+    logger.error('Mark messages as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// DELETE /api/v1/messages/:messageId - Delete a message
+router.delete('/:messageId', authenticate, async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = (req as any).user.id;
+
+    // Check if user owns the message
+    const message = await prisma.message.findFirst({
+      where: {
+        id: messageId,
+        senderId: userId,
+        deletedAt: null
+      }
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found or access denied'
+      });
+    }
+
+    // Soft delete the message
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { deletedAt: new Date() }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Message deleted successfully',
+      data: { messageId }
+    });
+
+  } catch (error) {
+    logger.error('Delete message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// GET /api/v1/messages/search - Search messages
+router.get('/search', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const query = req.query.q as string;
+    const conversationId = req.query.conversationId as string;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip = (page - 1) * limit;
+
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query is required'
+      });
+    }
+
+    // Build search conditions
+    const whereConditions: any = {
+      deletedAt: null,
+      content: {
+        contains: query.trim(),
+        mode: 'insensitive'
+      },
+      conversation: {
+        participants: {
+          some: {
+            userId: userId
+          }
+        }
+      }
+    };
+
+    if (conversationId) {
+      whereConditions.conversationId = conversationId;
+    }
+
+    // Search messages
+    const messages = await prisma.message.findMany({
+      where: whereConditions,
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        conversation: {
+          select: {
+            id: true,
+            participants: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    firstName: true,
+                    lastName: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limit
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        messages,
+        query,
+        pagination: {
+          page,
+          limit,
+          hasNext: messages.length === limit,
+          hasPrev: page > 1
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Search messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
 
 export default router;

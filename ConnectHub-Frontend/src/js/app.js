@@ -12,6 +12,7 @@ class ConnectHubApp {
         this.conversations = [];
         this.notifications = [];
         this.matches = [];
+        this.api = window.connectHubAPI;
         
         this.init();
     }
@@ -485,30 +486,52 @@ class ConnectHubApp {
      */
     async loadInitialData() {
         try {
-            // Simulate loading user data
-            this.currentUser = {
-                id: 'user-1',
-                name: 'John Doe',
-                username: '@johndoe',
-                email: 'john@example.com',
-                avatar: 'https://via.placeholder.com/150x150/4facfe/ffffff?text=JD',
-                bio: 'Digital creator | Photography enthusiast | Travel lover',
-                stats: {
-                    posts: 248,
-                    followers: 12400,
-                    following: 1024
+            // Check if user is authenticated
+            if (this.api.isAuthenticated()) {
+                // Load user profile from API
+                const profileResponse = await this.api.getProfile();
+                if (profileResponse.success) {
+                    this.currentUser = profileResponse.data.user;
                 }
-            };
-
-            // Load initial posts
-            await this.loadFeedPosts();
-            
-            // Update UI with user data
-            this.updateUserInterface();
+                
+                // Load initial posts
+                await this.loadFeedPosts();
+                
+                // Update UI with user data
+                this.updateUserInterface();
+            } else {
+                // Show demo data for now (in real app, redirect to login)
+                this.loadDemoData();
+                this.showToast('Demo mode - Login feature coming soon', 'info');
+            }
             
         } catch (error) {
             console.error('Failed to load initial data:', error);
+            // Fallback to demo data
+            this.loadDemoData();
         }
+    }
+
+    /**
+     * Load demo data for showcase
+     */
+    loadDemoData() {
+        this.currentUser = {
+            id: 'demo-user-1',
+            name: 'John Doe',
+            username: '@johndoe',
+            email: 'john@example.com',
+            avatar: 'https://via.placeholder.com/150x150/4facfe/ffffff?text=JD',
+            bio: 'Digital creator | Photography enthusiast | Travel lover',
+            stats: {
+                posts: 248,
+                followers: 12400,
+                following: 1024
+            }
+        };
+        
+        this.updateUserInterface();
+        this.loadFeedPosts(); // Will use mock data
     }
 
     /**
