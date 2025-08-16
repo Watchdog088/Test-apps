@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 // Placeholder upload route - file upload functionality can be added later
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     // For now, just return a placeholder response
     // File upload functionality with multer/cloudinary can be added later

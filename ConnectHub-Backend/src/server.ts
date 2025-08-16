@@ -28,12 +28,14 @@ const notFound = (req: any, res: any, next: any) => {
 
 // Import routes
 import authRoutes from './routes/auth';
-// import userRoutes from './routes/users';
 import postRoutes from './routes/posts';
-// import datingRoutes from './routes/dating';
-// import messageRoutes from './routes/messages';
-// import uploadRoutes from './routes/upload';
+import userRoutes from './routes/users';
+import datingRoutes from './routes/dating';
+import messageRoutes from './routes/messages';
+import callRoutes from './routes/calls';
+import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
+import contentControlRoutes from './routes/content-control';
 
 // Import socket handlers
 import { initializeSocket } from './sockets';
@@ -54,6 +56,9 @@ const io = new SocketIOServer(server, {
 
 // Initialize socket handlers
 initializeSocket(server);
+
+// Make io instance available to routes
+app.set('io', io);
 
 // Security middleware
 app.use(helmet({
@@ -112,11 +117,13 @@ app.get('/health', (req, res) => {
 const API_VERSION = process.env.API_VERSION || 'v1';
 app.use(`/api/${API_VERSION}/health`, healthRoutes);
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
-// app.use(`/api/${API_VERSION}/users`, userRoutes);
+app.use(`/api/${API_VERSION}/users`, userRoutes);
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
-// app.use(`/api/${API_VERSION}/dating`, datingRoutes);
-// app.use(`/api/${API_VERSION}/messages`, messageRoutes);
-// app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
+app.use(`/api/${API_VERSION}/dating`, datingRoutes);
+app.use(`/api/${API_VERSION}/messages`, messageRoutes);
+app.use(`/api/${API_VERSION}/calls`, callRoutes);
+app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
+app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
 
 // Documentation route (placeholder for Swagger)
 app.get('/api-docs', (req, res) => {

@@ -9,6 +9,7 @@ export interface AuthenticatedRequest extends Request {
     id: string;
     email: string;
     username: string;
+    isVerified: boolean;
   };
 }
 
@@ -55,7 +56,8 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
     req.user = {
       id: user.id,
       email: user.email,
-      username: user.username
+      username: user.username,
+      isVerified: user.isVerified
     };
 
     next();

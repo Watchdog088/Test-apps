@@ -267,6 +267,19 @@ class ConnectHubAPI {
         return this.makeRequest('/dating/stats');
     }
 
+    // AI Matching Methods
+    async getSmartMatches(limit = 10) {
+        return this.makeRequest(`/dating/smart-matches?limit=${limit}`);
+    }
+
+    async updateAIPreferences() {
+        return this.makeRequest('/dating/update-preferences', { method: 'POST' });
+    }
+
+    async getCompatibilityScore(targetUserId) {
+        return this.makeRequest(`/dating/compatibility/${targetUserId}`);
+    }
+
     /**
      * Messages API Methods
      */

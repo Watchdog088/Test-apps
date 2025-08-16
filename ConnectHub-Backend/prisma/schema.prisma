@@ -56,6 +56,8 @@ model User {
   notifications     Notification[]
   reports           Report[] @relation("ReportMaker")
   reportsReceived   Report[] @relation("ReportTarget")
+  callsMade         Call[] @relation("CallsMade")
+  callsReceived     Call[] @relation("CallsReceived")
 
   @@map("users")
 }
@@ -174,6 +176,7 @@ model Match {
   id            String        @id @default(cuid())
   user1Id       String
   user2Id       String
+  status        String        @default("matched") // 'matched', 'unmatched', 'blocked'
   isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
   lastMessageAt DateTime?
@@ -186,6 +189,26 @@ model Match {
 
   @@unique([user1Id, user2Id])
   @@map("matches")
+}
+
+model Call {
+  id           String    @id @default(cuid())
+  callerId     String
+  recipientId  String
+  callType     String    // 'voice', 'video'
+  status       String    @default("initiated") // 'initiated', 'ringing', 'accepted', 'declined', 'ended', 'missed'
+  initiatedAt  DateTime  @default(now())
+  acceptedAt   DateTime?
+  endedAt      DateTime?
+  duration     Int?      // Duration in seconds
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  caller       User @relation("CallsMade", fields: [callerId], references: [id], onDelete: Cascade)
+  recipient    User @relation("CallsReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("calls")
 }
 
 model DateRequest {

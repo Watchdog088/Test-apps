@@ -3,6 +3,7 @@ import { prisma } from '../config/database';
 import { body, validationResult, param, query } from 'express-validator';
 import { authenticate } from '../middleware/auth';
 import logger from '../config/logger';
+import { matchingAlgorithm } from '../services/matchingAlgorithm';
 
 const router = express.Router();
 
@@ -648,6 +649,231 @@ router.get('/stats', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
+    });
+  }
+});
+
+// GET /api/v1/dating/smart-matches - AI-powered smart matching
+router.get('/smart-matches', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
+
+    // Check if user has a dating profile
+    const userProfile = await prisma.datingProfile.findUnique({
+      where: { userId, isActive: true }
+    });
+
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dating profile not found. Please create a profile first.'
+      });
+    }
+
+    // Get AI-powered smart matches
+    const smartMatches = await matchingAlgorithm.getSmartMatches(userId, limit);
+
+    // Get detailed profile information for each match
+    const detailedMatches = await Promise.all(
+      smartMatches.map(async (match) => {
+        const profile = await prisma.datingProfile.findUnique({
+          where: { userId: match.userId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+                isVerified: true
+              }
+            }
+          }
+        });
+
+        if (!profile) return null;
+
+        return {
+          user: profile.user,
+          profile: {
+            age: profile.age,
+            bio: profile.bio,
+            photos: JSON.parse(profile.photos),
+            interests: JSON.parse(profile.interests),
+            location: JSON.parse(profile.location)
+          },
+          matchScore: {
+            overall: Math.round(match.overallScore * 100),
+            compatibility: Math.round(match.compatibilityScore * 100),
+            interests: Math.round(match.interestScore * 100),
+            activity: Math.round(match.activityScore * 100),
+            location: Math.round(match.locationScore * 100),
+            reasons: match.reasons
+          }
+        };
+      })
+    );
+
+    // Filter out null results
+    const validMatches = detailedMatches.filter(match => match !== null);
+
+    res.status(200).json({
+      success: true,
+      message: 'AI-powered smart matches generated successfully',
+      data: {
+        matches: validMatches,
+        algorithm: 'ConnectHub AI Matching v1.0',
+        totalFound: validMatches.length
+      }
+    });
+
+  } catch (error) {
+    logger.error('Smart matches error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating smart matches'
+    });
+  }
+});
+
+// POST /api/v1/dating/update-preferences - Update AI preferences based on behavior
+router.post('/update-preferences', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+
+    // Check if user has a dating profile
+    const userProfile = await prisma.datingProfile.findUnique({
+      where: { userId, isActive: true }
+    });
+
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dating profile not found'
+      });
+    }
+
+    // Update user preferences based on swiping behavior
+    await matchingAlgorithm.updateUserPreferences(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'AI preferences updated based on your activity',
+      data: {
+        updated: true,
+        message: 'Future matches will be more personalized'
+      }
+    });
+
+  } catch (error) {
+    logger.error('Update AI preferences error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating preferences'
+    });
+  }
+});
+
+// GET /api/v1/dating/compatibility/:targetUserId - Get compatibility score with specific user
+router.get('/compatibility/:targetUserId', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { targetUserId } = req.params;
+
+    if (userId === targetUserId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot check compatibility with yourself'
+      });
+    }
+
+    // Check if both users have dating profiles
+    const [userProfile, targetProfile] = await Promise.all([
+      prisma.datingProfile.findUnique({
+        where: { userId, isActive: true },
+        include: { user: true }
+      }),
+      prisma.datingProfile.findUnique({
+        where: { userId: targetUserId, isActive: true },
+        include: { user: true }
+      })
+    ]);
+
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Your dating profile not found'
+      });
+    }
+
+    if (!targetProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Target user profile not found'
+      });
+    }
+
+    // Transform profiles for AI algorithm
+    const userProfileData = {
+      id: userId,
+      age: userProfile.age,
+      bio: userProfile.bio,
+      interests: JSON.parse(userProfile.interests),
+      photos: JSON.parse(userProfile.photos),
+      location: JSON.parse(userProfile.location),
+      preferences: JSON.parse(userProfile.preferences),
+      lastActive: userProfile.lastActive,
+      isVerified: userProfile.user.isVerified
+    };
+
+    const targetProfileData = {
+      id: targetUserId,
+      age: targetProfile.age,
+      bio: targetProfile.bio,
+      interests: JSON.parse(targetProfile.interests),
+      photos: JSON.parse(targetProfile.photos),
+      location: JSON.parse(targetProfile.location),
+      preferences: JSON.parse(targetProfile.preferences),
+      lastActive: targetProfile.lastActive,
+      isVerified: targetProfile.user.isVerified
+    };
+
+    // Calculate compatibility score
+    const compatibility = matchingAlgorithm.calculateMatchScore(userProfileData, targetProfileData);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        targetUser: {
+          id: targetProfile.user.id,
+          firstName: targetProfile.user.firstName,
+          lastName: targetProfile.user.lastName,
+          avatar: targetProfile.user.avatar
+        },
+        compatibility: {
+          overall: Math.round(compatibility.overallScore * 100),
+          breakdown: {
+            compatibility: Math.round(compatibility.compatibilityScore * 100),
+            interests: Math.round(compatibility.interestScore * 100),
+            activity: Math.round(compatibility.activityScore * 100),
+            location: Math.round(compatibility.locationScore * 100)
+          },
+          reasons: compatibility.reasons,
+          interpretation: compatibility.overallScore >= 0.8 ? 'Excellent Match' :
+                          compatibility.overallScore >= 0.6 ? 'Great Match' :
+                          compatibility.overallScore >= 0.4 ? 'Good Match' :
+                          compatibility.overallScore >= 0.2 ? 'Fair Match' : 'Low Match'
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Compatibility check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error calculating compatibility'
     });
   }
 });
