@@ -1202,20 +1202,331 @@ class ConnectHubApp {
         this.showToast(`Feed: ${feed}`, 'info');
     }
 
+    /**
+     * Handle add photo functionality
+     */
     handleAddPhoto() {
-        this.showToast('Add photo feature coming soon', 'info');
+        this.createFileInput('image/*', (files) => {
+            this.handleMediaFiles(files, 'photo');
+        });
     }
 
+    /**
+     * Handle add video functionality
+     */
     handleAddVideo() {
-        this.showToast('Add video feature coming soon', 'info');
+        this.createFileInput('video/*', (files) => {
+            this.handleMediaFiles(files, 'video');
+        });
     }
 
+    /**
+     * Handle add location functionality
+     */
     handleAddLocation() {
-        this.showToast('Add location feature coming soon', 'info');
+        if (navigator.geolocation) {
+            this.showToast('Getting your location...', 'info');
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    this.addLocationToPost(latitude, longitude);
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                    this.showToast('Could not get your location', 'warning');
+                    this.showLocationPicker();
+                }
+            );
+        } else {
+            this.showLocationPicker();
+        }
     }
 
+    /**
+     * Handle add emoji functionality
+     */
     handleAddEmoji() {
-        this.showToast('Add emoji feature coming soon', 'info');
+        this.showEmojiPicker();
+    }
+
+    /**
+     * Create file input for media uploads
+     */
+    createFileInput(accept, callback) {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = accept;
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                callback(files);
+            }
+            // Clean up
+            document.body.removeChild(fileInput);
+        });
+        
+        document.body.appendChild(fileInput);
+        fileInput.click();
+    }
+
+    /**
+     * Handle uploaded media files
+     */
+    handleMediaFiles(files, type) {
+        if (files.length === 0) return;
+
+        // Validate file sizes (max 10MB per file)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const validFiles = files.filter(file => {
+            if (file.size > maxSize) {
+                this.showToast(`File ${file.name} is too large (max 10MB)`, 'warning');
+                return false;
+            }
+            return true;
+        });
+
+        if (validFiles.length === 0) return;
+
+        // Process files
+        validFiles.forEach(file => {
+            this.processMediaFile(file, type);
+        });
+
+        this.showToast(`${validFiles.length} ${type}(s) added`, 'success');
+    }
+
+    /**
+     * Process individual media file
+     */
+    processMediaFile(file, type) {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const mediaData = {
+                id: `media-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                type: type,
+                file: file,
+                url: e.target.result,
+                name: file.name,
+                size: file.size
+            };
+            
+            // Add to current post media
+            if (!this.currentPostMedia) {
+                this.currentPostMedia = [];
+            }
+            this.currentPostMedia.push(mediaData);
+            
+            // Update media preview
+            this.updateMediaPreview();
+        };
+        
+        reader.onerror = () => {
+            this.showToast(`Failed to process ${file.name}`, 'error');
+        };
+        
+        reader.readAsDataURL(file);
+    }
+
+    /**
+     * Update media preview in create post modal
+     */
+    updateMediaPreview() {
+        const mediaPreview = document.getElementById('media-preview');
+        if (!mediaPreview || !this.currentPostMedia) return;
+
+        if (this.currentPostMedia.length === 0) {
+            mediaPreview.innerHTML = '';
+            mediaPreview.style.display = 'none';
+            return;
+        }
+
+        mediaPreview.style.display = 'block';
+        mediaPreview.innerHTML = `
+            <div class="media-preview-container">
+                ${this.currentPostMedia.map(media => `
+                    <div class="media-preview-item" data-media-id="${media.id}">
+                        ${media.type === 'photo' ? 
+                            `<img src="${media.url}" alt="${media.name}" class="preview-image">` :
+                            `<video src="${media.url}" class="preview-video" controls></video>`
+                        }
+                        <button class="remove-media-btn" onclick="connectHub.removeMediaFromPost('${media.id}')" title="Remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="media-info">
+                            <span class="media-name">${media.name}</span>
+                            <span class="media-size">${this.formatFileSize(media.size)}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    /**
+     * Remove media from current post
+     */
+    removeMediaFromPost(mediaId) {
+        if (!this.currentPostMedia) return;
+        
+        this.currentPostMedia = this.currentPostMedia.filter(media => media.id !== mediaId);
+        this.updateMediaPreview();
+        this.showToast('Media removed', 'info');
+    }
+
+    /**
+     * Add location to post
+     */
+    addLocationToPost(latitude, longitude) {
+        // Use reverse geocoding to get location name (simplified version)
+        this.currentPostLocation = {
+            lat: latitude,
+            lng: longitude,
+            name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` // Simplified display
+        };
+        
+        // Show location in the post input area
+        this.showToast(`Location added: ${this.currentPostLocation.name}`, 'success');
+        this.updateLocationDisplay();
+    }
+
+    /**
+     * Show location picker modal (simplified version)
+     */
+    showLocationPicker() {
+        const locations = [
+            { name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
+            { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+            { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
+            { name: 'Miami, FL', lat: 25.7617, lng: -80.1918 },
+            { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 }
+        ];
+        
+        // Simple location selection (in a real app, this would be a proper modal)
+        const locationName = prompt('Enter your location (or choose from: ' + 
+            locations.map(l => l.name).join(', ') + ')');
+            
+        if (locationName) {
+            const foundLocation = locations.find(l => 
+                l.name.toLowerCase().includes(locationName.toLowerCase())
+            );
+            
+            if (foundLocation) {
+                this.addLocationToPost(foundLocation.lat, foundLocation.lng);
+                this.currentPostLocation.name = foundLocation.name;
+            } else {
+                this.currentPostLocation = {
+                    lat: null,
+                    lng: null,
+                    name: locationName
+                };
+            }
+            
+            this.showToast(`Location set to: ${this.currentPostLocation.name}`, 'success');
+        }
+    }
+
+    /**
+     * Update location display in post composer
+     */
+    updateLocationDisplay() {
+        if (!this.currentPostLocation) return;
+        
+        // Add visual indicator that location is attached
+        const locationBtn = document.getElementById('modal-add-location') || 
+                           document.getElementById('add-location-btn');
+        
+        if (locationBtn) {
+            locationBtn.style.color = '#42b72a';
+            locationBtn.title = `Location: ${this.currentPostLocation.name}`;
+        }
+    }
+
+    /**
+     * Show emoji picker (simplified version)
+     */
+    showEmojiPicker() {
+        const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', 
+                       '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛',
+                       '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
+                       '❤️', '💕', '💖', '💗', '💓', '💞', '💘', '💝', '🎉', '🎊',
+                       '🔥', '✨', '⭐', '🌟', '💫', '🎯', '🎪', '🎨', '🎭', '🎪'];
+        
+        // Create emoji picker popup
+        const existingPicker = document.getElementById('emoji-picker');
+        if (existingPicker) {
+            existingPicker.remove();
+        }
+        
+        const emojiPicker = document.createElement('div');
+        emojiPicker.id = 'emoji-picker';
+        emojiPicker.className = 'emoji-picker';
+        emojiPicker.innerHTML = `
+            <div class="emoji-picker-content">
+                <div class="emoji-picker-header">
+                    <span>Choose an emoji</span>
+                    <button class="close-emoji-picker" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="emoji-grid">
+                    ${emojis.map(emoji => 
+                        `<button class="emoji-btn" onclick="connectHub.insertEmoji('${emoji}')">${emoji}</button>`
+                    ).join('')}
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(emojiPicker);
+        
+        // Position the picker
+        const emojiBtn = document.getElementById('modal-add-emoji') || 
+                        document.getElementById('add-emoji-btn');
+        if (emojiBtn) {
+            const rect = emojiBtn.getBoundingClientRect();
+            emojiPicker.style.position = 'fixed';
+            emojiPicker.style.top = (rect.bottom + 10) + 'px';
+            emojiPicker.style.left = rect.left + 'px';
+            emojiPicker.style.zIndex = '10000';
+        }
+    }
+
+    /**
+     * Insert emoji into post content
+     */
+    insertEmoji(emoji) {
+        const textarea = document.getElementById('modal-post-content');
+        if (textarea) {
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(textarea.selectionEnd);
+            
+            textarea.value = textBefore + emoji + textAfter;
+            textarea.focus();
+            textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+        }
+        
+        // Close emoji picker
+        const picker = document.getElementById('emoji-picker');
+        if (picker) {
+            picker.remove();
+        }
+    }
+
+    /**
+     * Format file size for display
+     */
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }
 

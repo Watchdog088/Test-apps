@@ -38,6 +38,7 @@ import healthRoutes from './routes/health';
 import contentControlRoutes from './routes/content-control';
 import monetizationRoutes from './routes/monetization';
 import enterpriseRoutes from './routes/enterprise';
+import gamificationRoutes from './routes/gamification';
 
 // Import socket handlers
 import { initializeSocket } from './sockets';
@@ -128,6 +129,7 @@ app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
 app.use(`/api/${API_VERSION}/monetization`, monetizationRoutes);
 app.use(`/api/${API_VERSION}/enterprise`, enterpriseRoutes);
+app.use(`/api/${API_VERSION}/gamification`, gamificationRoutes);
 
 // Documentation route (placeholder for Swagger)
 app.get('/api-docs', (req, res) => {
