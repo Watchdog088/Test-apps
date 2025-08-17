@@ -2,46 +2,135 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+import sharp from 'sharp';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import { prisma } from '../config/database';
+import { securityService } from '../services/securityService';
 import logger from '../config/logger';
 
 const router = express.Router();
 
-// Configure multer for file upload
+// Security: Sanitize filename to prevent directory traversal
+const sanitizeFilename = (filename: string): string => {
+  return filename.replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
+};
+
+// Security: Generate cryptographically secure filename
+const generateSecureFilename = (originalName: string, userId: string): string => {
+  const timestamp = Date.now();
+  const randomBytes = crypto.randomBytes(16).toString('hex');
+  const ext = path.extname(sanitizeFilename(originalName));
+  const userHash = crypto.createHash('sha256').update(userId).digest('hex').substring(0, 8);
+  return `${userHash}_${timestamp}_${randomBytes}${ext}`;
+};
+
+// Enhanced storage configuration with security
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
+  destination: (req: AuthenticatedRequest, file, cb) => {
+    const userId = req.user?.id || 'anonymous';
+    const userHash = crypto.createHash('sha256').update(userId).digest('hex').substring(0, 8);
+    const uploadDir = `uploads/${userHash}/`;
+    
     if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+      fs.mkdirSync(uploadDir, { recursive: true, mode: 0o755 });
     }
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  filename: (req: AuthenticatedRequest, file, cb) => {
+    const userId = req.user?.id || 'anonymous';
+    const secureFilename = generateSecureFilename(file.originalname, userId);
+    cb(null, secureFilename);
   }
 });
 
+// Enhanced security file filter
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // Allow images only
-  if (file.mimetype.startsWith('image/')) {
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif'
+  ];
+  
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
+  const ext = path.extname(file.originalname.toLowerCase());
+  
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed!'));
+    cb(new Error('Invalid file type. Only high-quality image formats (JPEG, PNG, WebP, HEIC) are allowed.'));
   }
 };
 
+// High-resolution upload configuration
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit for high-res images
+    files: 10
   },
   fileFilter: fileFilter
 });
 
-// Profile photo upload
+// Image processing service for optimization and security
+const processImage = async (
+  inputPath: string, 
+  outputPath: string, 
+  options: {
+    quality?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    format?: 'jpeg' | 'png' | 'webp';
+    removeMetadata?: boolean;
+  } = {}
+): Promise<{ width: number; height: number; size: number; format: string }> => {
+  const {
+    quality = 85,
+    maxWidth = 4096,
+    maxHeight = 4096,
+    format = 'jpeg',
+    removeMetadata = true
+  } = options;
+
+  let sharpInstance = sharp(inputPath);
+
+  // Remove EXIF data for privacy/security
+  if (removeMetadata) {
+    sharpInstance = sharpInstance.withMetadata();
+  }
+
+  // Resize if necessary while maintaining aspect ratio
+  sharpInstance = sharpInstance.resize(maxWidth, maxHeight, {
+    fit: 'inside',
+    withoutEnlargement: true
+  });
+
+  // Apply format and quality settings
+  switch (format) {
+    case 'jpeg':
+      sharpInstance = sharpInstance.jpeg({ quality, progressive: true });
+      break;
+    case 'png':
+      sharpInstance = sharpInstance.png({ quality, progressive: true });
+      break;
+    case 'webp':
+      sharpInstance = sharpInstance.webp({ quality });
+      break;
+  }
+
+  const info = await sharpInstance.toFile(outputPath);
+  return {
+    width: info.width,
+    height: info.height,
+    size: info.size,
+    format: info.format
+  };
+};
+
+// Enhanced profile photo upload with security and multiple display options
 router.post('/profile-photo', authenticate, upload.single('profilePhoto'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.file) {
@@ -51,27 +140,96 @@ router.post('/profile-photo', authenticate, upload.single('profilePhoto'), async
       });
     }
 
+    // Security validation
+    const validation = securityService.validateFileUpload(req.file);
+    if (!validation.isValid) {
+      // Delete uploaded file if invalid
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file',
+        errors: validation.errors
+      });
+    }
+
+    // Detect suspicious activity
+    const suspiciousActivity = securityService.detectSuspiciousActivity(req);
+    if (suspiciousActivity.isSuspicious) {
+      securityService.logSecurityEvent('Suspicious upload attempt', req.user.id, suspiciousActivity.reasons);
+      fs.unlinkSync(req.file.path);
+      return res.status(403).json({
+        success: false,
+        message: 'Upload rejected due to security concerns'
+      });
+    }
+
     const userId = req.user.id;
-    const filename = req.file.filename;
-    const filepath = `/uploads/${filename}`;
+    const { displayLocation } = req.body; // Where to display: 'profile', 'dating', 'both'
+    
+    // Process image for high quality and security
+    const processedImagePath = path.join(path.dirname(req.file.path), 'processed_' + req.file.filename);
+    
+    try {
+      const imageInfo = await processImage(req.file.path, processedImagePath, {
+        quality: 90,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        format: 'jpeg',
+        removeMetadata: true
+      });
 
-    // Update user's avatar in database
-    await prisma.user.update({
-      where: { id: userId },
-      data: { avatar: filepath }
-    });
+      // Delete original file
+      fs.unlinkSync(req.file.path);
+      
+      // Move processed file to final location
+      const finalPath = req.file.path;
+      fs.renameSync(processedImagePath, finalPath);
 
-    logger.info(`Profile photo updated for user ${userId}: ${filepath}`);
+      const filepath = `/uploads/${req.file.filename}`;
 
-    res.status(200).json({
-      success: true,
-      message: 'Profile photo uploaded successfully',
-      data: {
-        filename: filename,
-        path: filepath,
-        url: `${req.protocol}://${req.get('host')}${filepath}`
+      // Update user's avatar based on display location
+      const updateData: any = {};
+      if (displayLocation === 'profile' || displayLocation === 'both' || !displayLocation) {
+        updateData.avatar = filepath;
       }
-    });
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData
+      });
+
+      // Log successful upload
+      securityService.logSecurityEvent('Profile photo uploaded', userId, { 
+        filename: req.file.filename, 
+        size: imageInfo.size,
+        displayLocation 
+      });
+
+      logger.info(`Profile photo updated for user ${userId}: ${filepath}, display: ${displayLocation}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Profile photo uploaded successfully',
+        data: {
+          filename: req.file.filename,
+          path: filepath,
+          url: `${req.protocol}://${req.get('host')}${filepath}`,
+          displayLocation,
+          imageInfo: {
+            width: imageInfo.width,
+            height: imageInfo.height,
+            size: imageInfo.size,
+            format: imageInfo.format
+          }
+        }
+      });
+
+    } catch (processingError) {
+      // Clean up files on processing error
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      if (fs.existsSync(processedImagePath)) fs.unlinkSync(processedImagePath);
+      throw processingError;
+    }
 
   } catch (error) {
     logger.error('Profile photo upload error:', error);

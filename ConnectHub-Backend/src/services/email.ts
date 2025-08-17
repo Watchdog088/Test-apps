@@ -177,4 +177,50 @@ export const sendBulkEmails = async (emails: EmailData[]): Promise<void> => {
   }
 };
 
-export default { sendEmail, sendBulkEmails };
+// Helper functions for specific email types
+export const sendPasswordResetEmail = async (email: string, name: string, resetToken: string): Promise<void> => {
+  const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth.html?reset=${resetToken}`;
+  
+  await sendEmail({
+    to: email,
+    subject: 'Reset Your ConnectHub Password',
+    template: 'password-reset',
+    data: {
+      name,
+      resetLink
+    }
+  });
+};
+
+export const sendEmailVerification = async (email: string, name: string, verificationToken: string): Promise<void> => {
+  const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify?token=${verificationToken}`;
+  
+  await sendEmail({
+    to: email,
+    subject: 'Verify Your ConnectHub Email',
+    template: 'email-verification',
+    data: {
+      name,
+      verificationLink
+    }
+  });
+};
+
+export const sendWelcomeEmail = async (email: string, name: string): Promise<void> => {
+  await sendEmail({
+    to: email,
+    subject: 'Welcome to ConnectHub! 🎉',
+    template: 'welcome',
+    data: {
+      name
+    }
+  });
+};
+
+export default { 
+  sendEmail, 
+  sendBulkEmails, 
+  sendPasswordResetEmail, 
+  sendEmailVerification, 
+  sendWelcomeEmail 
+};

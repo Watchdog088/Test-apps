@@ -332,6 +332,7 @@ class AuthManager {
             email: formData.get('email'),
             password: formData.get('password'),
             confirmPassword: formData.get('confirmPassword'),
+            datingEnabled: formData.get('datingEnabled') === 'on',
             terms: formData.get('terms')
         };
 
@@ -351,7 +352,8 @@ class AuthManager {
                     lastName: data.lastName,
                     username: data.username,
                     email: data.email,
-                    password: data.password
+                    password: data.password,
+                    datingEnabled: data.datingEnabled
                 })
             });
 

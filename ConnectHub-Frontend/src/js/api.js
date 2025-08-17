@@ -5,7 +5,7 @@
 
 class ConnectHubAPI {
     constructor() {
-        this.baseURL = 'http://localhost:5000/api/v1';
+        this.baseURL = 'http://localhost:3001/api/v1';
         this.token = localStorage.getItem('connecthub_token');
         this.user = JSON.parse(localStorage.getItem('connecthub_user') || 'null');
     }
@@ -364,7 +364,7 @@ class ConnectHubAPI {
 
     async getHealth() {
         try {
-            const response = await fetch('http://localhost:5000/health');
+            const response = await fetch('http://localhost:3001/health');
             return response.json();
         } catch (error) {
             console.error('Health check failed:', error);
@@ -377,7 +377,7 @@ class ConnectHubAPI {
      */
     initializeWebSocket() {
         if (this.token) {
-            this.socket = io('http://localhost:5000', {
+            this.socket = io('http://localhost:3001', {
                 auth: {
                     token: this.token
                 }

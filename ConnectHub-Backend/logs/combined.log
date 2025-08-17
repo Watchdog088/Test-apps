@@ -139,3 +139,48 @@
 {"level":"info","message":"🏥 Health check available at http://localhost:5000/health","service":"connecthub-api","timestamp":"2025-08-16 19:45:14"}
 {"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 19:47:39"}
 {"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 19:51:21"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 22:40:59"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 22:41:46"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 22:59:48"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 23:00:24"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 23:15:28"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-16 23:15:28"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-16 23:15:28"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-16 23:15:28"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-16 23:15:28"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 23:16:24"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-16 23:16:24"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-16 23:16:24"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-16 23:16:24"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-16 23:16:24"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 23:17:54"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-16 23:17:54"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-16 23:17:54"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-16 23:17:54"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-16 23:17:54"}
+{"level":"warn","message":"No ENCRYPTION_KEY found in environment. Generated temporary key for session.","service":"connecthub-api","timestamp":"2025-08-16 23:18:33"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-16 23:18:34"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-16 23:18:34"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-16 23:18:34"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-16 23:18:34"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-16 23:18:34"}
+{"level":"warn","message":"No ENCRYPTION_KEY found in environment. Generated temporary key for session.","service":"connecthub-api","timestamp":"2025-08-17 00:08:18"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-17 00:08:19"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-17 00:08:19"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-17 00:08:19"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-17 00:08:19"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-17 00:08:19"}
+{"level":"warn","message":"No ENCRYPTION_KEY found in environment. Generated temporary key for session.","service":"connecthub-api","timestamp":"2025-08-17 00:15:12"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-17 00:15:13"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-17 00:15:13"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-17 00:15:13"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-17 00:15:13"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-17 00:15:13"}
+{"level":"warn","message":"No ENCRYPTION_KEY found in environment. Generated temporary key for session.","service":"connecthub-api","timestamp":"2025-08-17 00:16:51"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-17 00:16:52"}
+{"level":"info","message":"Redis not configured or not available, skipping Redis connection","service":"connecthub-api","timestamp":"2025-08-17 00:16:52"}
+{"level":"info","message":"🚀 Server running on port 3001 in development mode","service":"connecthub-api","timestamp":"2025-08-17 00:16:52"}
+{"level":"info","message":"📚 API Documentation available at http://localhost:3001/api-docs","service":"connecthub-api","timestamp":"2025-08-17 00:16:52"}
+{"level":"info","message":"🏥 Health check available at http://localhost:3001/health","service":"connecthub-api","timestamp":"2025-08-17 00:16:52"}
+{"level":"warn","message":"No ENCRYPTION_KEY found in environment. Generated temporary key for session.","service":"connecthub-api","timestamp":"2025-08-17 00:18:27"}
+{"level":"info","message":"✅ Database connected successfully (SQLite with Prisma)","service":"connecthub-api","timestamp":"2025-08-17 00:18:28"}
