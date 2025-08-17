@@ -976,13 +976,32 @@ class ConnectHubApp {
                 const isMatch = Math.random() > 0.7;
                 
                 if (isMatch) {
-                    this.showToast(`It's a match with ${profile.name}! 💕`, 'success');
+                    // Initialize match animation if not already done
+                    if (!this.matchAnimation) {
+                        this.matchAnimation = new MatchAnimation();
+                    }
+                    
+                    // Show the beautiful "It's a Lynk!" animation
+                    this.matchAnimation.showMatchAnimation((actionType) => {
+                        if (actionType === 'message') {
+                            // Navigate to messages and start conversation
+                            this.navigateToSection('messages');
+                            this.startConversationWithMatch(profile);
+                        } else if (actionType === 'continue') {
+                            // Continue dating
+                            this.loadDatingProfile();
+                        }
+                    });
+                    
                     // Add to matches
                     this.matches.push({
                         id: `match-${Date.now()}`,
                         profile: profile,
                         timestamp: new Date()
                     });
+                    
+                    // Don't load next profile immediately - let animation finish
+                    return;
                 } else {
                     this.showToast(`You liked ${profile.name}`, 'info');
                 }
@@ -1172,6 +1191,33 @@ class ConnectHubApp {
 
     startNewConversation() {
         this.showToast('New conversation feature coming soon', 'info');
+    }
+
+    /**
+     * Start conversation with a match
+     */
+    startConversationWithMatch(profile) {
+        // Create a new conversation with the matched user
+        const newConversation = {
+            id: `conv-${Date.now()}`,
+            user: {
+                id: profile.id,
+                name: profile.name,
+                avatar: profile.photos ? profile.photos[0] : 'https://via.placeholder.com/40x40/4facfe/ffffff?text=' + profile.name[0]
+            },
+            lastMessage: `Matched with ${profile.name}! Say hello 👋`,
+            timestamp: new Date(),
+            unread: 0,
+            isMatch: true
+        };
+
+        // Add to conversations
+        this.conversations.unshift(newConversation);
+        
+        this.showToast(`Starting conversation with ${profile.name}`, 'success');
+        
+        // In a real app, this would open the conversation interface
+        // For now, just show the messages section
     }
 
     searchConversations(query) {
