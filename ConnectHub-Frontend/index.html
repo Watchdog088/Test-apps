@@ -77,25 +77,59 @@
         <header class="app-header">
             <div class="header-left">
                 <div class="logo">
-                    <!-- Header SVG Logo -->
-                    <svg class="header-logo-svg" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="lynkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                                <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#ff6b9d;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <!-- Chain Link Design for Lynk -->
-                        <ellipse cx="14" cy="20" rx="8" ry="4" fill="none" stroke="url(#lynkGradient)" stroke-width="2.5" opacity="0.9"/>
-                        <ellipse cx="26" cy="20" rx="8" ry="4" fill="none" stroke="url(#lynkGradient)" stroke-width="2.5" opacity="0.9"/>
-                        <!-- Connecting dots -->
-                        <circle cx="8" cy="20" r="2" fill="url(#lynkGradient)" opacity="0.8"/>
-                        <circle cx="32" cy="20" r="2" fill="url(#lynkGradient)" opacity="0.8"/>
-                        <!-- Link highlight -->
-                        <path d="M 18 20 A 4 2 0 0 1 22 20" stroke="url(#lynkGradient)" stroke-width="3" fill="none" opacity="1"/>
-                    </svg>
-                    <h1>Lynk</h1>
+                    <!-- Enhanced Chain Link Logo -->
+                    <div class="logo-container">
+                        <svg class="header-logo-svg" width="45" height="45" viewBox="0 0 60 45" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="lynkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                                    <stop offset="30%" style="stop-color:#A855F7;stop-opacity:1" />
+                                    <stop offset="60%" style="stop-color:#EC4899;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="chainShadow" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#000000;stop-opacity:0.2" />
+                                    <stop offset="100%" style="stop-color:#000000;stop-opacity:0.05" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            
+                            <!-- Chain Link 1 - Rotated -->
+                            <g transform="rotate(-15 15 22.5)">
+                                <ellipse cx="15" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
+                                <ellipse cx="15" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
+                                <ellipse cx="15" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
+                            </g>
+                            
+                            <!-- Chain Link 2 - Interlocked -->
+                            <g transform="rotate(15 30 22.5)">
+                                <ellipse cx="30" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
+                                <ellipse cx="30" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
+                                <ellipse cx="30" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
+                            </g>
+                            
+                            <!-- Chain Link 3 - Final link -->
+                            <g transform="rotate(-15 45 22.5)">
+                                <ellipse cx="45" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
+                                <ellipse cx="45" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
+                                <ellipse cx="45" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
+                            </g>
+                            
+                            <!-- Connection highlights -->
+                            <circle cx="22" cy="22.5" r="2.5" fill="url(#lynkGradient)" opacity="0.8" filter="url(#glow)"/>
+                            <circle cx="38" cy="22.5" r="2.5" fill="url(#lynkGradient)" opacity="0.8" filter="url(#glow)"/>
+                        </svg>
+                        <div class="logo-text">
+                            <h1>L<span class="chain-letter">y</span>nk</h1>
+                            <div class="logo-tagline">Connect • Share • Love</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="search-bar">
                     <input type="text" placeholder="Search people, posts, or hashtags..." id="global-search">
