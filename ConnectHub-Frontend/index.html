@@ -14,69 +14,60 @@
     <div id="loading-screen" class="loading-screen">
         <div class="loading-animation">
             <div class="loading-logo">
-                <!-- Custom SVG Logo with animations -->
-                <div class="animated-logo">
-                    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="lynkLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                                <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#ff6b9d;stop-opacity:1" />
-                            </linearGradient>
-                            <linearGradient id="lynkHeartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#ff8cc8;stop-opacity:1" />
-                            </linearGradient>
-                            <filter id="lynkGlow">
-                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                                <feMerge> 
-                                    <feMergeNode in="coloredBlur"/>
-                                    <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        
-                        <!-- Background glow -->
-                        <circle cx="60" cy="60" r="50" fill="url(#lynkLogoGradient)" opacity="0.08" class="pulse-circle"/>
-                        
-                        <!-- Chain Link Design for Lynk -->
-                        <!-- First Link (Left) -->
-                        <ellipse cx="35" cy="60" rx="18" ry="10" fill="none" stroke="url(#lynkLogoGradient)" 
-                                 stroke-width="4" opacity="0.9" class="chain-link-1" filter="url(#lynkGlow)"/>
-                        
-                        <!-- Second Link (Center) -->
-                        <ellipse cx="60" cy="40" rx="16" ry="8" fill="none" stroke="url(#lynkLogoGradient)" 
-                                 stroke-width="4" opacity="1" class="chain-link-2" filter="url(#lynkGlow)"/>
-                        
-                        <!-- Third Link (Right) -->
-                        <ellipse cx="85" cy="60" rx="18" ry="10" fill="none" stroke="url(#lynkLogoGradient)" 
-                                 stroke-width="4" opacity="0.9" class="chain-link-3" filter="url(#lynkGlow)"/>
-                        
-                        <!-- Fourth Link (Bottom) -->
-                        <ellipse cx="60" cy="80" rx="16" ry="8" fill="none" stroke="url(#lynkLogoGradient)" 
-                                 stroke-width="4" opacity="0.85" class="chain-link-4" filter="url(#lynkGlow)"/>
-                        
-                        <!-- Connection highlights where links interlock -->
-                        <circle cx="45" cy="60" r="3" fill="url(#lynkLogoGradient)" opacity="0.8" class="connection-point-1"/>
-                        <circle cx="75" cy="60" r="3" fill="url(#lynkLogoGradient)" opacity="0.8" class="connection-point-2"/>
-                        <circle cx="60" cy="50" r="2.5" fill="url(#lynkLogoGradient)" opacity="0.8" class="connection-point-3"/>
-                        <circle cx="60" cy="70" r="2.5" fill="url(#lynkLogoGradient)" opacity="0.8" class="connection-point-4"/>
-                        
-                        <!-- Decorative connection nodes -->
-                        <circle cx="20" cy="45" r="4" fill="url(#lynkLogoGradient)" opacity="0.7" class="node-1"/>
-                        <circle cx="100" cy="45" r="4" fill="url(#lynkLogoGradient)" opacity="0.7" class="node-2"/>
-                        <circle cx="20" cy="75" r="4" fill="url(#lynkLogoGradient)" opacity="0.7" class="node-3"/>
-                        <circle cx="100" cy="75" r="4" fill="url(#lynkLogoGradient)" opacity="0.7" class="node-4"/>
-                        
-                        <!-- Dating heart symbol integrated into design -->
-                        <path d="M 95 25 C 95 20, 100 20, 100 25 C 100 20, 105 20, 105 25 C 105 35, 100 40, 100 40 C 100 40, 95 35, 95 25 Z" 
-                              fill="url(#lynkHeartGradient)" opacity="0.8" class="heart-icon"/>
-                    </svg>
-                </div>
-                <h2 class="brand-name">Lynk</h2>
-                <p class="brand-tagline">Link • Share • Love</p>
+                <i class="fas fa-link"></i>
+                <h2>Lynk</h2>
             </div>
-            <div class="loading-spinner"></div>
+            
+            <!-- Chain Link Animation -->
+            <div class="chain-container">
+                <div class="chain-link"></div>
+                <div class="chain-link"></div>
+                <div class="chain-link"></div>
+                <div class="chain-link"></div>
+                <div class="chain-link"></div>
+            </div>
+            
+            <div class="loading-text">Connecting people...</div>
+        </div>
+    </div>
+
+    <!-- Dating Splash Screen -->
+    <div id="dating-splash" class="dating-splash" style="display: none;">
+        <div class="dating-splash-content">
+            <div class="dating-logo">
+                <i class="fas fa-heart"></i>
+                LynkDating
+            </div>
+            
+            <div class="heart-chain-container">
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+                <div class="heart-link"></div>
+            </div>
+            
+            <div class="dating-splash-text">
+                Finding your perfect connection...
+            </div>
+            
+            <!-- Floating Heart Particles -->
+            <div class="heart-particles">
+                <div class="heart-particle">💕</div>
+                <div class="heart-particle">💖</div>
+                <div class="heart-particle">💗</div>
+                <div class="heart-particle">💝</div>
+                <div class="heart-particle">💘</div>
+                <div class="heart-particle">💞</div>
+                <div class="heart-particle">💕</div>
+                <div class="heart-particle">💖</div>
+                <div class="heart-particle">💗</div>
+            </div>
         </div>
     </div>
 

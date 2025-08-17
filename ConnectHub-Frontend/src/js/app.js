@@ -80,14 +80,19 @@ class ConnectHubApp {
     }
 
     /**
-     * Hide loading screen
+     * Hide loading screen with chain breaking animation
      */
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
-            loadingScreen.style.opacity = '0';
+            // Add chain breaking animation
+            loadingScreen.classList.add('breaking');
+            
             setTimeout(() => {
-                loadingScreen.style.display = 'none';
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 800);
             }, 500);
         }
     }
@@ -184,6 +189,21 @@ class ConnectHubApp {
      * Navigate to a specific section
      */
     navigateToSection(section) {
+        // Special handling for dating section with romantic splash screen
+        if (section === 'dating') {
+            this.showDatingSplash(() => {
+                this.navigateToSectionDirect(section);
+            });
+            return;
+        }
+        
+        this.navigateToSectionDirect(section);
+    }
+    
+    /**
+     * Navigate directly to section (used internally)
+     */
+    navigateToSectionDirect(section) {
         // Update navigation state
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
@@ -207,6 +227,36 @@ class ConnectHubApp {
             
             this.showToast(`Switched to ${section.charAt(0).toUpperCase() + section.slice(1)}`, 'info');
         }
+    }
+
+    /**
+     * Show romantic dating splash screen with heart chain animation
+     */
+    showDatingSplash(callback) {
+        const datingSplash = document.getElementById('dating-splash');
+        if (!datingSplash) {
+            // Fallback if splash screen doesn't exist
+            if (callback) callback();
+            return;
+        }
+
+        // Show the dating splash screen
+        datingSplash.style.display = 'flex';
+        
+        // After 3 seconds, start fade out animation
+        setTimeout(() => {
+            datingSplash.classList.add('fade-out');
+            
+            // After fade out completes, hide the splash and execute callback
+            setTimeout(() => {
+                datingSplash.style.display = 'none';
+                datingSplash.classList.remove('fade-out');
+                
+                if (callback) {
+                    callback();
+                }
+            }, 1000); // Match the CSS transition duration
+        }, 3000); // Show splash for 3 seconds
     }
 
     /**
