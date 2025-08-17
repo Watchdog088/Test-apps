@@ -35,6 +35,7 @@ class MatchAnimation {
                 </div>
                 <div class="match-actions">
                     <button class="match-btn send-message-btn">Send Message</button>
+                    <button class="match-btn set-date-btn">Set up a Date</button>
                     <button class="match-btn keep-dating-btn">Keep Dating</button>
                 </div>
             </div>
@@ -56,11 +57,17 @@ class MatchAnimation {
 
         // Handle button clicks
         const sendMessageBtn = overlay.querySelector('.send-message-btn');
+        const setDateBtn = overlay.querySelector('.set-date-btn');
         const keepDatingBtn = overlay.querySelector('.keep-dating-btn');
 
         sendMessageBtn.addEventListener('click', () => {
             this.hideMatchAnimation(overlay);
             if (callback) callback('message');
+        });
+
+        setDateBtn.addEventListener('click', () => {
+            this.hideMatchAnimation(overlay);
+            if (callback) callback('date');
         });
 
         keepDatingBtn.addEventListener('click', () => {
@@ -303,6 +310,23 @@ class MatchAnimation {
             .send-message-btn:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+            }
+
+            .keep-dating-btn {
+                background: linear-gradient(45deg, #ffffff, #f8fafc);
+                color: #6366f1;
+                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+            }
+
+            .set-date-btn {
+                background: linear-gradient(45deg, #f59e0b, #d97706);
+                color: white;
+                box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            }
+
+            .set-date-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
             }
 
             .keep-dating-btn {

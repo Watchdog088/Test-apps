@@ -976,22 +976,36 @@ class ConnectHubApp {
                 const isMatch = Math.random() > 0.7;
                 
                 if (isMatch) {
-                    // Initialize match animation if not already done
-                    if (!this.matchAnimation) {
-                        this.matchAnimation = new MatchAnimation();
+                // Initialize match animation if not already done
+                if (!this.matchAnimation) {
+                    this.matchAnimation = new MatchAnimation();
+                }
+                
+                // Initialize date scheduler if not already done
+                if (!this.dateScheduler) {
+                    this.dateScheduler = new DateScheduler();
+                }
+                
+                // Show the beautiful "It's a Lynk!" animation
+                this.matchAnimation.showMatchAnimation((actionType) => {
+                    if (actionType === 'message') {
+                        // Navigate to messages and start conversation
+                        this.navigateToSection('messages');
+                        this.startConversationWithMatch(profile);
+                    } else if (actionType === 'date') {
+                        // Open date scheduler
+                        this.dateScheduler.showDateScheduler(profile, (action, proposal) => {
+                            if (action === 'date-proposed') {
+                                this.showToast(`Date proposed with ${profile.name}!`, 'success');
+                                // Continue dating after scheduling
+                                this.loadDatingProfile();
+                            }
+                        });
+                    } else if (actionType === 'continue') {
+                        // Continue dating
+                        this.loadDatingProfile();
                     }
-                    
-                    // Show the beautiful "It's a Lynk!" animation
-                    this.matchAnimation.showMatchAnimation((actionType) => {
-                        if (actionType === 'message') {
-                            // Navigate to messages and start conversation
-                            this.navigateToSection('messages');
-                            this.startConversationWithMatch(profile);
-                        } else if (actionType === 'continue') {
-                            // Continue dating
-                            this.loadDatingProfile();
-                        }
-                    });
+                });
                     
                     // Add to matches
                     this.matches.push({

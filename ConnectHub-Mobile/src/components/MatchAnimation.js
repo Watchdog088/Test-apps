@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-const MatchAnimation = ({ visible, onClose, onSendMessage, onKeepDating }) => {
+const MatchAnimation = ({ visible, onClose, onSendMessage, onKeepDating, onSetDate }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const leftLinkAnim = useRef(new Animated.Value(-150)).current;
@@ -152,6 +152,12 @@ const MatchAnimation = ({ visible, onClose, onSendMessage, onKeepDating }) => {
   const handleKeepDating = () => {
     hideAnimation(() => {
       onKeepDating && onKeepDating();
+    });
+  };
+
+  const handleSetDate = () => {
+    hideAnimation(() => {
+      onSetDate && onSetDate();
     });
   };
 
@@ -323,6 +329,14 @@ const MatchAnimation = ({ visible, onClose, onSendMessage, onKeepDating }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={[styles.actionButton, styles.setDateButton]}
+              onPress={handleSetDate}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.setDateText}>Set up a Date</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.actionButton, styles.keepDatingButton]}
               onPress={handleKeepDating}
               activeOpacity={0.8}
@@ -432,6 +446,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
   },
   sendMessageText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  setDateButton: {
+    backgroundColor: '#f59e0b',
+  },
+  setDateText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
