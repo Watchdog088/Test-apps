@@ -62,6 +62,9 @@ class ConnectHubApp {
                 this.showApp();
             }, 1500);
 
+            // Initialize premium animations system
+            this.initializeAnimations();
+            
             console.log('ConnectHub initialized successfully');
         } catch (error) {
             console.error('Failed to initialize app components:', error);
@@ -1637,6 +1640,395 @@ class ConnectHubApp {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    /**
+     * Initialize premium animations system
+     */
+    initializeAnimations() {
+        // Add stagger animations to existing list items
+        this.addStaggerAnimations();
+        
+        // Enhance interaction buttons with animation classes
+        this.enhanceInteractionButtons();
+        
+        // Initialize typing indicators
+        this.initializeTypingIndicators();
+        
+        // Setup page transition animations
+        this.setupPageTransitions();
+        
+        // Initialize notification badge animations
+        this.initializeNotificationBadges();
+        
+        // Add GPU acceleration to frequently animated elements
+        this.addGPUAcceleration();
+        
+        console.log('Premium animations initialized');
+    }
+
+    /**
+     * Add stagger animations to list items
+     */
+    addStaggerAnimations() {
+        const listContainers = [
+            '.posts-container',
+            '.conversations-list',
+            '.notifications-list',
+            '.trending-section ul',
+            '.suggested-connections .suggestion-item'
+        ];
+
+        listContainers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container) {
+                const items = container.querySelectorAll(':scope > *');
+                items.forEach((item, index) => {
+                    item.classList.add('stagger-item');
+                    item.style.animationDelay = `${(index + 1) * 0.1}s`;
+                });
+            }
+        });
+    }
+
+    /**
+     * Enhance interaction buttons with premium animations
+     */
+    enhanceInteractionButtons() {
+        // Add enhanced classes to interaction buttons
+        const interactionButtons = document.querySelectorAll('.interaction-btn');
+        interactionButtons.forEach(btn => {
+            btn.classList.add('gpu-accelerated');
+            
+            // Add specific classes based on button type
+            if (btn.hasAttribute('data-action')) {
+                const action = btn.getAttribute('data-action');
+                btn.classList.add(`${action}-btn`);
+            }
+        });
+
+        // Add animation triggers for primary buttons
+        const primaryButtons = document.querySelectorAll('.primary-btn');
+        primaryButtons.forEach(btn => {
+            btn.classList.add('gpu-accelerated');
+            
+            btn.addEventListener('click', () => {
+                btn.classList.add('clicked');
+                setTimeout(() => btn.classList.remove('clicked'), 200);
+            });
+        });
+
+        // Add card hover animations
+        const cards = document.querySelectorAll('.post-card, .user-profile-card, .profile-card');
+        cards.forEach(card => {
+            card.classList.add('gpu-accelerated');
+        });
+    }
+
+    /**
+     * Initialize typing indicators for messaging
+     */
+    initializeTypingIndicators() {
+        // Create typing indicator template
+        this.typingIndicatorTemplate = `
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+    }
+
+    /**
+     * Show typing indicator
+     */
+    showTypingIndicator(conversationId) {
+        const chatMessages = document.querySelector('.chat-messages');
+        if (!chatMessages) return;
+
+        // Remove existing typing indicator
+        const existingIndicator = chatMessages.querySelector('.typing-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+
+        // Add new typing indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'message typing-message';
+        indicator.innerHTML = this.typingIndicatorTemplate;
+        chatMessages.appendChild(indicator);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    /**
+     * Hide typing indicator
+     */
+    hideTypingIndicator() {
+        const typingMessage = document.querySelector('.typing-message');
+        if (typingMessage) {
+            typingMessage.remove();
+        }
+    }
+
+    /**
+     * Setup page transition animations
+     */
+    setupPageTransitions() {
+        // Override the navigateToSectionDirect method to add transitions
+        const originalNavigate = this.navigateToSectionDirect;
+        
+        this.navigateToSectionDirect = (section) => {
+            const currentSection = document.querySelector('.content-section.active');
+            const targetSection = document.getElementById(`${section}-section`);
+            
+            if (currentSection && targetSection && currentSection !== targetSection) {
+                // Add exit animation to current section
+                currentSection.classList.add('page-transition-exit');
+                
+                setTimeout(() => {
+                    // Call original navigation logic
+                    originalNavigate.call(this, section);
+                    
+                    // Add enter animation to new section
+                    const newActiveSection = document.querySelector('.content-section.active');
+                    if (newActiveSection) {
+                        newActiveSection.classList.add('page-transition-enter');
+                        
+                        // Clean up classes after animation
+                        setTimeout(() => {
+                            newActiveSection.classList.remove('page-transition-enter');
+                            currentSection.classList.remove('page-transition-exit');
+                        }, 400);
+                    }
+                }, 200);
+            } else {
+                // No transition needed, call original method
+                originalNavigate.call(this, section);
+            }
+        };
+    }
+
+    /**
+     * Initialize notification badge animations
+     */
+    initializeNotificationBadges() {
+        const badges = document.querySelectorAll('.notification-badge');
+        badges.forEach(badge => {
+            badge.classList.add('gpu-accelerated');
+        });
+    }
+
+    /**
+     * Add notification badge with animation
+     */
+    addNotificationBadge(element, count = 1) {
+        let badge = element.querySelector('.notification-badge');
+        
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'notification-badge new gpu-accelerated';
+            element.appendChild(badge);
+        } else {
+            badge.classList.add('new');
+        }
+        
+        badge.textContent = count > 99 ? '99+' : count.toString();
+        
+        // Remove the 'new' class after animation completes
+        setTimeout(() => {
+            badge.classList.remove('new');
+        }, 800);
+    }
+
+    /**
+     * Add GPU acceleration to frequently animated elements
+     */
+    addGPUAcceleration() {
+        const animatedSelectors = [
+            '.post-card',
+            '.user-profile-card',
+            '.profile-card',
+            '.interaction-btn',
+            '.primary-btn',
+            '.nav-item a',
+            '.toast',
+            '.modal-content',
+            '.chain-link',
+            '.heart-link',
+            '.loading-logo',
+            '.dating-logo'
+        ];
+
+        animatedSelectors.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                element.classList.add('gpu-accelerated');
+            });
+        });
+    }
+
+    /**
+     * Trigger success animation on element
+     */
+    triggerSuccessAnimation(element) {
+        element.classList.add('success-animation', 'gpu-accelerated');
+        setTimeout(() => {
+            element.classList.remove('success-animation');
+        }, 600);
+    }
+
+    /**
+     * Trigger error animation on element
+     */
+    triggerErrorAnimation(element) {
+        element.classList.add('error-animation', 'gpu-accelerated');
+        setTimeout(() => {
+            element.classList.remove('error-animation');
+        }, 500);
+    }
+
+    /**
+     * Add shimmer loading effect to element
+     */
+    addShimmerLoading(element) {
+        element.classList.add('loading-shimmer', 'gpu-accelerated');
+    }
+
+    /**
+     * Remove shimmer loading effect
+     */
+    removeShimmerLoading(element) {
+        element.classList.remove('loading-shimmer');
+    }
+
+    /**
+     * Create floating action button
+     */
+    createFloatingActionButton(icon, action, position = 'bottom-right') {
+        const fab = document.createElement('button');
+        fab.className = 'fab gpu-accelerated';
+        fab.innerHTML = `<i class="${icon}"></i>`;
+        
+        // Position the FAB
+        if (position === 'bottom-right') {
+            fab.style.bottom = '20px';
+            fab.style.right = '20px';
+        }
+        
+        fab.addEventListener('click', action);
+        document.body.appendChild(fab);
+        
+        return fab;
+    }
+
+    /**
+     * Enhanced post interaction handling with animations
+     */
+    async toggleLikeWithAnimation(post, buttonElement) {
+        const isLiked = post.userLiked;
+        
+        // Add animation classes
+        if (!isLiked) {
+            buttonElement.classList.add('liked');
+            // Trigger heart bounce and glow animation
+            setTimeout(() => {
+                this.triggerSuccessAnimation(buttonElement);
+            }, 100);
+        } else {
+            buttonElement.classList.remove('liked');
+        }
+        
+        // Call the original toggle like method
+        await this.toggleLike(post, buttonElement);
+    }
+
+    /**
+     * Enhanced save toggle with animation
+     */
+    async toggleSaveWithAnimation(post, buttonElement) {
+        const icon = buttonElement.querySelector('i');
+        const wasSaved = icon.classList.contains('fas');
+        
+        // Add animation
+        if (!wasSaved) {
+            // Trigger bookmark animation
+            buttonElement.classList.add('saved');
+            this.triggerSuccessAnimation(buttonElement);
+        } else {
+            buttonElement.classList.remove('saved');
+        }
+        
+        // Call the original toggle save method
+        await this.toggleSave(post, buttonElement);
+    }
+
+    /**
+     * Enhanced share with ripple animation
+     */
+    async sharePostWithAnimation(post, buttonElement) {
+        // Add ripple effect class
+        buttonElement.classList.add('sharing');
+        
+        // Call the original share method
+        await this.sharePost(post);
+        
+        // Remove animation class
+        setTimeout(() => {
+            buttonElement.classList.remove('sharing');
+        }, 600);
+    }
+
+    /**
+     * Create animated loading spinner
+     */
+    createLoadingSpinner(size = 'normal') {
+        const spinner = document.createElement('div');
+        spinner.className = `loading-spinner ${size} gpu-accelerated`;
+        return spinner;
+    }
+
+    /**
+     * Show modal with enhanced animations
+     */
+    openModalWithAnimation(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        modal.classList.add('show', 'gpu-accelerated');
+        document.body.style.overflow = 'hidden';
+        
+        // Add entrance animation to modal content
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.classList.add('gpu-accelerated');
+        }
+    }
+
+    /**
+     * Close modal with enhanced animations
+     */
+    closeModalWithAnimation(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.transform = 'translateY(50px) scale(0.9)';
+            modalContent.style.opacity = '0';
+        }
+        
+        setTimeout(() => {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+            
+            // Reset modal content styles
+            if (modalContent) {
+                modalContent.style.transform = '';
+                modalContent.style.opacity = '';
+            }
+        }, 300);
     }
 }
 
