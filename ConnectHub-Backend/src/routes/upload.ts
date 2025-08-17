@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import { prisma } from '../config/database';
 import { securityService } from '../services/securityService';
+import { videoWatermarkService, WatermarkOptions } from '../services/videoWatermarkService';
 import logger from '../config/logger';
 
 const router = express.Router();
@@ -44,8 +45,8 @@ const storage = multer.diskStorage({
   }
 });
 
-// Enhanced security file filter
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+// Enhanced security file filter for images
+const imageFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimeTypes = [
     'image/jpeg',
     'image/jpg', 
@@ -65,14 +66,79 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-// High-resolution upload configuration
-const upload = multer({
+// Enhanced security file filter for videos
+const videoFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedMimeTypes = [
+    'video/mp4',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/webm',
+    'video/x-matroska'
+  ];
+  
+  const allowedExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v'];
+  const ext = path.extname(file.originalname.toLowerCase());
+  
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only high-quality video formats (MP4, MOV, AVI, WebM, MKV) are allowed.'));
+  }
+};
+
+// Mixed media file filter (images and videos)
+const mediaFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedMimeTypes = [
+    // Images
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif',
+    // Videos
+    'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'
+  ];
+  
+  const allowedExtensions = [
+    // Images
+    '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif',
+    // Videos
+    '.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v'
+  ];
+  
+  const ext = path.extname(file.originalname.toLowerCase());
+  
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only high-quality image and video formats are allowed.'));
+  }
+};
+
+// High-resolution image upload configuration
+const imageUpload = multer({
   storage: storage,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit for high-res images
     files: 10
   },
-  fileFilter: fileFilter
+  fileFilter: imageFileFilter
+});
+
+// High-capacity video upload configuration
+const videoUpload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 500 * 1024 * 1024, // 500MB limit for videos
+    files: 5
+  },
+  fileFilter: videoFileFilter
+});
+
+// Mixed media upload configuration
+const mediaUpload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 500 * 1024 * 1024, // 500MB limit for mixed media
+    files: 10
+  },
+  fileFilter: mediaFileFilter
 });
 
 // Image processing service for optimization and security
@@ -131,7 +197,7 @@ const processImage = async (
 };
 
 // Enhanced profile photo upload with security and multiple display options
-router.post('/profile-photo', authenticate, upload.single('profilePhoto'), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/profile-photo', authenticate, imageUpload.single('profilePhoto'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -241,7 +307,7 @@ router.post('/profile-photo', authenticate, upload.single('profilePhoto'), async
 });
 
 // Cover photo upload (placeholder - implement when schema supports it)
-router.post('/cover-photo', authenticate, upload.single('coverPhoto'), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/cover-photo', authenticate, imageUpload.single('coverPhoto'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -276,7 +342,7 @@ router.post('/cover-photo', authenticate, upload.single('coverPhoto'), async (re
 });
 
 // Post media upload (multiple files)
-router.post('/post-media', authenticate, upload.array('media', 10), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/post-media', authenticate, mediaUpload.array('media', 10), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -314,7 +380,7 @@ router.post('/post-media', authenticate, upload.array('media', 10), async (req: 
 });
 
 // Dating profile photos upload (multiple) - placeholder until DatingPhoto model is added
-router.post('/dating-photos', authenticate, upload.array('photos', 6), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/dating-photos', authenticate, imageUpload.array('photos', 6), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -378,6 +444,381 @@ router.delete('/file/:filename', authenticate, async (req: AuthenticatedRequest,
     res.status(500).json({
       success: false,
       message: 'Failed to delete file'
+    });
+  }
+});
+
+// 🎬 VIDEO WATERMARKING ENDPOINTS - CROSS PLATFORM SUPPORT
+
+// Single video upload with watermarking
+router.post('/video', authenticate, videoUpload.single('video'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No video file provided'
+      });
+    }
+
+    const userId = req.user.id;
+    const {
+      platform = 'web', // web, mobile, instagram, tiktok, youtube
+      watermarkType = 'both', // text, image, both
+      brandLogo = true,
+      customText,
+      watermarkPosition = 'bottom-right'
+    } = req.body;
+
+    // Validate video
+    const validation = await videoWatermarkService.validateVideo(req.file.path);
+    if (!validation.isValid) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid video file',
+        errors: validation.errors
+      });
+    }
+
+    // Configure watermark options
+    const watermarkOptions: WatermarkOptions = {
+      type: watermarkType as 'text' | 'image' | 'both',
+      brandLogo: brandLogo === 'true' || brandLogo === true,
+      text: customText ? {
+        content: customText,
+        font: 'Arial',
+        fontSize: 24,
+        color: 'white',
+        position: watermarkPosition,
+        opacity: 0.8
+      } : undefined
+    };
+
+    // Generate output path
+    const outputPath = req.file.path.replace(/\.[^/.]+$/, '_watermarked.mp4');
+
+    // Apply watermark
+    const result = await videoWatermarkService.applyWatermark(
+      req.file.path,
+      outputPath,
+      watermarkOptions,
+      { quality: 'high', format: 'mp4' }
+    );
+
+    if (!result.success) {
+      fs.unlinkSync(req.file.path);
+      return res.status(500).json({
+        success: false,
+        message: 'Video processing failed',
+        error: result.error
+      });
+    }
+
+    // Clean up original file
+    fs.unlinkSync(req.file.path);
+
+    const filename = path.basename(outputPath);
+    const filepath = `/uploads/${filename}`;
+
+    logger.info(`Video with watermark uploaded for user ${userId}: ${filepath}, platform: ${platform}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Video uploaded and watermarked successfully',
+      data: {
+        filename,
+        path: filepath,
+        url: `${req.protocol}://${req.get('host')}${filepath}`,
+        platform,
+        watermarkApplied: true,
+        metadata: result.metadata
+      }
+    });
+
+  } catch (error) {
+    logger.error('Video upload error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload and process video'
+    });
+  }
+});
+
+// Multi-platform video optimization endpoint
+router.post('/video/optimize-platforms', authenticate, videoUpload.single('video'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No video file provided'
+      });
+    }
+
+    const userId = req.user.id;
+    const {
+      platforms = ['web', 'mobile'], // Array of platforms to optimize for
+      brandLogo = true,
+      customText = '@ConnectHub'
+    } = req.body;
+
+    // Configure watermark options
+    const watermarkOptions: WatermarkOptions = {
+      type: 'both',
+      brandLogo: brandLogo === 'true' || brandLogo === true,
+      text: {
+        content: customText,
+        font: 'Arial',
+        fontSize: 24,
+        color: 'white',
+        position: 'bottom-right',
+        opacity: 0.8
+      }
+    };
+
+    // Create platform-optimized versions
+    const outputDir = path.dirname(req.file.path);
+    const optimizedVersions = await videoWatermarkService.createPlatformOptimizedVersions(
+      req.file.path,
+      outputDir,
+      watermarkOptions
+    );
+
+    // Clean up original file
+    fs.unlinkSync(req.file.path);
+
+    // Prepare response data
+    const responseData: any = {
+      originalProcessed: true,
+      platforms: {}
+    };
+
+    Object.entries(optimizedVersions).forEach(([platform, filePath]) => {
+      if (filePath && platforms.includes(platform)) {
+        const filename = path.basename(filePath);
+        responseData.platforms[platform] = {
+          filename,
+          path: `/uploads/${filename}`,
+          url: `${req.protocol}://${req.get('host')}/uploads/${filename}`
+        };
+      }
+    });
+
+    logger.info(`Multi-platform video optimization completed for user ${userId}: ${Object.keys(responseData.platforms).join(', ')}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Video optimized for multiple platforms successfully',
+      data: responseData
+    });
+
+  } catch (error) {
+    logger.error('Multi-platform video optimization error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to optimize video for platforms'
+    });
+  }
+});
+
+// Dating app video upload with romantic watermarks
+router.post('/dating-video', authenticate, videoUpload.single('video'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No video file provided'
+      });
+    }
+
+    const userId = req.user.id;
+    
+    // Special romantic watermark for dating videos
+    const watermarkOptions: WatermarkOptions = {
+      type: 'both',
+      brandLogo: true, // This will use LynkDating branding
+      text: {
+        content: '💖 Find Your Perfect Match',
+        font: 'Arial',
+        fontSize: 20,
+        color: 'white',
+        position: 'bottom-left',
+        opacity: 0.7
+      }
+    };
+
+    const outputPath = req.file.path.replace(/\.[^/.]+$/, '_dating_watermarked.mp4');
+
+    const result = await videoWatermarkService.applyWatermark(
+      req.file.path,
+      outputPath,
+      watermarkOptions,
+      { quality: 'high', format: 'mp4' }
+    );
+
+    if (!result.success) {
+      fs.unlinkSync(req.file.path);
+      return res.status(500).json({
+        success: false,
+        message: 'Dating video processing failed',
+        error: result.error
+      });
+    }
+
+    fs.unlinkSync(req.file.path);
+    
+    const filename = path.basename(outputPath);
+    const filepath = `/uploads/${filename}`;
+
+    logger.info(`Dating video with romantic watermark uploaded for user ${userId}: ${filepath}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Dating video uploaded with romantic watermark successfully',
+      data: {
+        filename,
+        path: filepath,
+        url: `${req.protocol}://${req.get('host')}${filepath}`,
+        type: 'dating',
+        watermarkApplied: true,
+        metadata: result.metadata
+      }
+    });
+
+  } catch (error) {
+    logger.error('Dating video upload error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload dating video'
+    });
+  }
+});
+
+// Social media post video with brand watermarks
+router.post('/social-video', authenticate, videoUpload.single('video'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No video file provided'
+      });
+    }
+
+    const userId = req.user.id;
+    const { postCaption = '@ConnectHub - Share Love' } = req.body;
+    
+    // Social media branding watermark
+    const watermarkOptions: WatermarkOptions = {
+      type: 'both',
+      brandLogo: true, // ConnectHub branding
+      text: {
+        content: postCaption,
+        font: 'Arial',
+        fontSize: 22,
+        color: 'white',
+        position: 'bottom-right',
+        opacity: 0.8
+      }
+    };
+
+    const outputPath = req.file.path.replace(/\.[^/.]+$/, '_social_watermarked.mp4');
+
+    const result = await videoWatermarkService.applyWatermark(
+      req.file.path,
+      outputPath,
+      watermarkOptions,
+      { quality: 'high', format: 'mp4' }
+    );
+
+    if (!result.success) {
+      fs.unlinkSync(req.file.path);
+      return res.status(500).json({
+        success: false,
+        message: 'Social video processing failed',
+        error: result.error
+      });
+    }
+
+    fs.unlinkSync(req.file.path);
+    
+    const filename = path.basename(outputPath);
+    const filepath = `/uploads/${filename}`;
+
+    logger.info(`Social media video with brand watermark uploaded for user ${userId}: ${filepath}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Social media video uploaded with brand watermark successfully',
+      data: {
+        filename,
+        path: filepath,
+        url: `${req.protocol}://${req.get('host')}${filepath}`,
+        type: 'social',
+        watermarkApplied: true,
+        postCaption,
+        metadata: result.metadata
+      }
+    });
+
+  } catch (error) {
+    logger.error('Social video upload error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload social video'
+    });
+  }
+});
+
+// Video metadata and validation endpoint
+router.post('/video/validate', authenticate, videoUpload.single('video'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No video file provided'
+      });
+    }
+
+    const validation = await videoWatermarkService.validateVideo(req.file.path);
+    const metadata = validation.isValid ? await videoWatermarkService.getVideoMetadata(req.file.path) : null;
+
+    // Clean up the uploaded file since we're just validating
+    fs.unlinkSync(req.file.path);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isValid: validation.isValid,
+        errors: validation.errors,
+        metadata: metadata ? {
+          duration: metadata.duration,
+          resolution: `${metadata.width}x${metadata.height}`,
+          size: metadata.size,
+          format: metadata.format,
+          bitrate: metadata.bitrate
+        } : null
+      }
+    });
+
+  } catch (error) {
+    logger.error('Video validation error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to validate video'
     });
   }
 });
