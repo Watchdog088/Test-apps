@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticate } from '../middleware/auth.js';
-import { validateQuery } from '../middleware/validation.js';
+import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { validateQuery } from '../middleware/validation';
 import { body, param } from 'express-validator';
 
 const router = Router();
@@ -121,7 +121,7 @@ router.post('/subscribe',
 );
 
 // Get user's current subscription
-router.get('/subscription', authenticate, async (req, res) => {
+router.get('/subscription', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.id;
 
@@ -161,7 +161,7 @@ router.get('/subscription', authenticate, async (req, res) => {
 // ADVERTISEMENT MANAGEMENT
 
 // Get targeted ads for user
-router.get('/ads', authenticate, async (req, res) => {
+router.get('/ads', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const { placement = 'feed' } = req.query;

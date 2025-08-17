@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
@@ -37,8 +38,8 @@ import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
 import contentControlRoutes from './routes/content-control';
 import monetizationRoutes from './routes/monetization';
-import enterpriseRoutes from './routes/enterprise';
-import gamificationRoutes from './routes/gamification';
+// import enterpriseRoutes from './routes/enterprise'; // Temporarily disabled - requires additional database models
+// import gamificationRoutes from './routes/gamification'; // Temporarily disabled - requires additional database models
 
 // Import socket handlers
 import { initializeSocket } from './sockets';
@@ -100,6 +101,9 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Compression
 app.use(compression());
 
+// Serve static files (uploaded images)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Request logging
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path} - ${req.ip}`);
@@ -128,8 +132,8 @@ app.use(`/api/${API_VERSION}/calls`, callRoutes);
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
 app.use(`/api/${API_VERSION}/monetization`, monetizationRoutes);
-app.use(`/api/${API_VERSION}/enterprise`, enterpriseRoutes);
-app.use(`/api/${API_VERSION}/gamification`, gamificationRoutes);
+// app.use(`/api/${API_VERSION}/enterprise`, enterpriseRoutes); // Temporarily disabled - requires additional database models
+// app.use(`/api/${API_VERSION}/gamification`, gamificationRoutes); // Temporarily disabled - requires additional database models
 
 // Documentation route (placeholder for Swagger)
 app.get('/api-docs', (req, res) => {

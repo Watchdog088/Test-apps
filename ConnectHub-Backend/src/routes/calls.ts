@@ -1,7 +1,6 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import express, { Response } from 'express';
 import { prisma } from '../config/database';
-import { authenticate } from '../middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import { validateBody } from '../middleware/validation';
 import { z } from 'zod';
 import { Server as SocketIOServer } from 'socket.io';
@@ -20,7 +19,7 @@ const callActionSchema = z.object({
 });
 
 // Initialize call
-router.post('/initiate', authenticate, validateBody(initiateCallSchema), async (req: Request, res: Response) => {
+router.post('/initiate', authenticate, validateBody(initiateCallSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { recipientId, callType } = req.body;
     const callerId = req.user!.id;
@@ -104,7 +103,7 @@ router.post('/initiate', authenticate, validateBody(initiateCallSchema), async (
 });
 
 // Handle call actions (accept, decline, end)
-router.post('/action', authenticate, validateBody(callActionSchema), async (req: Request, res: Response) => {
+router.post('/action', authenticate, validateBody(callActionSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { callId, action } = req.body;
     const userId = req.user!.id;
@@ -221,7 +220,7 @@ router.post('/action', authenticate, validateBody(callActionSchema), async (req:
 });
 
 // Get call history
-router.get('/history', authenticate, async (req: Request, res: Response) => {
+router.get('/history', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const page = parseInt(req.query.page as string) || 1;
@@ -280,7 +279,7 @@ router.get('/history', authenticate, async (req: Request, res: Response) => {
 });
 
 // WebRTC signaling endpoints
-router.post('/signal/offer', authenticate, async (req: Request, res: Response) => {
+router.post('/signal/offer', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { callId, offer, recipientId } = req.body;
     const io: SocketIOServer = req.app.get('io');
@@ -298,7 +297,7 @@ router.post('/signal/offer', authenticate, async (req: Request, res: Response) =
   }
 });
 
-router.post('/signal/answer', authenticate, async (req: Request, res: Response) => {
+router.post('/signal/answer', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { callId, answer, callerId } = req.body;
     const io: SocketIOServer = req.app.get('io');
@@ -316,7 +315,7 @@ router.post('/signal/answer', authenticate, async (req: Request, res: Response) 
   }
 });
 
-router.post('/signal/ice-candidate', authenticate, async (req: Request, res: Response) => {
+router.post('/signal/ice-candidate', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { callId, candidate, recipientId } = req.body;
     const io: SocketIOServer = req.app.get('io');
