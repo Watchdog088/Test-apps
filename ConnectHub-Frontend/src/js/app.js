@@ -178,6 +178,19 @@ class ConnectHubApp {
             });
         }
 
+        // Dropdown menu navigation
+        const dropdownNavItems = document.querySelectorAll('.dropdown-item[data-section]');
+        dropdownNavItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = item.getAttribute('data-section');
+                if (section) {
+                    this.navigateToSection(section);
+                    userDropdown.classList.remove('show');
+                }
+            });
+        });
+
         // Logout functionality
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
@@ -186,6 +199,12 @@ class ConnectHubApp {
                 this.handleLogout();
             });
         }
+
+        // Settings tabs functionality
+        this.initializeSettingsTabs();
+
+        // Help functionality
+        this.initializeHelpSection();
     }
 
     /**
@@ -1313,6 +1332,416 @@ class ConnectHubApp {
 
     switchFeedTab(feed) {
         this.showToast(`Feed: ${feed}`, 'info');
+    }
+
+    /**
+     * Initialize settings tabs functionality
+     */
+    initializeSettingsTabs() {
+        const settingsTabs = document.querySelectorAll('.settings-tab');
+        settingsTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.switchSettingsTab(tab.getAttribute('data-tab'));
+            });
+        });
+
+        // Initialize settings form handlers
+        this.initializeSettingsForms();
+    }
+
+    /**
+     * Switch settings tab
+     */
+    switchSettingsTab(tabName) {
+        // Update tab buttons
+        const tabs = document.querySelectorAll('.settings-tab');
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
+        });
+
+        // Update tab content
+        const contents = document.querySelectorAll('.settings-tab-content');
+        contents.forEach(content => {
+            const contentId = `${tabName}-content`;
+            content.classList.toggle('active', content.id === contentId);
+        });
+
+        this.showToast(`Switched to ${tabName.charAt(0).toUpperCase() + tabName.slice(1)} settings`, 'info');
+    }
+
+    /**
+     * Initialize settings forms and interactions
+     */
+    initializeSettingsForms() {
+        // Save settings buttons
+        const saveButtons = document.querySelectorAll('.save-settings-btn');
+        saveButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.handleSaveSettings(e.target);
+            });
+        });
+
+        // Toggle switches
+        const toggleInputs = document.querySelectorAll('.toggle-input');
+        toggleInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                this.handleToggleChange(e.target);
+            });
+        });
+
+        // Danger zone buttons
+        const deactivateBtn = document.getElementById('deactivate-account-btn');
+        const deleteBtn = document.getElementById('delete-account-btn');
+
+        if (deactivateBtn) {
+            deactivateBtn.addEventListener('click', () => this.handleDeactivateAccount());
+        }
+
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => this.handleDeleteAccount());
+        }
+
+        // Theme selection
+        const themeOptions = document.querySelectorAll('input[name="theme"]');
+        themeOptions.forEach(option => {
+            option.addEventListener('change', (e) => {
+                this.handleThemeChange(e.target.value);
+            });
+        });
+
+        // Font size selection
+        const fontSizeSelect = document.getElementById('font-size');
+        if (fontSizeSelect) {
+            fontSizeSelect.addEventListener('change', (e) => {
+                this.handleFontSizeChange(e.target.value);
+            });
+        }
+    }
+
+    /**
+     * Handle save settings button click
+     */
+    async handleSaveSettings(button) {
+        const settingsCard = button.closest('.settings-section-card');
+        if (!settingsCard) return;
+
+        // Show loading state
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        button.disabled = true;
+
+        try {
+            // Collect form data from the settings card
+            const formData = this.collectSettingsData(settingsCard);
+            
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            this.showToast('Settings saved successfully!', 'success');
+            this.triggerSuccessAnimation(button);
+            
+            // In a real app, you would make an API call here
+            // await this.api.saveSettings(formData);
+            
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            this.showToast('Failed to save settings', 'error');
+            this.triggerErrorAnimation(button);
+        } finally {
+            // Restore button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    /**
+     * Collect settings data from a form section
+     */
+    collectSettingsData(settingsCard) {
+        const formData = {};
+        
+        // Collect input values
+        const inputs = settingsCard.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                formData[input.id] = input.checked;
+            } else if (input.type === 'radio' && input.checked) {
+                formData[input.name] = input.value;
+            } else if (input.type !== 'radio') {
+                formData[input.id] = input.value;
+            }
+        });
+
+        return formData;
+    }
+
+    /**
+     * Handle toggle switch changes
+     */
+    handleToggleChange(toggleInput) {
+        const label = toggleInput.closest('.toggle-label');
+        const settingName = label ? label.textContent.trim() : 'Setting';
+        const isEnabled = toggleInput.checked;
+        
+        this.showToast(`${settingName} ${isEnabled ? 'enabled' : 'disabled'}`, 'info');
+        
+        // In a real app, you might want to save this immediately
+        // this.saveSettingImmediately(toggleInput.id, isEnabled);
+    }
+
+    /**
+     * Handle account deactivation
+     */
+    handleDeactivateAccount() {
+        const confirmed = confirm(
+            'Are you sure you want to deactivate your account?\n\n' +
+            'Your profile will be hidden but your data will be preserved. ' +
+            'You can reactivate at any time by logging back in.'
+        );
+
+        if (confirmed) {
+            this.showToast('Account deactivation feature coming soon', 'info');
+            // In a real app, you would handle account deactivation
+        }
+    }
+
+    /**
+     * Handle account deletion
+     */
+    handleDeleteAccount() {
+        const confirmed = confirm(
+            'Are you sure you want to DELETE your account?\n\n' +
+            '⚠️ THIS ACTION CANNOT BE UNDONE ⚠️\n\n' +
+            'All your data, posts, messages, and connections will be permanently deleted.'
+        );
+
+        if (confirmed) {
+            const doubleConfirmed = confirm(
+                'This is your FINAL WARNING!\n\n' +
+                'Type "DELETE" in the next prompt to confirm permanent account deletion.'
+            );
+
+            if (doubleConfirmed) {
+                const verification = prompt('Type "DELETE" to confirm:');
+                if (verification === 'DELETE') {
+                    this.showToast('Account deletion feature coming soon', 'warning');
+                    // In a real app, you would handle account deletion
+                } else {
+                    this.showToast('Account deletion cancelled', 'info');
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle theme changes
+     */
+    handleThemeChange(theme) {
+        // Apply theme changes to the UI
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Update local storage
+        localStorage.setItem('theme', theme);
+        
+        this.showToast(`Theme changed to ${theme}`, 'success');
+        
+        // In a real app, you might apply actual theme styles here
+        console.log(`Theme changed to: ${theme}`);
+    }
+
+    /**
+     * Handle font size changes
+     */
+    handleFontSizeChange(fontSize) {
+        // Apply font size changes
+        document.documentElement.style.fontSize = this.getFontSizeValue(fontSize);
+        
+        // Update local storage
+        localStorage.setItem('fontSize', fontSize);
+        
+        this.showToast(`Font size changed to ${fontSize}`, 'success');
+    }
+
+    /**
+     * Get font size value for CSS
+     */
+    getFontSizeValue(size) {
+        const sizes = {
+            'small': '12px',
+            'medium': '14px',
+            'large': '16px',
+            'extra-large': '18px'
+        };
+        return sizes[size] || sizes.medium;
+    }
+
+    /**
+     * Initialize help section functionality
+     */
+    initializeHelpSection() {
+        // Help search
+        const helpSearch = document.getElementById('help-search-input');
+        if (helpSearch) {
+            helpSearch.addEventListener('input', (e) => {
+                this.handleHelpSearch(e.target.value);
+            });
+        }
+
+        // Contact buttons
+        const contactBtns = document.querySelectorAll('.contact-btn');
+        contactBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.handleContactSupport(e.target);
+            });
+        });
+
+        // Help links
+        const helpLinks = document.querySelectorAll('.help-links a');
+        helpLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleHelpLinkClick(link);
+            });
+        });
+
+        // Guidelines links
+        const guidelineLinks = document.querySelectorAll('.guideline-link');
+        guidelineLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                // Let these links work normally since they point to real pages
+                console.log('Opening guideline:', link.href);
+            });
+        });
+    }
+
+    /**
+     * Handle help search
+     */
+    handleHelpSearch(query) {
+        if (!query.trim()) {
+            this.showAllHelpCategories();
+            return;
+        }
+
+        // Filter help content based on search query
+        this.filterHelpContent(query.toLowerCase());
+        this.showToast(`Searching help for: "${query}"`, 'info');
+    }
+
+    /**
+     * Show all help categories
+     */
+    showAllHelpCategories() {
+        const helpCards = document.querySelectorAll('.help-category-card');
+        helpCards.forEach(card => {
+            card.style.display = 'block';
+            card.style.opacity = '1';
+        });
+    }
+
+    /**
+     * Filter help content based on search query
+     */
+    filterHelpContent(query) {
+        const helpCards = document.querySelectorAll('.help-category-card');
+        let hasVisibleResults = false;
+
+        helpCards.forEach(card => {
+            const cardText = card.textContent.toLowerCase();
+            const isMatch = cardText.includes(query);
+            
+            if (isMatch) {
+                card.style.display = 'block';
+                card.style.opacity = '1';
+                hasVisibleResults = true;
+            } else {
+                card.style.opacity = '0.3';
+            }
+        });
+
+        if (!hasVisibleResults) {
+            this.showToast('No help articles found for that search', 'warning');
+        }
+    }
+
+    /**
+     * Handle contact support button clicks
+     */
+    handleContactSupport(button) {
+        const iconClass = button.querySelector('i').className;
+        let contactType = 'support';
+
+        if (iconClass.includes('comment')) {
+            contactType = 'live chat';
+        } else if (iconClass.includes('envelope')) {
+            contactType = 'email';
+        } else if (iconClass.includes('exclamation')) {
+            contactType = 'report issue';
+        }
+
+        this.showToast(`${contactType.charAt(0).toUpperCase() + contactType.slice(1)} feature coming soon`, 'info');
+        
+        // In a real app, you would open the appropriate contact method
+        // For live chat, you might open a chat widget
+        // For email, you might open the user's email client
+        // For report issue, you might open a specialized form
+    }
+
+    /**
+     * Handle help link clicks
+     */
+    handleHelpLinkClick(link) {
+        const linkText = link.textContent.trim();
+        this.showToast(`Help article: "${linkText}" - Coming soon`, 'info');
+        
+        // In a real app, you would navigate to the help article
+        // or open a modal with the article content
+        console.log('Help article clicked:', linkText);
+    }
+
+    /**
+     * Load user settings from storage/API
+     */
+    loadUserSettings() {
+        try {
+            // Load theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
+            if (themeInput) {
+                themeInput.checked = true;
+                this.handleThemeChange(savedTheme);
+            }
+
+            // Load font size preference
+            const savedFontSize = localStorage.getItem('fontSize') || 'medium';
+            const fontSizeSelect = document.getElementById('font-size');
+            if (fontSizeSelect) {
+                fontSizeSelect.value = savedFontSize;
+                this.handleFontSizeChange(savedFontSize);
+            }
+
+            console.log('User settings loaded');
+        } catch (error) {
+            console.error('Failed to load user settings:', error);
+        }
+    }
+
+    /**
+     * Initialize settings with user data
+     */
+    populateSettingsWithUserData() {
+        if (!this.currentUser) return;
+
+        // Populate profile information
+        const displayNameInput = document.getElementById('display-name');
+        const usernameInput = document.getElementById('username');
+        const bioTextarea = document.getElementById('bio');
+        const emailInput = document.getElementById('email');
+
+        if (displayNameInput) displayNameInput.value = this.currentUser.name || '';
+        if (usernameInput) usernameInput.value = this.currentUser.username?.replace('@', '') || '';
+        if (bioTextarea) bioTextarea.value = this.currentUser.bio || '';
+        if (emailInput) emailInput.value = this.currentUser.email || '';
     }
 
     /**

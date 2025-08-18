@@ -77,56 +77,14 @@
         <header class="app-header">
             <div class="header-left">
                 <div class="logo">
-                    <!-- Enhanced Chain Link Logo -->
                     <div class="logo-container">
-                        <svg class="header-logo-svg" width="45" height="45" viewBox="0 0 60 45" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="lynkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
-                                    <stop offset="30%" style="stop-color:#A855F7;stop-opacity:1" />
-                                    <stop offset="60%" style="stop-color:#EC4899;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="chainShadow" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#000000;stop-opacity:0.2" />
-                                    <stop offset="100%" style="stop-color:#000000;stop-opacity:0.05" />
-                                </linearGradient>
-                                <filter id="glow">
-                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur"/>
-                                        <feMergeNode in="SourceGraphic"/>
-                                    </feMerge>
-                                </filter>
-                            </defs>
-                            
-                            <!-- Chain Link 1 - Rotated -->
-                            <g transform="rotate(-15 15 22.5)">
-                                <ellipse cx="15" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
-                                <ellipse cx="15" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
-                                <ellipse cx="15" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
-                            </g>
-                            
-                            <!-- Chain Link 2 - Interlocked -->
-                            <g transform="rotate(15 30 22.5)">
-                                <ellipse cx="30" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
-                                <ellipse cx="30" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
-                                <ellipse cx="30" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
-                            </g>
-                            
-                            <!-- Chain Link 3 - Final link -->
-                            <g transform="rotate(-15 45 22.5)">
-                                <ellipse cx="45" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#chainShadow)" stroke-width="3" opacity="0.3" transform="translate(1,1)"/>
-                                <ellipse cx="45" cy="22.5" rx="8" ry="12" fill="none" stroke="url(#lynkGradient)" stroke-width="3.5" filter="url(#glow)" opacity="0.9"/>
-                                <ellipse cx="45" cy="22.5" rx="5" ry="8" fill="none" stroke="url(#lynkGradient)" stroke-width="1.5" opacity="0.6"/>
-                            </g>
-                            
-                            <!-- Connection highlights -->
-                            <circle cx="22" cy="22.5" r="2.5" fill="url(#lynkGradient)" opacity="0.8" filter="url(#glow)"/>
-                            <circle cx="38" cy="22.5" r="2.5" fill="url(#lynkGradient)" opacity="0.8" filter="url(#glow)"/>
-                        </svg>
+                        <div class="logo-chain-links">
+                            <i class="fas fa-link"></i>
+                            <i class="fas fa-link"></i>
+                            <i class="fas fa-link"></i>
+                        </div>
                         <div class="logo-text">
-                            <h1>L<span class="chain-letter">y</span>nk</h1>
+                            <h1>Lynk</h1>
                             <div class="logo-tagline">Connect • Share • Love</div>
                         </div>
                     </div>
@@ -185,15 +143,11 @@
                         <img src="https://via.placeholder.com/40x40/4facfe/ffffff?text=U" alt="User Avatar" class="user-avatar">
                     </button>
                     <div class="dropdown-menu" id="user-dropdown">
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            Profile
-                        </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="settings-menu-btn" data-section="settings">
                             <i class="fas fa-cog"></i>
                             Settings
                         </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="help-menu-btn" data-section="help">
                             <i class="fas fa-question-circle"></i>
                             Help
                         </a>
@@ -488,6 +442,394 @@
 
                     <div class="profile-content" id="profile-content">
                         <!-- Profile content will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="content-section" id="settings-section">
+                <div class="settings-container">
+                    <div class="settings-header">
+                        <h2><i class="fas fa-cog"></i> Settings</h2>
+                        <p>Manage your account, privacy, and app preferences</p>
+                    </div>
+
+                    <div class="settings-tabs">
+                        <button class="settings-tab active" data-tab="account">
+                            <i class="fas fa-user-cog"></i> Account
+                        </button>
+                        <button class="settings-tab" data-tab="privacy">
+                            <i class="fas fa-shield-alt"></i> Privacy
+                        </button>
+                        <button class="settings-tab" data-tab="notifications-settings">
+                            <i class="fas fa-bell"></i> Notifications
+                        </button>
+                        <button class="settings-tab" data-tab="security">
+                            <i class="fas fa-lock"></i> Security
+                        </button>
+                        <button class="settings-tab" data-tab="appearance">
+                            <i class="fas fa-palette"></i> Appearance
+                        </button>
+                    </div>
+
+                    <div class="settings-content">
+                        <!-- Account Settings -->
+                        <div class="settings-tab-content active" id="account-content">
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-user"></i> Profile Information</h3>
+                                <div class="setting-group">
+                                    <label for="display-name">Display Name</label>
+                                    <input type="text" id="display-name" value="John Doe" class="settings-input">
+                                </div>
+                                <div class="setting-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" id="username" value="johndoe" class="settings-input">
+                                </div>
+                                <div class="setting-group">
+                                    <label for="bio">Bio</label>
+                                    <textarea id="bio" class="settings-textarea" rows="3">Digital creator | Photography enthusiast | Travel lover</textarea>
+                                </div>
+                                <div class="setting-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" value="john.doe@email.com" class="settings-input">
+                                </div>
+                                <button class="save-settings-btn">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-trash-alt"></i> Danger Zone</h3>
+                                <div class="danger-zone">
+                                    <button class="danger-btn" id="deactivate-account-btn">
+                                        <i class="fas fa-user-times"></i> Deactivate Account
+                                    </button>
+                                    <button class="danger-btn" id="delete-account-btn">
+                                        <i class="fas fa-user-minus"></i> Delete Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="settings-tab-content" id="privacy-content">
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-eye"></i> Profile Visibility</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Public Profile
+                                    </label>
+                                    <p class="setting-description">Allow anyone to find and view your profile</p>
+                                </div>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Show Online Status
+                                    </label>
+                                    <p class="setting-description">Let others see when you're online</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-envelope"></i> Message Privacy</h3>
+                                <div class="setting-group">
+                                    <label for="message-privacy">Who can message you</label>
+                                    <select id="message-privacy" class="settings-select">
+                                        <option value="everyone">Everyone</option>
+                                        <option value="connections">Connections only</option>
+                                        <option value="friends">Friends only</option>
+                                        <option value="nobody">Nobody</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-heart"></i> Dating Privacy</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Enable Dating Profile
+                                    </label>
+                                    <p class="setting-description">Show your profile in dating recommendations</p>
+                                </div>
+                                <div class="setting-group">
+                                    <label for="dating-age-range">Age Range Preference</label>
+                                    <div class="age-range-inputs">
+                                        <input type="number" id="min-age" min="18" max="100" value="22" class="age-input">
+                                        <span>to</span>
+                                        <input type="number" id="max-age" min="18" max="100" value="35" class="age-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Settings -->
+                        <div class="settings-tab-content" id="notifications-settings-content">
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-bell"></i> Push Notifications</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Enable Push Notifications
+                                    </label>
+                                    <p class="setting-description">Receive notifications on your device</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-comment"></i> Social Notifications</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Likes and Reactions
+                                    </label>
+                                </div>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Comments
+                                    </label>
+                                </div>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        New Followers
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-heart"></i> Dating Notifications</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        New Matches
+                                    </label>
+                                </div>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input" checked>
+                                        <span class="toggle-slider"></span>
+                                        Messages
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="settings-tab-content" id="security-content">
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-key"></i> Password & Authentication</h3>
+                                <div class="setting-group">
+                                    <label for="current-password">Current Password</label>
+                                    <input type="password" id="current-password" class="settings-input">
+                                </div>
+                                <div class="setting-group">
+                                    <label for="new-password">New Password</label>
+                                    <input type="password" id="new-password" class="settings-input">
+                                </div>
+                                <div class="setting-group">
+                                    <label for="confirm-password">Confirm New Password</label>
+                                    <input type="password" id="confirm-password" class="settings-input">
+                                </div>
+                                <button class="save-settings-btn">
+                                    <i class="fas fa-lock"></i> Update Password
+                                </button>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-shield-alt"></i> Two-Factor Authentication</h3>
+                                <div class="setting-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" class="toggle-input">
+                                        <span class="toggle-slider"></span>
+                                        Enable 2FA
+                                    </label>
+                                    <p class="setting-description">Add an extra layer of security to your account</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-mobile-alt"></i> Active Sessions</h3>
+                                <div class="active-session">
+                                    <div class="session-info">
+                                        <i class="fas fa-desktop"></i>
+                                        <div>
+                                            <strong>Current Session</strong>
+                                            <p>Windows • Chrome • Active now</p>
+                                        </div>
+                                    </div>
+                                    <button class="session-logout-btn">End Session</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appearance Settings -->
+                        <div class="settings-tab-content" id="appearance-content">
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-moon"></i> Theme</h3>
+                                <div class="theme-options">
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="light" checked>
+                                        <div class="theme-preview light-theme">
+                                            <i class="fas fa-sun"></i>
+                                            <span>Light</span>
+                                        </div>
+                                    </label>
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="dark">
+                                        <div class="theme-preview dark-theme">
+                                            <i class="fas fa-moon"></i>
+                                            <span>Dark</span>
+                                        </div>
+                                    </label>
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="auto">
+                                        <div class="theme-preview auto-theme">
+                                            <i class="fas fa-adjust"></i>
+                                            <span>Auto</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-card">
+                                <h3><i class="fas fa-text-height"></i> Text Size</h3>
+                                <div class="setting-group">
+                                    <label for="font-size">Font Size</label>
+                                    <select id="font-size" class="settings-select">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                        <option value="extra-large">Extra Large</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Help Section -->
+            <section class="content-section" id="help-section">
+                <div class="help-container">
+                    <div class="help-header">
+                        <h2><i class="fas fa-question-circle"></i> Help Center</h2>
+                        <p>Find answers, get support, and learn how to use Lynk</p>
+                    </div>
+
+                    <div class="help-search">
+                        <div class="help-search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search for help articles..." id="help-search-input">
+                        </div>
+                    </div>
+
+                    <div class="help-categories">
+                        <div class="help-category-card">
+                            <i class="fas fa-rocket"></i>
+                            <h3>Getting Started</h3>
+                            <p>Learn the basics of using Lynk</p>
+                            <ul class="help-links">
+                                <li><a href="#"><i class="fas fa-circle"></i> Creating your account</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Setting up your profile</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Making your first post</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Finding people to connect with</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="help-category-card">
+                            <i class="fas fa-heart"></i>
+                            <h3>Dating Features</h3>
+                            <p>Everything about LynkDating</p>
+                            <ul class="help-links">
+                                <li><a href="#"><i class="fas fa-circle"></i> Creating your dating profile</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> How matching works</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Starting conversations</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Planning dates safely</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="help-category-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>Privacy & Safety</h3>
+                            <p>Stay safe and control your privacy</p>
+                            <ul class="help-links">
+                                <li><a href="#"><i class="fas fa-circle"></i> Privacy settings</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Blocking and reporting</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Dating safety tips</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Account security</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="help-category-card">
+                            <i class="fas fa-cog"></i>
+                            <h3>Account Settings</h3>
+                            <p>Manage your account and preferences</p>
+                            <ul class="help-links">
+                                <li><a href="#"><i class="fas fa-circle"></i> Changing your password</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Notification settings</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Deactivating your account</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Deleting your data</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="help-category-card">
+                            <i class="fas fa-bug"></i>
+                            <h3>Troubleshooting</h3>
+                            <p>Fix common issues and problems</p>
+                            <ul class="help-links">
+                                <li><a href="#"><i class="fas fa-circle"></i> Can't log in</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Photos not uploading</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> Notifications not working</a></li>
+                                <li><a href="#"><i class="fas fa-circle"></i> App running slowly</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="help-category-card">
+                            <i class="fas fa-envelope"></i>
+                            <h3>Contact Support</h3>
+                            <p>Get help from our support team</p>
+                            <div class="contact-options">
+                                <button class="contact-btn">
+                                    <i class="fas fa-comment"></i> Live Chat
+                                </button>
+                                <button class="contact-btn">
+                                    <i class="fas fa-envelope"></i> Email Support
+                                </button>
+                                <button class="contact-btn">
+                                    <i class="fas fa-exclamation-triangle"></i> Report Issue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-footer">
+                        <h3>Community Guidelines</h3>
+                        <p>Learn about our community standards and what's expected of all Lynk users.</p>
+                        <div class="guidelines-links">
+                            <a href="legal/terms-of-service.html" class="guideline-link">
+                                <i class="fas fa-file-contract"></i>
+                                Terms of Service
+                            </a>
+                            <a href="legal/privacy-policy.html" class="guideline-link">
+                                <i class="fas fa-user-shield"></i>
+                                Privacy Policy
+                            </a>
+                            <a href="legal/feature-compliance-summary.html" class="guideline-link">
+                                <i class="fas fa-balance-scale"></i>
+                                Community Guidelines
+                            </a>
+                        </div>
                     </div>
                 </div>
             </section>
