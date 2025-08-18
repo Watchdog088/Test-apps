@@ -1,27 +1,27 @@
-/* ===== CSS VARIABLES - PURPLE × GOLD LUXE THEME ===== */
+/* ===== CSS VARIABLES - BOLD PURPLE × GOLD LUXE THEME ===== */
 :root {
-    /* Purple & Gold Luxury Colors */
-    --primary-color: #8b5cf6; /* Royal Purple */
-    --primary-hover: #7c3aed;
-    --primary-light: rgba(139, 92, 246, 0.1);
-    --gold-color: #fbbf24; /* Luxury Gold */
-    --gold-hover: #f59e0b;
-    --purple-deep: #6d28d9; /* Deep Purple */
-    --purple-light: #c4b5fd; /* Light Purple */
+    /* Enhanced Purple & Gold Luxury Colors - BOLDER */
+    --primary-color: #7c3aed; /* Deeper Royal Purple */
+    --primary-hover: #6d28d9;
+    --primary-light: rgba(124, 58, 237, 0.25);
+    --gold-color: #f59e0b; /* Richer Luxury Gold */
+    --gold-hover: #d97706;
+    --purple-deep: #581c87; /* Much Deeper Purple */
+    --purple-light: #a855f7; /* More Vibrant Light Purple */
     
-    /* Rose Gold Accent Colors */
-    --rose-gold: #E8B4B8; /* Light Rose Gold */
-    --rose-gold-medium: #D4AF37; /* Medium Rose Gold */
-    --rose-gold-deep: #B8860B; /* Deep Rose Gold */
-    --rose-gold-light: rgba(232, 180, 184, 0.2);
+    /* Enhanced Rose Gold Accent Colors - BOLDER */
+    --rose-gold: #E6A4C4; /* More Vibrant Rose Gold */
+    --rose-gold-medium: #DAA520; /* Brighter Medium Rose Gold */
+    --rose-gold-deep: #B8860B; /* Richer Deep Rose Gold */
+    --rose-gold-light: rgba(230, 164, 196, 0.35);
     
-    /* Premium Gradients */
-    --instagram-gradient: linear-gradient(45deg, #8b5cf6 0%, #a855f7 25%, #c084fc 50%, #ddd6fe 75%, #fbbf24 100%);
-    --facebook-gradient: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #fbbf24 100%);
-    --purple-gold-gradient: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 25%, #a855f7 50%, #fbbf24 75%, #f59e0b 100%);
-    --royal-gradient: linear-gradient(45deg, #4c1d95 0%, #6d28d9 25%, #8b5cf6 50%, #fbbf24 75%, #f59e0b 100%);
-    --rose-gold-gradient: linear-gradient(135deg, #E8B4B8 0%, #D4AF37 50%, #B8860B 100%);
-    --luxe-gradient: linear-gradient(45deg, #8b5cf6 0%, #E8B4B8 25%, #D4AF37 50%, #fbbf24 75%, #f59e0b 100%);
+    /* Enhanced Premium Gradients - MORE VIBRANT */
+    --instagram-gradient: linear-gradient(45deg, #7c3aed 0%, #8b5cf6 20%, #a855f7 40%, #c084fc 60%, #f59e0b 80%, #fbbf24 100%);
+    --facebook-gradient: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 30%, #a855f7 60%, #f59e0b 100%);
+    --purple-gold-gradient: linear-gradient(135deg, #581c87 0%, #7c3aed 20%, #8b5cf6 40%, #a855f7 60%, #f59e0b 80%, #d97706 100%);
+    --royal-gradient: linear-gradient(45deg, #3730a3 0%, #581c87 20%, #7c3aed 40%, #8b5cf6 60%, #f59e0b 80%, #d97706 100%);
+    --rose-gold-gradient: linear-gradient(135deg, #E6A4C4 0%, #DAA520 50%, #B8860B 100%);
+    --luxe-gradient: linear-gradient(45deg, #7c3aed 0%, #E6A4C4 20%, #DAA520 40%, #f59e0b 60%, #fbbf24 80%, #d97706 100%);
     
     /* Glossy Effects */
     --glass-overlay: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
