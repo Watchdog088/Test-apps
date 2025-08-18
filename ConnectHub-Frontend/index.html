@@ -135,24 +135,63 @@
             </nav>
 
             <div class="header-actions">
+                <!-- Quick Action Buttons -->
                 <button class="action-btn" id="create-post-btn" title="Create Post">
                     <i class="fas fa-plus"></i>
                 </button>
+                
+                <!-- Direct Header Buttons for Settings, Help, Logout -->
+                <div class="header-quick-actions">
+                    <button class="header-action-btn" id="settings-header-btn" data-section="settings" title="Settings">
+                        <i class="fas fa-cog"></i>
+                        <span class="btn-label">Settings</span>
+                    </button>
+                    <button class="header-action-btn" id="help-header-btn" data-section="help" title="Help Center">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="btn-label">Help</span>
+                    </button>
+                    <button class="header-action-btn logout-btn" id="logout-header-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="btn-label">Logout</span>
+                    </button>
+                </div>
+
+                <!-- User Menu Dropdown (Enhanced) -->
                 <div class="user-menu-dropdown">
-                    <button class="user-avatar-btn" id="user-menu-btn">
-                        <img src="https://via.placeholder.com/40x40/4facfe/ffffff?text=U" alt="User Avatar" class="user-avatar">
+                    <button class="user-avatar-btn" id="user-menu-btn" title="User Menu">
+                        <div class="avatar-container">
+                            <img src="https://via.placeholder.com/40x40/4facfe/ffffff?text=U" alt="User Avatar" class="user-avatar">
+                            <div class="online-indicator"></div>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
                     </button>
                     <div class="dropdown-menu" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <img src="https://via.placeholder.com/40x40/4facfe/ffffff?text=U" alt="User Avatar" class="dropdown-avatar">
+                            <div class="user-info">
+                                <span class="user-name">John Doe</span>
+                                <span class="user-email">john.doe@email.com</span>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="profile-menu-btn" data-section="profile">
+                            <i class="fas fa-user"></i>
+                            View Profile
+                        </a>
                         <a href="#" class="dropdown-item" id="settings-menu-btn" data-section="settings">
                             <i class="fas fa-cog"></i>
-                            Settings
+                            Settings & Privacy
                         </a>
                         <a href="#" class="dropdown-item" id="help-menu-btn" data-section="help">
                             <i class="fas fa-question-circle"></i>
-                            Help
+                            Help & Support
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item" id="logout-btn">
+                        <a href="#" class="dropdown-item" id="theme-toggle-btn">
+                            <i class="fas fa-moon"></i>
+                            Dark Mode
+                        </a>
+                        <a href="#" class="dropdown-item danger-item" id="logout-btn">
                             <i class="fas fa-sign-out-alt"></i>
                             Logout
                         </a>

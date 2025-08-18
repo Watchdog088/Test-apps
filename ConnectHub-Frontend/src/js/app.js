@@ -178,7 +178,27 @@ class ConnectHubApp {
             });
         }
 
-        // Dropdown menu navigation
+        // Dropdown menu navigation - Settings and Help buttons
+        const settingsMenuBtn = document.getElementById('settings-menu-btn');
+        const helpMenuBtn = document.getElementById('help-menu-btn');
+        
+        if (settingsMenuBtn) {
+            settingsMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateToSection('settings');
+                userDropdown.classList.remove('show');
+            });
+        }
+        
+        if (helpMenuBtn) {
+            helpMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateToSection('help');
+                userDropdown.classList.remove('show');
+            });
+        }
+
+        // Dropdown menu navigation - Generic handler for other items
         const dropdownNavItems = document.querySelectorAll('.dropdown-item[data-section]');
         dropdownNavItems.forEach(item => {
             item.addEventListener('click', (e) => {
@@ -197,8 +217,45 @@ class ConnectHubApp {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.handleLogout();
+                userDropdown.classList.remove('show');
             });
         }
+
+        // Header action buttons functionality
+        const settingsHeaderBtn = document.getElementById('settings-header-btn');
+        const helpHeaderBtn = document.getElementById('help-header-btn');
+        const logoutHeaderBtn = document.getElementById('logout-header-btn');
+
+        if (settingsHeaderBtn) {
+            settingsHeaderBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateToSection('settings');
+                this.showToast('Opening Settings...', 'info');
+                if (userDropdown) userDropdown.classList.remove('show');
+            });
+        }
+
+        if (helpHeaderBtn) {
+            helpHeaderBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateToSection('help');
+                this.showToast('Opening Help Center...', 'info');
+                if (userDropdown) userDropdown.classList.remove('show');
+            });
+        }
+
+        if (logoutHeaderBtn) {
+            logoutHeaderBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+        }
+
+        // Quick links in sidebar
+        this.initializeQuickLinks();
+
+        // Footer links
+        this.initializeFooterLinks();
 
         // Settings tabs functionality
         this.initializeSettingsTabs();
@@ -1240,39 +1297,455 @@ class ConnectHubApp {
     }
 
     /**
+     * Initialize quick links in sidebar
+     */
+    initializeQuickLinks() {
+        const quickLinks = document.querySelectorAll('.quick-links a');
+        
+        quickLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const linkText = link.textContent.trim();
+                this.handleQuickLinkClick(linkText, link);
+            });
+        });
+    }
+
+    /**
+     * Handle quick link clicks
+     */
+    handleQuickLinkClick(linkText, linkElement) {
+        switch (linkText) {
+            case 'Saved Posts':
+                this.showSavedPosts();
+                break;
+            case 'Groups':
+                this.showGroups();
+                break;
+            case 'Events':
+                this.showEvents();
+                break;
+            case 'Photos':
+                this.showPhotos();
+                break;
+            case 'Videos':
+                this.showVideos();
+                break;
+            default:
+                this.showToast(`${linkText} feature coming soon`, 'info');
+        }
+    }
+
+    /**
+     * Show saved posts section
+     */
+    showSavedPosts() {
+        // Navigate to profile section and switch to saved posts
+        this.navigateToSection('profile');
+        
+        // Switch to saved posts tab after navigation
+        setTimeout(() => {
+            const savedTab = document.querySelector('.profile-tab[data-tab="likes"]'); // Using likes tab as saved posts
+            if (savedTab) {
+                this.switchProfileTab('likes');
+            }
+        }, 500);
+        
+        this.showToast('Showing your saved posts', 'success');
+    }
+
+    /**
+     * Show groups section
+     */
+    showGroups() {
+        this.showToast('Groups feature coming soon! Connect with communities that share your interests.', 'info');
+        
+        // In a real app, this would navigate to a groups section
+        // For now, we could simulate some groups content
+        this.simulateGroupsPreview();
+    }
+
+    /**
+     * Show events section
+     */
+    showEvents() {
+        this.showToast('Events feature coming soon! Discover and create events in your area.', 'info');
+        
+        // In a real app, this would navigate to an events section
+        this.simulateEventsPreview();
+    }
+
+    /**
+     * Show photos section
+     */
+    showPhotos() {
+        // Navigate to profile section and switch to media
+        this.navigateToSection('profile');
+        
+        // Switch to media tab after navigation
+        setTimeout(() => {
+            const mediaTab = document.querySelector('.profile-tab[data-tab="media"]');
+            if (mediaTab) {
+                this.switchProfileTab('media');
+            }
+        }, 500);
+        
+        this.showToast('Showing your photos', 'success');
+    }
+
+    /**
+     * Show videos section
+     */
+    showVideos() {
+        // Navigate to profile section and switch to media
+        this.navigateToSection('profile');
+        
+        // Switch to media tab after navigation, but focus on videos
+        setTimeout(() => {
+            const mediaTab = document.querySelector('.profile-tab[data-tab="media"]');
+            if (mediaTab) {
+                this.switchProfileTab('media');
+                // Add a filter indicator for videos
+                this.showToast('Filtering media to show videos only', 'info');
+            }
+        }, 500);
+        
+        this.showToast('Showing your videos', 'success');
+    }
+
+    /**
+     * Simulate groups preview
+     */
+    simulateGroupsPreview() {
+        setTimeout(() => {
+            const groupsPreview = [
+                '📸 Photography Enthusiasts (2.4K members)',
+                '🏔️ Adventure Seekers (1.8K members)', 
+                '☕ Coffee Lovers United (892 members)',
+                '🎨 Digital Artists (3.2K members)',
+                '✈️ Travel Buddies (1.5K members)'
+            ];
+            
+            let message = 'Popular Groups You Might Like:\n\n' + groupsPreview.join('\n');
+            console.log('Groups Preview:', message);
+        }, 1000);
+    }
+
+    /**
+     * Simulate events preview
+     */
+    simulateEventsPreview() {
+        setTimeout(() => {
+            const eventsPreview = [
+                '🎵 Summer Music Festival - This Weekend',
+                '📸 Photography Workshop - Next Monday', 
+                '🍕 Pizza Meetup - Thursday 7PM',
+                '🏃‍♀️ Morning Run Group - Daily 6AM',
+                '🎨 Art Gallery Opening - Friday'
+            ];
+            
+            let message = 'Upcoming Events Near You:\n\n' + eventsPreview.join('\n');
+            console.log('Events Preview:', message);
+        }, 1000);
+    }
+
+    /**
+     * Initialize footer links
+     */
+    initializeFooterLinks() {
+        // Footer links are already handled as regular anchor tags
+        // They will work normally since they point to real pages
+        const footerLinks = document.querySelectorAll('footer a[href^="legal/"]');
+        footerLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                console.log('Opening footer link:', link.href);
+                // These links work normally since they point to real pages
+            });
+        });
+        
+        // Handle other footer links that might not have pages yet
+        const otherFooterLinks = document.querySelectorAll('footer a:not([href^="legal/"]):not([href^="mailto:"])');
+        otherFooterLinks.forEach(link => {
+            if (link.getAttribute('href') === '#') {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const linkText = link.textContent.trim();
+                    this.showToast(`${linkText} feature coming soon`, 'info');
+                });
+            }
+        });
+    }
+
+    /**
      * Placeholder methods for features not yet implemented
      */
 
     async loadDatingProfiles() {
-        // Placeholder for loading dating profiles
+        // Load the current dating profile for discovery
+        await this.loadDatingProfile();
     }
 
     async loadConversations() {
-        // Placeholder for loading conversations
+        // Simulate loading conversations
+        const messagesMain = document.getElementById('messages-main');
+        if (messagesMain) {
+            messagesMain.innerHTML = `
+                <div class="no-conversation-selected">
+                    <i class="fas fa-comments"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Choose from your existing conversations or start a new one</p>
+                </div>
+            `;
+        }
+        
+        // Show some mock conversations in sidebar
+        const conversationsList = document.getElementById('conversations-list');
+        if (conversationsList) {
+            conversationsList.innerHTML = `
+                <div class="conversation-item" data-conversation-id="conv-1">
+                    <img src="https://via.placeholder.com/40x40/42b72a/ffffff?text=EW" alt="Emma Watson" class="user-avatar small">
+                    <div class="conversation-info">
+                        <div class="conversation-name">Emma Watson</div>
+                        <div class="last-message">Thanks for the photography tips! 📸</div>
+                        <div class="conversation-time">2h ago</div>
+                    </div>
+                    <div class="unread-badge">2</div>
+                </div>
+                <div class="conversation-item" data-conversation-id="conv-2">
+                    <img src="https://via.placeholder.com/40x40/ff6b6b/ffffff?text=AJ" alt="Alex Johnson" class="user-avatar small">
+                    <div class="conversation-info">
+                        <div class="conversation-name">Alex Johnson</div>
+                        <div class="last-message">That hike was amazing!</div>
+                        <div class="conversation-time">5h ago</div>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     async loadNotifications() {
-        // Placeholder for loading notifications
+        const notificationsList = document.getElementById('notifications-list');
+        if (notificationsList) {
+            notificationsList.innerHTML = `
+                <div class="notification-item unread" data-type="like">
+                    <div class="notification-icon like">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <strong>Emma Watson</strong> and <strong>12 others</strong> liked your post
+                        </div>
+                        <div class="notification-time">2 minutes ago</div>
+                    </div>
+                </div>
+                <div class="notification-item unread" data-type="comment">
+                    <div class="notification-icon comment">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <strong>Alex Johnson</strong> commented on your photo: "Amazing shot!"
+                        </div>
+                        <div class="notification-time">15 minutes ago</div>
+                    </div>
+                </div>
+                <div class="notification-item" data-type="follow">
+                    <div class="notification-icon follow">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <strong>Sarah Chen</strong> started following you
+                        </div>
+                        <div class="notification-time">1 hour ago</div>
+                    </div>
+                </div>
+                <div class="notification-item" data-type="match">
+                    <div class="notification-icon match">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            You have a new match! <strong>Sophia Williams</strong> liked you back
+                        </div>
+                        <div class="notification-time">3 hours ago</div>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     async loadProfileData() {
-        // Placeholder for loading profile data
+        const profileContent = document.getElementById('profile-content');
+        if (profileContent) {
+            // Show posts tab content by default
+            profileContent.innerHTML = `
+                <div class="profile-posts-grid">
+                    <div class="profile-post-item">
+                        <img src="https://source.unsplash.com/300x300/?photography" alt="Post" loading="lazy">
+                        <div class="post-overlay">
+                            <div class="post-stats">
+                                <span><i class="fas fa-heart"></i> 234</span>
+                                <span><i class="fas fa-comment"></i> 45</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-post-item">
+                        <img src="https://source.unsplash.com/300x300/?travel" alt="Post" loading="lazy">
+                        <div class="post-overlay">
+                            <div class="post-stats">
+                                <span><i class="fas fa-heart"></i> 456</span>
+                                <span><i class="fas fa-comment"></i> 67</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-post-item">
+                        <img src="https://source.unsplash.com/300x300/?art" alt="Post" loading="lazy">
+                        <div class="post-overlay">
+                            <div class="post-stats">
+                                <span><i class="fas fa-heart"></i> 789</span>
+                                <span><i class="fas fa-comment"></i> 123</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     loadInitialPosts() {
         // Already handled in loadFeedPosts
+        this.loadFeedPosts();
     }
 
     async loadMatches() {
-        // Placeholder for loading matches
+        const matchesGrid = document.getElementById('matches-grid');
+        if (matchesGrid) {
+            matchesGrid.innerHTML = `
+                <div class="match-card">
+                    <img src="https://source.unsplash.com/150x200/?portrait,woman" alt="Match" class="match-photo">
+                    <div class="match-info">
+                        <h4>Sophia Williams</h4>
+                        <p>Matched 2 days ago</p>
+                        <button class="message-match-btn">Send Message</button>
+                    </div>
+                </div>
+                <div class="match-card">
+                    <img src="https://source.unsplash.com/150x200/?portrait,person" alt="Match" class="match-photo">
+                    <div class="match-info">
+                        <h4>Taylor Johnson</h4>
+                        <p>Matched 1 week ago</p>
+                        <button class="message-match-btn">Send Message</button>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     async loadDates() {
-        // Placeholder for loading dates
+        const datesList = document.getElementById('dates-list');
+        if (datesList) {
+            datesList.innerHTML = `
+                <div class="date-item upcoming">
+                    <div class="date-info">
+                        <div class="date-header">
+                            <h4>Coffee Date</h4>
+                            <span class="date-status upcoming">Upcoming</span>
+                        </div>
+                        <p class="date-partner">with Sophia Williams</p>
+                        <p class="date-details">
+                            <i class="fas fa-calendar"></i> Tomorrow, 2:00 PM<br>
+                            <i class="fas fa-map-marker-alt"></i> Starbucks Downtown
+                        </p>
+                        <div class="date-actions">
+                            <button class="confirm-date-btn">Confirm</button>
+                            <button class="reschedule-date-btn">Reschedule</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="date-item pending">
+                    <div class="date-info">
+                        <div class="date-header">
+                            <h4>Dinner Date</h4>
+                            <span class="date-status pending">Pending</span>
+                        </div>
+                        <p class="date-partner">with Taylor Johnson</p>
+                        <p class="date-details">
+                            <i class="fas fa-calendar"></i> This Weekend<br>
+                            <i class="fas fa-map-marker-alt"></i> Italian Restaurant
+                        </p>
+                        <div class="date-actions">
+                            <button class="accept-date-btn">Accept</button>
+                            <button class="decline-date-btn">Decline</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     async loadDatingChats() {
-        // Placeholder for loading dating chats
+        const chatContent = document.getElementById('chat-content');
+        if (chatContent) {
+            chatContent.innerHTML = `
+                <div class="dating-chat-list">
+                    <div class="chat-item active">
+                        <img src="https://source.unsplash.com/40x40/?portrait,woman" alt="Sophia" class="chat-avatar">
+                        <div class="chat-preview">
+                            <h4>Sophia Williams</h4>
+                            <p>Looking forward to our coffee date! ☕</p>
+                            <span class="chat-time">10m ago</span>
+                        </div>
+                        <div class="unread-badge">1</div>
+                    </div>
+                    <div class="chat-item">
+                        <img src="https://source.unsplash.com/40x40/?portrait,person" alt="Taylor" class="chat-avatar">
+                        <div class="chat-preview">
+                            <h4>Taylor Johnson</h4>
+                            <p>Thanks for the match! How's your day going?</p>
+                            <span class="chat-time">2h ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-messages-container">
+                    <div class="chat-header">
+                        <img src="https://source.unsplash.com/40x40/?portrait,woman" alt="Sophia" class="chat-avatar">
+                        <div class="chat-partner-info">
+                            <h4>Sophia Williams</h4>
+                            <span class="online-status">Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="message received">
+                            <p>Hi! Thanks for the like 😊</p>
+                            <span class="message-time">2:30 PM</span>
+                        </div>
+                        <div class="message sent">
+                            <p>Hey! I loved your photography! Are you a professional?</p>
+                            <span class="message-time">2:32 PM</span>
+                        </div>
+                        <div class="message received">
+                            <p>Thank you! I'm actually just passionate about it. Would love to show you some of my favorite spots sometime ☕</p>
+                            <span class="message-time">2:35 PM</span>
+                        </div>
+                        <div class="message sent">
+                            <p>That sounds amazing! I'd love to. Coffee tomorrow afternoon?</p>
+                            <span class="message-time">2:37 PM</span>
+                        </div>
+                        <div class="message received">
+                            <p>Looking forward to our coffee date! ☕</p>
+                            <span class="message-time">Just now</span>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" placeholder="Type a message..." class="chat-input">
+                        <button class="send-message-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     startNewConversation() {
@@ -1319,7 +1792,315 @@ class ConnectHubApp {
     }
 
     editProfile() {
-        this.showToast('Edit profile feature coming soon', 'info');
+        this.openEditProfileModal();
+    }
+
+    /**
+     * Open edit profile modal with current user data
+     */
+    openEditProfileModal() {
+        // Create the edit profile modal if it doesn't exist
+        let modal = document.getElementById('edit-profile-modal');
+        if (!modal) {
+            this.createEditProfileModal();
+            modal = document.getElementById('edit-profile-modal');
+        }
+
+        // Populate modal with current user data
+        this.populateEditProfileModal();
+        
+        // Show the modal
+        this.openModal('edit-profile-modal');
+    }
+
+    /**
+     * Create edit profile modal HTML
+     */
+    createEditProfileModal() {
+        const modalHTML = `
+            <div id="edit-profile-modal" class="modal">
+                <div class="modal-content edit-profile-modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
+                        <button id="close-edit-profile" class="close-modal-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body edit-profile-body">
+                        <div class="profile-photo-section">
+                            <div class="current-profile-photo">
+                                <img id="edit-profile-avatar" src="${this.currentUser.avatar}" alt="Profile Photo" class="profile-photo-preview">
+                                <div class="photo-overlay">
+                                    <button id="change-profile-photo-btn" class="change-photo-btn">
+                                        <i class="fas fa-camera"></i>
+                                        Change Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="edit-form-section">
+                            <div class="form-group">
+                                <label for="edit-display-name">
+                                    <i class="fas fa-user"></i> Display Name
+                                </label>
+                                <input type="text" id="edit-display-name" class="form-input" 
+                                       placeholder="Enter your display name" maxlength="50">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-username">
+                                    <i class="fas fa-at"></i> Username
+                                </label>
+                                <input type="text" id="edit-username" class="form-input" 
+                                       placeholder="Enter your username" maxlength="30">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-bio">
+                                    <i class="fas fa-quote-left"></i> Bio
+                                </label>
+                                <textarea id="edit-bio" class="form-textarea" 
+                                          placeholder="Tell people about yourself..." 
+                                          maxlength="300" rows="4"></textarea>
+                                <div class="character-count">
+                                    <span id="bio-char-count">0</span>/300
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-location">
+                                    <i class="fas fa-map-marker-alt"></i> Location
+                                </label>
+                                <input type="text" id="edit-location" class="form-input" 
+                                       placeholder="Enter your location" maxlength="50">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-website">
+                                    <i class="fas fa-globe"></i> Website
+                                </label>
+                                <input type="url" id="edit-website" class="form-input" 
+                                       placeholder="https://yourwebsite.com" maxlength="100">
+                            </div>
+
+                            <div class="privacy-settings">
+                                <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+                                <div class="privacy-option">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="profile-public" class="toggle-input">
+                                        <span class="toggle-slider"></span>
+                                        Public Profile
+                                    </label>
+                                    <small>Allow others to find and view your profile</small>
+                                </div>
+                                <div class="privacy-option">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="show-online-status" class="toggle-input">
+                                        <span class="toggle-slider"></span>
+                                        Show Online Status
+                                    </label>
+                                    <small>Let others see when you're online</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button id="cancel-edit-profile" class="secondary-btn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button id="save-profile-changes" class="primary-btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Add event listeners
+        this.setupEditProfileModalListeners();
+    }
+
+    /**
+     * Setup event listeners for edit profile modal
+     */
+    setupEditProfileModalListeners() {
+        // Close modal
+        const closeBtn = document.getElementById('close-edit-profile');
+        const cancelBtn = document.getElementById('cancel-edit-profile');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal('edit-profile-modal'));
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeModal('edit-profile-modal'));
+        }
+
+        // Save changes
+        const saveBtn = document.getElementById('save-profile-changes');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveProfileChanges());
+        }
+
+        // Change profile photo
+        const changePhotoBtn = document.getElementById('change-profile-photo-btn');
+        if (changePhotoBtn) {
+            changePhotoBtn.addEventListener('click', () => this.changeProfilePhoto());
+        }
+
+        // Bio character counter
+        const bioTextarea = document.getElementById('edit-bio');
+        const charCounter = document.getElementById('bio-char-count');
+        if (bioTextarea && charCounter) {
+            bioTextarea.addEventListener('input', () => {
+                const count = bioTextarea.value.length;
+                charCounter.textContent = count;
+                charCounter.style.color = count > 250 ? '#e74c3c' : '#666';
+            });
+        }
+    }
+
+    /**
+     * Populate edit profile modal with current user data
+     */
+    populateEditProfileModal() {
+        const fields = {
+            'edit-display-name': this.currentUser.name || '',
+            'edit-username': this.currentUser.username?.replace('@', '') || '',
+            'edit-bio': this.currentUser.bio || '',
+            'edit-location': this.currentUser.location || '',
+            'edit-website': this.currentUser.website || ''
+        };
+
+        // Populate text fields
+        Object.keys(fields).forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = fields[fieldId];
+            }
+        });
+
+        // Update avatar preview
+        const avatarImg = document.getElementById('edit-profile-avatar');
+        if (avatarImg) {
+            avatarImg.src = this.currentUser.avatar;
+        }
+
+        // Update character counter
+        const bioTextarea = document.getElementById('edit-bio');
+        const charCounter = document.getElementById('bio-char-count');
+        if (bioTextarea && charCounter) {
+            charCounter.textContent = bioTextarea.value.length;
+        }
+
+        // Set privacy toggles (default values for demo)
+        const publicToggle = document.getElementById('profile-public');
+        const onlineStatusToggle = document.getElementById('show-online-status');
+        
+        if (publicToggle) publicToggle.checked = true;
+        if (onlineStatusToggle) onlineStatusToggle.checked = true;
+    }
+
+    /**
+     * Save profile changes
+     */
+    async saveProfileChanges() {
+        const saveBtn = document.getElementById('save-profile-changes');
+        if (!saveBtn) return;
+
+        // Show loading state
+        const originalHTML = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveBtn.disabled = true;
+
+        try {
+            // Collect form data
+            const formData = {
+                name: document.getElementById('edit-display-name')?.value || '',
+                username: document.getElementById('edit-username')?.value || '',
+                bio: document.getElementById('edit-bio')?.value || '',
+                location: document.getElementById('edit-location')?.value || '',
+                website: document.getElementById('edit-website')?.value || '',
+                profilePublic: document.getElementById('profile-public')?.checked || false,
+                showOnlineStatus: document.getElementById('show-online-status')?.checked || false
+            };
+
+            // Validate required fields
+            if (!formData.name.trim()) {
+                throw new Error('Display name is required');
+            }
+
+            if (!formData.username.trim()) {
+                throw new Error('Username is required');
+            }
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Update current user data
+            this.currentUser.name = formData.name.trim();
+            this.currentUser.username = '@' + formData.username.trim().replace('@', '');
+            this.currentUser.bio = formData.bio.trim();
+            this.currentUser.location = formData.location.trim();
+            this.currentUser.website = formData.website.trim();
+
+            // Update UI
+            this.updateUserInterface();
+
+            // Show success
+            this.showToast('Profile updated successfully!', 'success');
+            this.triggerSuccessAnimation(saveBtn);
+
+            // Close modal after a short delay
+            setTimeout(() => {
+                this.closeModal('edit-profile-modal');
+            }, 1000);
+
+        } catch (error) {
+            console.error('Failed to save profile changes:', error);
+            this.showToast(error.message || 'Failed to save profile changes', 'error');
+            this.triggerErrorAnimation(saveBtn);
+        } finally {
+            // Restore button state
+            setTimeout(() => {
+                saveBtn.innerHTML = originalHTML;
+                saveBtn.disabled = false;
+            }, 1000);
+        }
+    }
+
+    /**
+     * Change profile photo
+     */
+    changeProfilePhoto() {
+        this.createFileInput('image/*', (files) => {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const newAvatarUrl = e.target.result;
+                
+                // Update preview in modal
+                const avatarImg = document.getElementById('edit-profile-avatar');
+                if (avatarImg) {
+                    avatarImg.src = newAvatarUrl;
+                }
+
+                // Update current user avatar
+                this.currentUser.avatar = newAvatarUrl;
+                
+                this.showToast('Profile photo updated!', 'success');
+            };
+            
+            reader.readAsDataURL(file);
+        });
     }
 
     editProfilePhoto() {
