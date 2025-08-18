@@ -378,6 +378,7 @@ class ConnectHubApp {
         if (createPostBtn && createPostModal) {
             createPostBtn.addEventListener('click', () => {
                 this.openModal('create-post-modal');
+                this.focusPostTextarea();
             });
         }
 
@@ -387,12 +388,41 @@ class ConnectHubApp {
             });
         }
 
-        // Post input click to open modal
+        // Post input click to open modal - Enhanced with visual feedback
         const postInput = document.getElementById('post-input');
         if (postInput) {
+            // Make it look and feel interactive
             postInput.addEventListener('click', () => {
                 this.openModal('create-post-modal');
+                this.focusPostTextarea();
+                this.showToast('Create a new post...', 'info');
             });
+
+            // Add hover effects
+            postInput.addEventListener('mouseenter', () => {
+                postInput.style.backgroundColor = 'rgba(139, 92, 246, 0.05)';
+                postInput.style.borderColor = 'var(--primary-color)';
+                postInput.style.transform = 'scale(1.02)';
+                postInput.style.cursor = 'pointer';
+            });
+
+            postInput.addEventListener('mouseleave', () => {
+                postInput.style.backgroundColor = '';
+                postInput.style.borderColor = '';
+                postInput.style.transform = '';
+            });
+
+            // Prevent actual typing in the placeholder input
+            postInput.addEventListener('keydown', (e) => {
+                e.preventDefault();
+                this.openModal('create-post-modal');
+                this.focusPostTextarea();
+            });
+
+            // Add visual indicator that it's clickable
+            postInput.placeholder = "What's on your mind? Click here to share...";
+            postInput.style.cursor = 'pointer';
+            postInput.readOnly = true; // Make it read-only so it just triggers modal
         }
 
         // Modal publish button
@@ -403,8 +433,88 @@ class ConnectHubApp {
             });
         }
 
+        // Add keyboard shortcut for modal (Ctrl+Enter to post)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                const modal = document.getElementById('create-post-modal');
+                if (modal && modal.classList.contains('show')) {
+                    this.handleCreatePost();
+                }
+            }
+        });
+
         // Media options in modal
         this.initializeMediaOptions();
+    }
+    /**
+     * Focus on the post textarea when modal opens
+     */
+    focusPostTextarea() {
+        setTimeout(() => {
+            const textarea = document.getElementById('modal-post-content');
+            if (textarea) {
+                textarea.focus();
+                textarea.placeholder = "What's happening? Share your thoughts, photos, videos, and more...";
+                
+                // Add character counter
+                this.updateCharacterCounter(textarea);
+            }
+        }, 300); // Wait for modal animation to complete
+    }
+
+    /**
+     * Update character counter for post textarea
+     */
+    updateCharacterCounter(textarea) {
+        // Add character counter if it doesn't exist
+        let counter = textarea.parentElement.querySelector('.post-character-counter');
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.className = 'post-character-counter';
+            counter.style.cssText = `
+                position: absolute;
+                bottom: 10px;
+                right: 15px;
+                font-size: 12px;
+                color: #666;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 4px 8px;
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
+            `;
+            textarea.parentElement.style.position = 'relative';
+            textarea.parentElement.appendChild(counter);
+        }
+
+        // Update counter on input
+        const updateCounter = () => {
+            const length = textarea.value.length;
+            const maxLength = 2000; // Twitter-like limit
+            counter.textContent = `${length}/${maxLength}`;
+            
+            // Color coding based on length
+            if (length > maxLength * 0.9) {
+                counter.style.color = '#e74c3c';
+            } else if (length > maxLength * 0.7) {
+                counter.style.color = '#f39c12';
+            } else {
+                counter.style.color = '#666';
+            }
+
+            // Enable/disable post button based on content and length
+            const publishBtn = document.getElementById('modal-publish-btn');
+            if (publishBtn) {
+                const hasContent = length > 0 && length <= maxLength;
+                publishBtn.disabled = !hasContent;
+                publishBtn.style.opacity = hasContent ? '1' : '0.5';
+            }
+        };
+
+        textarea.addEventListener('input', updateCounter);
+        textarea.addEventListener('paste', () => setTimeout(updateCounter, 10));
+        
+        // Initial update
+        updateCounter();
     }
 
     /**

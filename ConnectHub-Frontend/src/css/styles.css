@@ -118,6 +118,319 @@ body {
     position: relative;
 }
 
+/* ===== UNIVERSAL BUTTON INTERACTIONS ===== */
+button, .btn, .action-btn, .interaction-btn, .nav-item a, 
+.primary-btn, .secondary-btn, .danger-btn, .discovery-btn,
+.post-action-btn, .follow-btn, .save-settings-btn, .edit-profile-btn,
+.change-photo-btn, .contact-btn, .filter-btn, .settings-tab,
+.dating-tab, .feed-tab, .profile-tab, .help-category-card,
+.notification-action, .close-modal-btn, .new-message-btn,
+.chat-send-btn, .header-action-btn, .user-avatar-btn, .dropdown-item,
+.toggle-label, .theme-option, .session-logout-btn, .card-action-btn,
+.fab, .guideline-link {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Universal Click Ripple Effect */
+button:not(.no-ripple):active::before, 
+.btn:not(.no-ripple):active::before,
+.action-btn:not(.no-ripple):active::before,
+.interaction-btn:not(.no-ripple):active::before,
+.primary-btn:not(.no-ripple):active::before,
+.secondary-btn:not(.no-ripple):active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes rippleEffect {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
+    }
+}
+
+/* Universal Active States */
+button:active, .btn:active, .action-btn:active, .interaction-btn:active,
+.primary-btn:active, .secondary-btn:active, .danger-btn:active,
+.discovery-btn:active, .post-action-btn:active, .follow-btn:active,
+.feed-tab:active, .post-action-btn:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease !important;
+}
+
+/* Universal Glow Effects on Click */
+button:active, .btn:active, .primary-btn:active {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(251, 191, 36, 0.6) !important;
+    filter: brightness(1.2) !important;
+}
+
+.secondary-btn:active, .action-btn:active {
+    box-shadow: 0 0 15px rgba(232, 180, 184, 0.8), 0 0 30px rgba(139, 92, 246, 0.4) !important;
+    filter: brightness(1.15) !important;
+}
+
+.danger-btn:active, .session-logout-btn:active {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.8), 0 0 30px rgba(220, 38, 38, 0.6) !important;
+    filter: brightness(1.2) !important;
+}
+
+/* ===== SPECIFIC BUTTON CLICK EFFECTS ===== */
+
+/* Feed Navigation Tabs - For You, Following, Trending */
+.feed-tab:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(251, 191, 36, 0.6) !important;
+    filter: brightness(1.3) !important;
+    background: var(--purple-gold-gradient) !important;
+    color: var(--text-white) !important;
+}
+
+.feed-tab:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+}
+
+/* Post Creation Action Buttons - Photo, Video, Location, Feeling, Post */
+.post-action-btn:active,
+button[onclick*="photo"]:active,
+button[onclick*="video"]:active,
+button[onclick*="location"]:active,
+button[onclick*="feeling"]:active,
+button[onclick*="post"]:active,
+button[data-action="photo"]:active,
+button[data-action="video"]:active,
+button[data-action="location"]:active,
+button[data-action="feeling"]:active,
+button[data-action="post"]:active,
+.media-btn:active,
+.location-btn:active,
+.feeling-btn:active,
+.submit-post-btn:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s ease !important;
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.9), 0 0 35px rgba(251, 191, 36, 0.7) !important;
+    filter: brightness(1.25) saturate(1.2) !important;
+    background: var(--rose-gold-gradient) !important;
+    color: var(--text-white) !important;
+}
+
+/* Ripple effect for post action buttons */
+.post-action-btn:active::before,
+button[onclick*="photo"]:active::before,
+button[onclick*="video"]:active::before,
+button[onclick*="location"]:active::before,
+button[onclick*="feeling"]:active::before,
+button[data-action="photo"]:active::before,
+button[data-action="video"]:active::before,
+button[data-action="location"]:active::before,
+button[data-action="feeling"]:active::before,
+.media-btn:active::before,
+.location-btn:active::before,
+.feeling-btn:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+}
+
+/* Special styling for Post button */
+.submit-post-btn:active,
+button[type="submit"]:active,
+.primary-btn:active {
+    transform: scale(0.93) !important;
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.95), 0 0 45px rgba(251, 191, 36, 0.8), 0 0 60px rgba(232, 180, 184, 0.6) !important;
+    filter: brightness(1.4) saturate(1.3) !important;
+    background: var(--royal-gradient) !important;
+    animation: postButtonPulse 0.3s ease-out !important;
+}
+
+@keyframes postButtonPulse {
+    0% { transform: scale(0.93); }
+    50% { transform: scale(0.97); }
+    100% { transform: scale(0.93); }
+}
+
+/* Enhanced effects for any button containing specific text */
+button[innerHTML*="For You"]:active,
+button[innerHTML*="Following"]:active,
+button[innerHTML*="Trending"]:active,
+button[innerHTML*="Photo"]:active,
+button[innerHTML*="Video"]:active,
+button[innerHTML*="Location"]:active,
+button[innerHTML*="Feeling"]:active,
+button[innerHTML*="Post"]:active,
+*[role="button"]:active {
+    transform: scale(0.94) !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.9), 0 0 35px rgba(251, 191, 36, 0.7) !important;
+    filter: brightness(1.3) !important;
+}
+
+/* Fallback for any missed buttons */
+*[onclick]:active,
+*[role="button"]:active,
+*[tabindex="0"]:active {
+    transform: scale(0.96) !important;
+    filter: brightness(1.2) !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.7) !important;
+}
+
+/* ===== SPECIFIC BUTTON ID TARGETING ===== */
+
+/* Feed Navigation Tabs - Specific IDs - ENHANCED LIGHTING */
+button[data-feed="for-you"]:active,
+button[data-feed="following"]:active,
+button[data-feed="trending"]:active,
+.feed-tab:active {
+    transform: scale(0.90) !important;
+    transition: transform 0.1s ease !important;
+    box-shadow: 0 0 35px rgba(139, 92, 246, 1.0), 0 0 60px rgba(251, 191, 36, 0.9), 0 0 80px rgba(255, 255, 255, 0.6) !important;
+    filter: brightness(2.0) saturate(1.8) contrast(1.3) !important;
+    background: var(--purple-gold-gradient) !important;
+    color: var(--text-white) !important;
+    border: 2px solid rgba(255, 255, 255, 0.8) !important;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1.0) !important;
+}
+
+/* Post Creation Action Buttons - Specific IDs - ENHANCED LIGHTING */
+#add-photo-btn:active,
+#add-video-btn:active,
+#add-location-btn:active,
+#add-emoji-btn:active,
+.post-action-btn:active {
+    transform: scale(0.88) !important;
+    transition: transform 0.1s ease !important;
+    box-shadow: 0 0 40px rgba(139, 92, 246, 1.0), 0 0 60px rgba(251, 191, 36, 0.95), 0 0 80px rgba(232, 180, 184, 0.8) !important;
+    filter: brightness(2.2) saturate(2.0) contrast(1.4) !important;
+    background: var(--rose-gold-gradient) !important;
+    color: var(--text-white) !important;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 1.0) !important;
+}
+
+/* Post Button - Specific ID - MAXIMUM LIGHTING */
+#publish-post-btn:active,
+.primary-btn:active {
+    transform: scale(0.85) !important;
+    transition: transform 0.1s ease !important;
+    box-shadow: 0 0 50px rgba(139, 92, 246, 1.0), 0 0 80px rgba(251, 191, 36, 1.0), 0 0 100px rgba(232, 180, 184, 0.9), 0 0 120px rgba(255, 255, 255, 0.7) !important;
+    filter: brightness(2.5) saturate(2.2) contrast(1.5) !important;
+    background: var(--royal-gradient) !important;
+    animation: postButtonMegaPulse 0.4s ease-out !important;
+    border: 3px solid rgba(255, 255, 255, 1.0) !important;
+    text-shadow: 0 0 25px rgba(255, 255, 255, 1.0) !important;
+}
+
+@keyframes postButtonMegaPulse {
+    0% { transform: scale(0.88); }
+    25% { transform: scale(0.92); }
+    50% { transform: scale(0.98); }
+    75% { transform: scale(0.90); }
+    100% { transform: scale(0.88); }
+}
+
+/* Additional ripple effects for specific buttons */
+button[data-feed="for-you"]:active::before,
+button[data-feed="following"]:active::before,
+button[data-feed="trending"]:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+}
+
+#add-photo-btn:active::before,
+#add-video-btn:active::before,
+#add-location-btn:active::before,
+#add-emoji-btn:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+}
+
+#publish-post-btn:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 1.0) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 0.8s ease-out;
+    pointer-events: none;
+}
+
+/* Force application on all button variants */
+.feed-tab:active,
+button.feed-tab:active {
+    transform: scale(0.92) !important;
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.9), 0 0 40px rgba(251, 191, 36, 0.8) !important;
+    filter: brightness(1.4) saturate(1.3) !important;
+    background: var(--purple-gold-gradient) !important;
+    color: var(--text-white) !important;
+}
+
+.post-action-btn:active,
+button.post-action-btn:active {
+    transform: scale(0.90) !important;
+    box-shadow: 0 0 22px rgba(139, 92, 246, 0.95), 0 0 40px rgba(251, 191, 36, 0.8) !important;
+    filter: brightness(1.3) saturate(1.25) !important;
+    background: var(--rose-gold-gradient) !important;
+    color: var(--text-white) !important;
+}
+
 body::before {
     content: '';
     position: fixed;
