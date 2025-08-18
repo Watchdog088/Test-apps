@@ -110,17 +110,19 @@ body {
     font-size: var(--font-size-md);
     line-height: 1.34;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #2C3539 0%, #37404A 20%, #42505C 40%, #4A5A68 60%, #52647A 80%, #5A6E8C 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 15%, #cbd5e1 30%, #94a3b8 45%, #64748b 60%, #475569 75%, #334155 90%, #1e293b 100%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     position: relative;
-    /* Glossy effect overlay */
+    /* Enhanced bold glossy overlay with purple/gold accents */
     background-image: 
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0, 0, 0, 0.02) 100%);
+        radial-gradient(circle at 15% 25%, rgba(124, 58, 237, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 25% 75%, rgba(230, 164, 196, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 75% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(124, 58, 237, 0.03) 60%, rgba(245, 158, 11, 0.02) 85%, rgba(0, 0, 0, 0.02) 100%);
 }
 
 /* ===== UNIVERSAL BUTTON INTERACTIONS ===== */
