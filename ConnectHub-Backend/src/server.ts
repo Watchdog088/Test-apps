@@ -40,6 +40,7 @@ import healthRoutes from './routes/health';
 import contentControlRoutes from './routes/content-control';
 import monetizationRoutes from './routes/monetization';
 import { consentRoutes } from './routes/consent';
+import chatbotRoutes from './routes/chatbot';
 // import enterpriseRoutes from './routes/enterprise'; // Temporarily disabled - requires additional database models
 // import gamificationRoutes from './routes/gamification'; // Temporarily disabled - requires additional database models
 
@@ -136,6 +137,7 @@ app.use(`/api/${API_VERSION}/video-music`, videoMusicRoutes);
 app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
 app.use(`/api/${API_VERSION}/monetization`, monetizationRoutes);
 app.use(`/api/${API_VERSION}/consent`, consentRoutes);
+app.use(`/api/${API_VERSION}/chatbot`, chatbotRoutes);
 // app.use(`/api/${API_VERSION}/enterprise`, enterpriseRoutes); // Temporarily disabled - requires additional database models
 // app.use(`/api/${API_VERSION}/gamification`, gamificationRoutes); // Temporarily disabled - requires additional database models
 
