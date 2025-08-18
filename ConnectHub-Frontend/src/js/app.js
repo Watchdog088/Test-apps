@@ -656,6 +656,129 @@ class ConnectHubApp {
                 this.filterNotifications(btn.getAttribute('data-filter'));
             });
         });
+        
+        // Initialize notification badges
+        this.updateNotificationBadges();
+        this.adjustBadgeVisibility();
+        
+        // Update badges every 30 seconds
+        setInterval(() => this.updateNotificationBadges(), 30000);
+        
+        // Adjust badge visibility on window resize
+        window.addEventListener('resize', () => this.adjustBadgeVisibility());
+    }
+    
+    /**
+     * Update notification badges across all sections
+     */
+    updateNotificationBadges() {
+        // Simulate fetching notification counts
+        const counts = {
+            messages: Math.floor(Math.random() * 10) + 1,
+            notifications: Math.floor(Math.random() * 15) + 2,
+            dating: {
+                matches: Math.floor(Math.random() * 5) + 1,
+                dates: Math.floor(Math.random() * 3) + 1,
+                chat: Math.floor(Math.random() * 8) + 1
+            }
+        };
+        
+        // Update main navigation badges
+        this.updateBadge('messages-badge', counts.messages);
+        this.updateBadge('notifications-badge', counts.notifications);
+        
+        // Update dating section badges
+        this.updateBadge('dating-matches-badge', counts.dating.matches);
+        this.updateBadge('dating-dates-badge', counts.dating.dates);
+        this.updateBadge('dating-chat-badge', counts.dating.chat);
+    }
+
+    /**
+     * Update individual notification badge
+     */
+    updateBadge(badgeId, count) {
+        const badge = document.getElementById(badgeId);
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-flex';
+                badge.classList.add('new');
+                
+                // Remove the 'new' class after animation
+                setTimeout(() => {
+                    if (badge.classList.contains('new')) {
+                        badge.classList.remove('new');
+                    }
+                }, 600);
+                
+                // Add pulsing effect for high priority notifications
+                if (count > 5 && badgeId.includes('messages')) {
+                    badge.style.animation = 'notificationPulse 1.5s ease-in-out infinite';
+                }
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Clear notification badge when section is visited
+     */
+    clearNotificationForSection(sectionName) {
+        const badgeMap = {
+            'messages': 'messages-badge',
+            'notifications': 'notifications-badge',
+            'dating': ['dating-matches-badge', 'dating-dates-badge', 'dating-chat-badge']
+        };
+        
+        if (badgeMap[sectionName]) {
+            if (Array.isArray(badgeMap[sectionName])) {
+                badgeMap[sectionName].forEach(badgeId => {
+                    const badge = document.getElementById(badgeId);
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
+                });
+            } else {
+                const badge = document.getElementById(badgeMap[sectionName]);
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    }
+
+    /**
+     * Enhanced badge visibility for different screen sizes
+     */
+    adjustBadgeVisibility() {
+        const badges = document.querySelectorAll('.notification-badge');
+        const screenWidth = window.innerWidth;
+        
+        badges.forEach(badge => {
+            if (screenWidth < 480) {
+                // Smaller badges on mobile
+                badge.style.fontSize = '8px';
+                badge.style.padding = '2px 4px';
+                badge.style.minWidth = '14px';
+                badge.style.right = '2px';
+                badge.style.top = '2px';
+            } else if (screenWidth < 768) {
+                // Medium badges on tablet
+                badge.style.fontSize = '9px';
+                badge.style.padding = '2px 5px';
+                badge.style.minWidth = '16px';
+                badge.style.right = '4px';
+                badge.style.top = '4px';
+            } else {
+                // Full size badges on desktop
+                badge.style.fontSize = '10px';
+                badge.style.padding = '3px 6px';
+                badge.style.minWidth = '18px';
+                badge.style.right = '8px';
+                badge.style.top = '6px';
+            }
+        });
     }
 
     /**
