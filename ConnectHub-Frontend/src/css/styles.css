@@ -110,19 +110,19 @@ body {
     font-size: var(--font-size-md);
     line-height: 1.34;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 15%, #cbd5e1 30%, #94a3b8 45%, #64748b 60%, #475569 75%, #334155 90%, #1e293b 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 15%, #020617 30%, #0c0a09 45%, #000000 60%, #0a0a0a 75%, #050505 90%, #000000 100%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     position: relative;
-    /* Enhanced bold glossy overlay with purple/gold accents */
+    /* Enhanced bold glossy overlay with purple/gold accents - optimized for dark background */
     background-image: 
-        radial-gradient(circle at 15% 25%, rgba(124, 58, 237, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 35%),
-        radial-gradient(circle at 25% 75%, rgba(230, 164, 196, 0.10) 0%, transparent 45%),
-        radial-gradient(circle at 75% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(124, 58, 237, 0.03) 60%, rgba(245, 158, 11, 0.02) 85%, rgba(0, 0, 0, 0.02) 100%);
+        radial-gradient(circle at 15% 25%, rgba(124, 58, 237, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.20) 0%, transparent 35%),
+        radial-gradient(circle at 25% 75%, rgba(230, 164, 196, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 75% 85%, rgba(139, 92, 246, 0.20) 0%, transparent 40%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 30%, rgba(124, 58, 237, 0.08) 60%, rgba(245, 158, 11, 0.05) 85%, rgba(255, 255, 255, 0.01) 100%);
 }
 
 /* ===== UNIVERSAL BUTTON INTERACTIONS ===== */
