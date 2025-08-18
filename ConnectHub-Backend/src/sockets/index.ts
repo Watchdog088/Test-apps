@@ -111,12 +111,157 @@ export const initializeSocket = (server: HTTPServer): SocketIOServer => {
       });
     });
 
+    // ===== STREAMING EVENTS =====
+    
+    // Handle joining stream rooms
+    socket.on('join_stream', (streamId: string) => {
+      socket.join(`stream:${streamId}`);
+      logger.info(`User ${socket.username} joined stream ${streamId}`);
+      
+      // Notify other viewers that someone joined
+      socket.to(`stream:${streamId}`).emit('viewer_joined', {
+        userId: socket.userId,
+        username: socket.username,
+        timestamp: new Date()
+      });
+    });
+
+    // Handle leaving stream rooms
+    socket.on('leave_stream', (streamId: string) => {
+      socket.leave(`stream:${streamId}`);
+      logger.info(`User ${socket.username} left stream ${streamId}`);
+      
+      // Notify other viewers that someone left
+      socket.to(`stream:${streamId}`).emit('viewer_left', {
+        userId: socket.userId,
+        username: socket.username,
+        timestamp: new Date()
+      });
+    });
+
+    // Handle stream chat messages
+    socket.on('stream_message', (data: {
+      streamId: string;
+      message: string;
+      type?: string;
+    }) => {
+      const streamMessage = {
+        id: `msg_${Date.now()}_${socket.id}`,
+        streamId: data.streamId,
+        userId: socket.userId,
+        username: socket.username,
+        message: data.message,
+        type: data.type || 'chat',
+        timestamp: new Date(),
+        isFromStreamer: false // This would be determined by comparing userId with stream owner
+      };
+
+      // Emit to all viewers in the stream
+      io.to(`stream:${data.streamId}`).emit('stream:message', {
+        message: streamMessage
+      });
+    });
+
+    // Handle stream reactions
+    socket.on('stream_reaction', (data: {
+      streamId: string;
+      type: string; // 'like', 'love', 'laugh', etc.
+    }) => {
+      const reaction = {
+        id: `reaction_${Date.now()}_${socket.id}`,
+        streamId: data.streamId,
+        userId: socket.userId,
+        username: socket.username,
+        type: data.type,
+        timestamp: new Date()
+      };
+
+      // Emit to all viewers in the stream
+      io.to(`stream:${data.streamId}`).emit('stream:reaction', {
+        reaction
+      });
+    });
+
+    // Handle stream gifts
+    socket.on('stream_gift', (data: {
+      streamId: string;
+      giftType: string;
+      quantity: number;
+      message?: string;
+    }) => {
+      const gift = {
+        id: `gift_${Date.now()}_${socket.id}`,
+        streamId: data.streamId,
+        fromUserId: socket.userId,
+        fromUsername: socket.username,
+        giftType: data.giftType,
+        quantity: data.quantity,
+        message: data.message,
+        timestamp: new Date()
+      };
+
+      // Emit to all viewers in the stream
+      io.to(`stream:${data.streamId}`).emit('stream:gift', {
+        gift
+      });
+    });
+
+    // Handle streamer controls
+    socket.on('stream_control', (data: {
+      streamId: string;
+      action: 'start' | 'end' | 'pause' | 'resume';
+    }) => {
+      // Emit to all viewers in the stream
+      socket.to(`stream:${data.streamId}`).emit('stream:control', {
+        streamId: data.streamId,
+        action: data.action,
+        timestamp: new Date()
+      });
+    });
+
+    // Handle stream quality change
+    socket.on('stream_quality_change', (data: {
+      streamId: string;
+      quality: string;
+    }) => {
+      socket.to(`stream:${data.streamId}`).emit('stream:quality_changed', {
+        quality: data.quality,
+        timestamp: new Date()
+      });
+    });
+
+    // Handle stream viewer count updates
+    socket.on('request_viewer_count', (streamId: string) => {
+      const room = io.sockets.adapter.rooms.get(`stream:${streamId}`);
+      const viewerCount = room ? room.size : 0;
+      
+      socket.emit('stream:viewer_count', {
+        streamId,
+        count: viewerCount
+      });
+    });
+
+    // ===== END STREAMING EVENTS =====
+
     // Handle disconnection
     socket.on('disconnect', () => {
       logger.info(`User ${socket.username} disconnected`);
       socket.broadcast.emit('user_status_change', {
         userId: socket.userId,
         status: 'offline'
+      });
+
+      // Handle leaving all stream rooms on disconnect
+      const rooms = Array.from(socket.rooms);
+      rooms.forEach(room => {
+        if (room.startsWith('stream:')) {
+          const streamId = room.replace('stream:', '');
+          socket.to(room).emit('viewer_left', {
+            userId: socket.userId,
+            username: socket.username,
+            timestamp: new Date()
+          });
+        }
       });
     });
   });

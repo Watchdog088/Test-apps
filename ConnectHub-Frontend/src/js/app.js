@@ -52,6 +52,7 @@ class ConnectHubApp {
             this.initializeNotifications();
             this.initializeProfileSystem();
             this.initializePosts();
+            this.initializeStreamingSystem();
             
             // Load initial data
             await this.loadInitialData();
@@ -358,6 +359,9 @@ class ConnectHubApp {
                     break;
                 case 'profile':
                     await this.loadProfileData();
+                    break;
+                case 'streaming':
+                    await this.loadStreamingData();
                     break;
             }
         } catch (error) {
@@ -828,6 +832,17 @@ class ConnectHubApp {
 
         // Load initial posts
         this.loadInitialPosts();
+    }
+
+    /**
+     * Initialize streaming system
+     */
+    initializeStreamingSystem() {
+        // Initialize streaming functionality if the streaming.js is loaded
+        if (window.StreamingManager) {
+            this.streamingManager = new window.StreamingManager(this.api, this.socket);
+            console.log('Streaming system initialized');
+        }
     }
 
     /**
@@ -1844,6 +1859,213 @@ class ConnectHubApp {
                 </div>
             `;
         }
+    }
+
+    /**
+     * Load streaming section data
+     */
+    async loadStreamingData() {
+        try {
+            // Initialize streaming manager if available
+            if (this.streamingManager) {
+                await this.streamingManager.loadLiveStreams();
+                this.showToast('Live streams loaded', 'success');
+            } else {
+                // Fallback for when streaming manager is not available
+                this.loadMockStreams();
+            }
+        } catch (error) {
+            console.error('Failed to load streaming data:', error);
+            this.showToast('Failed to load streaming data', 'error');
+            this.loadMockStreams();
+        }
+    }
+
+    /**
+     * Load mock streams for demonstration
+     */
+    loadMockStreams() {
+        const streamsGrid = document.getElementById('live-streams-grid');
+        if (streamsGrid) {
+            streamsGrid.innerHTML = `
+                <h2><i class="fas fa-video"></i> Live Streams</h2>
+                <div class="streams-filter">
+                    <select id="stream-category-filter">
+                        <option value="all">All Categories</option>
+                        <option value="music">Music</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="talk">Talk Shows</option>
+                        <option value="entertainment">Entertainment</option>
+                    </select>
+                    <input type="text" id="stream-search" placeholder="Search streams...">
+                </div>
+                <div class="streams-grid">
+                    <div class="stream-card" data-stream-id="stream-1">
+                        <div class="stream-thumbnail">
+                            <img src="https://source.unsplash.com/400x300/?music,concert" alt="Live Music Stream">
+                            <div class="live-indicator">LIVE</div>
+                            <div class="viewer-count">
+                                <i class="fas fa-eye"></i> 1.2K
+                            </div>
+                        </div>
+                        <div class="stream-info">
+                            <h4>Acoustic Guitar Session</h4>
+                            <div class="stream-category">Music</div>
+                            <div class="stream-streamer">by MusicMaven23</div>
+                            <div class="stream-tags">
+                                <span class="tag">Acoustic</span>
+                                <span class="tag">Live Music</span>
+                                <span class="tag">Chill</span>
+                            </div>
+                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-1')">
+                                <i class="fas fa-play"></i> Join Stream
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stream-card" data-stream-id="stream-2">
+                        <div class="stream-thumbnail">
+                            <img src="https://source.unsplash.com/400x300/?gaming,computer" alt="Gaming Stream">
+                            <div class="live-indicator">LIVE</div>
+                            <div class="viewer-count">
+                                <i class="fas fa-eye"></i> 856
+                            </div>
+                        </div>
+                        <div class="stream-info">
+                            <h4>Epic Gaming Adventures</h4>
+                            <div class="stream-category">Gaming</div>
+                            <div class="stream-streamer">by GameMaster_Pro</div>
+                            <div class="stream-tags">
+                                <span class="tag">Gaming</span>
+                                <span class="tag">Adventure</span>
+                                <span class="tag">Interactive</span>
+                            </div>
+                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-2')">
+                                <i class="fas fa-play"></i> Join Stream
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stream-card" data-stream-id="stream-3">
+                        <div class="stream-thumbnail">
+                            <img src="https://source.unsplash.com/400x300/?cooking,kitchen" alt="Cooking Stream">
+                            <div class="live-indicator">LIVE</div>
+                            <div class="viewer-count">
+                                <i class="fas fa-eye"></i> 634
+                            </div>
+                        </div>
+                        <div class="stream-info">
+                            <h4>Cooking with Chef Maria</h4>
+                            <div class="stream-category">Lifestyle</div>
+                            <div class="stream-streamer">by ChefMaria_Official</div>
+                            <div class="stream-tags">
+                                <span class="tag">Cooking</span>
+                                <span class="tag">Tutorial</span>
+                                <span class="tag">Italian</span>
+                            </div>
+                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-3')">
+                                <i class="fas fa-play"></i> Join Stream
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="streaming-actions">
+                    <button class="primary-btn" onclick="connectHub.startStreaming()">
+                        <i class="fas fa-video"></i> Start Your Stream
+                    </button>
+                    <button class="secondary-btn" onclick="connectHub.showStreamingHelp()">
+                        <i class="fas fa-question-circle"></i> How to Stream
+                    </button>
+                </div>
+            `;
+
+            // Add event listeners for stream filters
+            this.initializeStreamFilters();
+        }
+    }
+
+    /**
+     * Initialize stream filter functionality
+     */
+    initializeStreamFilters() {
+        const categoryFilter = document.getElementById('stream-category-filter');
+        const searchInput = document.getElementById('stream-search');
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', (e) => {
+                this.filterStreams('category', e.target.value);
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterStreams('search', e.target.value);
+            });
+        }
+    }
+
+    /**
+     * Filter streams based on category or search
+     */
+    filterStreams(filterType, value) {
+        const streamCards = document.querySelectorAll('.stream-card');
+        let visibleCount = 0;
+
+        streamCards.forEach(card => {
+            let shouldShow = true;
+
+            if (filterType === 'category' && value !== 'all') {
+                const category = card.querySelector('.stream-category')?.textContent.toLowerCase();
+                shouldShow = category === value.toLowerCase();
+            } else if (filterType === 'search' && value.trim()) {
+                const searchText = value.toLowerCase();
+                const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
+                const streamer = card.querySelector('.stream-streamer')?.textContent.toLowerCase() || '';
+                const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase()).join(' ');
+                
+                shouldShow = title.includes(searchText) || streamer.includes(searchText) || tags.includes(searchText);
+            }
+
+            // Show/hide card based on filter result
+            card.style.display = shouldShow ? 'block' : 'none';
+            if (shouldShow) visibleCount++;
+        });
+
+        // Show no results message if needed
+        if (visibleCount === 0 && value.trim()) {
+            this.showToast('No streams found matching your search', 'info');
+        } else if (filterType === 'search' && !value.trim()) {
+            this.showToast('Showing all streams', 'info');
+        }
+    }
+
+    /**
+     * Join a stream
+     */
+    joinStream(streamId) {
+        if (this.streamingManager) {
+            this.streamingManager.joinStream(streamId);
+        } else {
+            this.showToast(`Joining stream ${streamId}...`, 'info');
+            // In a real app, this would navigate to the stream viewer
+        }
+    }
+
+    /**
+     * Start streaming
+     */
+    startStreaming() {
+        if (this.streamingManager) {
+            this.streamingManager.startStream();
+        } else {
+            this.showToast('Starting your stream...', 'info');
+            // In a real app, this would open the streaming interface
+        }
+    }
+
+    /**
+     * Show streaming help
+     */
+    showStreamingHelp() {
+        this.showToast('Streaming help: Use high-quality camera, good lighting, and engage with your audience!', 'info');
     }
 
     loadInitialPosts() {
