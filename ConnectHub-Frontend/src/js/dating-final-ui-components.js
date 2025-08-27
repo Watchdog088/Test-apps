@@ -1222,6 +1222,61 @@ const datingFinalUI = new DatingFinalUIComponents();
 // Make it globally available
 window.datingFinalUI = datingFinalUI;
 
+// Demo function to test consent flow
+function demoConsentFlow() {
+    // Simulate a match agreement event
+    const demoMatchData = {
+        matchId: 'match_' + Date.now(),
+        user1Id: 'user_123',
+        user1Name: 'John Doe',
+        user2Id: 'user_456', 
+        user2Name: 'Sarah Miller',
+        meetupDetails: {
+            date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+            time: '7:00 PM',
+            location: 'Downtown Coffee Shop, 123 Main St',
+            activity: 'Coffee Date'
+        }
+    };
+
+    // Trigger the consent process
+    document.dispatchEvent(new CustomEvent('matchAgreedToMeet', {
+        detail: demoMatchData
+    }));
+    
+    showToast('Demo: Consent process initiated for Sarah Miller meetup! 📋', 'info');
+}
+
+// Add demo button to dating interfaces for testing
+function addConsentDemo() {
+    // Add a demo button to the dating swipe screen
+    const datingSwipeScreen = document.getElementById('datingSwipe');
+    if (datingSwipeScreen && !document.getElementById('consentDemoBtn')) {
+        const demoButton = document.createElement('button');
+        demoButton.id = 'consentDemoBtn';
+        demoButton.className = 'btn btn-outline';
+        demoButton.textContent = '📋 Demo: Test Consent Flow';
+        demoButton.onclick = demoConsentFlow;
+        demoButton.style.cssText = `
+            margin-top: 1rem;
+            border: 2px dashed var(--primary);
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            font-weight: 500;
+        `;
+        
+        const buttonContainer = datingSwipeScreen.querySelector('[style*="display: flex; flex-wrap: wrap"]');
+        if (buttonContainer) {
+            buttonContainer.appendChild(demoButton);
+        }
+    }
+}
+
+// Initialize demo when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(addConsentDemo, 1000);
+});
+
 // Utility functions for toasts (assuming they exist or need to be implemented)
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
