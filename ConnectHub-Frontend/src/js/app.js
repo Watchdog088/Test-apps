@@ -53,6 +53,7 @@ class ConnectHubApp {
             this.initializeProfileSystem();
             this.initializePosts();
             this.initializeStreamingSystem();
+            this.initializeSearchSystem();
             
             // Load initial data
             await this.loadInitialData();
@@ -842,6 +843,19 @@ class ConnectHubApp {
         if (window.StreamingManager) {
             this.streamingManager = new window.StreamingManager(this.api, this.socket);
             console.log('Streaming system initialized');
+        }
+    }
+
+    /**
+     * Initialize search system
+     */
+    initializeSearchSystem() {
+        // Initialize SearchUIComponents if available
+        if (window.SearchUIComponents) {
+            this.searchUI = new window.SearchUIComponents(this);
+            console.log('Search system initialized with 6 UI interfaces');
+        } else {
+            console.warn('SearchUIComponents not available');
         }
     }
 
