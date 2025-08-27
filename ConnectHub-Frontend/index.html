@@ -1023,7 +1023,50 @@
                         <h1>🛒 Marketplace</h1>
                         <div>
                             <button class="btn btn-primary" onclick="listItem()">+ List Item</button>
-                            <button class="btn btn-secondary" style="margin-left: 1rem;" onclick="viewCart()">🛒 Cart (<span id="cartCount">2</span>)</button>
+                            <button class="btn btn-secondary" style="margin-left: 1rem;" onclick="marketplaceMissingUI.showShoppingCartManager()">🛒 Cart (<span id="cartCount">2</span>)</button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Marketplace Features -->
+                    <div style="margin-bottom: 3rem;">
+                        <h2 style="margin-bottom: 1.5rem;">🌟 Advanced Marketplace Features</h2>
+                        <div class="grid-3">
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showAdvancedProductViewer()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Product viewer">🔍</div>
+                                <h3>Advanced Product Viewer</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Detailed product information with 360° views, specifications, and reviews</p>
+                                <button class="btn btn-primary">View Products</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showShoppingCartManager()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Shopping cart">🛒</div>
+                                <h3>Shopping Cart Manager</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Advanced cart with promo codes, recommendations, and secure checkout</p>
+                                <button class="btn btn-primary">Manage Cart</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showOrderTrackingSystem()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Package tracking">📦</div>
+                                <h3>Order Tracking</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Real-time order tracking with detailed delivery timeline</p>
+                                <button class="btn btn-primary">Track Orders</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showSellerProfileManager()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Store">🏪</div>
+                                <h3>Seller Profiles</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Explore seller stores with products, reviews, and policies</p>
+                                <button class="btn btn-primary">View Stores</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showWishlistManager()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Wishlist">🤍</div>
+                                <h3>Wishlist Manager</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Save items for later with price drop alerts and insights</p>
+                                <button class="btn btn-primary">My Wishlist</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="marketplaceMissingUI.showAdvancedSearchSystem()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Advanced search">🔍</div>
+                                <h3>Advanced Search</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Powerful search with filters, sorting, and multiple view options</p>
+                                <button class="btn btn-primary">Advanced Search</button>
+                            </div>
                         </div>
                     </div>
 
@@ -1428,5 +1471,6 @@
     <script src="src/js/dating-final-ui-components.js"></script>
     <script src="src/js/dating-consent-management.js"></script>
     <script src="src/js/gaming-missing-ui-components.js"></script>
+    <script src="src/js/marketplace-missing-ui-components.js"></script>
 </body>
 </html>
