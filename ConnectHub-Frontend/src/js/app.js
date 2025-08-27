@@ -1,3720 +1,1727 @@
-/**
- * ConnectHub - Social Media & Dating App
- * Main Application JavaScript
- */
+// Global state management
+let currentCategory = null;
+let currentScreen = 'home';
+let isLoggedIn = false;
+let isPlaying = false;
+let currentTrackIndex = 0;
+let gameStates = {};
+let notificationCount = 3;
+let isShuffleEnabled = false;
+let isRepeatEnabled = false;
+let isStreamLive = false;
+let streamDuration = 0;
+let viewerCount = 0;
 
-class ConnectHubApp {
-    constructor() {
-        this.currentUser = null;
-        this.currentSection = 'home';
-        this.socket = null;
-        this.posts = [];
-        this.conversations = [];
-        this.notifications = [];
-        this.matches = [];
-        this.api = window.connectHubAPI;
-        
-        this.init();
+// Sample data arrays
+const samplePosts = [
+    {
+        id: 1,
+        user: 'ConnectHub AI',
+        avatar: 'AI',
+        time: '2 hours ago',
+        content: 'Welcome to ConnectHub! 🚀 Your all-in-one social platform with AI-powered matching, live streaming, and smart content curation. Ready to connect? #ConnectHub #Social',
+        likes: 124,
+        comments: 23,
+        shares: 12,
+        image: true
+    },
+    {
+        id: 2,
+        user: 'Emma Wilson',
+        avatar: 'EW',
+        time: '4 hours ago',
+        content: 'Just had an amazing coffee at the new café downtown! ☕ The atmosphere is perfect for remote work. Anyone want to join me tomorrow?',
+        likes: 45,
+        comments: 8,
+        shares: 3
+    },
+    {
+        id: 3,
+        user: 'Tech News',
+        avatar: 'TN',
+        time: '6 hours ago',
+        content: 'Breaking: New AI breakthrough in natural language processing! This could revolutionize how we interact with technology. What do you think? 🤖',
+        likes: 234,
+        comments: 67,
+        shares: 89
+    },
+    {
+        id: 4,
+        user: 'Mike Johnson',
+        avatar: 'MJ',
+        time: '8 hours ago',
+        content: 'Beautiful sunset from my hiking trip today! Nature never fails to amaze me. 🌅 #nature #hiking #photography',
+        likes: 156,
+        comments: 23,
+        shares: 15
     }
+];
 
-    /**
-     * Initialize the application
-     */
-    async init() {
-        try {
-            // Show loading screen
-            this.showLoadingScreen();
-            
-            // Wait for DOM to be ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => this.initializeApp());
-            } else {
-                this.initializeApp();
-            }
-        } catch (error) {
-            console.error('Failed to initialize ConnectHub:', error);
-            this.showError('Failed to initialize application');
-        }
-    }
+const sampleUsers = [
+    { name: 'Emma Wilson', avatar: 'EW', status: 'online', mutualFriends: 2, profession: 'Software Developer' },
+    { name: 'Mike Johnson', avatar: 'MJ', status: 'offline', mutualFriends: 5, profession: 'Photographer' },
+    { name: 'Sarah Miller', avatar: 'SM', status: 'online', mutualFriends: 3, profession: 'Designer' },
+    { name: 'Alex Chen', avatar: 'AC', status: 'away', mutualFriends: 1, profession: 'Data Scientist' },
+    { name: 'Lisa Garcia', avatar: 'LG', status: 'online', mutualFriends: 4, profession: 'Marketing Manager' },
+    { name: 'David Brown', avatar: 'DB', status: 'offline', mutualFriends: 2, profession: 'Engineer' }
+];
 
-    /**
-     * Initialize app after DOM is ready
-     */
-    async initializeApp() {
-        try {
-            // Initialize components
-            this.setupEventListeners();
-            this.initializeNavigation();
-            this.initializeModals();
-            this.initializeToastSystem();
-            this.initializeDatingSystem();
-            this.initializeMessaging();
-            this.initializeNotifications();
-            this.initializeProfileSystem();
-            this.initializePosts();
-            this.initializeStreamingSystem();
-            this.initializeSearchSystem();
-            
-            // Load initial data
-            await this.loadInitialData();
-            
-            // Hide loading screen and show app
-            setTimeout(() => {
-                this.hideLoadingScreen();
-                this.showApp();
-            }, 1500);
+const sampleTracks = [
+    { title: 'Digital Dreams', artist: 'ElectroWave', album: 'Future Sounds' },
+    { title: 'Neon Nights', artist: 'SynthMaster', album: 'City Lights' },
+    { title: 'Code Symphony', artist: 'TechBeats', album: 'Binary Rhythms' },
+    { title: 'Virtual Reality', artist: 'CyberTunes', album: 'Digital Age' },
+    { title: 'AI Love Song', artist: 'RoboRomance', album: 'Machine Hearts' }
+];
 
-            // Initialize premium animations system
-            this.initializeAnimations();
-            
-            console.log('ConnectHub initialized successfully');
-        } catch (error) {
-            console.error('Failed to initialize app components:', error);
-            this.showError('Failed to load application');
-        }
-    }
+const sampleMatches = [
+    { name: 'Sarah Miller', avatar: 'SM', age: 26, distance: '2 miles', match: 95, interests: ['Coffee', 'Travel', 'Photography'], bio: 'Love exploring new places and trying different cuisines!' },
+    { name: 'Emma Wilson', avatar: 'EW', age: 24, distance: '5 miles', match: 89, interests: ['Music', 'Art', 'Hiking'], bio: 'Artist by day, music lover by night 🎨🎵' },
+    { name: 'Lisa Garcia', avatar: 'LG', age: 28, distance: '3 miles', match: 92, interests: ['Fitness', 'Cooking', 'Books'], bio: 'Fitness enthusiast and book worm. Balance is key!' },
+    { name: 'Anna Kim', avatar: 'AK', age: 25, distance: '4 miles', match: 87, interests: ['Tech', 'Gaming', 'Movies'], bio: 'Software developer who loves sci-fi and gaming 🎮' }
+];
 
-    /**
-     * Show loading screen
-     */
-    showLoadingScreen() {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'flex';
-        }
-    }
+const sampleMarketplaceItems = [
+    { id: 1, title: 'iPhone 15 Pro', price: 899, condition: 'Like new', seller: 'TechStore', image: '📱', category: 'electronics', description: 'Latest iPhone in excellent condition' },
+    { id: 2, title: 'MacBook Air M2', price: 1299, condition: 'Excellent', seller: 'AppleDeals', image: '💻', category: 'electronics', description: 'Powerful laptop for work and creativity' },
+    { id: 3, title: 'Gaming Chair', price: 299, condition: 'Good', seller: 'FurnitureHub', image: '🪑', category: 'home', description: 'Comfortable ergonomic gaming chair' },
+    { id: 4, title: 'Sneakers', price: 150, condition: 'New', seller: 'ShoeLover', image: '👟', category: 'fashion', description: 'Limited edition designer sneakers' },
+    { id: 5, title: 'Camera Lens', price: 450, condition: 'Excellent', seller: 'PhotoPro', image: '📷', category: 'electronics', description: 'Professional 50mm lens' },
+    { id: 6, title: 'Cookbook', price: 25, condition: 'Good', seller: 'BookWorm', image: '📚', category: 'books', description: 'Delicious recipes from around the world' }
+];
 
-    /**
-     * Hide loading screen with chain breaking animation
-     */
-    hideLoadingScreen() {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            // Add chain breaking animation
-            loadingScreen.classList.add('breaking');
-            
-            setTimeout(() => {
-                loadingScreen.classList.add('fade-out');
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 800);
-            }, 500);
-        }
-    }
+// Category and screen mappings
+const categoryScreens = {
+    social: ['home', 'messages', 'profile', 'groups', 'events', 'stories', 'explore', 'search', 'settings'],
+    dating: ['swipe', 'matches', 'preferences', 'chat'],
+    media: ['music', 'live', 'video', 'ar'],
+    extra: ['games', 'marketplace', 'business', 'wallet', 'analytics', 'help']
+};
 
-    /**
-     * Show main app
-     */
-    showApp() {
-        const appContainer = document.getElementById('app-container');
-        if (appContainer) {
-            appContainer.style.display = 'flex';
-            appContainer.style.flexDirection = 'column';
-            appContainer.style.minHeight = '100vh';
-        }
-    }
+const subNavItems = {
+    social: [
+        { id: 'home', label: '🏠 Home', icon: '🏠' },
+        { id: 'messages', label: '💬 Messages', icon: '💬' },
+        { id: 'profile', label: '👤 Profile', icon: '👤' },
+        { id: 'groups', label: '👥 Groups', icon: '👥' },
+        { id: 'events', label: '📅 Events', icon: '📅' },
+        { id: 'stories', label: '📱 Stories', icon: '📱' },
+        { id: 'explore', label: '🌟 Explore', icon: '🌟' },
+        { id: 'search', label: '🔍 Search', icon: '🔍' },
+        { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
+    ],
+    dating: [
+        { id: 'swipe', label: '💕 Discover', icon: '💕' },
+        { id: 'matches', label: '💬 Matches', icon: '💬' },
+        { id: 'preferences', label: '⚙️ Preferences', icon: '⚙️' },
+        { id: 'chat', label: '💭 Dating Chat', icon: '💭' }
+    ],
+    media: [
+        { id: 'music', label: '🎵 Music', icon: '🎵' },
+        { id: 'live', label: '📺 Live Stream', icon: '📺' },
+        { id: 'video', label: '📹 Video Calls', icon: '📹' },
+        { id: 'ar', label: '🥽 AR/VR', icon: '🥽' }
+    ],
+    extra: [
+        { id: 'games', label: '🎮 Games', icon: '🎮' },
+        { id: 'marketplace', label: '🛒 Shop', icon: '🛒' },
+        { id: 'business', label: '💼 Business', icon: '💼' },
+        { id: 'wallet', label: '💰 Wallet', icon: '💰' },
+        { id: 'analytics', label: '📊 Analytics', icon: '📊' },
+        { id: 'help', label: '❓ Help', icon: '❓' }
+    ]
+};
 
-    /**
-     * Setup global event listeners
-     */
-    setupEventListeners() {
-        // Handle clicks outside dropdowns to close them
-        document.addEventListener('click', (e) => {
-            const dropdowns = document.querySelectorAll('.dropdown-menu');
-            dropdowns.forEach(dropdown => {
-                if (!dropdown.closest('.user-menu-dropdown').contains(e.target)) {
-                    dropdown.classList.remove('show');
-                }
-            });
-        });
-
-        // Handle escape key to close modals
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeAllModals();
-            }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
-
-        // Handle online/offline status
-        window.addEventListener('online', () => {
-            this.showToast('Connection restored', 'success');
-        });
-
-        window.addEventListener('offline', () => {
-            this.showToast('Connection lost', 'warning');
-        });
-    }
-
-    /**
-     * Initialize navigation system
-     */
-    initializeNavigation() {
-        const navItems = document.querySelectorAll('.nav-item');
-        
-        navItems.forEach(item => {
-            const link = item.querySelector('a');
-            if (link) {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const section = item.getAttribute('data-section');
-                    if (section) {
-                        this.navigateToSection(section);
-                    }
-                });
-            }
-        });
-
-        // User menu dropdown
-        const userMenuBtn = document.getElementById('user-menu-btn');
-        const userDropdown = document.getElementById('user-dropdown');
-        
-        if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('show');
-            });
-        }
-
-        // Dropdown menu navigation - Settings and Help buttons
-        const settingsMenuBtn = document.getElementById('settings-menu-btn');
-        const helpMenuBtn = document.getElementById('help-menu-btn');
-        
-        if (settingsMenuBtn) {
-            settingsMenuBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.navigateToSection('settings');
-                userDropdown.classList.remove('show');
-            });
-        }
-        
-        if (helpMenuBtn) {
-            helpMenuBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.navigateToSection('help');
-                userDropdown.classList.remove('show');
-            });
-        }
-
-        // Dropdown menu navigation - Generic handler for other items
-        const dropdownNavItems = document.querySelectorAll('.dropdown-item[data-section]');
-        dropdownNavItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = item.getAttribute('data-section');
-                if (section) {
-                    this.navigateToSection(section);
-                    userDropdown.classList.remove('show');
-                }
-            });
-        });
-
-        // Logout functionality
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-                userDropdown.classList.remove('show');
-            });
-        }
-
-        // Header action buttons functionality
-        const settingsHeaderBtn = document.getElementById('settings-header-btn');
-        const helpHeaderBtn = document.getElementById('help-header-btn');
-        const logoutHeaderBtn = document.getElementById('logout-header-btn');
-
-        if (settingsHeaderBtn) {
-            settingsHeaderBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.navigateToSection('settings');
-                this.showToast('Opening Settings...', 'info');
-                if (userDropdown) userDropdown.classList.remove('show');
-            });
-        }
-
-        if (helpHeaderBtn) {
-            helpHeaderBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.navigateToSection('help');
-                this.showToast('Opening Help Center...', 'info');
-                if (userDropdown) userDropdown.classList.remove('show');
-            });
-        }
-
-        if (logoutHeaderBtn) {
-            logoutHeaderBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
-        }
-
-        // Quick links in sidebar
-        this.initializeQuickLinks();
-
-        // Footer links
-        this.initializeFooterLinks();
-
-        // Settings tabs functionality
-        this.initializeSettingsTabs();
-
-        // Help functionality
-        this.initializeHelpSection();
-    }
-
-    /**
-     * Navigate to a specific section
-     */
-    navigateToSection(section) {
-        // Special handling for dating section with romantic splash screen
-        if (section === 'dating') {
-            this.showDatingSplash(() => {
-                this.navigateToSectionDirect(section);
-            });
-            return;
-        }
-        
-        this.navigateToSectionDirect(section);
-    }
+// Utility functions
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
     
-    /**
-     * Navigate directly to section (used internally)
-     */
-    navigateToSectionDirect(section) {
-        // Update navigation state
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            item.classList.toggle('active', item.getAttribute('data-section') === section);
-        });
-
-        // Hide all sections
-        const sections = document.querySelectorAll('.content-section');
-        sections.forEach(sec => {
-            sec.classList.remove('active');
-        });
-
-        // Show target section
-        const targetSection = document.getElementById(`${section}-section`);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            this.currentSection = section;
-            
-            // Load section-specific data
-            this.loadSectionData(section);
-            
-            this.showToast(`Switched to ${section.charAt(0).toUpperCase() + section.slice(1)}`, 'info');
-        }
-    }
-
-    /**
-     * Show romantic dating splash screen with heart chain animation
-     */
-    showDatingSplash(callback) {
-        const datingSplash = document.getElementById('dating-splash');
-        if (!datingSplash) {
-            // Fallback if splash screen doesn't exist
-            if (callback) callback();
-            return;
-        }
-
-        // Show the dating splash screen
-        datingSplash.style.display = 'flex';
-        
-        // After 3 seconds, start fade out animation
-        setTimeout(() => {
-            datingSplash.classList.add('fade-out');
-            
-            // After fade out completes, hide the splash and execute callback
-            setTimeout(() => {
-                datingSplash.style.display = 'none';
-                datingSplash.classList.remove('fade-out');
-                
-                if (callback) {
-                    callback();
-                }
-            }, 1000); // Match the CSS transition duration
-        }, 3000); // Show splash for 3 seconds
-    }
-
-    /**
-     * Load section-specific data
-     */
-    async loadSectionData(section) {
-        try {
-            switch (section) {
-                case 'home':
-                    await this.loadFeedPosts();
-                    break;
-                case 'dating':
-                    await this.loadDatingProfiles();
-                    break;
-                case 'messages':
-                    await this.loadConversations();
-                    break;
-                case 'notifications':
-                    await this.loadNotifications();
-                    break;
-                case 'profile':
-                    await this.loadProfileData();
-                    break;
-                case 'streaming':
-                    await this.loadStreamingData();
-                    break;
-            }
-        } catch (error) {
-            console.error(`Failed to load ${section} data:`, error);
-            this.showToast(`Failed to load ${section} data`, 'error');
-        }
-    }
-
-    /**
-     * Initialize modal system
-     */
-    initializeModals() {
-        // Create post modal
-        const createPostBtn = document.getElementById('create-post-btn');
-        const createPostModal = document.getElementById('create-post-modal');
-        const closeCreatePost = document.getElementById('close-create-post');
-
-        if (createPostBtn && createPostModal) {
-            createPostBtn.addEventListener('click', () => {
-                this.openModal('create-post-modal');
-                this.focusPostTextarea();
-            });
-        }
-
-        if (closeCreatePost) {
-            closeCreatePost.addEventListener('click', () => {
-                this.closeModal('create-post-modal');
-            });
-        }
-
-        // Post input click to open modal - Enhanced with visual feedback
-        const postInput = document.getElementById('post-input');
-        if (postInput) {
-            // Make it look and feel interactive
-            postInput.addEventListener('click', () => {
-                this.openModal('create-post-modal');
-                this.focusPostTextarea();
-                this.showToast('Create a new post...', 'info');
-            });
-
-            // Add hover effects
-            postInput.addEventListener('mouseenter', () => {
-                postInput.style.backgroundColor = 'rgba(139, 92, 246, 0.05)';
-                postInput.style.borderColor = 'var(--primary-color)';
-                postInput.style.transform = 'scale(1.02)';
-                postInput.style.cursor = 'pointer';
-            });
-
-            postInput.addEventListener('mouseleave', () => {
-                postInput.style.backgroundColor = '';
-                postInput.style.borderColor = '';
-                postInput.style.transform = '';
-            });
-
-            // Prevent actual typing in the placeholder input
-            postInput.addEventListener('keydown', (e) => {
-                e.preventDefault();
-                this.openModal('create-post-modal');
-                this.focusPostTextarea();
-            });
-
-            // Add visual indicator that it's clickable
-            postInput.placeholder = "What's on your mind? Click here to share...";
-            postInput.style.cursor = 'pointer';
-            postInput.readOnly = true; // Make it read-only so it just triggers modal
-        }
-
-        // Modal publish button
-        const modalPublishBtn = document.getElementById('modal-publish-btn');
-        if (modalPublishBtn) {
-            modalPublishBtn.addEventListener('click', () => {
-                this.handleCreatePost();
-            });
-        }
-
-        // Add keyboard shortcut for modal (Ctrl+Enter to post)
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                const modal = document.getElementById('create-post-modal');
-                if (modal && modal.classList.contains('show')) {
-                    this.handleCreatePost();
-                }
-            }
-        });
-
-        // Media options in modal
-        this.initializeMediaOptions();
-    }
-    /**
-     * Focus on the post textarea when modal opens
-     */
-    focusPostTextarea() {
-        setTimeout(() => {
-            const textarea = document.getElementById('modal-post-content');
-            if (textarea) {
-                textarea.focus();
-                textarea.placeholder = "What's happening? Share your thoughts, photos, videos, and more...";
-                
-                // Add character counter
-                this.updateCharacterCounter(textarea);
-            }
-        }, 300); // Wait for modal animation to complete
-    }
-
-    /**
-     * Update character counter for post textarea
-     */
-    updateCharacterCounter(textarea) {
-        // Add character counter if it doesn't exist
-        let counter = textarea.parentElement.querySelector('.post-character-counter');
-        if (!counter) {
-            counter = document.createElement('div');
-            counter.className = 'post-character-counter';
-            counter.style.cssText = `
-                position: absolute;
-                bottom: 10px;
-                right: 15px;
-                font-size: 12px;
-                color: #666;
-                background: rgba(255, 255, 255, 0.9);
-                padding: 4px 8px;
-                border-radius: 12px;
-                backdrop-filter: blur(10px);
-            `;
-            textarea.parentElement.style.position = 'relative';
-            textarea.parentElement.appendChild(counter);
-        }
-
-        // Update counter on input
-        const updateCounter = () => {
-            const length = textarea.value.length;
-            const maxLength = 2000; // Twitter-like limit
-            counter.textContent = `${length}/${maxLength}`;
-            
-            // Color coding based on length
-            if (length > maxLength * 0.9) {
-                counter.style.color = '#e74c3c';
-            } else if (length > maxLength * 0.7) {
-                counter.style.color = '#f39c12';
-            } else {
-                counter.style.color = '#666';
-            }
-
-            // Enable/disable post button based on content and length
-            const publishBtn = document.getElementById('modal-publish-btn');
-            if (publishBtn) {
-                const hasContent = length > 0 && length <= maxLength;
-                publishBtn.disabled = !hasContent;
-                publishBtn.style.opacity = hasContent ? '1' : '0.5';
-            }
-        };
-
-        textarea.addEventListener('input', updateCounter);
-        textarea.addEventListener('paste', () => setTimeout(updateCounter, 10));
-        
-        // Initial update
-        updateCounter();
-    }
-
-    /**
-     * Initialize media options in create post modal
-     */
-    initializeMediaOptions() {
-        const mediaButtons = {
-            'modal-add-photo': () => this.handleAddPhoto(),
-            'modal-add-video': () => this.handleAddVideo(),
-            'modal-add-location': () => this.handleAddLocation(),
-            'modal-add-emoji': () => this.handleAddEmoji()
-        };
-
-        Object.keys(mediaButtons).forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.addEventListener('click', mediaButtons[id]);
-            }
-        });
-
-        // Post action buttons in main feed
-        const postActionButtons = {
-            'add-photo-btn': () => this.handleAddPhoto(),
-            'add-video-btn': () => this.handleAddVideo(),
-            'add-location-btn': () => this.handleAddLocation(),
-            'add-emoji-btn': () => this.handleAddEmoji(),
-            'publish-post-btn': () => this.openModal('create-post-modal')
-        };
-
-        Object.keys(postActionButtons).forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.addEventListener('click', postActionButtons[id]);
-            }
-        });
-    }
-
-    /**
-     * Initialize dating system
-     */
-    initializeDatingSystem() {
-        // Dating tabs
-        const datingTabs = document.querySelectorAll('.dating-tab');
-        datingTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.switchDatingTab(tab.getAttribute('data-tab'));
-            });
-        });
-
-        // Initialize discovery cards
-        this.initializeDiscoveryCards();
-    }
-
-    /**
-     * Initialize discovery cards for dating
-     */
-    initializeDiscoveryCards() {
-        const discoveryCards = document.getElementById('discovery-cards');
-        if (discoveryCards) {
-            this.loadDatingProfile();
-        }
-    }
-
-    /**
-     * Switch dating tab
-     */
-    switchDatingTab(tabName) {
-        // Update tab buttons
-        const tabs = document.querySelectorAll('.dating-tab');
-        tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
-        });
-
-        // Update tab content
-        const contents = document.querySelectorAll('.dating-tab-content');
-        contents.forEach(content => {
-            content.classList.toggle('active', content.id === `${tabName}-content`);
-        });
-
-        // Load tab-specific data
-        this.loadDatingTabData(tabName);
-        
-        this.showToast(`Switched to ${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`, 'info');
-    }
-
-    /**
-     * Load dating tab data
-     */
-    async loadDatingTabData(tabName) {
-        try {
-            switch (tabName) {
-                case 'discover':
-                    await this.loadDatingProfile();
-                    break;
-                case 'matches':
-                    await this.loadMatches();
-                    break;
-                case 'dates':
-                    await this.loadDates();
-                    break;
-                case 'chat':
-                    await this.loadDatingChats();
-                    break;
-            }
-        } catch (error) {
-            console.error(`Failed to load ${tabName} data:`, error);
-        }
-    }
-
-    /**
-     * Initialize messaging system
-     */
-    initializeMessaging() {
-        // New message button
-        const newMessageBtn = document.getElementById('new-message-btn');
-        if (newMessageBtn) {
-            newMessageBtn.addEventListener('click', () => {
-                this.startNewConversation();
-            });
-        }
-
-        // Message search
-        const messageSearch = document.getElementById('message-search');
-        if (messageSearch) {
-            messageSearch.addEventListener('input', (e) => {
-                this.searchConversations(e.target.value);
-            });
-        }
-    }
-
-    /**
-     * Initialize notifications system
-     */
-    initializeNotifications() {
-        // Notification filters
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.filterNotifications(btn.getAttribute('data-filter'));
-            });
-        });
-        
-        // Initialize notification badges
-        this.updateNotificationBadges();
-        this.adjustBadgeVisibility();
-        
-        // Update badges every 30 seconds
-        setInterval(() => this.updateNotificationBadges(), 30000);
-        
-        // Adjust badge visibility on window resize
-        window.addEventListener('resize', () => this.adjustBadgeVisibility());
-    }
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
     
-    /**
-     * Update notification badges across all sections
-     */
-    updateNotificationBadges() {
-        // Simulate fetching notification counts
-        const counts = {
-            messages: Math.floor(Math.random() * 10) + 1,
-            notifications: Math.floor(Math.random() * 15) + 2,
-            dating: {
-                matches: Math.floor(Math.random() * 5) + 1,
-                dates: Math.floor(Math.random() * 3) + 1,
-                chat: Math.floor(Math.random() * 8) + 1
-            }
-        };
-        
-        // Update main navigation badges
-        this.updateBadge('messages-badge', counts.messages);
-        this.updateBadge('notifications-badge', counts.notifications);
-        
-        // Update dating section badges
-        this.updateBadge('dating-matches-badge', counts.dating.matches);
-        this.updateBadge('dating-dates-badge', counts.dating.dates);
-        this.updateBadge('dating-chat-badge', counts.dating.chat);
-    }
-
-    /**
-     * Update individual notification badge
-     */
-    updateBadge(badgeId, count) {
-        const badge = document.getElementById(badgeId);
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'inline-flex';
-                badge.classList.add('new');
-                
-                // Remove the 'new' class after animation
-                setTimeout(() => {
-                    if (badge.classList.contains('new')) {
-                        badge.classList.remove('new');
-                    }
-                }, 600);
-                
-                // Add pulsing effect for high priority notifications
-                if (count > 5 && badgeId.includes('messages')) {
-                    badge.style.animation = 'notificationPulse 1.5s ease-in-out infinite';
-                }
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    }
-
-    /**
-     * Clear notification badge when section is visited
-     */
-    clearNotificationForSection(sectionName) {
-        const badgeMap = {
-            'messages': 'messages-badge',
-            'notifications': 'notifications-badge',
-            'dating': ['dating-matches-badge', 'dating-dates-badge', 'dating-chat-badge']
-        };
-        
-        if (badgeMap[sectionName]) {
-            if (Array.isArray(badgeMap[sectionName])) {
-                badgeMap[sectionName].forEach(badgeId => {
-                    const badge = document.getElementById(badgeId);
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
-                });
-            } else {
-                const badge = document.getElementById(badgeMap[sectionName]);
-                if (badge) {
-                    badge.style.display = 'none';
-                }
-            }
-        }
-    }
-
-    /**
-     * Enhanced badge visibility for different screen sizes
-     */
-    adjustBadgeVisibility() {
-        const badges = document.querySelectorAll('.notification-badge');
-        const screenWidth = window.innerWidth;
-        
-        badges.forEach(badge => {
-            if (screenWidth < 480) {
-                // Smaller badges on mobile
-                badge.style.fontSize = '8px';
-                badge.style.padding = '2px 4px';
-                badge.style.minWidth = '14px';
-                badge.style.right = '2px';
-                badge.style.top = '2px';
-            } else if (screenWidth < 768) {
-                // Medium badges on tablet
-                badge.style.fontSize = '9px';
-                badge.style.padding = '2px 5px';
-                badge.style.minWidth = '16px';
-                badge.style.right = '4px';
-                badge.style.top = '4px';
-            } else {
-                // Full size badges on desktop
-                badge.style.fontSize = '10px';
-                badge.style.padding = '3px 6px';
-                badge.style.minWidth = '18px';
-                badge.style.right = '8px';
-                badge.style.top = '6px';
-            }
-        });
-    }
-
-    /**
-     * Initialize profile system
-     */
-    initializeProfileSystem() {
-        // Profile tabs
-        const profileTabs = document.querySelectorAll('.profile-tab');
-        profileTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.switchProfileTab(tab.getAttribute('data-tab'));
-            });
-        });
-
-        // Edit profile button
-        const editProfileBtn = document.getElementById('edit-profile-btn');
-        if (editProfileBtn) {
-            editProfileBtn.addEventListener('click', () => {
-                this.editProfile();
-            });
-        }
-
-        // Edit photo/cover buttons
-        const editPhotoBtn = document.getElementById('edit-photo-btn');
-        const editCoverBtn = document.getElementById('edit-cover-btn');
-        
-        if (editPhotoBtn) {
-            editPhotoBtn.addEventListener('click', () => this.editProfilePhoto());
-        }
-        
-        if (editCoverBtn) {
-            editCoverBtn.addEventListener('click', () => this.editCoverPhoto());
-        }
-    }
-
-    /**
-     * Initialize posts system
-     */
-    initializePosts() {
-        // Feed tabs
-        const feedTabs = document.querySelectorAll('.feed-tab');
-        feedTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.switchFeedTab(tab.getAttribute('data-feed'));
-            });
-        });
-
-        // Load initial posts
-        this.loadInitialPosts();
-    }
-
-    /**
-     * Initialize streaming system
-     */
-    initializeStreamingSystem() {
-        // Initialize streaming functionality if the streaming.js is loaded
-        if (window.StreamingManager) {
-            this.streamingManager = new window.StreamingManager(this.api, this.socket);
-            console.log('Streaming system initialized');
-        }
-    }
-
-    /**
-     * Initialize search system
-     */
-    initializeSearchSystem() {
-        // Initialize SearchUIComponents if available
-        if (window.SearchUIComponents) {
-            this.searchUI = new window.SearchUIComponents(this);
-            console.log('Search system initialized with 6 UI interfaces');
-        } else {
-            console.warn('SearchUIComponents not available');
-        }
-    }
-
-    /**
-     * Initialize toast notification system
-     */
-    initializeToastSystem() {
-        // Create toast container if it doesn't exist
-        if (!document.getElementById('toast-container')) {
-            const container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-    }
-
-    /**
-     * Load initial application data
-     */
-    async loadInitialData() {
-        try {
-            // Check if user is authenticated
-            if (this.api.isAuthenticated()) {
-                // Load user profile from API
-                const profileResponse = await this.api.getProfile();
-                if (profileResponse.success) {
-                    this.currentUser = profileResponse.data.user;
-                }
-                
-                // Load initial posts
-                await this.loadFeedPosts();
-                
-                // Update UI with user data
-                this.updateUserInterface();
-            } else {
-                // Show demo data for now (in real app, redirect to login)
-                this.loadDemoData();
-                this.showToast('Demo mode - Login feature coming soon', 'info');
-            }
-            
-        } catch (error) {
-            console.error('Failed to load initial data:', error);
-            // Fallback to demo data
-            this.loadDemoData();
-        }
-    }
-
-    /**
-     * Load demo data for showcase
-     */
-    loadDemoData() {
-        this.currentUser = {
-            id: 'demo-user-1',
-            name: 'John Doe',
-            username: '@johndoe',
-            email: 'john@example.com',
-            avatar: 'https://via.placeholder.com/150x150/4facfe/ffffff?text=JD',
-            bio: 'Digital creator | Photography enthusiast | Travel lover',
-            stats: {
-                posts: 248,
-                followers: 12400,
-                following: 1024
-            }
-        };
-        
-        this.updateUserInterface();
-        this.loadFeedPosts(); // Will use mock data
-    }
-
-    /**
-     * Update UI with user data
-     */
-    updateUserInterface() {
-        // Update user name displays
-        const userNameElements = document.querySelectorAll('#user-name, #profile-name, .creator-name');
-        userNameElements.forEach(el => {
-            if (el) el.textContent = this.currentUser.name;
-        });
-
-        // Update avatar images
-        const avatarElements = document.querySelectorAll('.user-avatar');
-        avatarElements.forEach(el => {
-            if (el && el.tagName === 'IMG') {
-                el.src = this.currentUser.avatar;
-                el.alt = this.currentUser.name;
-            }
-        });
-
-        // Update profile stats
-        const statsElements = {
-            posts: document.querySelectorAll('.stat .count, .count-large'),
-            followers: document.querySelectorAll('.stat .count, .count-large'),
-            following: document.querySelectorAll('.stat .count, .count-large')
-        };
-
-        // This is a simplified update - in a real app, you'd target specific elements
-        console.log('User interface updated with current user data');
-    }
-
-    /**
-     * Load feed posts
-     */
-    async loadFeedPosts() {
-        try {
-            // Simulate API call
-            const mockPosts = this.generateMockPosts();
-            this.posts = mockPosts;
-            
-            // Render posts
-            this.renderPosts(mockPosts);
-            
-        } catch (error) {
-            console.error('Failed to load feed posts:', error);
-            this.showToast('Failed to load posts', 'error');
-        }
-    }
-
-    /**
-     * Generate mock posts for demonstration
-     */
-    generateMockPosts() {
-        return [
-            {
-                id: 'post-1',
-                author: {
-                    id: 'user-2',
-                    name: 'Emma Watson',
-                    avatar: 'https://via.placeholder.com/40x40/42b72a/ffffff?text=EW'
-                },
-                content: 'Just finished an amazing photography session! The golden hour lighting was absolutely perfect 📸 #photography #goldenhour',
-                media: [{
-                    type: 'image',
-                    url: 'https://source.unsplash.com/600x400/?photography,sunset'
-                }],
-                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-                stats: {
-                    likes: 1234,
-                    comments: 89,
-                    shares: 45
-                },
-                userLiked: false
-            },
-            {
-                id: 'post-2',
-                author: {
-                    id: 'user-3',
-                    name: 'Alex Johnson',
-                    avatar: 'https://via.placeholder.com/40x40/ff6b6b/ffffff?text=AJ'
-                },
-                content: 'Travel tip: Always pack light and bring a good camera! This view from the mountains was worth every step of the hike 🏔️',
-                media: [{
-                    type: 'image',
-                    url: 'https://source.unsplash.com/600x400/?mountains,hiking'
-                }],
-                timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-                stats: {
-                    likes: 856,
-                    comments: 34,
-                    shares: 67
-                },
-                userLiked: true
-            },
-            {
-                id: 'post-3',
-                author: {
-                    id: 'user-4',
-                    name: 'Sarah Chen',
-                    avatar: 'https://via.placeholder.com/40x40/9b59b6/ffffff?text=SC'
-                },
-                content: 'Excited to share my latest art piece! This took me about 20 hours to complete. What do you think? 🎨',
-                media: [{
-                    type: 'image',
-                    url: 'https://source.unsplash.com/600x400/?art,painting'
-                }],
-                timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
-                stats: {
-                    likes: 2341,
-                    comments: 156,
-                    shares: 89
-                },
-                userLiked: false
-            }
-        ];
-    }
-
-    /**
-     * Render posts in the feed
-     */
-    renderPosts(posts) {
-        const postsContainer = document.getElementById('posts-container');
-        if (!postsContainer) return;
-
-        postsContainer.innerHTML = '';
-
-        posts.forEach(post => {
-            const postElement = this.createPostElement(post);
-            postsContainer.appendChild(postElement);
-        });
-    }
-
-    /**
-     * Create a post element
-     */
-    createPostElement(post) {
-        const postDiv = document.createElement('article');
-        postDiv.className = 'post-card';
-        postDiv.dataset.postId = post.id;
-
-        const timeAgo = this.getTimeAgo(post.timestamp);
-        const likesFormatted = this.formatNumber(post.stats.likes);
-        const commentsFormatted = this.formatNumber(post.stats.comments);
-        const sharesFormatted = this.formatNumber(post.stats.shares);
-
-        postDiv.innerHTML = `
-            <div class="post-header">
-                <img src="${post.author.avatar}" alt="${post.author.name}" class="user-avatar">
-                <div class="post-author-info">
-                    <div class="post-author-name">${post.author.name}</div>
-                    <div class="post-timestamp">${timeAgo}</div>
-                </div>
-                <button class="post-options" title="Post options">
-                    <i class="fas fa-ellipsis-h"></i>
-                </button>
-            </div>
-            
-            <div class="post-content">
-                <div class="post-text">${post.content}</div>
-                ${post.media && post.media.length > 0 ? `
-                    <div class="post-media">
-                        ${post.media.map(media => 
-                            media.type === 'image' 
-                                ? `<img src="${media.url}" alt="Post image" loading="lazy">`
-                                : `<video src="${media.url}" controls></video>`
-                        ).join('')}
-                    </div>
-                ` : ''}
-            </div>
-            
-            <div class="post-interactions">
-                <button class="interaction-btn like-btn ${post.userLiked ? 'liked' : ''}" data-action="like">
-                    <i class="fas fa-heart"></i>
-                    <span>${likesFormatted}</span>
-                </button>
-                <button class="interaction-btn comment-btn" data-action="comment">
-                    <i class="fas fa-comment"></i>
-                    <span>${commentsFormatted}</span>
-                </button>
-                <button class="interaction-btn share-btn" data-action="share">
-                    <i class="fas fa-share"></i>
-                    <span>${sharesFormatted}</span>
-                </button>
-                <button class="interaction-btn save-btn" data-action="save" title="Save post">
-                    <i class="far fa-bookmark"></i>
-                </button>
-            </div>
-        `;
-
-        // Add interaction listeners
-        this.addPostInteractionListeners(postDiv, post);
-
-        return postDiv;
-    }
-
-    /**
-     * Add interaction listeners to a post
-     */
-    addPostInteractionListeners(postElement, post) {
-        const interactionBtns = postElement.querySelectorAll('.interaction-btn');
-        
-        interactionBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const action = btn.getAttribute('data-action');
-                this.handlePostInteraction(post.id, action, btn);
-            });
-        });
-    }
-
-    /**
-     * Handle post interactions (like, comment, share, save)
-     */
-    async handlePostInteraction(postId, action, buttonElement) {
-        try {
-            const post = this.posts.find(p => p.id === postId);
-            if (!post) return;
-
-            switch (action) {
-                case 'like':
-                    await this.toggleLike(post, buttonElement);
-                    break;
-                case 'comment':
-                    this.showComments(post);
-                    break;
-                case 'share':
-                    await this.sharePost(post);
-                    break;
-                case 'save':
-                    await this.toggleSave(post, buttonElement);
-                    break;
-            }
-        } catch (error) {
-            console.error(`Failed to handle ${action} interaction:`, error);
-            this.showToast(`Failed to ${action} post`, 'error');
-        }
-    }
-
-    /**
-     * Toggle post like
-     */
-    async toggleLike(post, buttonElement) {
-        const isLiked = post.userLiked;
-        const newLikeCount = isLiked ? post.stats.likes - 1 : post.stats.likes + 1;
-        
-        // Optimistic update
-        post.userLiked = !isLiked;
-        post.stats.likes = newLikeCount;
-        
-        // Update UI
-        buttonElement.classList.toggle('liked', !isLiked);
-        const countSpan = buttonElement.querySelector('span');
-        if (countSpan) {
-            countSpan.textContent = this.formatNumber(newLikeCount);
-        }
-
-        // Show feedback
-        this.showToast(isLiked ? 'Post unliked' : 'Post liked', 'success');
-        
-        // In a real app, you would make an API call here
-        // await this.api.toggleLike(post.id);
-    }
-
-    /**
-     * Toggle post save
-     */
-    async toggleSave(post, buttonElement) {
-        const icon = buttonElement.querySelector('i');
-        const isSaved = icon.classList.contains('fas');
-        
-        // Toggle icon
-        icon.classList.toggle('fas', !isSaved);
-        icon.classList.toggle('far', isSaved);
-        
-        // Show feedback
-        this.showToast(isSaved ? 'Post unsaved' : 'Post saved', 'success');
-        
-        // In a real app, you would make an API call here
-    }
-
-    /**
-     * Share a post
-     */
-    async sharePost(post) {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `${post.author.name}'s post`,
-                    text: post.content,
-                    url: window.location.href
-                });
-                this.showToast('Post shared successfully', 'success');
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error('Error sharing:', error);
-                    this.fallbackShare(post);
-                }
-            }
-        } else {
-            this.fallbackShare(post);
-        }
-    }
-
-    /**
-     * Fallback share method
-     */
-    fallbackShare(post) {
-        // Copy to clipboard
-        const shareText = `${post.author.name}: ${post.content}`;
-        navigator.clipboard.writeText(shareText).then(() => {
-            this.showToast('Post copied to clipboard', 'success');
-        }).catch(() => {
-            this.showToast('Sharing not supported', 'warning');
-        });
-    }
-
-    /**
-     * Show comments for a post
-     */
-    showComments(post) {
-        // In a real app, this would open a comments modal or expand comments section
-        this.showToast('Comments feature coming soon', 'info');
-    }
-
-    /**
-     * Handle create post
-     */
-    async handleCreatePost() {
-        const textarea = document.getElementById('modal-post-content');
-        const content = textarea ? textarea.value.trim() : '';
-        
-        if (!content) {
-            this.showToast('Please enter some content', 'warning');
-            return;
-        }
-
-        try {
-            // Create new post object
-            const newPost = {
-                id: `post-${Date.now()}`,
-                author: {
-                    id: this.currentUser.id,
-                    name: this.currentUser.name,
-                    avatar: this.currentUser.avatar
-                },
-                content: content,
-                media: [], // TODO: Handle media uploads
-                timestamp: new Date(),
-                stats: {
-                    likes: 0,
-                    comments: 0,
-                    shares: 0
-                },
-                userLiked: false
-            };
-
-            // Add to posts array
-            this.posts.unshift(newPost);
-            
-            // Re-render posts
-            this.renderPosts(this.posts);
-            
-            // Close modal and reset form
-            this.closeModal('create-post-modal');
-            if (textarea) textarea.value = '';
-            
-            this.showToast('Post created successfully!', 'success');
-            
-            // In a real app, you would make an API call here
-            
-        } catch (error) {
-            console.error('Failed to create post:', error);
-            this.showToast('Failed to create post', 'error');
-        }
-    }
-
-    /**
-     * Load a dating profile for discovery
-     */
-    async loadDatingProfile() {
-        const discoveryCards = document.getElementById('discovery-cards');
-        if (!discoveryCards) return;
-
-        // Mock dating profile
-        const profile = {
-            id: 'profile-1',
-            name: 'Sophia Williams',
-            age: 28,
-            distance: 5,
-            bio: 'Photographer and coffee enthusiast. Love hiking and exploring new places. Looking for someone to share adventures with!',
-            interests: ['Photography', 'Hiking', 'Travel', 'Coffee'],
-            photos: [
-                'https://source.unsplash.com/400x600/?portrait,woman'
-            ]
-        };
-
-        discoveryCards.innerHTML = `
-            <div class="profile-card">
-                <img src="${profile.photos[0]}" alt="${profile.name}" class="profile-card-image">
-                <div class="profile-card-overlay">
-                    <div class="profile-card-name">${profile.name}</div>
-                    <div class="profile-card-age">${profile.age}, ${profile.distance} miles away</div>
-                    <div class="profile-card-bio">${profile.bio}</div>
-                    <div class="profile-interests">
-                        ${profile.interests.map(interest => 
-                            `<span class="interest-tag">${interest}</span>`
-                        ).join('')}
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="card-action-btn reject" title="Pass">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <button class="card-action-btn like" title="Like">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        // Add interaction listeners
-        const rejectBtn = discoveryCards.querySelector('.reject');
-        const likeBtn = discoveryCards.querySelector('.like');
-
-        if (rejectBtn) {
-            rejectBtn.addEventListener('click', () => this.handleDatingAction('reject', profile));
-        }
-
-        if (likeBtn) {
-            likeBtn.addEventListener('click', () => this.handleDatingAction('like', profile));
-        }
-    }
-
-    /**
-     * Handle dating actions (like/reject)
-     */
-    async handleDatingAction(action, profile) {
-        try {
-            if (action === 'like') {
-                // Simulate match chance
-                const isMatch = Math.random() > 0.7;
-                
-                if (isMatch) {
-                // Initialize match animation if not already done
-                if (!this.matchAnimation) {
-                    this.matchAnimation = new MatchAnimation();
-                }
-                
-                // Initialize date scheduler if not already done
-                if (!this.dateScheduler) {
-                    this.dateScheduler = new DateScheduler();
-                }
-                
-                // Show the beautiful "It's a Lynk!" animation
-                this.matchAnimation.showMatchAnimation((actionType) => {
-                    if (actionType === 'message') {
-                        // Navigate to messages and start conversation
-                        this.navigateToSection('messages');
-                        this.startConversationWithMatch(profile);
-                    } else if (actionType === 'date') {
-                        // Open date scheduler
-                        this.dateScheduler.showDateScheduler(profile, (action, proposal) => {
-                            if (action === 'date-proposed') {
-                                this.showToast(`Date proposed with ${profile.name}!`, 'success');
-                                // Continue dating after scheduling
-                                this.loadDatingProfile();
-                            }
-                        });
-                    } else if (actionType === 'continue') {
-                        // Continue dating
-                        this.loadDatingProfile();
-                    }
-                });
-                    
-                    // Add to matches
-                    this.matches.push({
-                        id: `match-${Date.now()}`,
-                        profile: profile,
-                        timestamp: new Date()
-                    });
-                    
-                    // Don't load next profile immediately - let animation finish
-                    return;
-                } else {
-                    this.showToast(`You liked ${profile.name}`, 'info');
-                }
-            } else {
-                this.showToast('Profile passed', 'info');
-            }
-
-            // Load next profile
-            setTimeout(() => {
-                this.loadDatingProfile();
-            }, 500);
-            
-        } catch (error) {
-            console.error('Failed to handle dating action:', error);
-            this.showToast('Action failed', 'error');
-        }
-    }
-
-    /**
-     * Utility Methods
-     */
-
-    /**
-     * Format numbers for display (e.g., 1234 -> 1.2K)
-     */
-    formatNumber(num) {
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
-        } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-        }
-        return num.toString();
-    }
-
-    /**
-     * Get time ago string
-     */
-    getTimeAgo(date) {
-        const now = new Date();
-        const diff = now - date;
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-
-        if (seconds < 60) return 'just now';
-        if (minutes < 60) return `${minutes}m ago`;
-        if (hours < 24) return `${hours}h ago`;
-        if (days < 7) return `${days}d ago`;
-        return date.toLocaleDateString();
-    }
-
-    /**
-     * Show toast notification
-     */
-    showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        
-        container.appendChild(toast);
-        
-        // Show toast
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-
-        // Hide and remove toast
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                if (container.contains(toast)) {
-                    container.removeChild(toast);
-                }
-            }, 300);
-        }, 3000);
-    }
-
-    /**
-     * Show error message
-     */
-    showError(message) {
-        this.showToast(message, 'error');
-    }
-
-    /**
-     * Open modal
-     */
-    openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-    }
-
-    /**
-     * Close modal
-     */
-    closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    }
-
-    /**
-     * Close all modals
-     */
-    closeAllModals() {
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.classList.remove('show');
-        });
-        document.body.style.overflow = '';
-    }
-
-    /**
-     * Handle window resize
-     */
-    handleResize() {
-        // Responsive adjustments can go here
-        console.log('Window resized');
-    }
-
-    /**
-     * Handle logout
-     */
-    handleLogout() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Clear user data
-            this.currentUser = null;
-            this.posts = [];
-            this.conversations = [];
-            this.notifications = [];
-            this.matches = [];
-            
-            // In a real app, you would redirect to login page
-            this.showToast('Logged out successfully', 'success');
-            
-            // For demo purposes, just reload the page
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        }
-    }
-
-    /**
-     * Initialize quick links in sidebar
-     */
-    initializeQuickLinks() {
-        const quickLinks = document.querySelectorAll('.quick-links a');
-        
-        quickLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const linkText = link.textContent.trim();
-                this.handleQuickLinkClick(linkText, link);
-            });
-        });
-    }
-
-    /**
-     * Handle quick link clicks
-     */
-    handleQuickLinkClick(linkText, linkElement) {
-        switch (linkText) {
-            case 'Saved Posts':
-                this.showSavedPosts();
-                break;
-            case 'Groups':
-                this.showGroups();
-                break;
-            case 'Events':
-                this.showEvents();
-                break;
-            case 'Photos':
-                this.showPhotos();
-                break;
-            case 'Videos':
-                this.showVideos();
-                break;
-            default:
-                this.showToast(`${linkText} feature coming soon`, 'info');
-        }
-    }
-
-    /**
-     * Show saved posts section
-     */
-    showSavedPosts() {
-        // Navigate to profile section and switch to saved posts
-        this.navigateToSection('profile');
-        
-        // Switch to saved posts tab after navigation
-        setTimeout(() => {
-            const savedTab = document.querySelector('.profile-tab[data-tab="likes"]'); // Using likes tab as saved posts
-            if (savedTab) {
-                this.switchProfileTab('likes');
-            }
-        }, 500);
-        
-        this.showToast('Showing your saved posts', 'success');
-    }
-
-    /**
-     * Show groups section
-     */
-    showGroups() {
-        this.showToast('Groups feature coming soon! Connect with communities that share your interests.', 'info');
-        
-        // In a real app, this would navigate to a groups section
-        // For now, we could simulate some groups content
-        this.simulateGroupsPreview();
-    }
-
-    /**
-     * Show events section
-     */
-    showEvents() {
-        this.showToast('Events feature coming soon! Discover and create events in your area.', 'info');
-        
-        // In a real app, this would navigate to an events section
-        this.simulateEventsPreview();
-    }
-
-    /**
-     * Show photos section
-     */
-    showPhotos() {
-        // Navigate to profile section and switch to media
-        this.navigateToSection('profile');
-        
-        // Switch to media tab after navigation
-        setTimeout(() => {
-            const mediaTab = document.querySelector('.profile-tab[data-tab="media"]');
-            if (mediaTab) {
-                this.switchProfileTab('media');
-            }
-        }, 500);
-        
-        this.showToast('Showing your photos', 'success');
-    }
-
-    /**
-     * Show videos section
-     */
-    showVideos() {
-        // Navigate to profile section and switch to media
-        this.navigateToSection('profile');
-        
-        // Switch to media tab after navigation, but focus on videos
-        setTimeout(() => {
-            const mediaTab = document.querySelector('.profile-tab[data-tab="media"]');
-            if (mediaTab) {
-                this.switchProfileTab('media');
-                // Add a filter indicator for videos
-                this.showToast('Filtering media to show videos only', 'info');
-            }
-        }, 500);
-        
-        this.showToast('Showing your videos', 'success');
-    }
-
-    /**
-     * Simulate groups preview
-     */
-    simulateGroupsPreview() {
-        setTimeout(() => {
-            const groupsPreview = [
-                '📸 Photography Enthusiasts (2.4K members)',
-                '🏔️ Adventure Seekers (1.8K members)', 
-                '☕ Coffee Lovers United (892 members)',
-                '🎨 Digital Artists (3.2K members)',
-                '✈️ Travel Buddies (1.5K members)'
-            ];
-            
-            let message = 'Popular Groups You Might Like:\n\n' + groupsPreview.join('\n');
-            console.log('Groups Preview:', message);
-        }, 1000);
-    }
-
-    /**
-     * Simulate events preview
-     */
-    simulateEventsPreview() {
-        setTimeout(() => {
-            const eventsPreview = [
-                '🎵 Summer Music Festival - This Weekend',
-                '📸 Photography Workshop - Next Monday', 
-                '🍕 Pizza Meetup - Thursday 7PM',
-                '🏃‍♀️ Morning Run Group - Daily 6AM',
-                '🎨 Art Gallery Opening - Friday'
-            ];
-            
-            let message = 'Upcoming Events Near You:\n\n' + eventsPreview.join('\n');
-            console.log('Events Preview:', message);
-        }, 1000);
-    }
-
-    /**
-     * Initialize footer links
-     */
-    initializeFooterLinks() {
-        // Footer links are already handled as regular anchor tags
-        // They will work normally since they point to real pages
-        const footerLinks = document.querySelectorAll('footer a[href^="legal/"]');
-        footerLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                console.log('Opening footer link:', link.href);
-                // These links work normally since they point to real pages
-            });
-        });
-        
-        // Handle other footer links that might not have pages yet
-        const otherFooterLinks = document.querySelectorAll('footer a:not([href^="legal/"]):not([href^="mailto:"])');
-        otherFooterLinks.forEach(link => {
-            if (link.getAttribute('href') === '#') {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const linkText = link.textContent.trim();
-                    this.showToast(`${linkText} feature coming soon`, 'info');
-                });
-            }
-        });
-    }
-
-    /**
-     * Placeholder methods for features not yet implemented
-     */
-
-    async loadDatingProfiles() {
-        // Load the current dating profile for discovery
-        await this.loadDatingProfile();
-    }
-
-    async loadConversations() {
-        // Simulate loading conversations
-        const messagesMain = document.getElementById('messages-main');
-        if (messagesMain) {
-            messagesMain.innerHTML = `
-                <div class="no-conversation-selected">
-                    <i class="fas fa-comments"></i>
-                    <h3>Select a conversation</h3>
-                    <p>Choose from your existing conversations or start a new one</p>
-                </div>
-            `;
-        }
-        
-        // Show some mock conversations in sidebar
-        const conversationsList = document.getElementById('conversations-list');
-        if (conversationsList) {
-            conversationsList.innerHTML = `
-                <div class="conversation-item" data-conversation-id="conv-1">
-                    <img src="https://via.placeholder.com/40x40/42b72a/ffffff?text=EW" alt="Emma Watson" class="user-avatar small">
-                    <div class="conversation-info">
-                        <div class="conversation-name">Emma Watson</div>
-                        <div class="last-message">Thanks for the photography tips! 📸</div>
-                        <div class="conversation-time">2h ago</div>
-                    </div>
-                    <div class="unread-badge">2</div>
-                </div>
-                <div class="conversation-item" data-conversation-id="conv-2">
-                    <img src="https://via.placeholder.com/40x40/ff6b6b/ffffff?text=AJ" alt="Alex Johnson" class="user-avatar small">
-                    <div class="conversation-info">
-                        <div class="conversation-name">Alex Johnson</div>
-                        <div class="last-message">That hike was amazing!</div>
-                        <div class="conversation-time">5h ago</div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    async loadNotifications() {
-        const notificationsList = document.getElementById('notifications-list');
-        if (notificationsList) {
-            notificationsList.innerHTML = `
-                <div class="notification-item unread" data-type="like">
-                    <div class="notification-icon like">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-text">
-                            <strong>Emma Watson</strong> and <strong>12 others</strong> liked your post
-                        </div>
-                        <div class="notification-time">2 minutes ago</div>
-                    </div>
-                </div>
-                <div class="notification-item unread" data-type="comment">
-                    <div class="notification-icon comment">
-                        <i class="fas fa-comment"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-text">
-                            <strong>Alex Johnson</strong> commented on your photo: "Amazing shot!"
-                        </div>
-                        <div class="notification-time">15 minutes ago</div>
-                    </div>
-                </div>
-                <div class="notification-item" data-type="follow">
-                    <div class="notification-icon follow">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-text">
-                            <strong>Sarah Chen</strong> started following you
-                        </div>
-                        <div class="notification-time">1 hour ago</div>
-                    </div>
-                </div>
-                <div class="notification-item" data-type="match">
-                    <div class="notification-icon match">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-text">
-                            You have a new match! <strong>Sophia Williams</strong> liked you back
-                        </div>
-                        <div class="notification-time">3 hours ago</div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    async loadProfileData() {
-        const profileContent = document.getElementById('profile-content');
-        if (profileContent) {
-            // Show posts tab content by default
-            profileContent.innerHTML = `
-                <div class="profile-posts-grid">
-                    <div class="profile-post-item">
-                        <img src="https://source.unsplash.com/300x300/?photography" alt="Post" loading="lazy">
-                        <div class="post-overlay">
-                            <div class="post-stats">
-                                <span><i class="fas fa-heart"></i> 234</span>
-                                <span><i class="fas fa-comment"></i> 45</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile-post-item">
-                        <img src="https://source.unsplash.com/300x300/?travel" alt="Post" loading="lazy">
-                        <div class="post-overlay">
-                            <div class="post-stats">
-                                <span><i class="fas fa-heart"></i> 456</span>
-                                <span><i class="fas fa-comment"></i> 67</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile-post-item">
-                        <img src="https://source.unsplash.com/300x300/?art" alt="Post" loading="lazy">
-                        <div class="post-overlay">
-                            <div class="post-stats">
-                                <span><i class="fas fa-heart"></i> 789</span>
-                                <span><i class="fas fa-comment"></i> 123</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    /**
-     * Load streaming section data
-     */
-    async loadStreamingData() {
-        try {
-            // Initialize streaming manager if available
-            if (this.streamingManager) {
-                await this.streamingManager.loadLiveStreams();
-                this.showToast('Live streams loaded', 'success');
-            } else {
-                // Fallback for when streaming manager is not available
-                this.loadMockStreams();
-            }
-        } catch (error) {
-            console.error('Failed to load streaming data:', error);
-            this.showToast('Failed to load streaming data', 'error');
-            this.loadMockStreams();
-        }
-    }
-
-    /**
-     * Load mock streams for demonstration
-     */
-    loadMockStreams() {
-        const streamsGrid = document.getElementById('live-streams-grid');
-        if (streamsGrid) {
-            streamsGrid.innerHTML = `
-                <h2><i class="fas fa-video"></i> Live Streams</h2>
-                <div class="streams-filter">
-                    <select id="stream-category-filter">
-                        <option value="all">All Categories</option>
-                        <option value="music">Music</option>
-                        <option value="gaming">Gaming</option>
-                        <option value="talk">Talk Shows</option>
-                        <option value="entertainment">Entertainment</option>
-                    </select>
-                    <input type="text" id="stream-search" placeholder="Search streams...">
-                </div>
-                <div class="streams-grid">
-                    <div class="stream-card" data-stream-id="stream-1">
-                        <div class="stream-thumbnail">
-                            <img src="https://source.unsplash.com/400x300/?music,concert" alt="Live Music Stream">
-                            <div class="live-indicator">LIVE</div>
-                            <div class="viewer-count">
-                                <i class="fas fa-eye"></i> 1.2K
-                            </div>
-                        </div>
-                        <div class="stream-info">
-                            <h4>Acoustic Guitar Session</h4>
-                            <div class="stream-category">Music</div>
-                            <div class="stream-streamer">by MusicMaven23</div>
-                            <div class="stream-tags">
-                                <span class="tag">Acoustic</span>
-                                <span class="tag">Live Music</span>
-                                <span class="tag">Chill</span>
-                            </div>
-                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-1')">
-                                <i class="fas fa-play"></i> Join Stream
-                            </button>
-                        </div>
-                    </div>
-                    <div class="stream-card" data-stream-id="stream-2">
-                        <div class="stream-thumbnail">
-                            <img src="https://source.unsplash.com/400x300/?gaming,computer" alt="Gaming Stream">
-                            <div class="live-indicator">LIVE</div>
-                            <div class="viewer-count">
-                                <i class="fas fa-eye"></i> 856
-                            </div>
-                        </div>
-                        <div class="stream-info">
-                            <h4>Epic Gaming Adventures</h4>
-                            <div class="stream-category">Gaming</div>
-                            <div class="stream-streamer">by GameMaster_Pro</div>
-                            <div class="stream-tags">
-                                <span class="tag">Gaming</span>
-                                <span class="tag">Adventure</span>
-                                <span class="tag">Interactive</span>
-                            </div>
-                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-2')">
-                                <i class="fas fa-play"></i> Join Stream
-                            </button>
-                        </div>
-                    </div>
-                    <div class="stream-card" data-stream-id="stream-3">
-                        <div class="stream-thumbnail">
-                            <img src="https://source.unsplash.com/400x300/?cooking,kitchen" alt="Cooking Stream">
-                            <div class="live-indicator">LIVE</div>
-                            <div class="viewer-count">
-                                <i class="fas fa-eye"></i> 634
-                            </div>
-                        </div>
-                        <div class="stream-info">
-                            <h4>Cooking with Chef Maria</h4>
-                            <div class="stream-category">Lifestyle</div>
-                            <div class="stream-streamer">by ChefMaria_Official</div>
-                            <div class="stream-tags">
-                                <span class="tag">Cooking</span>
-                                <span class="tag">Tutorial</span>
-                                <span class="tag">Italian</span>
-                            </div>
-                            <button class="join-stream-btn" onclick="connectHub.joinStream('stream-3')">
-                                <i class="fas fa-play"></i> Join Stream
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="streaming-actions">
-                    <button class="primary-btn" onclick="connectHub.startStreaming()">
-                        <i class="fas fa-video"></i> Start Your Stream
-                    </button>
-                    <button class="secondary-btn" onclick="connectHub.showStreamingHelp()">
-                        <i class="fas fa-question-circle"></i> How to Stream
-                    </button>
-                </div>
-            `;
-
-            // Add event listeners for stream filters
-            this.initializeStreamFilters();
-        }
-    }
-
-    /**
-     * Initialize stream filter functionality
-     */
-    initializeStreamFilters() {
-        const categoryFilter = document.getElementById('stream-category-filter');
-        const searchInput = document.getElementById('stream-search');
-
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', (e) => {
-                this.filterStreams('category', e.target.value);
-            });
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.filterStreams('search', e.target.value);
-            });
-        }
-    }
-
-    /**
-     * Filter streams based on category or search
-     */
-    filterStreams(filterType, value) {
-        const streamCards = document.querySelectorAll('.stream-card');
-        let visibleCount = 0;
-
-        streamCards.forEach(card => {
-            let shouldShow = true;
-
-            if (filterType === 'category' && value !== 'all') {
-                const category = card.querySelector('.stream-category')?.textContent.toLowerCase();
-                shouldShow = category === value.toLowerCase();
-            } else if (filterType === 'search' && value.trim()) {
-                const searchText = value.toLowerCase();
-                const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
-                const streamer = card.querySelector('.stream-streamer')?.textContent.toLowerCase() || '';
-                const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase()).join(' ');
-                
-                shouldShow = title.includes(searchText) || streamer.includes(searchText) || tags.includes(searchText);
-            }
-
-            // Show/hide card based on filter result
-            card.style.display = shouldShow ? 'block' : 'none';
-            if (shouldShow) visibleCount++;
-        });
-
-        // Show no results message if needed
-        if (visibleCount === 0 && value.trim()) {
-            this.showToast('No streams found matching your search', 'info');
-        } else if (filterType === 'search' && !value.trim()) {
-            this.showToast('Showing all streams', 'info');
-        }
-    }
-
-    /**
-     * Join a stream
-     */
-    joinStream(streamId) {
-        if (this.streamingManager) {
-            this.streamingManager.joinStream(streamId);
-        } else {
-            this.showToast(`Joining stream ${streamId}...`, 'info');
-            // In a real app, this would navigate to the stream viewer
-        }
-    }
-
-    /**
-     * Start streaming
-     */
-    startStreaming() {
-        if (this.streamingManager) {
-            this.streamingManager.startStream();
-        } else {
-            this.showToast('Starting your stream...', 'info');
-            // In a real app, this would open the streaming interface
-        }
-    }
-
-    /**
-     * Show streaming help
-     */
-    showStreamingHelp() {
-        this.showToast('Streaming help: Use high-quality camera, good lighting, and engage with your audience!', 'info');
-    }
-
-    loadInitialPosts() {
-        // Already handled in loadFeedPosts
-        this.loadFeedPosts();
-    }
-
-    async loadMatches() {
-        const matchesGrid = document.getElementById('matches-grid');
-        if (matchesGrid) {
-            matchesGrid.innerHTML = `
-                <div class="match-card">
-                    <img src="https://source.unsplash.com/150x200/?portrait,woman" alt="Match" class="match-photo">
-                    <div class="match-info">
-                        <h4>Sophia Williams</h4>
-                        <p>Matched 2 days ago</p>
-                        <button class="message-match-btn">Send Message</button>
-                    </div>
-                </div>
-                <div class="match-card">
-                    <img src="https://source.unsplash.com/150x200/?portrait,person" alt="Match" class="match-photo">
-                    <div class="match-info">
-                        <h4>Taylor Johnson</h4>
-                        <p>Matched 1 week ago</p>
-                        <button class="message-match-btn">Send Message</button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    async loadDates() {
-        const datesList = document.getElementById('dates-list');
-        if (datesList) {
-            datesList.innerHTML = `
-                <div class="date-item upcoming">
-                    <div class="date-info">
-                        <div class="date-header">
-                            <h4>Coffee Date</h4>
-                            <span class="date-status upcoming">Upcoming</span>
-                        </div>
-                        <p class="date-partner">with Sophia Williams</p>
-                        <p class="date-details">
-                            <i class="fas fa-calendar"></i> Tomorrow, 2:00 PM<br>
-                            <i class="fas fa-map-marker-alt"></i> Starbucks Downtown
-                        </p>
-                        <div class="date-actions">
-                            <button class="confirm-date-btn">Confirm</button>
-                            <button class="reschedule-date-btn">Reschedule</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="date-item pending">
-                    <div class="date-info">
-                        <div class="date-header">
-                            <h4>Dinner Date</h4>
-                            <span class="date-status pending">Pending</span>
-                        </div>
-                        <p class="date-partner">with Taylor Johnson</p>
-                        <p class="date-details">
-                            <i class="fas fa-calendar"></i> This Weekend<br>
-                            <i class="fas fa-map-marker-alt"></i> Italian Restaurant
-                        </p>
-                        <div class="date-actions">
-                            <button class="accept-date-btn">Accept</button>
-                            <button class="decline-date-btn">Decline</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    async loadDatingChats() {
-        const chatContent = document.getElementById('chat-content');
-        if (chatContent) {
-            chatContent.innerHTML = `
-                <div class="dating-chat-list">
-                    <div class="chat-item active">
-                        <img src="https://source.unsplash.com/40x40/?portrait,woman" alt="Sophia" class="chat-avatar">
-                        <div class="chat-preview">
-                            <h4>Sophia Williams</h4>
-                            <p>Looking forward to our coffee date! ☕</p>
-                            <span class="chat-time">10m ago</span>
-                        </div>
-                        <div class="unread-badge">1</div>
-                    </div>
-                    <div class="chat-item">
-                        <img src="https://source.unsplash.com/40x40/?portrait,person" alt="Taylor" class="chat-avatar">
-                        <div class="chat-preview">
-                            <h4>Taylor Johnson</h4>
-                            <p>Thanks for the match! How's your day going?</p>
-                            <span class="chat-time">2h ago</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-messages-container">
-                    <div class="chat-header">
-                        <img src="https://source.unsplash.com/40x40/?portrait,woman" alt="Sophia" class="chat-avatar">
-                        <div class="chat-partner-info">
-                            <h4>Sophia Williams</h4>
-                            <span class="online-status">Online</span>
-                        </div>
-                    </div>
-                    <div class="chat-messages">
-                        <div class="message received">
-                            <p>Hi! Thanks for the like 😊</p>
-                            <span class="message-time">2:30 PM</span>
-                        </div>
-                        <div class="message sent">
-                            <p>Hey! I loved your photography! Are you a professional?</p>
-                            <span class="message-time">2:32 PM</span>
-                        </div>
-                        <div class="message received">
-                            <p>Thank you! I'm actually just passionate about it. Would love to show you some of my favorite spots sometime ☕</p>
-                            <span class="message-time">2:35 PM</span>
-                        </div>
-                        <div class="message sent">
-                            <p>That sounds amazing! I'd love to. Coffee tomorrow afternoon?</p>
-                            <span class="message-time">2:37 PM</span>
-                        </div>
-                        <div class="message received">
-                            <p>Looking forward to our coffee date! ☕</p>
-                            <span class="message-time">Just now</span>
-                        </div>
-                    </div>
-                    <div class="chat-input-container">
-                        <input type="text" placeholder="Type a message..." class="chat-input">
-                        <button class="send-message-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    startNewConversation() {
-        this.showToast('New conversation feature coming soon', 'info');
-    }
-
-    /**
-     * Start conversation with a match
-     */
-    startConversationWithMatch(profile) {
-        // Create a new conversation with the matched user
-        const newConversation = {
-            id: `conv-${Date.now()}`,
-            user: {
-                id: profile.id,
-                name: profile.name,
-                avatar: profile.photos ? profile.photos[0] : 'https://via.placeholder.com/40x40/4facfe/ffffff?text=' + profile.name[0]
-            },
-            lastMessage: `Matched with ${profile.name}! Say hello 👋`,
-            timestamp: new Date(),
-            unread: 0,
-            isMatch: true
-        };
-
-        // Add to conversations
-        this.conversations.unshift(newConversation);
-        
-        this.showToast(`Starting conversation with ${profile.name}`, 'success');
-        
-        // In a real app, this would open the conversation interface
-        // For now, just show the messages section
-    }
-
-    searchConversations(query) {
-        console.log('Searching conversations:', query);
-    }
-
-    filterNotifications(filter) {
-        this.showToast(`Filtering notifications: ${filter}`, 'info');
-    }
-
-    switchProfileTab(tab) {
-        this.showToast(`Profile tab: ${tab}`, 'info');
-    }
-
-    editProfile() {
-        this.openEditProfileModal();
-    }
-
-    /**
-     * Open edit profile modal with current user data
-     */
-    openEditProfileModal() {
-        // Create the edit profile modal if it doesn't exist
-        let modal = document.getElementById('edit-profile-modal');
-        if (!modal) {
-            this.createEditProfileModal();
-            modal = document.getElementById('edit-profile-modal');
-        }
-
-        // Populate modal with current user data
-        this.populateEditProfileModal();
-        
-        // Show the modal
-        this.openModal('edit-profile-modal');
-    }
-
-    /**
-     * Create edit profile modal HTML
-     */
-    createEditProfileModal() {
-        const modalHTML = `
-            <div id="edit-profile-modal" class="modal">
-                <div class="modal-content edit-profile-modal-content">
-                    <div class="modal-header">
-                        <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
-                        <button id="close-edit-profile" class="close-modal-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="modal-body edit-profile-body">
-                        <div class="profile-photo-section">
-                            <div class="current-profile-photo">
-                                <img id="edit-profile-avatar" src="${this.currentUser.avatar}" alt="Profile Photo" class="profile-photo-preview">
-                                <div class="photo-overlay">
-                                    <button id="change-profile-photo-btn" class="change-photo-btn">
-                                        <i class="fas fa-camera"></i>
-                                        Change Photo
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="edit-form-section">
-                            <div class="form-group">
-                                <label for="edit-display-name">
-                                    <i class="fas fa-user"></i> Display Name
-                                </label>
-                                <input type="text" id="edit-display-name" class="form-input" 
-                                       placeholder="Enter your display name" maxlength="50">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="edit-username">
-                                    <i class="fas fa-at"></i> Username
-                                </label>
-                                <input type="text" id="edit-username" class="form-input" 
-                                       placeholder="Enter your username" maxlength="30">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="edit-bio">
-                                    <i class="fas fa-quote-left"></i> Bio
-                                </label>
-                                <textarea id="edit-bio" class="form-textarea" 
-                                          placeholder="Tell people about yourself..." 
-                                          maxlength="300" rows="4"></textarea>
-                                <div class="character-count">
-                                    <span id="bio-char-count">0</span>/300
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="edit-location">
-                                    <i class="fas fa-map-marker-alt"></i> Location
-                                </label>
-                                <input type="text" id="edit-location" class="form-input" 
-                                       placeholder="Enter your location" maxlength="50">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="edit-website">
-                                    <i class="fas fa-globe"></i> Website
-                                </label>
-                                <input type="url" id="edit-website" class="form-input" 
-                                       placeholder="https://yourwebsite.com" maxlength="100">
-                            </div>
-
-                            <div class="privacy-settings">
-                                <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
-                                <div class="privacy-option">
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="profile-public" class="toggle-input">
-                                        <span class="toggle-slider"></span>
-                                        Public Profile
-                                    </label>
-                                    <small>Allow others to find and view your profile</small>
-                                </div>
-                                <div class="privacy-option">
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="show-online-status" class="toggle-input">
-                                        <span class="toggle-slider"></span>
-                                        Show Online Status
-                                    </label>
-                                    <small>Let others see when you're online</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button id="cancel-edit-profile" class="secondary-btn">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                        <button id="save-profile-changes" class="primary-btn">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-        // Add event listeners
-        this.setupEditProfileModalListeners();
-    }
-
-    /**
-     * Setup event listeners for edit profile modal
-     */
-    setupEditProfileModalListeners() {
-        // Close modal
-        const closeBtn = document.getElementById('close-edit-profile');
-        const cancelBtn = document.getElementById('cancel-edit-profile');
-        
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal('edit-profile-modal'));
-        }
-        
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => this.closeModal('edit-profile-modal'));
-        }
-
-        // Save changes
-        const saveBtn = document.getElementById('save-profile-changes');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveProfileChanges());
-        }
-
-        // Change profile photo
-        const changePhotoBtn = document.getElementById('change-profile-photo-btn');
-        if (changePhotoBtn) {
-            changePhotoBtn.addEventListener('click', () => this.changeProfilePhoto());
-        }
-
-        // Bio character counter
-        const bioTextarea = document.getElementById('edit-bio');
-        const charCounter = document.getElementById('bio-char-count');
-        if (bioTextarea && charCounter) {
-            bioTextarea.addEventListener('input', () => {
-                const count = bioTextarea.value.length;
-                charCounter.textContent = count;
-                charCounter.style.color = count > 250 ? '#e74c3c' : '#666';
-            });
-        }
-    }
-
-    /**
-     * Populate edit profile modal with current user data
-     */
-    populateEditProfileModal() {
-        const fields = {
-            'edit-display-name': this.currentUser.name || '',
-            'edit-username': this.currentUser.username?.replace('@', '') || '',
-            'edit-bio': this.currentUser.bio || '',
-            'edit-location': this.currentUser.location || '',
-            'edit-website': this.currentUser.website || ''
-        };
-
-        // Populate text fields
-        Object.keys(fields).forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.value = fields[fieldId];
-            }
-        });
-
-        // Update avatar preview
-        const avatarImg = document.getElementById('edit-profile-avatar');
-        if (avatarImg) {
-            avatarImg.src = this.currentUser.avatar;
-        }
-
-        // Update character counter
-        const bioTextarea = document.getElementById('edit-bio');
-        const charCounter = document.getElementById('bio-char-count');
-        if (bioTextarea && charCounter) {
-            charCounter.textContent = bioTextarea.value.length;
-        }
-
-        // Set privacy toggles (default values for demo)
-        const publicToggle = document.getElementById('profile-public');
-        const onlineStatusToggle = document.getElementById('show-online-status');
-        
-        if (publicToggle) publicToggle.checked = true;
-        if (onlineStatusToggle) onlineStatusToggle.checked = true;
-    }
-
-    /**
-     * Save profile changes
-     */
-    async saveProfileChanges() {
-        const saveBtn = document.getElementById('save-profile-changes');
-        if (!saveBtn) return;
-
-        // Show loading state
-        const originalHTML = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        saveBtn.disabled = true;
-
-        try {
-            // Collect form data
-            const formData = {
-                name: document.getElementById('edit-display-name')?.value || '',
-                username: document.getElementById('edit-username')?.value || '',
-                bio: document.getElementById('edit-bio')?.value || '',
-                location: document.getElementById('edit-location')?.value || '',
-                website: document.getElementById('edit-website')?.value || '',
-                profilePublic: document.getElementById('profile-public')?.checked || false,
-                showOnlineStatus: document.getElementById('show-online-status')?.checked || false
-            };
-
-            // Validate required fields
-            if (!formData.name.trim()) {
-                throw new Error('Display name is required');
-            }
-
-            if (!formData.username.trim()) {
-                throw new Error('Username is required');
-            }
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Update current user data
-            this.currentUser.name = formData.name.trim();
-            this.currentUser.username = '@' + formData.username.trim().replace('@', '');
-            this.currentUser.bio = formData.bio.trim();
-            this.currentUser.location = formData.location.trim();
-            this.currentUser.website = formData.website.trim();
-
-            // Update UI
-            this.updateUserInterface();
-
-            // Show success
-            this.showToast('Profile updated successfully!', 'success');
-            this.triggerSuccessAnimation(saveBtn);
-
-            // Close modal after a short delay
-            setTimeout(() => {
-                this.closeModal('edit-profile-modal');
-            }, 1000);
-
-        } catch (error) {
-            console.error('Failed to save profile changes:', error);
-            this.showToast(error.message || 'Failed to save profile changes', 'error');
-            this.triggerErrorAnimation(saveBtn);
-        } finally {
-            // Restore button state
-            setTimeout(() => {
-                saveBtn.innerHTML = originalHTML;
-                saveBtn.disabled = false;
-            }, 1000);
-        }
-    }
-
-    /**
-     * Change profile photo
-     */
-    changeProfilePhoto() {
-        this.createFileInput('image/*', (files) => {
-            if (files.length === 0) return;
-
-            const file = files[0];
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                const newAvatarUrl = e.target.result;
-                
-                // Update preview in modal
-                const avatarImg = document.getElementById('edit-profile-avatar');
-                if (avatarImg) {
-                    avatarImg.src = newAvatarUrl;
-                }
-
-                // Update current user avatar
-                this.currentUser.avatar = newAvatarUrl;
-                
-                this.showToast('Profile photo updated!', 'success');
-            };
-            
-            reader.readAsDataURL(file);
-        });
-    }
-
-    editProfilePhoto() {
-        this.showToast('Edit profile photo feature coming soon', 'info');
-    }
-
-    editCoverPhoto() {
-        this.showToast('Edit cover photo feature coming soon', 'info');
-    }
-
-    switchFeedTab(feed) {
-        this.showToast(`Feed: ${feed}`, 'info');
-    }
-
-    /**
-     * Initialize settings tabs functionality
-     */
-    initializeSettingsTabs() {
-        const settingsTabs = document.querySelectorAll('.settings-tab');
-        settingsTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.switchSettingsTab(tab.getAttribute('data-tab'));
-            });
-        });
-
-        // Initialize settings form handlers
-        this.initializeSettingsForms();
-    }
-
-    /**
-     * Switch settings tab
-     */
-    switchSettingsTab(tabName) {
-        // Update tab buttons
-        const tabs = document.querySelectorAll('.settings-tab');
-        tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
-        });
-
-        // Update tab content
-        const contents = document.querySelectorAll('.settings-tab-content');
-        contents.forEach(content => {
-            const contentId = `${tabName}-content`;
-            content.classList.toggle('active', content.id === contentId);
-        });
-
-        this.showToast(`Switched to ${tabName.charAt(0).toUpperCase() + tabName.slice(1)} settings`, 'info');
-    }
-
-    /**
-     * Initialize settings forms and interactions
-     */
-    initializeSettingsForms() {
-        // Save settings buttons
-        const saveButtons = document.querySelectorAll('.save-settings-btn');
-        saveButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.handleSaveSettings(e.target);
-            });
-        });
-
-        // Toggle switches
-        const toggleInputs = document.querySelectorAll('.toggle-input');
-        toggleInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
-                this.handleToggleChange(e.target);
-            });
-        });
-
-        // Danger zone buttons
-        const deactivateBtn = document.getElementById('deactivate-account-btn');
-        const deleteBtn = document.getElementById('delete-account-btn');
-
-        if (deactivateBtn) {
-            deactivateBtn.addEventListener('click', () => this.handleDeactivateAccount());
-        }
-
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => this.handleDeleteAccount());
-        }
-
-        // Theme selection
-        const themeOptions = document.querySelectorAll('input[name="theme"]');
-        themeOptions.forEach(option => {
-            option.addEventListener('change', (e) => {
-                this.handleThemeChange(e.target.value);
-            });
-        });
-
-        // Font size selection
-        const fontSizeSelect = document.getElementById('font-size');
-        if (fontSizeSelect) {
-            fontSizeSelect.addEventListener('change', (e) => {
-                this.handleFontSizeChange(e.target.value);
-            });
-        }
-    }
-
-    /**
-     * Handle save settings button click
-     */
-    async handleSaveSettings(button) {
-        const settingsCard = button.closest('.settings-section-card');
-        if (!settingsCard) return;
-
-        // Show loading state
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        button.disabled = true;
-
-        try {
-            // Collect form data from the settings card
-            const formData = this.collectSettingsData(settingsCard);
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            this.showToast('Settings saved successfully!', 'success');
-            this.triggerSuccessAnimation(button);
-            
-            // In a real app, you would make an API call here
-            // await this.api.saveSettings(formData);
-            
-        } catch (error) {
-            console.error('Failed to save settings:', error);
-            this.showToast('Failed to save settings', 'error');
-            this.triggerErrorAnimation(button);
-        } finally {
-            // Restore button state
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    }
-
-    /**
-     * Collect settings data from a form section
-     */
-    collectSettingsData(settingsCard) {
-        const formData = {};
-        
-        // Collect input values
-        const inputs = settingsCard.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            if (input.type === 'checkbox') {
-                formData[input.id] = input.checked;
-            } else if (input.type === 'radio' && input.checked) {
-                formData[input.name] = input.value;
-            } else if (input.type !== 'radio') {
-                formData[input.id] = input.value;
-            }
-        });
-
-        return formData;
-    }
-
-    /**
-     * Handle toggle switch changes
-     */
-    handleToggleChange(toggleInput) {
-        const label = toggleInput.closest('.toggle-label');
-        const settingName = label ? label.textContent.trim() : 'Setting';
-        const isEnabled = toggleInput.checked;
-        
-        this.showToast(`${settingName} ${isEnabled ? 'enabled' : 'disabled'}`, 'info');
-        
-        // In a real app, you might want to save this immediately
-        // this.saveSettingImmediately(toggleInput.id, isEnabled);
-    }
-
-    /**
-     * Handle account deactivation
-     */
-    handleDeactivateAccount() {
-        const confirmed = confirm(
-            'Are you sure you want to deactivate your account?\n\n' +
-            'Your profile will be hidden but your data will be preserved. ' +
-            'You can reactivate at any time by logging back in.'
-        );
-
-        if (confirmed) {
-            this.showToast('Account deactivation feature coming soon', 'info');
-            // In a real app, you would handle account deactivation
-        }
-    }
-
-    /**
-     * Handle account deletion
-     */
-    handleDeleteAccount() {
-        const confirmed = confirm(
-            'Are you sure you want to DELETE your account?\n\n' +
-            '⚠️ THIS ACTION CANNOT BE UNDONE ⚠️\n\n' +
-            'All your data, posts, messages, and connections will be permanently deleted.'
-        );
-
-        if (confirmed) {
-            const doubleConfirmed = confirm(
-                'This is your FINAL WARNING!\n\n' +
-                'Type "DELETE" in the next prompt to confirm permanent account deletion.'
-            );
-
-            if (doubleConfirmed) {
-                const verification = prompt('Type "DELETE" to confirm:');
-                if (verification === 'DELETE') {
-                    this.showToast('Account deletion feature coming soon', 'warning');
-                    // In a real app, you would handle account deletion
-                } else {
-                    this.showToast('Account deletion cancelled', 'info');
-                }
-            }
-        }
-    }
-
-    /**
-     * Handle theme changes
-     */
-    handleThemeChange(theme) {
-        // Apply theme changes to the UI
-        document.documentElement.setAttribute('data-theme', theme);
-        
-        // Update local storage
-        localStorage.setItem('theme', theme);
-        
-        this.showToast(`Theme changed to ${theme}`, 'success');
-        
-        // In a real app, you might apply actual theme styles here
-        console.log(`Theme changed to: ${theme}`);
-    }
-
-    /**
-     * Handle font size changes
-     */
-    handleFontSizeChange(fontSize) {
-        // Apply font size changes
-        document.documentElement.style.fontSize = this.getFontSizeValue(fontSize);
-        
-        // Update local storage
-        localStorage.setItem('fontSize', fontSize);
-        
-        this.showToast(`Font size changed to ${fontSize}`, 'success');
-    }
-
-    /**
-     * Get font size value for CSS
-     */
-    getFontSizeValue(size) {
-        const sizes = {
-            'small': '12px',
-            'medium': '14px',
-            'large': '16px',
-            'extra-large': '18px'
-        };
-        return sizes[size] || sizes.medium;
-    }
-
-    /**
-     * Initialize help section functionality
-     */
-    initializeHelpSection() {
-        // Help search
-        const helpSearch = document.getElementById('help-search-input');
-        if (helpSearch) {
-            helpSearch.addEventListener('input', (e) => {
-                this.handleHelpSearch(e.target.value);
-            });
-        }
-
-        // Contact buttons
-        const contactBtns = document.querySelectorAll('.contact-btn');
-        contactBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.handleContactSupport(e.target);
-            });
-        });
-
-        // Help links
-        const helpLinks = document.querySelectorAll('.help-links a');
-        helpLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleHelpLinkClick(link);
-            });
-        });
-
-        // Guidelines links
-        const guidelineLinks = document.querySelectorAll('.guideline-link');
-        guidelineLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                // Let these links work normally since they point to real pages
-                console.log('Opening guideline:', link.href);
-            });
-        });
-    }
-
-    /**
-     * Handle help search
-     */
-    handleHelpSearch(query) {
-        if (!query.trim()) {
-            this.showAllHelpCategories();
-            return;
-        }
-
-        // Filter help content based on search query
-        this.filterHelpContent(query.toLowerCase());
-        this.showToast(`Searching help for: "${query}"`, 'info');
-    }
-
-    /**
-     * Show all help categories
-     */
-    showAllHelpCategories() {
-        const helpCards = document.querySelectorAll('.help-category-card');
-        helpCards.forEach(card => {
-            card.style.display = 'block';
-            card.style.opacity = '1';
-        });
-    }
-
-    /**
-     * Filter help content based on search query
-     */
-    filterHelpContent(query) {
-        const helpCards = document.querySelectorAll('.help-category-card');
-        let hasVisibleResults = false;
-
-        helpCards.forEach(card => {
-            const cardText = card.textContent.toLowerCase();
-            const isMatch = cardText.includes(query);
-            
-            if (isMatch) {
-                card.style.display = 'block';
-                card.style.opacity = '1';
-                hasVisibleResults = true;
-            } else {
-                card.style.opacity = '0.3';
-            }
-        });
-
-        if (!hasVisibleResults) {
-            this.showToast('No help articles found for that search', 'warning');
-        }
-    }
-
-    /**
-     * Handle contact support button clicks
-     */
-    handleContactSupport(button) {
-        const iconClass = button.querySelector('i').className;
-        let contactType = 'support';
-
-        if (iconClass.includes('comment')) {
-            contactType = 'live chat';
-        } else if (iconClass.includes('envelope')) {
-            contactType = 'email';
-        } else if (iconClass.includes('exclamation')) {
-            contactType = 'report issue';
-        }
-
-        this.showToast(`${contactType.charAt(0).toUpperCase() + contactType.slice(1)} feature coming soon`, 'info');
-        
-        // In a real app, you would open the appropriate contact method
-        // For live chat, you might open a chat widget
-        // For email, you might open the user's email client
-        // For report issue, you might open a specialized form
-    }
-
-    /**
-     * Handle help link clicks
-     */
-    handleHelpLinkClick(link) {
-        const linkText = link.textContent.trim();
-        this.showToast(`Help article: "${linkText}" - Coming soon`, 'info');
-        
-        // In a real app, you would navigate to the help article
-        // or open a modal with the article content
-        console.log('Help article clicked:', linkText);
-    }
-
-    /**
-     * Load user settings from storage/API
-     */
-    loadUserSettings() {
-        try {
-            // Load theme preference
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
-            if (themeInput) {
-                themeInput.checked = true;
-                this.handleThemeChange(savedTheme);
-            }
-
-            // Load font size preference
-            const savedFontSize = localStorage.getItem('fontSize') || 'medium';
-            const fontSizeSelect = document.getElementById('font-size');
-            if (fontSizeSelect) {
-                fontSizeSelect.value = savedFontSize;
-                this.handleFontSizeChange(savedFontSize);
-            }
-
-            console.log('User settings loaded');
-        } catch (error) {
-            console.error('Failed to load user settings:', error);
-        }
-    }
-
-    /**
-     * Initialize settings with user data
-     */
-    populateSettingsWithUserData() {
-        if (!this.currentUser) return;
-
-        // Populate profile information
-        const displayNameInput = document.getElementById('display-name');
-        const usernameInput = document.getElementById('username');
-        const bioTextarea = document.getElementById('bio');
-        const emailInput = document.getElementById('email');
-
-        if (displayNameInput) displayNameInput.value = this.currentUser.name || '';
-        if (usernameInput) usernameInput.value = this.currentUser.username?.replace('@', '') || '';
-        if (bioTextarea) bioTextarea.value = this.currentUser.bio || '';
-        if (emailInput) emailInput.value = this.currentUser.email || '';
-    }
-
-    /**
-     * Handle add photo functionality
-     */
-    handleAddPhoto() {
-        this.createFileInput('image/*', (files) => {
-            this.handleMediaFiles(files, 'photo');
-        });
-    }
-
-    /**
-     * Handle add video functionality
-     */
-    handleAddVideo() {
-        this.createFileInput('video/*', (files) => {
-            this.handleMediaFiles(files, 'video');
-        });
-    }
-
-    /**
-     * Handle add location functionality
-     */
-    handleAddLocation() {
-        if (navigator.geolocation) {
-            this.showToast('Getting your location...', 'info');
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    this.addLocationToPost(latitude, longitude);
-                },
-                (error) => {
-                    console.error('Geolocation error:', error);
-                    this.showToast('Could not get your location', 'warning');
-                    this.showLocationPicker();
-                }
-            );
-        } else {
-            this.showLocationPicker();
-        }
-    }
-
-    /**
-     * Handle add emoji functionality
-     */
-    handleAddEmoji() {
-        this.showEmojiPicker();
-    }
-
-    /**
-     * Create file input for media uploads
-     */
-    createFileInput(accept, callback) {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = accept;
-        fileInput.multiple = true;
-        fileInput.style.display = 'none';
-        
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-                callback(files);
-            }
-            // Clean up
-            document.body.removeChild(fileInput);
-        });
-        
-        document.body.appendChild(fileInput);
-        fileInput.click();
-    }
-
-    /**
-     * Handle uploaded media files
-     */
-    handleMediaFiles(files, type) {
-        if (files.length === 0) return;
-
-        // Validate file sizes (max 10MB per file)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        const validFiles = files.filter(file => {
-            if (file.size > maxSize) {
-                this.showToast(`File ${file.name} is too large (max 10MB)`, 'warning');
-                return false;
-            }
-            return true;
-        });
-
-        if (validFiles.length === 0) return;
-
-        // Process files
-        validFiles.forEach(file => {
-            this.processMediaFile(file, type);
-        });
-
-        this.showToast(`${validFiles.length} ${type}(s) added`, 'success');
-    }
-
-    /**
-     * Process individual media file
-     */
-    processMediaFile(file, type) {
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-            const mediaData = {
-                id: `media-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                type: type,
-                file: file,
-                url: e.target.result,
-                name: file.name,
-                size: file.size
-            };
-            
-            // Add to current post media
-            if (!this.currentPostMedia) {
-                this.currentPostMedia = [];
-            }
-            this.currentPostMedia.push(mediaData);
-            
-            // Update media preview
-            this.updateMediaPreview();
-        };
-        
-        reader.onerror = () => {
-            this.showToast(`Failed to process ${file.name}`, 'error');
-        };
-        
-        reader.readAsDataURL(file);
-    }
-
-    /**
-     * Update media preview in create post modal
-     */
-    updateMediaPreview() {
-        const mediaPreview = document.getElementById('media-preview');
-        if (!mediaPreview || !this.currentPostMedia) return;
-
-        if (this.currentPostMedia.length === 0) {
-            mediaPreview.innerHTML = '';
-            mediaPreview.style.display = 'none';
-            return;
-        }
-
-        mediaPreview.style.display = 'block';
-        mediaPreview.innerHTML = `
-            <div class="media-preview-container">
-                ${this.currentPostMedia.map(media => `
-                    <div class="media-preview-item" data-media-id="${media.id}">
-                        ${media.type === 'photo' ? 
-                            `<img src="${media.url}" alt="${media.name}" class="preview-image">` :
-                            `<video src="${media.url}" class="preview-video" controls></video>`
-                        }
-                        <button class="remove-media-btn" onclick="connectHub.removeMediaFromPost('${media.id}')" title="Remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="media-info">
-                            <span class="media-name">${media.name}</span>
-                            <span class="media-size">${this.formatFileSize(media.size)}</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    /**
-     * Remove media from current post
-     */
-    removeMediaFromPost(mediaId) {
-        if (!this.currentPostMedia) return;
-        
-        this.currentPostMedia = this.currentPostMedia.filter(media => media.id !== mediaId);
-        this.updateMediaPreview();
-        this.showToast('Media removed', 'info');
-    }
-
-    /**
-     * Add location to post
-     */
-    addLocationToPost(latitude, longitude) {
-        // Use reverse geocoding to get location name (simplified version)
-        this.currentPostLocation = {
-            lat: latitude,
-            lng: longitude,
-            name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` // Simplified display
-        };
-        
-        // Show location in the post input area
-        this.showToast(`Location added: ${this.currentPostLocation.name}`, 'success');
-        this.updateLocationDisplay();
-    }
-
-    /**
-     * Show location picker modal (simplified version)
-     */
-    showLocationPicker() {
-        const locations = [
-            { name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
-            { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
-            { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
-            { name: 'Miami, FL', lat: 25.7617, lng: -80.1918 },
-            { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 }
-        ];
-        
-        // Simple location selection (in a real app, this would be a proper modal)
-        const locationName = prompt('Enter your location (or choose from: ' + 
-            locations.map(l => l.name).join(', ') + ')');
-            
-        if (locationName) {
-            const foundLocation = locations.find(l => 
-                l.name.toLowerCase().includes(locationName.toLowerCase())
-            );
-            
-            if (foundLocation) {
-                this.addLocationToPost(foundLocation.lat, foundLocation.lng);
-                this.currentPostLocation.name = foundLocation.name;
-            } else {
-                this.currentPostLocation = {
-                    lat: null,
-                    lng: null,
-                    name: locationName
-                };
-            }
-            
-            this.showToast(`Location set to: ${this.currentPostLocation.name}`, 'success');
-        }
-    }
-
-    /**
-     * Update location display in post composer
-     */
-    updateLocationDisplay() {
-        if (!this.currentPostLocation) return;
-        
-        // Add visual indicator that location is attached
-        const locationBtn = document.getElementById('modal-add-location') || 
-                           document.getElementById('add-location-btn');
-        
-        if (locationBtn) {
-            locationBtn.style.color = '#42b72a';
-            locationBtn.title = `Location: ${this.currentPostLocation.name}`;
-        }
-    }
-
-    /**
-     * Show emoji picker (simplified version)
-     */
-    showEmojiPicker() {
-        const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', 
-                       '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛',
-                       '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
-                       '❤️', '💕', '💖', '💗', '💓', '💞', '💘', '💝', '🎉', '🎊',
-                       '🔥', '✨', '⭐', '🌟', '💫', '🎯', '🎪', '🎨', '🎭', '🎪'];
-        
-        // Create emoji picker popup
-        const existingPicker = document.getElementById('emoji-picker');
-        if (existingPicker) {
-            existingPicker.remove();
-        }
-        
-        const emojiPicker = document.createElement('div');
-        emojiPicker.id = 'emoji-picker';
-        emojiPicker.className = 'emoji-picker';
-        emojiPicker.innerHTML = `
-            <div class="emoji-picker-content">
-                <div class="emoji-picker-header">
-                    <span>Choose an emoji</span>
-                    <button class="close-emoji-picker" onclick="this.parentElement.parentElement.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="emoji-grid">
-                    ${emojis.map(emoji => 
-                        `<button class="emoji-btn" onclick="connectHub.insertEmoji('${emoji}')">${emoji}</button>`
-                    ).join('')}
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(emojiPicker);
-        
-        // Position the picker
-        const emojiBtn = document.getElementById('modal-add-emoji') || 
-                        document.getElementById('add-emoji-btn');
-        if (emojiBtn) {
-            const rect = emojiBtn.getBoundingClientRect();
-            emojiPicker.style.position = 'fixed';
-            emojiPicker.style.top = (rect.bottom + 10) + 'px';
-            emojiPicker.style.left = rect.left + 'px';
-            emojiPicker.style.zIndex = '10000';
-        }
-    }
-
-    /**
-     * Insert emoji into post content
-     */
-    insertEmoji(emoji) {
-        const textarea = document.getElementById('modal-post-content');
-        if (textarea) {
-            const cursorPos = textarea.selectionStart;
-            const textBefore = textarea.value.substring(0, cursorPos);
-            const textAfter = textarea.value.substring(textarea.selectionEnd);
-            
-            textarea.value = textBefore + emoji + textAfter;
-            textarea.focus();
-            textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-        }
-        
-        // Close emoji picker
-        const picker = document.getElementById('emoji-picker');
-        if (picker) {
-            picker.remove();
-        }
-    }
-
-    /**
-     * Format file size for display
-     */
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    /**
-     * Initialize premium animations system
-     */
-    initializeAnimations() {
-        // Add stagger animations to existing list items
-        this.addStaggerAnimations();
-        
-        // Enhance interaction buttons with animation classes
-        this.enhanceInteractionButtons();
-        
-        // Initialize typing indicators
-        this.initializeTypingIndicators();
-        
-        // Setup page transition animations
-        this.setupPageTransitions();
-        
-        // Initialize notification badge animations
-        this.initializeNotificationBadges();
-        
-        // Add GPU acceleration to frequently animated elements
-        this.addGPUAcceleration();
-        
-        console.log('Premium animations initialized');
-    }
-
-    /**
-     * Add stagger animations to list items
-     */
-    addStaggerAnimations() {
-        const listContainers = [
-            '.posts-container',
-            '.conversations-list',
-            '.notifications-list',
-            '.trending-section ul',
-            '.suggested-connections .suggestion-item'
-        ];
-
-        listContainers.forEach(selector => {
-            const container = document.querySelector(selector);
-            if (container) {
-                const items = container.querySelectorAll(':scope > *');
-                items.forEach((item, index) => {
-                    item.classList.add('stagger-item');
-                    item.style.animationDelay = `${(index + 1) * 0.1}s`;
-                });
-            }
-        });
-    }
-
-    /**
-     * Enhance interaction buttons with premium animations
-     */
-    enhanceInteractionButtons() {
-        // Add enhanced classes to interaction buttons
-        const interactionButtons = document.querySelectorAll('.interaction-btn');
-        interactionButtons.forEach(btn => {
-            btn.classList.add('gpu-accelerated');
-            
-            // Add specific classes based on button type
-            if (btn.hasAttribute('data-action')) {
-                const action = btn.getAttribute('data-action');
-                btn.classList.add(`${action}-btn`);
-            }
-        });
-
-        // Add animation triggers for primary buttons
-        const primaryButtons = document.querySelectorAll('.primary-btn');
-        primaryButtons.forEach(btn => {
-            btn.classList.add('gpu-accelerated');
-            
-            btn.addEventListener('click', () => {
-                btn.classList.add('clicked');
-                setTimeout(() => btn.classList.remove('clicked'), 200);
-            });
-        });
-
-        // Add card hover animations
-        const cards = document.querySelectorAll('.post-card, .user-profile-card, .profile-card');
-        cards.forEach(card => {
-            card.classList.add('gpu-accelerated');
-        });
-    }
-
-    /**
-     * Initialize typing indicators for messaging
-     */
-    initializeTypingIndicators() {
-        // Create typing indicator template
-        this.typingIndicatorTemplate = `
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        `;
-    }
-
-    /**
-     * Show typing indicator
-     */
-    showTypingIndicator(conversationId) {
-        const chatMessages = document.querySelector('.chat-messages');
-        if (!chatMessages) return;
-
-        // Remove existing typing indicator
-        const existingIndicator = chatMessages.querySelector('.typing-indicator');
-        if (existingIndicator) {
-            existingIndicator.remove();
-        }
-
-        // Add new typing indicator
-        const indicator = document.createElement('div');
-        indicator.className = 'message typing-message';
-        indicator.innerHTML = this.typingIndicatorTemplate;
-        chatMessages.appendChild(indicator);
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    /**
-     * Hide typing indicator
-     */
-    hideTypingIndicator() {
-        const typingMessage = document.querySelector('.typing-message');
-        if (typingMessage) {
-            typingMessage.remove();
-        }
-    }
-
-    /**
-     * Setup page transition animations
-     */
-    setupPageTransitions() {
-        // Override the navigateToSectionDirect method to add transitions
-        const originalNavigate = this.navigateToSectionDirect;
-        
-        this.navigateToSectionDirect = (section) => {
-            const currentSection = document.querySelector('.content-section.active');
-            const targetSection = document.getElementById(`${section}-section`);
-            
-            if (currentSection && targetSection && currentSection !== targetSection) {
-                // Add exit animation to current section
-                currentSection.classList.add('page-transition-exit');
-                
-                setTimeout(() => {
-                    // Call original navigation logic
-                    originalNavigate.call(this, section);
-                    
-                    // Add enter animation to new section
-                    const newActiveSection = document.querySelector('.content-section.active');
-                    if (newActiveSection) {
-                        newActiveSection.classList.add('page-transition-enter');
-                        
-                        // Clean up classes after animation
-                        setTimeout(() => {
-                            newActiveSection.classList.remove('page-transition-enter');
-                            currentSection.classList.remove('page-transition-exit');
-                        }, 400);
-                    }
-                }, 200);
-            } else {
-                // No transition needed, call original method
-                originalNavigate.call(this, section);
-            }
-        };
-    }
-
-    /**
-     * Initialize notification badge animations
-     */
-    initializeNotificationBadges() {
-        const badges = document.querySelectorAll('.notification-badge');
-        badges.forEach(badge => {
-            badge.classList.add('gpu-accelerated');
-        });
-    }
-
-    /**
-     * Add notification badge with animation
-     */
-    addNotificationBadge(element, count = 1) {
-        let badge = element.querySelector('.notification-badge');
-        
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'notification-badge new gpu-accelerated';
-            element.appendChild(badge);
-        } else {
-            badge.classList.add('new');
-        }
-        
-        badge.textContent = count > 99 ? '99+' : count.toString();
-        
-        // Remove the 'new' class after animation completes
-        setTimeout(() => {
-            badge.classList.remove('new');
-        }, 800);
-    }
-
-    /**
-     * Add GPU acceleration to frequently animated elements
-     */
-    addGPUAcceleration() {
-        const animatedSelectors = [
-            '.post-card',
-            '.user-profile-card',
-            '.profile-card',
-            '.interaction-btn',
-            '.primary-btn',
-            '.nav-item a',
-            '.toast',
-            '.modal-content',
-            '.chain-link',
-            '.heart-link',
-            '.loading-logo',
-            '.dating-logo'
-        ];
-
-        animatedSelectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                element.classList.add('gpu-accelerated');
-            });
-        });
-    }
-
-    /**
-     * Trigger success animation on element
-     */
-    triggerSuccessAnimation(element) {
-        element.classList.add('success-animation', 'gpu-accelerated');
-        setTimeout(() => {
-            element.classList.remove('success-animation');
-        }, 600);
-    }
-
-    /**
-     * Trigger error animation on element
-     */
-    triggerErrorAnimation(element) {
-        element.classList.add('error-animation', 'gpu-accelerated');
-        setTimeout(() => {
-            element.classList.remove('error-animation');
-        }, 500);
-    }
-
-    /**
-     * Add shimmer loading effect to element
-     */
-    addShimmerLoading(element) {
-        element.classList.add('loading-shimmer', 'gpu-accelerated');
-    }
-
-    /**
-     * Remove shimmer loading effect
-     */
-    removeShimmerLoading(element) {
-        element.classList.remove('loading-shimmer');
-    }
-
-    /**
-     * Create floating action button
-     */
-    createFloatingActionButton(icon, action, position = 'bottom-right') {
-        const fab = document.createElement('button');
-        fab.className = 'fab gpu-accelerated';
-        fab.innerHTML = `<i class="${icon}"></i>`;
-        
-        // Position the FAB
-        if (position === 'bottom-right') {
-            fab.style.bottom = '20px';
-            fab.style.right = '20px';
-        }
-        
-        fab.addEventListener('click', action);
-        document.body.appendChild(fab);
-        
-        return fab;
-    }
-
-    /**
-     * Enhanced post interaction handling with animations
-     */
-    async toggleLikeWithAnimation(post, buttonElement) {
-        const isLiked = post.userLiked;
-        
-        // Add animation classes
-        if (!isLiked) {
-            buttonElement.classList.add('liked');
-            // Trigger heart bounce and glow animation
-            setTimeout(() => {
-                this.triggerSuccessAnimation(buttonElement);
-            }, 100);
-        } else {
-            buttonElement.classList.remove('liked');
-        }
-        
-        // Call the original toggle like method
-        await this.toggleLike(post, buttonElement);
-    }
-
-    /**
-     * Enhanced save toggle with animation
-     */
-    async toggleSaveWithAnimation(post, buttonElement) {
-        const icon = buttonElement.querySelector('i');
-        const wasSaved = icon.classList.contains('fas');
-        
-        // Add animation
-        if (!wasSaved) {
-            // Trigger bookmark animation
-            buttonElement.classList.add('saved');
-            this.triggerSuccessAnimation(buttonElement);
-        } else {
-            buttonElement.classList.remove('saved');
-        }
-        
-        // Call the original toggle save method
-        await this.toggleSave(post, buttonElement);
-    }
-
-    /**
-     * Enhanced share with ripple animation
-     */
-    async sharePostWithAnimation(post, buttonElement) {
-        // Add ripple effect class
-        buttonElement.classList.add('sharing');
-        
-        // Call the original share method
-        await this.sharePost(post);
-        
-        // Remove animation class
-        setTimeout(() => {
-            buttonElement.classList.remove('sharing');
-        }, 600);
-    }
-
-    /**
-     * Create animated loading spinner
-     */
-    createLoadingSpinner(size = 'normal') {
-        const spinner = document.createElement('div');
-        spinner.className = `loading-spinner ${size} gpu-accelerated`;
-        return spinner;
-    }
-
-    /**
-     * Show modal with enhanced animations
-     */
-    openModalWithAnimation(modalId) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        
-        modal.classList.add('show', 'gpu-accelerated');
-        document.body.style.overflow = 'hidden';
-        
-        // Add entrance animation to modal content
-        const modalContent = modal.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.classList.add('gpu-accelerated');
-        }
-    }
-
-    /**
-     * Close modal with enhanced animations
-     */
-    closeModalWithAnimation(modalId) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        
-        const modalContent = modal.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.style.transform = 'translateY(50px) scale(0.9)';
-            modalContent.style.opacity = '0';
-        }
-        
-        setTimeout(() => {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-            
-            // Reset modal content styles
-            if (modalContent) {
-                modalContent.style.transform = '';
-                modalContent.style.opacity = '';
-            }
-        }, 300);
+    toast.innerHTML = `${icons[type]} ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function handleKeyPress(event, callback) {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        callback();
     }
 }
 
-// Initialize the app when the script loads
-const connectHub = new ConnectHubApp();
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+}
 
-// Export for potential module use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ConnectHubApp;
+// Navigation functions
+function updateMainNav() {
+    const mainNav = document.getElementById('mainNav');
+    if (!mainNav) return;
+    
+    if (!isLoggedIn) {
+        mainNav.innerHTML = '';
+        return;
+    }
+
+    const navItems = [
+        { id: 'home', label: '🏠 Home', action: 'goHome()' },
+        { id: 'search', label: '🔍 Search', action: "switchToScreen('social', 'search')" }
+    ];
+
+    const categoryTabs = `
+        <div class="category-nav">
+            <div class="category-tab ${currentCategory === 'social' ? 'active' : ''}" data-category="social" onclick="switchCategory('social')" role="button" tabindex="0">
+                📱 Social
+            </div>
+            <div class="category-tab ${currentCategory === 'dating' ? 'active' : ''}" data-category="dating" onclick="switchCategory('dating')" role="button" tabindex="0">
+                💕 Dating
+            </div>
+            <div class="category-tab ${currentCategory === 'media' ? 'active' : ''}" data-category="media" onclick="switchCategory('media')" role="button" tabindex="0">
+                🎵 Media
+            </div>
+            <div class="category-tab ${currentCategory === 'extra' ? 'active' : ''}" data-category="extra" onclick="switchCategory('extra')" role="button" tabindex="0">
+                🎮 Extra
+            </div>
+        </div>
+    `;
+
+    const notificationBtn = `
+        <div class="nav-item" onclick="toggleNotifications()" role="button" tabindex="0" aria-label="Notifications">
+            🔔 Notifications
+            ${notificationCount > 0 ? '<div class="notification-dot"></div>' : ''}
+        </div>
+    `;
+
+    mainNav.innerHTML = navItems.map(item => 
+        `<div class="nav-item" onclick="${item.action}" role="button" tabindex="0">${item.label}</div>`
+    ).join('') + categoryTabs + notificationBtn;
+}
+
+function updateSubNav() {
+    const subNavContainer = document.getElementById('subNavContainer');
+    if (!subNavContainer) return;
+
+    if (!isLoggedIn || !currentCategory) {
+        subNavContainer.style.display = 'none';
+        return;
+    }
+
+    subNavContainer.style.display = 'block';
+    const subNav = document.getElementById('subNav');
+    if (!subNav) return;
+    
+    const items = subNavItems[currentCategory] || [];
+    
+    subNav.innerHTML = items.map(item => `
+        <div class="sub-nav-item ${item.id === currentScreen ? 'active' : ''}" 
+             onclick="switchToScreen('${currentCategory}', '${item.id}')" role="button" tabindex="0">
+            ${item.label}
+        </div>
+    `).join('');
+}
+
+function goHome() {
+    if (isLoggedIn) {
+        const categorySelection = document.getElementById('categorySelection');
+        if (categorySelection) {
+            categorySelection.classList.add('active');
+            document.querySelectorAll('.category-section').forEach(section => {
+                if (section.id !== 'categorySelection') {
+                    section.classList.remove('active');
+                }
+            });
+        }
+        currentCategory = null;
+        updateMainNav();
+        updateSubNav();
+    } else {
+        location.reload();
+    }
+}
+
+function selectCategory(category) {
+    if (!isLoggedIn) {
+        showToast('Please sign in to access this feature', 'warning');
+        return;
+    }
+    switchCategory(category);
+}
+
+function switchCategory(category) {
+    if (!isLoggedIn) {
+        showToast('Please sign in to access this feature', 'warning');
+        return;
+    }
+
+    currentCategory = category;
+    currentScreen = categoryScreens[category][0];
+
+    // Hide all category sections
+    document.querySelectorAll('.category-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // Show selected category
+    const categorySection = document.getElementById(`${category}Category`);
+    if (categorySection) {
+        categorySection.classList.add('active');
+        loadCategoryContent(category);
+    }
+    
+    updateMainNav();
+    updateSubNav();
+}
+
+function switchToScreen(category, screen) {
+    if (!isLoggedIn) {
+        showToast('Please sign in first', 'warning');
+        return;
+    }
+
+    if (category !== currentCategory) {
+        switchCategory(category);
+        return;
+    }
+
+    currentScreen = screen;
+    loadScreenContent(category, screen);
+    updateSubNav();
+}
+
+// Content loading functions
+function loadCategoryContent(category) {
+    const categoryElement = document.getElementById(`${category}Category`);
+    if (categoryElement) {
+        categoryElement.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        
+        const defaultScreen = document.getElementById(`${category}${categoryScreens[category][0].charAt(0).toUpperCase() + categoryScreens[category][0].slice(1)}`);
+        if (defaultScreen) {
+            defaultScreen.classList.add('active');
+        }
+    }
+
+    switch(category) {
+        case 'social':
+            populateSocialHome();
+            break;
+        case 'dating':
+            loadDatingCard();
+            break;
+        case 'media':
+            initializeMusic();
+            break;
+        case 'extra':
+            break;
+    }
+}
+
+function loadScreenContent(category, screen) {
+    const categoryElement = document.getElementById(`${category}Category`);
+    if (categoryElement) {
+        categoryElement.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+        });
+        
+        const targetScreen = document.getElementById(`${category}${screen.charAt(0).toUpperCase() + screen.slice(1)}`);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+            initializeScreenContent(category, screen);
+        }
+    }
+}
+
+function initializeScreenContent(category, screen) {
+    const screenKey = `${category}-${screen}`;
+    
+    switch(screenKey) {
+        case 'social-home':
+            populateSocialHome();
+            break;
+        case 'social-messages':
+            populateConversations();
+            break;
+        case 'social-search':
+            populateSearchDefaults();
+            break;
+        case 'social-groups':
+            populateGroups();
+            break;
+        case 'social-events':
+            populateEvents();
+            break;
+        case 'social-stories':
+            populateStories();
+            break;
+        case 'dating-swipe':
+            loadDatingCard();
+            break;
+        case 'dating-matches':
+            populateMatches();
+            break;
+        case 'dating-chat':
+            populateDatingChat();
+            break;
+        case 'dating-preferences':
+            populateDatingPreferences();
+            break;
+        case 'media-music':
+            initializeMusic();
+            break;
+        case 'media-video':
+            populateVideoCallData();
+            break;
+        case 'extra-marketplace':
+            populateMarketplace();
+            break;
+        case 'extra-wallet':
+            populateWalletTransactions();
+            break;
+    }
+}
+
+// Social Media Functions
+function populateSocialHome() {
+    const postsContainer = document.getElementById('postsContainer');
+    const suggestedFriends = document.getElementById('suggestedFriends');
+    const activeUsers = document.getElementById('activeUsers');
+
+    if (postsContainer) {
+        postsContainer.innerHTML = samplePosts.map(post => `
+            <article style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; transition: all 0.3s ease;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${post.avatar}</div>
+                    <div>
+                        <h4>${post.user}</h4>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">${post.time}</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem; line-height: 1.6;">${post.content}</div>
+                ${post.image ? `<div style="width: 100%; height: 300px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; cursor: pointer;" role="img" aria-label="Post image">🌟</div>` : ''}
+                <div style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                    <button class="btn btn-secondary btn-small" onclick="toggleLike(this, ${post.id})" aria-label="Like post">❤️ <span>${post.likes}</span></button>
+                    <button class="btn btn-secondary btn-small" onclick="showComments(${post.id})" aria-label="View comments">💬 <span>${post.comments}</span></button>
+                    <button class="btn btn-secondary btn-small" onclick="sharePost(${post.id})" aria-label="Share post">🔄 <span>${post.shares}</span></button>
+                    <button class="btn btn-secondary btn-small" onclick="sharePost(${post.id})">📤 Share</button>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    if (suggestedFriends) {
+        suggestedFriends.innerHTML = sampleUsers.slice(0, 3).map(user => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${user.avatar}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 0.9rem;">${user.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.8rem;">${user.mutualFriends} mutual friends</div>
+                </div>
+                <button class="btn btn-primary btn-small" onclick="addFriend('${user.name}')">Add</button>
+            </div>
+        `).join('');
+    }
+
+    if (activeUsers) {
+        activeUsers.innerHTML = sampleUsers.filter(user => user.status === 'online').map(user => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0;">
+                <div style="position: relative;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.8rem;" aria-label="User avatar">${user.avatar}</div>
+                    <div style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg-card);" aria-label="Online status"></div>
+                </div>
+                <div style="font-size: 0.9rem;">${user.name}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function populateConversations() {
+    const conversationsList = document.getElementById('conversationsList');
+    const sampleConversations = [
+        { user: 'Sarah Miller', avatar: 'SM', lastMessage: 'Hey! How was your day? 😊', time: '2m', unread: true },
+        { user: 'Emma Wilson', avatar: 'EW', lastMessage: 'Thanks for the coffee recommendation!', time: '1h', unread: false },
+        { user: 'Mike Johnson', avatar: 'MJ', lastMessage: 'Are we still on for tomorrow?', time: '3h', unread: false },
+        { user: 'Alex Chen', avatar: 'AC', lastMessage: 'Check out this cool project!', time: '1d', unread: false }
+    ];
+    
+    if (conversationsList) {
+        conversationsList.innerHTML = sampleConversations.map(conv => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s ease; ${conv.unread ? 'background: var(--glass);' : ''}" onclick="openChat('${conv.user}', '${conv.avatar}')" role="button" tabindex="0">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${conv.avatar}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${conv.user}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${conv.lastMessage}</div>
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.8rem;">${conv.time}</div>
+                ${conv.unread ? '<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;" aria-label="Unread message"></div>' : ''}
+            </div>
+        `).join('');
+    }
+}
+
+function populateSearchDefaults() {
+    const trendingTopics = document.getElementById('trendingTopics');
+    const suggestedPeople = document.getElementById('suggestedPeople');
+
+    if (trendingTopics) {
+        trendingTopics.innerHTML = `
+            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer; margin-bottom: 1rem;" onclick="searchTrending('ConnectHub')" role="button" tabindex="0">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">#ConnectHub</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">24.5K posts</div>
+            </div>
+            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer; margin-bottom: 1rem;" onclick="searchTrending('AITech')" role="button" tabindex="0">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">#AITech</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">15.2K posts</div>
+            </div>
+            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer;" onclick="searchTrending('SocialMedia')" role="button" tabindex="0">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">#SocialMedia</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">12.1K posts</div>
+            </div>
+        `;
+    }
+
+    if (suggestedPeople) {
+        suggestedPeople.innerHTML = sampleUsers.slice(0, 3).map(user => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--glass); border-radius: 12px; margin-bottom: 1rem;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${user.avatar}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 0.9rem;">${user.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.8rem;">${user.profession}</div>
+                </div>
+                <button class="btn btn-primary btn-small" onclick="followUser('${user.name}')">Follow</button>
+            </div>
+        `).join('');
+    }
+}
+
+function populateGroups() {
+    const groupsList = document.getElementById('groupsList');
+    const sampleGroups = [
+        { name: 'Tech Enthusiasts', members: 1234, description: 'Discuss latest tech trends and innovations' },
+        { name: 'Photography Club', members: 567, description: 'Share your best shots and photography tips' },
+        { name: 'Book Lovers', members: 890, description: 'Discover new books and share reading experiences' },
+        { name: 'Startup Community', members: 445, description: 'Connect with entrepreneurs and startup founders' },
+        { name: 'Music Producers', members: 322, description: 'Collaborate and share music production techniques' },
+        { name: 'Travel Adventurers', members: 756, description: 'Share travel stories and destination recommendations' }
+    ];
+
+    if (groupsList) {
+        groupsList.innerHTML = sampleGroups.map(group => `
+            <div class="card" role="listitem">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group">👥</div>
+                <h3>${group.name}</h3>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">${group.description}</p>
+                <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">${group.members.toLocaleString()} members</div>
+                <button class="btn btn-primary" onclick="joinGroup('${group.name}')">Join Group</button>
+            </div>
+        `).join('');
+    }
+}
+
+function populateEvents() {
+    const eventsList = document.getElementById('eventsList');
+    const sampleEvents = [
+        { name: 'Tech Meetup 2024', date: 'Dec 15, 2024', location: 'Downtown Convention Center', attendees: 234 },
+        { name: 'Photography Workshop', date: 'Dec 20, 2024', location: 'Art Studio', attendees: 45 },
+        { name: 'Book Club Meeting', date: 'Dec 25, 2024', location: 'Central Library', attendees: 23 },
+        { name: 'Startup Pitch Night', date: 'Dec 28, 2024', location: 'Innovation Hub', attendees: 156 },
+        { name: 'Music Festival', date: 'Jan 5, 2025', location: 'City Park', attendees: 1200 },
+        { name: 'Hiking Adventure', date: 'Jan 10, 2025', location: 'Mountain Trail', attendees: 67 }
+    ];
+
+    if (eventsList) {
+        eventsList.innerHTML = sampleEvents.map(event => `
+            <div class="card" role="listitem">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Event">📅</div>
+                <h3>${event.name}</h3>
+                <p style="color: var(--text-secondary); margin: 0.5rem 0;">${event.date}</p>
+                <p style="color: var(--text-muted); margin: 1rem 0;">${event.location}</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">${event.attendees} attending</p>
+                <button class="btn btn-primary" onclick="joinEvent('${event.name}')">Join Event</button>
+            </div>
+        `).join('');
+    }
+}
+
+function populateStories() {
+    const storiesList = document.getElementById('storiesList');
+    const sampleStories = [
+        { user: 'Your Story', avatar: 'JD', type: 'add' },
+        { user: 'Emma Wilson', avatar: 'EW', type: 'story' },
+        { user: 'Mike Johnson', avatar: 'MJ', type: 'story' },
+        { user: 'Sarah Miller', avatar: 'SM', type: 'story' },
+        { user: 'Alex Chen', avatar: 'AC', type: 'story' }
+    ];
+
+    if (storiesList) {
+        storiesList.innerHTML = sampleStories.map(story => `
+            <div style="flex-shrink: 0; text-align: center; cursor: pointer;" onclick="${story.type === 'add' ? 'createStory()' : `viewStory('${story.user}')`}" role="button" tabindex="0">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: ${story.type === 'add' ? 'var(--glass)' : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)'}; border: ${story.type === 'story' ? '3px solid var(--primary)' : '2px dashed var(--glass-border)'}; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-bottom: 0.5rem;" aria-label="${story.type === 'add' ? 'Add story' : story.user + ' story'}">
+                    ${story.type === 'add' ? '+' : story.avatar}
+                </div>
+                <div style="font-size: 0.8rem; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${story.user}</div>
+            </div>
+        `).join('');
+    }
+}
+
+// Dating Functions
+function loadDatingCard() {
+    const cardContent = document.getElementById('datingCardContent');
+    if (!cardContent) return;
+    
+    const currentMatch = sampleMatches[Math.floor(Math.random() * sampleMatches.length)];
+    
+    cardContent.innerHTML = `
+        <div style="width: 100%; height: 70%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: white;" role="img" aria-label="Profile photo">💕</div>
+        <div style="padding: 1.5rem;">
+            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">${currentMatch.name}, ${currentMatch.age}</div>
+            <div style="color: var(--text-secondary); margin-bottom: 1rem;">📍 ${currentMatch.distance} away • ${currentMatch.match}% match</div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">"${currentMatch.bio}"</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                ${currentMatch.interests.map(interest => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">${interest}</span>`).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function populateMatches() {
+    const matchesList = document.getElementById('matchesList');
+    
+    if (matchesList) {
+        matchesList.innerHTML = sampleMatches.map(match => `
+            <div class="card" style="text-align: center;" role="listitem">
+                <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" aria-label="Profile photo">${match.avatar}</div>
+                <h3>${match.name}</h3>
+                <p style="color: var(--text-secondary);">${match.match}% Match</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0.5rem 0;">${match.distance} away</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap;">
+                    ${match.interests.slice(0, 3).map(interest => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.7rem;">${interest}</span>`).join('')}
+                </div>
+                <button class="btn btn-primary" onclick="startDatingChat('${match.name}', '${match.avatar}')">💬 Message</button>
+            </div>
+        `).join('');
+    }
+}
+
+function populateDatingChat() {
+    const chatList = document.getElementById('datingChatList');
+    
+    if (chatList) {
+        chatList.innerHTML = sampleMatches.map(match => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s ease;" onclick="openDatingChat('${match.name}', '${match.avatar}')" role="button" tabindex="0">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="Profile photo">${match.avatar}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${match.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${match.match}% match</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function populateDatingPreferences() {
+    const interestTags = document.getElementById('interestTags');
+    const datingInterests = ['Travel', 'Music', 'Sports', 'Art', 'Technology', 'Food', 'Movies', 'Books', 'Fitness', 'Photography', 'Gaming', 'Dancing', 'Hiking', 'Cooking', 'Fashion', 'Science'];
+    
+    if (interestTags) {
+        interestTags.innerHTML = datingInterests.map(interest => `
+            <span class="btn btn-secondary btn-small interest-tag" onclick="toggleInterest(this)" role="button" tabindex="0" aria-pressed="false">${interest}</span>
+        `).join('');
+    }
+}
+
+function swipeCard(direction) {
+    const card = document.getElementById('datingCard');
+    if (!card) return;
+    
+    const isLike = direction === 'right';
+    
+    card.style.transform = `translateX(${direction === 'right' ? '100%' : '-100%'}) rotate(${direction === 'right' ? '15deg' : '-15deg'})`;
+    card.style.opacity = '0';
+    
+    setTimeout(() => {
+        if (isLike) {
+            showToast("It's a match! 💕", 'success');
+        } else {
+            showToast('Maybe next time...', 'info');
+        }
+        
+        card.style.transform = 'translateX(0) rotate(0)';
+        card.style.opacity = '1';
+        loadDatingCard();
+    }, 300);
+}
+
+function startDatingChat(name, avatar) {
+    switchToScreen('dating', 'chat');
+    setTimeout(() => openDatingChat(name, avatar), 100);
+}
+
+function openDatingChat(name, avatar) {
+    const chatArea = document.getElementById('datingChatArea');
+    if (chatArea) {
+        chatArea.innerHTML = `
+            <div style="padding: 1rem 1.5rem; background: var(--bg-card); border-bottom: 1px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="Profile photo">${avatar}</div>
+                    <div>
+                        <h3>${name}</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">It's a match! 💕</p>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; padding: 1rem; background: var(--bg-secondary); overflow-y: auto;">
+                <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Heart">💕</div>
+                    <p>You and ${name} liked each other!</p>
+                    <p style="margin-top: 0.5rem;">Start a conversation below</p>
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--glass-border);">
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="datingMessageInput" placeholder="Say something nice..." style="flex: 1; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary);">
+                    <button class="btn btn-primary" onclick="sendDatingMessage('${name}')" aria-label="Send message">💕</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function updateAgeRange(value) {
+    const element = document.getElementById('ageRangeValue');
+    if (element) element.textContent = `18-${value}`;
+}
+
+function updateDistance(value) {
+    const element = document.getElementById('distanceValue');
+    if (element) element.textContent = `${value} miles`;
+}
+
+function toggleInterest(element) {
+    element.classList.toggle('active');
+    const isPressed = element.classList.contains('active');
+    element.setAttribute('aria-pressed', isPressed);
+    
+    if (isPressed) {
+        element.style.background = 'var(--primary)';
+        element.style.color = 'white';
+    } else {
+        element.style.background = '';
+        element.style.color = '';
+    }
+}
+
+// Media Functions
+function initializeMusic() {
+    updateNowPlaying();
+}
+
+function updateNowPlaying() {
+    const track = sampleTracks[currentTrackIndex];
+    const currentTrackEl = document.getElementById('currentTrack');
+    const artistNameEl = document.getElementById('artistName');
+    
+    if (currentTrackEl) currentTrackEl.textContent = track.title;
+    if (artistNameEl) artistNameEl.textContent = `${track.artist} - ${track.album}`;
+}
+
+function togglePlayPause() {
+    isPlaying = !isPlaying;
+    const btn = document.getElementById('playButton');
+    if (btn) {
+        btn.textContent = isPlaying ? '⏸️' : '▶️';
+        btn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+    }
+    
+    if (isPlaying) {
+        showToast('Now playing: ' + sampleTracks[currentTrackIndex].title, 'info');
+        startProgressAnimation();
+    } else {
+        showToast('Music paused', 'info');
+    }
+}
+
+function startProgressAnimation() {
+    if (!isPlaying) return;
+    
+    const progressFill = document.getElementById('progressFill');
+    if (!progressFill) return;
+    
+    let width = parseInt(progressFill.style.width) || 0;
+    
+    const interval = setInterval(() => {
+        if (!isPlaying || width >= 100) {
+            clearInterval(interval);
+            if (width >= 100) {
+                nextTrack();
+            }
+            return;
+        }
+        width += 1;
+        progressFill.style.width = width + '%';
+    }, 200);
+}
+
+function nextTrack() {
+    currentTrackIndex = (currentTrackIndex + 1) % sampleTracks.length;
+    updateNowPlaying();
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '0%';
+    if (isPlaying) {
+        startProgressAnimation();
+    }
+    showToast('Next track: ' + sampleTracks[currentTrackIndex].title, 'info');
+}
+
+function previousTrack() {
+    currentTrackIndex = currentTrackIndex === 0 ? sampleTracks.length - 1 : currentTrackIndex - 1;
+    updateNowPlaying();
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '0%';
+    if (isPlaying) {
+        startProgressAnimation();
+    }
+    showToast('Previous track: ' + sampleTracks[currentTrackIndex].title, 'info');
+}
+
+function toggleShuffle() {
+    isShuffleEnabled = !isShuffleEnabled;
+    const btn = document.getElementById('shuffleButton');
+    if (btn) {
+        btn.style.background = isShuffleEnabled ? 'var(--primary)' : '';
+        btn.style.color = isShuffleEnabled ? 'white' : '';
+    }
+    showToast(isShuffleEnabled ? 'Shuffle enabled' : 'Shuffle disabled', 'info');
+}
+
+function toggleRepeat() {
+    isRepeatEnabled = !isRepeatEnabled;
+    const btn = document.getElementById('repeatButton');
+    if (btn) {
+        btn.style.background = isRepeatEnabled ? 'var(--primary)' : '';
+        btn.style.color = isRepeatEnabled ? 'white' : '';
+    }
+    showToast(isRepeatEnabled ? 'Repeat enabled' : 'Repeat disabled', 'info');
+}
+
+function seekTrack(event) {
+    const progressBar = event.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const percentage = (clickX / rect.width) * 100;
+    
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) {
+        progressFill.style.width = percentage + '%';
+    }
+    
+    showToast(`Seeked to ${Math.round(percentage)}%`, 'info');
+}
+
+function shareTrack() {
+    const track = sampleTracks[currentTrackIndex];
+    showToast(`Shared: ${track.title} by ${track.artist}`, 'success');
+}
+
+function openMusicLibrary() {
+    showToast('Opening music library...', 'info');
+}
+
+function startLiveSession() {
+    showToast('Starting live music session...', 'info');
+}
+
+function discoverMusic() {
+    showToast('Discovering new music based on your taste...', 'info');
+}
+
+function toggleMic() {
+    const btn = document.getElementById('micButton');
+    if (btn) {
+        const isMuted = btn.textContent.includes('🎤');
+        btn.innerHTML = isMuted ? '🔇 Muted' : '🎤 Mic';
+        btn.className = isMuted ? 'btn btn-error btn-small' : 'btn btn-secondary btn-small';
+    }
+    showToast(btn && btn.textContent.includes('Muted') ? 'Microphone muted' : 'Microphone enabled', 'info');
+}
+
+function toggleCamera() {
+    const btn = document.getElementById('cameraButton');
+    if (btn) {
+        const isOff = btn.textContent.includes('📷');
+        btn.innerHTML = isOff ? '📹 Off' : '📷 Camera';
+        btn.className = isOff ? 'btn btn-error btn-small' : 'btn btn-secondary btn-small';
+    }
+    showToast(btn && btn.textContent.includes('Off') ? 'Camera disabled' : 'Camera enabled', 'info');
+}
+
+function toggleStream() {
+    isStreamLive = !isStreamLive;
+    const btn = document.getElementById('streamButton');
+    const viewerCountEl = document.getElementById('viewerCount');
+    
+    if (btn) {
+        btn.innerHTML = isStreamLive ? '⏹️ Stop' : '🔴 Go Live';
+    }
+    
+    if (isStreamLive) {
+        viewerCount = 1;
+        streamDuration = 0;
+        startStreamTimer();
+        showToast('Stream started! You\'re now live!', 'success');
+    } else {
+        viewerCount = 0;
+        showToast('Stream ended', 'info');
+    }
+    
+    if (viewerCountEl) viewerCountEl.textContent = `${viewerCount} viewers`;
+}
+
+function startStreamTimer() {
+    const interval = setInterval(() => {
+        if (!isStreamLive) {
+            clearInterval(interval);
+            return;
+        }
+        
+        streamDuration++;
+        const minutes = Math.floor(streamDuration / 60);
+        const seconds = streamDuration % 60;
+        const durationEl = document.getElementById('streamDuration');
+        if (durationEl) {
+            durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Simulate viewers joining
+        if (Math.random() < 0.1) {
+            viewerCount++;
+            const viewerCountEl = document.getElementById('viewerCount');
+            if (viewerCountEl) viewerCountEl.textContent = `${viewerCount} viewers`;
+        }
+    }, 1000);
+}
+
+function sendChatMessage(event) {
+    if (event && event.key !== 'Enter') return;
+    
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+    
+    const message = input.value.trim();
+    
+    if (message) {
+        const chatMessages = document.getElementById('liveChatMessages');
+        if (chatMessages) {
+            chatMessages.innerHTML += `
+                <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--glass-border); border-radius: 8px;">
+                    <strong>You:</strong> ${message}
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        input.value = '';
+        showToast('Message sent to live chat', 'success');
+    }
+}
+
+function populateVideoCallData() {
+    const recentCalls = document.getElementById('recentCalls');
+    const scheduledCalls = document.getElementById('scheduledCalls');
+    
+    if (recentCalls) {
+        recentCalls.innerHTML = `
+            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
+                Emma Wilson - 2 min ago
+            </div>
+            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
+                Mike Johnson - 1 hour ago
+            </div>
+            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
+                Sarah Miller - 3 hours ago
+            </div>
+        `;
+    }
+    
+    if (scheduledCalls) {
+        scheduledCalls.innerHTML = `
+            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
+                Team Meeting - 3:00 PM
+            </div>
+            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
+                Client Call - Tomorrow 10:00 AM
+            </div>
+        `;
+    }
+}
+
+function startVideoCall() {
+    showToast('Starting video call...', 'info');
+}
+
+function scheduleCall() {
+    showToast('Opening call scheduler...', 'info');
+}
+
+function viewCallHistory() {
+    showToast('Viewing call history...', 'info');
+}
+
+function addContact() {
+    showToast('Opening contact manager...', 'info');
+}
+
+function launchARExperience(type) {
+    showToast(`Launching ${type.replace('-', ' ')} experience...`, 'info');
+}
+
+// Extra Functions
+function populateMarketplace() {
+    const marketplaceItems = document.getElementById('marketplaceItems');
+    
+    if (marketplaceItems) {
+        marketplaceItems.innerHTML = sampleMarketplaceItems.map(item => `
+            <div class="card" role="listitem">
+                <div style="height: 200px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" role="img" aria-label="Product image">${item.image}</div>
+                <h3>${item.title}</h3>
+                <p style="color: var(--text-secondary);">${item.condition}</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Sold by ${item.seller}</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0;">${item.description}</p>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 1rem 0;">$${item.price}</p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary btn-small" onclick="buyNow(${item.id})">Buy Now</button>
+                    <button class="btn btn-secondary btn-small" onclick="addToCart(${item.id})">Add to Cart</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Initialize category filters
+    setTimeout(() => {
+        document.querySelectorAll('.category-filter').forEach(filter => {
+            filter.addEventListener('click', () => {
+                document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                filterMarketplace(filter.getAttribute('data-category'));
+            });
+        });
+    }, 100);
+}
+
+function filterMarketplace(category) {
+    const items = category === 'all' ? sampleMarketplaceItems : sampleMarketplaceItems.filter(item => item.category === category);
+    const marketplaceItems = document.getElementById('marketplaceItems');
+    
+    if (marketplaceItems) {
+        marketplaceItems.innerHTML = items.map(item => `
+            <div class="card" role="listitem">
+                <div style="height: 200px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" role="img" aria-label="Product image">${item.image}</div>
+                <h3>${item.title}</h3>
+                <p style="color: var(--text-secondary);">${item.condition}</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Sold by ${item.seller}</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0;">${item.description}</p>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 1rem 0;">$${item.price}</p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary btn-small" onclick="buyNow(${item.id})">Buy Now</button>
+                    <button class="btn btn-secondary btn-small" onclick="addToCart(${item.id})">Add to Cart</button>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function populateWalletTransactions() {
+    const transactionHistory = document.getElementById('transactionHistory');
+    const sampleTransactions = [
+        { type: 'received', amount: 100, from: 'Daily Check-in', time: '2 hours ago' },
+        { type: 'sent', amount: 50, to: 'Emma Wilson', time: '1 day ago' },
+        { type: 'received', amount: 200, from: 'Friend Referral', time: '2 days ago' },
+        { type: 'sent', amount: 75, to: 'Mike Johnson', time: '3 days ago' },
+        { type: 'received', amount: 150, from: 'Game Tournament', time: '5 days ago' }
+    ];
+
+    if (transactionHistory) {
+        transactionHistory.innerHTML = sampleTransactions.map(tx => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                <div>
+                    <div style="font-weight: 600; color: ${tx.type === 'received' ? 'var(--success)' : 'var(--error)'};">
+                        ${tx.type === 'received' ? '+' : '-'}${tx.amount} coins
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        ${tx.type === 'received' ? 'From: ' + tx.from : 'To: ' + tx.to}
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">${tx.time}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// Game Functions
+function playGame(gameType) {
+    const gameModal = document.getElementById('gameModal');
+    const gameTitle = document.getElementById('gameTitle');
+    const gameArea = document.getElementById('gameArea');
+    
+    if (gameTitle) gameTitle.textContent = gameType.charAt(0).toUpperCase() + gameType.slice(1);
+    
+    switch(gameType) {
+        case 'tictactoe':
+            initializeTicTacToe(gameArea);
+            break;
+        case 'memory':
+            initializeMemoryGame(gameArea);
+            break;
+        case 'quiz':
+            initializeQuiz(gameArea);
+            break;
+        case 'puzzle':
+            initializePuzzleGame(gameArea);
+            break;
+        case 'cards':
+            initializeCardGame(gameArea);
+            break;
+        case 'strategy':
+            initializeStrategyGame(gameArea);
+            break;
+        default:
+            if (gameArea) {
+                gameArea.innerHTML = `<div style="text-align: center; padding: 2rem;">
+                    <h3>Coming Soon!</h3>
+                    <p>This game is under development. Stay tuned!</p>
+                </div>`;
+            }
+    }
+    
+    if (gameModal) gameModal.classList.add('active');
+}
+
+function initializeTicTacToe(gameArea) {
+    gameStates.tictactoe = {
+        board: Array(9).fill(''),
+        currentPlayer: 'X',
+        gameOver: false
+    };
+
+    if (gameArea) {
+        gameArea.innerHTML = `
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div id="gameStatus">Player X's turn</div>
+            </div>
+            <div class="game-board tic-tac-toe">
+                ${Array(9).fill().map((_, i) => `
+                    <div class="game-cell" onclick="makeMove(${i})" id="cell-${i}" role="button" tabindex="0" aria-label="Cell ${i + 1}"></div>
+                `).join('')}
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="resetTicTacToe()">Reset Game</button>
+            </div>
+        `;
+    }
+}
+
+function makeMove(cellIndex) {
+    const game = gameStates.tictactoe;
+    if (!game || game.board[cellIndex] !== '' || game.gameOver) return;
+    
+    game.board[cellIndex] = game.currentPlayer;
+    const cell = document.getElementById(`cell-${cellIndex}`);
+    if (cell) {
+        cell.textContent = game.currentPlayer;
+        cell.setAttribute('aria-label', `Cell ${cellIndex + 1}, ${game.currentPlayer}`);
+    }
+    
+    if (checkWinTicTacToe()) {
+        const status = document.getElementById('gameStatus');
+        if (status) status.textContent = `Player ${game.currentPlayer} wins!`;
+        game.gameOver = true;
+        showToast(`Player ${game.currentPlayer} wins!`, 'success');
+    } else if (game.board.every(cell => cell !== '')) {
+        const status = document.getElementById('gameStatus');
+        if (status) status.textContent = "It's a tie!";
+        game.gameOver = true;
+        showToast("It's a tie!", 'info');
+    } else {
+        game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
+        const status = document.getElementById('gameStatus');
+        if (status) status.textContent = `Player ${game.currentPlayer}'s turn`;
+    }
+}
+
+function checkWinTicTacToe() {
+    const game = gameStates.tictactoe;
+    if (!game) return false;
+    
+    const winPatterns = [
+        [0,1,2], [3,4,5], [6,7,8], // rows
+        [0,3,6], [1,4,7], [2,5,8], // columns
+        [0,4,8], [2,4,6] // diagonals
+    ];
+    
+    return winPatterns.some(pattern => 
+        pattern.every(index => game.board[index] === game.currentPlayer)
+    );
+}
+
+function resetTicTacToe() {
+    gameStates.tictactoe = {
+        board: Array(9).fill(''),
+        currentPlayer: 'X',
+        gameOver: false
+    };
+    
+    for (let i = 0; i < 9; i++) {
+        const cell = document.getElementById(`cell-${i}`);
+        if (cell) {
+            cell.textContent = '';
+            cell.setAttribute('aria-label', `Cell ${i + 1}`);
+        }
+    }
+    const status = document.getElementById('gameStatus');
+    if (status) status.textContent = "Player X's turn";
+}
+
+function initializeMemoryGame(gameArea) {
+    const symbols = ['🌟', '🎵', '🎮', '💎', '🚀', '🌈', '⚡', '🔥'];
+    const cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+    
+    gameStates.memory = {
+        cards: cards,
+        flipped: [],
+        matched: [],
+        moves: 0
+    };
+
+    if (gameArea) {
+        gameArea.innerHTML = `
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div>Moves: <span id="moveCount">0</span></div>
+            </div>
+            <div class="game-board memory-game">
+                ${cards.map((symbol, i) => `
+                    <div class="memory-card" onclick="flipCard(${i})" id="memory-${i}" role="button" tabindex="0" aria-label="Memory card ${i + 1}">?</div>
+                `).join('')}
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="resetMemoryGame()">Reset Game</button>
+            </div>
+        `;
+    }
+}
+
+function flipCard(index) {
+    const game = gameStates.memory;
+    if (!game || game.flipped.length >= 2 || game.flipped.includes(index) || game.matched.includes(index)) return;
+    
+    game.flipped.push(index);
+    const card = document.getElementById(`memory-${index}`);
+    if (card) {
+        card.textContent = game.cards[index];
+        card.classList.add('flipped');
+        card.setAttribute('aria-label', `Memory card ${index + 1}, ${game.cards[index]}`);
+    }
+    
+    if (game.flipped.length === 2) {
+        game.moves++;
+        const moveCount = document.getElementById('moveCount');
+        if (moveCount) moveCount.textContent = game.moves;
+        
+        setTimeout(() => {
+            const [first, second] = game.flipped;
+            if (game.cards[first] === game.cards[second]) {
+                game.matched.push(first, second);
+                const firstCard = document.getElementById(`memory-${first}`);
+                const secondCard = document.getElementById(`memory-${second}`);
+                if (firstCard) firstCard.classList.add('matched');
+                if (secondCard) secondCard.classList.add('matched');
+                
+                if (game.matched.length === game.cards.length) {
+                    showToast(`Congratulations! You won in ${game.moves} moves!`, 'success');
+                }
+            } else {
+                const firstCard = document.getElementById(`memory-${first}`);
+                const secondCard = document.getElementById(`memory-${second}`);
+                if (firstCard) {
+                    firstCard.textContent = '?';
+                    firstCard.classList.remove('flipped');
+                    firstCard.setAttribute('aria-label', `Memory card ${first + 1}`);
+                }
+                if (secondCard) {
+                    secondCard.textContent = '?';
+                    secondCard.classList.remove('flipped');
+                    secondCard.setAttribute('aria-label', `Memory card ${second + 1}`);
+                }
+            }
+            game.flipped = [];
+        }, 1000);
+    }
+}
+
+function resetMemoryGame() {
+    const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
+    if (gameArea) initializeMemoryGame(gameArea);
+}
+
+function initializeQuiz(gameArea) {
+    const questions = [
+        { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correct: 2 },
+        { question: "Which planet is closest to the sun?", options: ["Venus", "Mercury", "Earth", "Mars"], correct: 1 },
+        { question: "What is 2 + 2?", options: ["3", "4", "5", "6"], correct: 1 },
+        { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correct: 2 },
+        { question: "What is the largest ocean?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correct: 3 }
+    ];
+
+    gameStates.quiz = { questions: questions, currentQuestion: 0, score: 0 };
+    showQuizQuestion(gameArea);
+}
+
+function showQuizQuestion(gameArea) {
+    const game = gameStates.quiz;
+    if (!game || !gameArea) return;
+    
+    const question = game.questions[game.currentQuestion];
+
+    gameArea.innerHTML = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="color: var(--text-secondary);">Question ${game.currentQuestion + 1} of ${game.questions.length}</div>
+            <div style="color: var(--primary); font-weight: 600;">Score: ${game.score}</div>
+        </div>
+        <div style="background: var(--glass); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1.5rem;">${question.question}</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${question.options.map((option, i) => `
+                    <button class="btn btn-secondary" onclick="answerQuestion(${i})" style="text-align: left; justify-content: flex-start;">
+                        ${String.fromCharCode(65 + i)}. ${option}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function answerQuestion(selectedIndex) {
+    const game = gameStates.quiz;
+    if (!game) return;
+    
+    const question = game.questions[game.currentQuestion];
+    const isCorrect = selectedIndex === question.correct;
+    
+    if (isCorrect) {
+        game.score++;
+        showToast('Correct!', 'success');
+    } else {
+        showToast(`Wrong! The correct answer was ${question.options[question.correct]}`, 'error');
+    }
+    
+    game.currentQuestion++;
+    
+    setTimeout(() => {
+        if (game.currentQuestion < game.questions.length) {
+            const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
+            if (gameArea) showQuizQuestion(gameArea);
+        } else {
+            const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
+            if (gameArea) {
+                gameArea.innerHTML = `
+                    <div style="text-align: center;">
+                        <h2>Quiz Complete!</h2>
+                        <div style="font-size: 2rem; color: var(--primary); margin: 1rem 0;">${game.score}/${game.questions.length}</div>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                            ${game.score === game.questions.length ? 'Perfect score! 🎉' : 
+                              game.score >= game.questions.length / 2 ? 'Well done! 👏' : 'Better luck next time! 💪'}
+                        </p>
+                        <button class="btn btn-primary" onclick="resetQuiz()">Play Again</button>
+                    </div>
+                `;
+            }
+        }
+    }, 1500);
+}
+
+function resetQuiz() {
+    const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
+    if (gameArea) initializeQuiz(gameArea);
+}
+
+function initializePuzzleGame(gameArea) {
+    if (gameArea) {
+        gameArea.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h3>🧩 Puzzle Games</h3>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">Slide the tiles to solve the puzzle!</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 80px); gap: 2px; justify-content: center; margin: 2rem 0;">
+                    ${Array(8).fill().map((_, i) => `
+                        <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;" onclick="movePuzzleTile(${i})">${i + 1}</div>
+                    `).join('')}
+                    <div style="width: 80px; height: 80px; background: var(--glass); border-radius: 8px;"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="shufflePuzzle()">Shuffle</button>
+            </div>
+        `;
+    }
+}
+
+function initializeCardGame(gameArea) {
+    if (gameArea) {
+        gameArea.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h3>🃏 Card Games</h3>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">Classic Solitaire</p>
+                <div style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;">
+                    ${Array(4).fill().map((_, i) => `
+                        <div style="width: 60px; height: 80px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">🂠</div>
+                    `).join('')}
+                </div>
+                <button class="btn btn-primary" onclick="dealCards()">Deal Cards</button>
+            </div>
+        `;
+    }
+}
+
+function initializeStrategyGame(gameArea) {
+    if (gameArea) {
+        gameArea.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h3>♟️ Strategy Games</h3>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">Coming soon: Chess, Checkers, and more!</p>
+                <div style="display: grid; grid-template-columns: repeat(8, 40px); gap: 1px; justify-content: center; margin: 2rem 0;">
+                    ${Array(64).fill().map((_, i) => `
+                        <div style="width: 40px; height: 40px; background: ${(Math.floor(i / 8) + i) % 2 === 0 ? 'var(--glass)' : 'var(--glass-border)'}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            ${i < 16 || i > 47 ? (i < 16 ? '♟' : '♙') : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Chess board preview - Full game coming soon!</p>
+            </div>
+        `;
+    }
+}
+
+// Interactive Functions
+function toggleNotifications() {
+    const panel = document.getElementById('notificationPanel');
+    if (panel) {
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) {
+            notificationCount = 0;
+            updateMainNav();
+        }
+    }
+}
+
+function openCreatePost(type = 'text') {
+    const modal = document.getElementById('createPostModal');
+    if (modal) modal.classList.add('active');
+    if (type !== 'text') {
+        showToast(`Creating ${type} post...`, 'info');
+    }
+}
+
+function publishPost() {
+    const content = document.getElementById('postContent');
+    if (content && content.value.trim()) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Post published successfully!', 'success');
+            closeModal('createPostModal');
+            content.value = '';
+        }, 1000);
+    } else {
+        showToast('Please enter some content', 'warning');
+    }
+}
+
+function toggleLike(btn, postId) {
+    const countSpan = btn.querySelector('span');
+    if (countSpan) {
+        const count = parseInt(countSpan.textContent);
+        const isLiked = btn.classList.contains('liked');
+        
+        if (isLiked) {
+            btn.classList.remove('liked');
+            countSpan.textContent = count - 1;
+            showToast('Unliked', 'info');
+        } else {
+            btn.classList.add('liked');
+            countSpan.textContent = count + 1;
+            showToast('Liked! ❤️', 'success');
+        }
+    }
+}
+
+function showComments(postId) {
+    showToast('Opening comments...', 'info');
+}
+
+function sharePost(postId) {
+    showToast('Post shared!', 'success');
+}
+
+function addFriend(name) {
+    showToast(`Friend request sent to ${name}`, 'success');
+}
+
+function followUser(name) {
+    showToast(`Now following ${name}`, 'success');
+}
+
+function joinGroup(name) {
+    showToast(`Joined ${name}`, 'success');
+}
+
+function joinEvent(name) {
+    showToast(`Registered for ${name}`, 'success');
+}
+
+function createStory() {
+    showToast('Story creation opened', 'info');
+}
+
+function viewStory(user) {
+    showToast(`Viewing ${user}'s story`, 'info');
+}
+
+function openChat(userName, avatar) {
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea) {
+        chatArea.innerHTML = `
+            <div style="padding: 1rem 1.5rem; background: var(--bg-card); border-bottom: 1px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${avatar}</div>
+                    <div>
+                        <h3>${userName}</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Online now</p>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; padding: 1rem; background: var(--bg-secondary); overflow-y: auto;" id="messagesArea">
+                <div class="chat-message">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${avatar}</div>
+                    <div class="chat-bubble">Hey! How are you doing?</div>
+                </div>
+                <div class="chat-message own">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="Your avatar">JD</div>
+                    <div class="chat-bubble">I'm great! How about you?</div>
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--glass-border);">
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="messageInput" placeholder="Type a message..." style="flex: 1; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary);" onkeypress="sendMessage(event, '${userName}')">
+                    <button class="btn btn-primary" onclick="sendMessage(null, '${userName}')" aria-label="Send message">📤</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function sendMessage(event, userName) {
+    if (event && event.key !== 'Enter') return;
+    
+    const input = document.getElementById('messageInput');
+    if (!input) return;
+    
+    const message = input.value.trim();
+    
+    if (message) {
+        const messagesArea = document.getElementById('messagesArea');
+        if (messagesArea) {
+            messagesArea.innerHTML += `
+                <div class="chat-message own">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="Your avatar">JD</div>
+                    <div class="chat-bubble">${message}</div>
+                </div>
+            `;
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        input.value = '';
+        showToast(`Message sent to ${userName}`, 'success');
+    }
+}
+
+function sendDatingMessage(name) {
+    const input = document.getElementById('datingMessageInput');
+    if (input && input.value.trim()) {
+        showToast(`Message sent to ${name}`, 'success');
+        input.value = '';
+    }
+}
+
+function searchTrending(hashtag) {
+    showToast(`Searching for #${hashtag}...`, 'info');
+}
+
+function performSearch(query) {
+    if (query && query.trim()) {
+        showToast(`Searching for "${query}"...`, 'info');
+    }
+}
+
+function buyNow(itemId) {
+    showToast('Redirecting to checkout...', 'info');
+}
+
+function addToCart(itemId) {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+        cartCount.textContent = parseInt(cartCount.textContent) + 1;
+    }
+    showToast('Added to cart!', 'success');
+}
+
+function movePuzzleTile(index) {
+    showToast(`Moving tile ${index + 1}`, 'info');
+}
+
+function shufflePuzzle() {
+    showToast('Puzzle shuffled!', 'info');
+}
+
+function dealCards() {
+    showToast('Cards dealt!', 'info');
+}
+
+// Authentication Functions
+function socialLogin(provider) {
+    showLoading();
+    showToast(`Signing in with ${provider}...`, 'info');
+    setTimeout(() => {
+        hideLoading();
+        isLoggedIn = true;
+        document.getElementById('authScreen').classList.remove('active');
+        document.getElementById('categorySelection').classList.add('active');
+        showToast('Welcome to ConnectHub!', 'success');
+        updateMainNav();
+        updateSubNav();
+    }, 2000);
+}
+
+function forgotPassword() {
+    showToast('Password reset link sent to your email', 'info');
+}
+
+// Event listeners and initialization
+document.addEventListener('DOMContentLoaded', () => {
+    updateMainNav();
+    updateSubNav();
+
+    // Auth tab switching
+    const authTabs = document.querySelectorAll('.auth-tab');
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const mode = tab.getAttribute('data-mode');
+            const isLogin = mode === 'login';
+            
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const nameGroup = document.getElementById('nameGroup');
+            const confirmGroup = document.getElementById('confirmGroup');
+            const authButtonText = document.getElementById('authButtonText');
+            
+            if (nameGroup) nameGroup.style.display = isLogin ? 'none' : 'block';
+            if (confirmGroup) confirmGroup.style.display = isLogin ? 'none' : 'block';
+            if (authButtonText) authButtonText.textContent = isLogin ? 'Sign In' : 'Register';
+        });
+    });
+
+    // Auth form submission
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showLoading();
+            
+            setTimeout(() => {
+                hideLoading();
+                isLoggedIn = true;
+                document.getElementById('authScreen').classList.remove('active');
+                document.getElementById('categorySelection').classList.add('active');
+                showToast('Welcome to ConnectHub!', 'success');
+                updateMainNav();
+                updateSubNav();
+            }, 1500);
+        });
+    }
+
+    // Close modals on background click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // Close notification panel when clicking outside
+    document.addEventListener('click', (e) => {
+        const notificationPanel = document.getElementById('notificationPanel');
+        if (notificationPanel && !e.target.closest('.notification-panel') && !e.target.closest('[onclick*="toggleNotifications"]')) {
+            notificationPanel.classList.remove('active');
+        }
+    });
+
+    // Keyboard navigation support
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            // Close any open modals
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            
+            // Close notification panel
+            const notificationPanel = document.getElementById('notificationPanel');
+            if (notificationPanel) {
+                notificationPanel.classList.remove('active');
+            }
+        }
+    });
+
+    // Show welcome toast after delay
+    setTimeout(() => {
+        if (!isLoggedIn) {
+            showToast('Welcome to ConnectHub! Sign in to explore all features.', 'info');
+        }
+    }, 2000);
+});
+
+// Error handling
+window.addEventListener('error', (e) => {
+    console.error('App error:', e.error);
+    showToast('Something went wrong. Please try again.', 'error');
+});
+
+// Service worker registration for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
 }

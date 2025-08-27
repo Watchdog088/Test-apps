@@ -1,14 +1,11 @@
 /**
  * ConnectHub - Search UI Components
- * Comprehensive search functionality with 6 dedicated interfaces
+ * Matches the complete HTML design exactly
  */
 
 class SearchUIComponents {
     constructor(app) {
         this.app = app;
-        this.searchCache = new Map();
-        this.searchHistory = [];
-        this.activeFilters = {};
         this.searchResults = {
             global: [],
             people: [],
@@ -17,109 +14,68 @@ class SearchUIComponents {
             groups: [],
             media: []
         };
+        this.searchHistory = [];
+        this.activeFilters = {
+            global: 'all',
+            time: 'all'
+        };
+        this.currentPostMedia = [];
+        this.currentPostLocation = null;
+        
+        // Load search history from localStorage
+        this.loadSearchHistory();
         
         this.init();
     }
 
-    /**
-     * Initialize all search UI components
-     */
     init() {
-        this.createSearchSection();
-        this.initializeSearchInterfaces();
-        this.setupSearchEventListeners();
-        this.loadSearchHistory();
-        console.log('Search UI Components initialized with 6 interfaces');
-    }
-
-    /**
-     * Create the main search section in the app
-     */
-    createSearchSection() {
-        // Add search section to main content if it doesn't exist
-        const mainContent = document.querySelector('.main-content');
-        if (!mainContent) return;
-
-        const searchSection = document.createElement('section');
-        searchSection.className = 'content-section';
-        searchSection.id = 'search-section';
-        
-        searchSection.innerHTML = this.getSearchSectionHTML();
-        mainContent.appendChild(searchSection);
-
-        // Add search navigation item
-        this.addSearchNavigation();
-    }
-
-    /**
-     * Add search navigation to the main nav
-     */
-    addSearchNavigation() {
-        const mainNav = document.querySelector('.main-nav ul');
-        if (!mainNav) return;
-
-        // Check if search nav already exists
-        if (document.querySelector('[data-section="search"]')) return;
-
-        const searchNavItem = document.createElement('li');
-        searchNavItem.className = 'nav-item';
-        searchNavItem.setAttribute('data-section', 'search');
-        
-        searchNavItem.innerHTML = `
-            <a href="#search" id="search-nav">
-                <i class="fas fa-search"></i>
-                <span>Search</span>
-            </a>
-        `;
-
-        // Insert after home nav item
-        const homeNav = mainNav.querySelector('[data-section="home"]');
-        if (homeNav && homeNav.nextElementSibling) {
-            mainNav.insertBefore(searchNavItem, homeNav.nextElementSibling);
+        // Render the search interface HTML into the search section
+        const searchSection = document.getElementById('search-section');
+        if (searchSection) {
+            searchSection.innerHTML = this.getMainSearchInterfaceHTML();
+            
+            // Initialize event listeners and functionality
+            this.initializeSearchInterfaces();
+            this.setupSearchEventListeners();
+            
+            console.log('Search UI Components initialized with 6 interfaces');
         } else {
-            mainNav.appendChild(searchNavItem);
+            console.error('Search section not found in DOM');
         }
-
-        // Add event listener
-        searchNavItem.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.app.navigateToSection('search');
-        });
     }
 
     /**
-     * Get the main search section HTML
+     * Get the complete main search interface HTML
      */
-    getSearchSectionHTML() {
+    getMainSearchInterfaceHTML() {
         return `
             <div class="search-container">
-                <!-- Search Header -->
                 <div class="search-header">
-                    <div class="search-header-content">
-                        <h2><i class="fas fa-search"></i> Search</h2>
-                        <p>Discover people, posts, groups, and more across ConnectHub</p>
-                        
-                        <!-- Enhanced Global Search Bar -->
-                        <div class="enhanced-search-bar">
-                            <div class="search-input-wrapper">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="global-search-main" placeholder="Search for anything..." class="search-input-main">
-                                <button class="search-voice-btn" id="voice-search-btn" title="Voice Search">
-                                    <i class="fas fa-microphone"></i>
-                                </button>
-                                <button class="search-camera-btn" id="camera-search-btn" title="Search by Image">
-                                    <i class="fas fa-camera"></i>
-                                </button>
-                            </div>
-                            <div class="search-suggestions-dropdown" id="search-suggestions-dropdown">
-                                <!-- Search suggestions will appear here -->
-                            </div>
-                        </div>
+                    <h2>🔍 Discover ConnectHub</h2>
+                    <p>Find people, posts, groups, and communities across the platform</p>
+                </div>
+
+                <!-- Enhanced Search Bar -->
+                <div class="enhanced-search-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input-main" id="global-search-main" placeholder="Search for people, posts, groups, and more..." autocomplete="off">
+                        <button class="search-voice-btn" id="voice-search-btn" title="Voice Search">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="search-camera-btn" id="camera-search-btn" title="Image Search">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Search Suggestions Dropdown -->
+                    <div class="search-suggestions-dropdown" id="search-suggestions-dropdown">
+                        <!-- Suggestions will be populated dynamically -->
                     </div>
                 </div>
 
-                <!-- Search Navigation Tabs -->
-                <div class="search-tabs">
+                <!-- Search Interface Tabs -->
+                <div class="search-tabs" id="search-tabs">
                     <button class="search-tab active" data-tab="global" id="global-search-tab">
                         <i class="fas fa-globe"></i>
                         <span>All Results</span>
@@ -145,20 +101,121 @@ class SearchUIComponents {
                         <span>Groups</span>
                         <span class="results-count" id="groups-results-count">0</span>
                     </button>
-                    <button class="search-tab" data-tab="advanced" id="advanced-search-tab">
-                        <i class="fas fa-sliders-h"></i>
-                        <span>Advanced</span>
+                    <button class="search-tab" data-tab="media" id="media-search-tab">
+                        <i class="fas fa-photo-video"></i>
+                        <span>Media</span>
+                        <span class="results-count" id="media-results-count">0</span>
                     </button>
                 </div>
 
-                <!-- Search Content Areas -->
-                <div class="search-content">
+                <!-- Search Interface Content -->
+                <div class="search-content" id="search-content">
                     ${this.getGlobalSearchInterface()}
                     ${this.getPeopleSearchInterface()}
                     ${this.getPostsSearchInterface()}
                     ${this.getDatingSearchInterface()}
                     ${this.getGroupsSearchInterface()}
+                    ${this.getMediaSearchInterface()}
                     ${this.getAdvancedSearchInterface()}
+                </div>
+
+                <!-- Default Search State (shown when no search is performed) -->
+                <div id="search-default-state">
+                    ${this.getSearchScreenHTML()}
+                </div>
+            </div>
+        `;
+    }
+
+    // Search Screen Implementation - matches complete HTML design
+    getSearchScreenHTML() {
+        return `
+            <div id="socialSearch" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">🔍 Search</h1>
+                        <div style="max-width: 600px; margin: 0 auto; position: relative;">
+                            <label for="socialSearchInput" class="sr-only">Search people, posts, groups, events</label>
+                            <input type="text" id="socialSearchInput" placeholder="Search people, posts, groups, events..." style="width: 100%; padding: 1rem 1.5rem; padding-right: 4rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 25px; color: var(--text-primary); font-size: 1.1rem;" onkeyup="performSearch(this.value)">
+                            <button style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: var(--primary); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; cursor: pointer; font-size: 1.2rem;" onclick="performSearch(document.getElementById('socialSearchInput').value)" aria-label="Search">🔍</button>
+                        </div>
+                    </div>
+
+                    <div id="searchResults" style="display: none;" role="region" aria-label="Search results">
+                        <!-- Search results will be displayed here -->
+                    </div>
+
+                    <div id="searchDefault">
+                        <div class="grid-2" style="margin-bottom: 3rem;">
+                            <div class="card">
+                                <h3 style="margin-bottom: 1.5rem;">🔥 Trending</h3>
+                                <div style="display: flex; flex-direction: column; gap: 1rem;" id="trendingTopics">
+                                    <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer;" onclick="searchTrending('ConnectHub')" role="button" tabindex="0">
+                                        <div style="font-weight: 600; margin-bottom: 0.5rem;">#ConnectHub</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">24.5K posts</div>
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer;" onclick="searchTrending('AITech')" role="button" tabindex="0">
+                                        <div style="font-weight: 600; margin-bottom: 0.5rem;">#AITech</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">15.2K posts</div>
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer;" onclick="searchTrending('SocialMedia')" role="button" tabindex="0">
+                                        <div style="font-weight: 600; margin-bottom: 0.5rem;">#SocialMedia</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">12.1K posts</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <h3 style="margin-bottom: 1.5rem;">👥 Suggested People</h3>
+                                <div style="display: flex; flex-direction: column; gap: 1rem;" id="suggestedPeople">
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--glass); border-radius: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">EW</div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Emma Wilson</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8rem;">Software Developer</div>
+                                        </div>
+                                        <button class="btn btn-primary btn-small" onclick="followUser('Emma Wilson')">Follow</button>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--glass); border-radius: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">MJ</div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Mike Johnson</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8rem;">Photographer</div>
+                                        </div>
+                                        <button class="btn btn-primary btn-small" onclick="followUser('Mike Johnson')">Follow</button>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--glass); border-radius: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">SM</div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; font-size: 0.9rem;">Sarah Miller</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8rem;">Designer</div>
+                                        </div>
+                                        <button class="btn btn-primary btn-small" onclick="followUser('Sarah Miller')">Follow</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="card" style="text-align: center;" onclick="searchCategory('posts')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Posts">📝</div>
+                                <h3>Posts</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Search through millions of posts</p>
+                                <button class="btn btn-secondary">Search Posts</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="searchCategory('groups')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Groups">👥</div>
+                                <h3>Groups</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Find communities you'll love</p>
+                                <button class="btn btn-secondary">Find Groups</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="searchCategory('events')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Events">📅</div>
+                                <h3>Events</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Discover events near you</p>
+                                <button class="btn btn-secondary">Find Events</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -922,7 +979,377 @@ class SearchUIComponents {
     }
 
     /**
-     * Interface 6: Advanced Search Filters Panel
+     * Interface 6: Media Search Interface  
+     */
+    getMediaSearchInterface() {
+        return `
+            <div class="search-tab-content" id="media-search-content">
+                <div class="media-search-interface">
+                    <!-- Media Search Header -->
+                    <div class="media-search-header">
+                        <h3><i class="fas fa-photo-video"></i> Search Media</h3>
+                        <p>Find photos, videos, music, and other media content</p>
+                    </div>
+
+                    <!-- Media Type Selector -->
+                    <div class="media-type-selector">
+                        <div class="media-type-tabs">
+                            <button class="media-type-tab active" data-media-type="all" id="all-media-tab">
+                                <i class="fas fa-th"></i>
+                                <span>All Media</span>
+                                <span class="media-count" id="all-media-count">0</span>
+                            </button>
+                            <button class="media-type-tab" data-media-type="photos" id="photos-tab">
+                                <i class="fas fa-image"></i>
+                                <span>Photos</span>
+                                <span class="media-count" id="photos-count">0</span>
+                            </button>
+                            <button class="media-type-tab" data-media-type="videos" id="videos-tab">
+                                <i class="fas fa-video"></i>
+                                <span>Videos</span>
+                                <span class="media-count" id="videos-count">0</span>
+                            </button>
+                            <button class="media-type-tab" data-media-type="music" id="music-tab">
+                                <i class="fas fa-music"></i>
+                                <span>Music</span>
+                                <span class="media-count" id="music-count">0</span>
+                            </button>
+                            <button class="media-type-tab" data-media-type="documents" id="documents-tab">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Documents</span>
+                                <span class="media-count" id="documents-count">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Media Filters -->
+                    <div class="media-filters">
+                        <div class="filter-section">
+                            <h4><i class="fas fa-filter"></i> Media Filters</h4>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>File Size</label>
+                                    <div class="size-range-filter">
+                                        <select id="media-size-min">
+                                            <option value="any">Any size</option>
+                                            <option value="0">0 MB</option>
+                                            <option value="1">1 MB</option>
+                                            <option value="5">5 MB</option>
+                                            <option value="10">10 MB</option>
+                                            <option value="50">50 MB</option>
+                                        </select>
+                                        <span>to</span>
+                                        <select id="media-size-max">
+                                            <option value="any">Any size</option>
+                                            <option value="1">1 MB</option>
+                                            <option value="5">5 MB</option>
+                                            <option value="10">10 MB</option>
+                                            <option value="50">50 MB</option>
+                                            <option value="100">100 MB</option>
+                                            <option value="500">500 MB</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>Resolution (Photos/Videos)</label>
+                                    <select id="media-resolution-filter">
+                                        <option value="any">Any Resolution</option>
+                                        <option value="sd">SD (480p and below)</option>
+                                        <option value="hd">HD (720p)</option>
+                                        <option value="fullhd">Full HD (1080p)</option>
+                                        <option value="4k">4K (2160p)</option>
+                                        <option value="8k">8K and above</option>
+                                    </select>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>Duration (Videos/Music)</label>
+                                    <div class="duration-filter">
+                                        <input type="number" placeholder="Min (seconds)" id="media-duration-min">
+                                        <span>to</span>
+                                        <input type="number" placeholder="Max (seconds)" id="media-duration-max">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Upload Date</label>
+                                    <div class="upload-date-filter">
+                                        <input type="date" id="media-upload-from" placeholder="From">
+                                        <input type="date" id="media-upload-to" placeholder="To">
+                                    </div>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>Creator/Artist</label>
+                                    <input type="text" placeholder="Search by creator name or username" id="media-creator-filter">
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>License Type</label>
+                                    <select id="media-license-filter">
+                                        <option value="any">Any License</option>
+                                        <option value="public">Public Domain</option>
+                                        <option value="creative-commons">Creative Commons</option>
+                                        <option value="royalty-free">Royalty Free</option>
+                                        <option value="copyright">Copyrighted</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Color Palette (Photos)</label>
+                                    <div class="color-filter-palette">
+                                        <div class="color-option" data-color="any" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" title="Any Color">
+                                            <i class="fas fa-check" style="display: none;"></i>
+                                        </div>
+                                        <div class="color-option active" data-color="red" style="background: #ef4444" title="Red Tones">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="color-option" data-color="blue" style="background: #3b82f6" title="Blue Tones">
+                                            <i class="fas fa-check" style="display: none;"></i>
+                                        </div>
+                                        <div class="color-option" data-color="green" style="background: #10b981" title="Green Tones">
+                                            <i class="fas fa-check" style="display: none;"></i>
+                                        </div>
+                                        <div class="color-option" data-color="purple" style="background: #8b5cf6" title="Purple Tones">
+                                            <i class="fas fa-check" style="display: none;"></i>
+                                        </div>
+                                        <div class="color-option" data-color="orange" style="background: #f97316" title="Orange Tones">
+                                            <i class="fas fa-check" style="display: none;"></i>
+                                        </div>
+                                        <div class="color-option" data-color="black" style="background: #1f2937" title="Black & White">
+                                            <i class="fas fa-check" style="display: none; color: white;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>Orientation (Photos/Videos)</label>
+                                    <div class="orientation-filter">
+                                        <label class="radio-filter">
+                                            <input type="radio" name="media-orientation" value="any" checked> Any
+                                        </label>
+                                        <label class="radio-filter">
+                                            <input type="radio" name="media-orientation" value="landscape"> Landscape
+                                        </label>
+                                        <label class="radio-filter">
+                                            <input type="radio" name="media-orientation" value="portrait"> Portrait
+                                        </label>
+                                        <label class="radio-filter">
+                                            <input type="radio" name="media-orientation" value="square"> Square
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-row">
+                                <div class="filter-toggles">
+                                    <label class="toggle-filter">
+                                        <input type="checkbox" id="media-high-quality-only">
+                                        <span class="toggle-slider"></span>
+                                        High quality only
+                                    </label>
+                                    <label class="toggle-filter">
+                                        <input type="checkbox" id="media-verified-creators">
+                                        <span class="toggle-slider"></span>
+                                        Verified creators only
+                                    </label>
+                                    <label class="toggle-filter">
+                                        <input type="checkbox" id="media-commercial-use">
+                                        <span class="toggle-slider"></span>
+                                        Commercial use allowed
+                                    </label>
+                                    <label class="toggle-filter">
+                                        <input type="checkbox" id="media-trending-only">
+                                        <span class="toggle-slider"></span>
+                                        Trending content only
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="filter-actions">
+                                <button class="apply-filters-btn" id="apply-media-filters">Apply Filters</button>
+                                <button class="clear-filters-btn" id="clear-media-filters">Clear All</button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Media Search -->
+                        <div class="filter-section">
+                            <h4><i class="fas fa-magic"></i> Advanced Media Search</h4>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Visual Similarity Search</label>
+                                    <div class="similarity-search">
+                                        <button class="upload-reference-btn" id="upload-reference-image">
+                                            <i class="fas fa-upload"></i>
+                                            Upload Reference Image
+                                        </button>
+                                        <div class="similarity-threshold">
+                                            <label>Similarity: <span id="similarity-value">80%</span></label>
+                                            <input type="range" id="similarity-slider" min="10" max="100" value="80">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label>Audio Features (Music)</label>
+                                    <div class="audio-features">
+                                        <select id="audio-genre">
+                                            <option value="any">Any Genre</option>
+                                            <option value="pop">Pop</option>
+                                            <option value="rock">Rock</option>
+                                            <option value="jazz">Jazz</option>
+                                            <option value="classical">Classical</option>
+                                            <option value="electronic">Electronic</option>
+                                            <option value="hip-hop">Hip Hop</option>
+                                            <option value="indie">Indie</option>
+                                            <option value="ambient">Ambient</option>
+                                        </select>
+                                        <select id="audio-mood">
+                                            <option value="any">Any Mood</option>
+                                            <option value="upbeat">Upbeat</option>
+                                            <option value="chill">Chill</option>
+                                            <option value="energetic">Energetic</option>
+                                            <option value="melancholic">Melancholic</option>
+                                            <option value="romantic">Romantic</option>
+                                            <option value="aggressive">Aggressive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Content Recognition</label>
+                                    <div class="recognition-tags">
+                                        <div class="recognition-category">
+                                            <h6>Objects & Scenes</h6>
+                                            <div class="tag-grid">
+                                                <span class="recognition-tag" data-tag="landscape">Landscape</span>
+                                                <span class="recognition-tag" data-tag="portrait">Portrait</span>
+                                                <span class="recognition-tag" data-tag="animals">Animals</span>
+                                                <span class="recognition-tag" data-tag="food">Food</span>
+                                                <span class="recognition-tag" data-tag="architecture">Architecture</span>
+                                                <span class="recognition-tag" data-tag="nature">Nature</span>
+                                                <span class="recognition-tag" data-tag="technology">Technology</span>
+                                                <span class="recognition-tag" data-tag="sports">Sports</span>
+                                            </div>
+                                        </div>
+                                        <div class="recognition-category">
+                                            <h6>Emotions & Actions</h6>
+                                            <div class="tag-grid">
+                                                <span class="recognition-tag" data-tag="happy">Happy</span>
+                                                <span class="recognition-tag" data-tag="romantic">Romantic</span>
+                                                <span class="recognition-tag" data-tag="action">Action</span>
+                                                <span class="recognition-tag" data-tag="peaceful">Peaceful</span>
+                                                <span class="recognition-tag" data-tag="celebration">Celebration</span>
+                                                <span class="recognition-tag" data-tag="creative">Creative</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Media Sort & View Options -->
+                    <div class="media-sort-options">
+                        <div class="sort-controls">
+                            <span>Sort by:</span>
+                            <select id="media-sort-select">
+                                <option value="relevance">Most Relevant</option>
+                                <option value="recent">Most Recent</option>
+                                <option value="popular">Most Popular</option>
+                                <option value="quality">Highest Quality</option>
+                                <option value="size">File Size</option>
+                                <option value="duration">Duration</option>
+                                <option value="views">Most Viewed</option>
+                                <option value="downloads">Most Downloaded</option>
+                            </select>
+                        </div>
+
+                        <div class="media-view-options">
+                            <div class="view-size-control">
+                                <label>Thumbnail Size:</label>
+                                <input type="range" id="thumbnail-size-slider" min="100" max="300" value="200">
+                            </div>
+                            
+                            <div class="view-toggle">
+                                <button class="view-toggle-btn active" data-view="grid" title="Grid View">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-toggle-btn" data-view="list" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button class="view-toggle-btn" data-view="masonry" title="Masonry View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Media Results Container -->
+                    <div class="media-results-container" id="media-results-container">
+                        <!-- Grid View -->
+                        <div class="media-results-grid active" id="media-grid-view">
+                            <!-- Media grid results will be loaded here -->
+                        </div>
+
+                        <!-- List View -->
+                        <div class="media-results-list" id="media-list-view">
+                            <!-- Media list results will be loaded here -->
+                        </div>
+
+                        <!-- Masonry View -->
+                        <div class="media-results-masonry" id="media-masonry-view">
+                            <!-- Media masonry results will be loaded here -->
+                        </div>
+
+                        <!-- Load More Button -->
+                        <div class="load-more-container" id="media-load-more-container" style="display: none;">
+                            <button class="load-more-btn" id="media-load-more">
+                                <i class="fas fa-chevron-down"></i>
+                                Load More Media
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Media Search Empty State -->
+                    <div class="media-empty-state" id="media-empty-state">
+                        <div class="empty-state-content">
+                            <i class="fas fa-images"></i>
+                            <h3>Discover Amazing Media</h3>
+                            <p>Search for photos, videos, music, and documents shared by the ConnectHub community</p>
+                            <div class="popular-media-searches">
+                                <h4>Popular searches:</h4>
+                                <div class="media-search-tags">
+                                    <span class="media-tag" onclick="searchUI.performMediaSearch('photography')">
+                                        <i class="fas fa-camera"></i> Photography
+                                    </span>
+                                    <span class="media-tag" onclick="searchUI.performMediaSearch('music')">
+                                        <i class="fas fa-music"></i> Music
+                                    </span>
+                                    <span class="media-tag" onclick="searchUI.performMediaSearch('videos')">
+                                        <i class="fas fa-video"></i> Videos
+                                    </span>
+                                    <span class="media-tag" onclick="searchUI.performMediaSearch('art')">
+                                        <i class="fas fa-palette"></i> Art
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Interface 7: Advanced Search Filters Panel
      */
     getAdvancedSearchInterface() {
         return `
