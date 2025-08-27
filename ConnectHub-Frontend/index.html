@@ -936,6 +936,41 @@
                     </div>
 
                     <div style="margin-top: 3rem;">
+                        <h2 style="text-align: center; margin-bottom: 2rem;">🎮 Gaming Features</h2>
+                        <div class="grid-4">
+                            <div class="card" style="text-align: center;" onclick="gamingMissingUI.createAchievementGallery('gaming-interface-container')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Trophy">🏆</div>
+                                <h3>Achievement Gallery</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">View all your unlocked achievements and progress</p>
+                                <button class="btn btn-primary">Open Gallery</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="gamingMissingUI.createDailyChallengesInterface('gaming-interface-container')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Calendar">📅</div>
+                                <h3>Daily Challenges</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Complete daily challenges to earn rewards</p>
+                                <button class="btn btn-primary">View Challenges</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="gamingMissingUI.createTournamentSystem('gaming-interface-container')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Tournament">🏆</div>
+                                <h3>Tournaments</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Join tournaments and compete with others</p>
+                                <button class="btn btn-primary">Join Tournament</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="gamingMissingUI.createGameHistoryStats('gaming-interface-container')" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Stats">📊</div>
+                                <h3>Game History & Stats</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Detailed stats and game history analysis</p>
+                                <button class="btn btn-primary">View Stats</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gaming Interface Container -->
+                    <div id="gaming-interface-container" style="margin-top: 2rem;">
+                        <!-- Gaming interfaces will be dynamically loaded here -->
+                    </div>
+
+                    <div style="margin-top: 3rem;">
                         <h2 style="text-align: center; margin-bottom: 2rem;">🏆 Leaderboards</h2>
                         <div class="grid-2">
                             <div class="card">
@@ -1392,5 +1427,6 @@
     <script src="src/js/dating-additional-ui-components.js"></script>
     <script src="src/js/dating-final-ui-components.js"></script>
     <script src="src/js/dating-consent-management.js"></script>
+    <script src="src/js/gaming-missing-ui-components.js"></script>
 </body>
 </html>
