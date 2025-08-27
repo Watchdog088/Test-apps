@@ -1902,6 +1902,42 @@ function showEventFeedbackForm() {
     }
 }
 
+// Privacy & Security UI interface functions
+function showContentReportInterface(contentId, contentType, contentPreview) {
+    if (window.privacySecurityUI) {
+        window.privacySecurityUI.showContentReportInterface(contentId, contentType, contentPreview);
+        showToast('Content Reporting Interface opened!', 'success');
+    }
+}
+
+function showBlockMuteInterface(userId, username) {
+    if (window.privacySecurityUI) {
+        window.privacySecurityUI.showBlockMuteInterface(userId, username);
+        showToast('Block/Mute User Interface opened!', 'success');
+    }
+}
+
+function showPrivacyPolicyInterface() {
+    if (window.privacySecurityUI) {
+        window.privacySecurityUI.showPrivacyPolicyInterface();
+        showToast('Privacy Policy & Terms Interface opened!', 'success');
+    }
+}
+
+function showDataExportInterface() {
+    if (window.privacySecurityUI) {
+        window.privacySecurityUI.showDataExportInterface();
+        showToast('Data Export Interface opened!', 'success');
+    }
+}
+
+function showContentFilterInterface() {
+    if (window.privacySecurityUI) {
+        window.privacySecurityUI.showContentFilterInterface();
+        showToast('Content Filter Settings opened!', 'success');
+    }
+}
+
 // Event listeners and initialization
 document.addEventListener('DOMContentLoaded', () => {
     updateMainNav();
