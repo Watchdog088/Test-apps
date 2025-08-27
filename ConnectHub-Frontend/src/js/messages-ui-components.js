@@ -34,8 +34,976 @@ class MessagesUIComponents {
         this.initializeMessageReactions();
         this.initializeMessageStatusIndicators();
         this.initializeMessageSearchFilters();
+        this.initGroupChatCreation();
+        this.initFileShareModal();
+        this.initVoiceMessageRecorder();
+        this.initChatSettingsScreen();
+        this.initMessageThreadView();
         
         console.log('Messages UI Components initialized');
+    }
+
+    // ========================================
+    // 9. GROUP CHAT CREATION INTERFACE
+    // ========================================
+
+    initGroupChatCreation() {
+        this.setupGroupChatWizard();
+    }
+
+    setupGroupChatWizard() {
+        // Add group chat creation button to messages header
+        const messagesHeader = document.querySelector('.messages-header');
+        if (messagesHeader) {
+            const createGroupBtn = document.createElement('button');
+            createGroupBtn.className = 'create-group-chat-btn';
+            createGroupBtn.innerHTML = '<i class="fas fa-users-plus"></i>';
+            createGroupBtn.title = 'Create Group Chat';
+            createGroupBtn.addEventListener('click', () => this.showGroupChatCreationModal());
+            messagesHeader.appendChild(createGroupBtn);
+        }
+    }
+
+    showGroupChatCreationModal() {
+        const modal = this.createGroupChatModal();
+        document.body.appendChild(modal);
+        modal.classList.add('active');
+    }
+
+    createGroupChatModal() {
+        const modal = document.createElement('div');
+        modal.id = 'group-chat-creation-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>Create Group Chat</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="group-creation-steps">
+                        <div class="step active" data-step="1">
+                            <div class="step-header">
+                                <h4>1. Group Details</h4>
+                                <p>Set up your group information</p>
+                            </div>
+                            <div class="group-details-form">
+                                <div class="form-group">
+                                    <label for="group-name">Group Name</label>
+                                    <input type="text" id="group-name" class="form-input" placeholder="Enter group name" maxlength="50">
+                                </div>
+                                <div class="form-group">
+                                    <label for="group-description">Description (optional)</label>
+                                    <textarea id="group-description" class="form-input" rows="3" placeholder="Describe your group"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Group Photo</label>
+                                    <div class="group-photo-upload">
+                                        <div class="photo-preview" id="group-photo-preview">
+                                            <i class="fas fa-users"></i>
+                                            <span>Add Group Photo</span>
+                                        </div>
+                                        <input type="file" id="group-photo-input" accept="image/*" style="display: none;">
+                                        <button type="button" class="upload-photo-btn" onclick="document.getElementById('group-photo-input').click()">
+                                            Choose Photo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-header">
+                                <h4>2. Add Members</h4>
+                                <p>Select people to add to your group</p>
+                            </div>
+                            <div class="member-selection">
+                                <div class="member-search">
+                                    <input type="text" placeholder="Search contacts..." class="search-contacts" id="search-contacts">
+                                </div>
+                                <div class="contacts-list" id="contacts-list">
+                                    ${this.renderContactsList()}
+                                </div>
+                                <div class="selected-members" id="selected-members">
+                                    <h5>Selected Members (<span id="member-count">0</span>)</h5>
+                                    <div class="selected-members-list" id="selected-members-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-header">
+                                <h4>3. Group Settings</h4>
+                                <p>Configure group permissions and privacy</p>
+                            </div>
+                            <div class="group-settings-form">
+                                <div class="setting-item">
+                                    <label>Group Type</label>
+                                    <select id="group-type" class="form-input">
+                                        <option value="private">Private Group</option>
+                                        <option value="public">Public Group</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="allow-member-invite" checked>
+                                        <span class="toggle-slider"></span>
+                                        Allow members to invite others
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="admin-only-messages">
+                                        <span class="toggle-slider"></span>
+                                        Admin-only messaging
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="step-navigation">
+                        <button class="btn btn-secondary" id="prev-step" style="display: none;">Previous</button>
+                        <button class="btn btn-primary" id="next-step">Next</button>
+                        <button class="btn btn-success" id="create-group" style="display: none;">Create Group</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        this.setupGroupCreationSteps(modal);
+        return modal;
+    }
+
+    setupGroupCreationSteps(modal) {
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        const nextBtn = modal.querySelector('#next-step');
+        const prevBtn = modal.querySelector('#prev-step');
+        const createBtn = modal.querySelector('#create-group');
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                this.updateGroupCreationStep(modal, currentStep);
+                this.updateStepNavigation(prevBtn, nextBtn, createBtn, currentStep, totalSteps);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                this.updateGroupCreationStep(modal, currentStep);
+                this.updateStepNavigation(prevBtn, nextBtn, createBtn, currentStep, totalSteps);
+            }
+        });
+
+        createBtn.addEventListener('click', () => {
+            this.createGroupChat(modal);
+        });
+
+        // Setup contact selection
+        this.setupContactSelection(modal);
+    }
+
+    // ========================================
+    // 10. FILE SHARE MODAL INTERFACE
+    // ========================================
+
+    initFileShareModal() {
+        this.setupAdvancedFileShare();
+    }
+
+    setupAdvancedFileShare() {
+        // Enhanced file sharing with preview and organization
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#attach-file-btn')) {
+                e.preventDefault();
+                this.showFileShareModal();
+            }
+        });
+    }
+
+    showFileShareModal() {
+        const modal = this.createFileShareModal();
+        document.body.appendChild(modal);
+        modal.classList.add('active');
+    }
+
+    createFileShareModal() {
+        const modal = document.createElement('div');
+        modal.id = 'file-share-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>Share Files</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="file-share-tabs">
+                        <button class="file-tab active" data-tab="upload">Upload Files</button>
+                        <button class="file-tab" data-tab="recent">Recent Files</button>
+                        <button class="file-tab" data-tab="cloud">Cloud Storage</button>
+                    </div>
+                    
+                    <div class="file-tab-content active" data-tab="upload">
+                        <div class="file-upload-area">
+                            <div class="upload-drop-zone" id="file-drop-zone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h4>Drop files here or click to browse</h4>
+                                <p>Maximum file size: 25MB per file</p>
+                                <input type="file" id="file-upload-input" multiple accept="*/*" style="display: none;">
+                                <button class="browse-files-btn" onclick="document.getElementById('file-upload-input').click()">
+                                    Browse Files
+                                </button>
+                            </div>
+                            <div class="upload-queue" id="upload-queue"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="file-tab-content" data-tab="recent">
+                        <div class="recent-files-list">
+                            <h5>Recently Shared Files</h5>
+                            <div class="files-grid" id="recent-files-grid">
+                                ${this.renderRecentFiles()}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="file-tab-content" data-tab="cloud">
+                        <div class="cloud-storage-options">
+                            <div class="cloud-service" data-service="google-drive">
+                                <i class="fab fa-google-drive"></i>
+                                <span>Google Drive</span>
+                                <button class="connect-service-btn">Connect</button>
+                            </div>
+                            <div class="cloud-service" data-service="dropbox">
+                                <i class="fab fa-dropbox"></i>
+                                <span>Dropbox</span>
+                                <button class="connect-service-btn">Connect</button>
+                            </div>
+                            <div class="cloud-service" data-service="onedrive">
+                                <i class="fab fa-microsoft"></i>
+                                <span>OneDrive</span>
+                                <button class="connect-service-btn">Connect</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="selected-files-summary" id="selected-files-summary"></div>
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" id="share-files-btn" disabled>Share Selected</button>
+                </div>
+            </div>
+        `;
+
+        this.setupFileShareModalEvents(modal);
+        return modal;
+    }
+
+    // ========================================
+    // 11. VOICE MESSAGE RECORDER INTERFACE
+    // ========================================
+
+    initVoiceMessageRecorder() {
+        this.setupAdvancedVoiceRecorder();
+    }
+
+    setupAdvancedVoiceRecorder() {
+        // Enhanced voice recording interface with waveform visualization
+        this.audioContext = null;
+        this.analyser = null;
+        this.recordingWaveform = [];
+    }
+
+    async startAdvancedVoiceRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { 
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    sampleRate: 44100
+                } 
+            });
+
+            // Setup audio context for waveform
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioContext.createAnalyser();
+            const source = this.audioContext.createMediaStreamSource(stream);
+            source.connect(this.analyser);
+
+            this.voiceRecorder = new MediaRecorder(stream, {
+                mimeType: 'audio/webm;codecs=opus'
+            });
+
+            const audioChunks = [];
+            this.voiceRecorder.addEventListener('dataavailable', (event) => {
+                audioChunks.push(event.data);
+            });
+
+            this.voiceRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                this.handleAdvancedVoiceRecordingComplete(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            });
+
+            this.voiceRecorder.start();
+            this.showAdvancedVoiceRecordingInterface();
+            this.startWaveformVisualization();
+
+        } catch (error) {
+            console.error('Failed to start advanced voice recording:', error);
+            this.app.showToast('Could not access microphone', 'error');
+        }
+    }
+
+    showAdvancedVoiceRecordingInterface() {
+        const recordingModal = document.createElement('div');
+        recordingModal.id = 'voice-recording-modal';
+        recordingModal.className = 'modal voice-recording-modal active';
+        recordingModal.innerHTML = `
+            <div class="modal-content">
+                <div class="voice-recording-header">
+                    <h3>Recording Voice Message</h3>
+                    <div class="recording-timer" id="advanced-recording-timer">0:00</div>
+                </div>
+                <div class="voice-recording-body">
+                    <div class="waveform-container">
+                        <canvas id="recording-waveform" width="300" height="100"></canvas>
+                        <div class="recording-indicator">
+                            <div class="recording-dot pulsing"></div>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                    <div class="recording-controls">
+                        <button class="voice-control-btn pause-btn" id="pause-recording">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button class="voice-control-btn stop-btn" id="stop-advanced-recording">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                        <button class="voice-control-btn cancel-btn" id="cancel-advanced-recording">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(recordingModal);
+        this.setupAdvancedRecordingControls(recordingModal);
+        return recordingModal;
+    }
+
+    // ========================================
+    // 12. CHAT SETTINGS SCREEN INTERFACE
+    // ========================================
+
+    initChatSettingsScreen() {
+        this.setupChatSettings();
+    }
+
+    setupChatSettings() {
+        // Add settings functionality to thread settings button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#thread-settings')) {
+                this.showChatSettingsScreen();
+            }
+        });
+    }
+
+    showChatSettingsScreen() {
+        const modal = this.createChatSettingsModal();
+        document.body.appendChild(modal);
+        modal.classList.add('active');
+    }
+
+    createChatSettingsModal() {
+        const modal = document.createElement('div');
+        modal.id = 'chat-settings-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>Chat Settings</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-tabs">
+                        <button class="settings-tab active" data-tab="privacy">Privacy</button>
+                        <button class="settings-tab" data-tab="notifications">Notifications</button>
+                        <button class="settings-tab" data-tab="media">Media & Files</button>
+                        <button class="settings-tab" data-tab="appearance">Appearance</button>
+                    </div>
+                    
+                    <div class="settings-content">
+                        <div class="settings-tab-content active" data-tab="privacy">
+                            <h4>Privacy Settings</h4>
+                            <div class="setting-group">
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="read-receipts" checked>
+                                        <span class="toggle-slider"></span>
+                                        Send read receipts
+                                    </label>
+                                    <p>Let others know when you've read their messages</p>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="typing-indicators" checked>
+                                        <span class="toggle-slider"></span>
+                                        Show typing indicators
+                                    </label>
+                                    <p>Let others see when you're typing</p>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="last-seen" checked>
+                                        <span class="toggle-slider"></span>
+                                        Share last seen status
+                                    </label>
+                                    <p>Let others see when you were last online</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-tab-content" data-tab="notifications">
+                            <h4>Notification Settings</h4>
+                            <div class="setting-group">
+                                <div class="setting-item">
+                                    <label>Message notifications</label>
+                                    <select class="form-input">
+                                        <option>All messages</option>
+                                        <option>Direct messages only</option>
+                                        <option>Mentions only</option>
+                                        <option>Off</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="sound-notifications" checked>
+                                        <span class="toggle-slider"></span>
+                                        Sound notifications
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Do not disturb</label>
+                                    <div class="time-range-picker">
+                                        <input type="time" value="22:00"> to <input type="time" value="08:00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-tab-content" data-tab="media">
+                            <h4>Media & Files Settings</h4>
+                            <div class="setting-group">
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="auto-download-images" checked>
+                                        <span class="toggle-slider"></span>
+                                        Auto-download images
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="auto-download-videos">
+                                        <span class="toggle-slider"></span>
+                                        Auto-download videos
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Max file size for auto-download</label>
+                                    <select class="form-input">
+                                        <option>1 MB</option>
+                                        <option>5 MB</option>
+                                        <option selected>10 MB</option>
+                                        <option>25 MB</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-tab-content" data-tab="appearance">
+                            <h4>Appearance Settings</h4>
+                            <div class="setting-group">
+                                <div class="setting-item">
+                                    <label>Chat bubble style</label>
+                                    <select class="form-input">
+                                        <option selected>Default</option>
+                                        <option>Rounded</option>
+                                        <option>Square</option>
+                                        <option>Minimal</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Font size</label>
+                                    <select class="form-input">
+                                        <option>Small</option>
+                                        <option selected>Medium</option>
+                                        <option>Large</option>
+                                        <option>Extra Large</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="compact-mode">
+                                        <span class="toggle-slider"></span>
+                                        Compact mode
+                                    </label>
+                                    <p>Show more messages on screen</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="messagesUI.saveChatSettings(); this.closest('.modal').remove();">Save Settings</button>
+                </div>
+            </div>
+        `;
+
+        this.setupChatSettingsEvents(modal);
+        return modal;
+    }
+
+    // ========================================
+    // 13. MESSAGE THREAD VIEW INTERFACE
+    // ========================================
+
+    initMessageThreadView() {
+        this.setupThreadNavigation();
+        this.setupThreadSearch();
+    }
+
+    setupThreadNavigation() {
+        // Enhanced thread navigation with jump to date/message
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'f' && this.currentConversation) {
+                e.preventDefault();
+                this.showThreadSearchInterface();
+            }
+        });
+    }
+
+    showThreadSearchInterface() {
+        const searchInterface = document.createElement('div');
+        searchInterface.className = 'thread-search-interface';
+        searchInterface.innerHTML = `
+            <div class="thread-search-bar">
+                <input type="text" placeholder="Search in this conversation..." id="thread-search-input">
+                <div class="search-controls">
+                    <button class="search-nav-btn" id="search-prev" disabled>
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <span class="search-results-count" id="search-count">0/0</span>
+                    <button class="search-nav-btn" id="search-next" disabled>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="close-thread-search" id="close-thread-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const threadHeader = document.querySelector('.thread-header');
+        threadHeader.appendChild(searchInterface);
+        
+        document.getElementById('thread-search-input').focus();
+        this.setupThreadSearchEvents(searchInterface);
+    }
+
+    setupThreadSearch() {
+        // Thread-specific search functionality
+    }
+
+    renderContactsList() {
+        const contacts = [
+            { id: 'user-1', name: 'Emma Watson', avatar: 'EW', status: 'online' },
+            { id: 'user-2', name: 'Alex Johnson', avatar: 'AJ', status: 'offline' },
+            { id: 'user-3', name: 'Sarah Chen', avatar: 'SC', status: 'online' },
+            { id: 'user-4', name: 'Mike Rodriguez', avatar: 'MR', status: 'away' },
+            { id: 'user-5', name: 'Lisa Park', avatar: 'LP', status: 'online' }
+        ];
+
+        return contacts.map(contact => `
+            <div class="contact-item" data-contact-id="${contact.id}">
+                <div class="contact-checkbox">
+                    <input type="checkbox" id="contact-${contact.id}" class="contact-select">
+                    <label for="contact-${contact.id}"></label>
+                </div>
+                <img src="https://via.placeholder.com/40x40/42b72a/ffffff?text=${contact.avatar}" alt="${contact.name}" class="contact-avatar">
+                <div class="contact-info">
+                    <div class="contact-name">${contact.name}</div>
+                    <div class="contact-status ${contact.status}">${contact.status}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderRecentFiles() {
+        const recentFiles = [
+            { name: 'presentation.pdf', type: 'application/pdf', size: 2048000, date: new Date(Date.now() - 86400000) },
+            { name: 'photo.jpg', type: 'image/jpeg', size: 1536000, date: new Date(Date.now() - 172800000) },
+            { name: 'document.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 512000, date: new Date(Date.now() - 259200000) }
+        ];
+
+        return recentFiles.map((file, index) => `
+            <div class="file-item" data-file-index="${index}">
+                <div class="file-preview">
+                    <i class="fas ${this.getFileIcon(file.type)}"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-meta">
+                        <span class="file-size">${this.formatFileSize(file.size)}</span>
+                        <span class="file-date">${this.app.getTimeAgo(file.date)}</span>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="select-file-btn" onclick="messagesUI.selectRecentFile(${index})">
+                        Select
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    setupContactSelection(modal) {
+        const contactItems = modal.querySelectorAll('.contact-item');
+        const selectedMembersList = modal.querySelector('#selected-members-list');
+        const memberCount = modal.querySelector('#member-count');
+        let selectedMembers = [];
+
+        contactItems.forEach(item => {
+            const checkbox = item.querySelector('.contact-select');
+            checkbox.addEventListener('change', () => {
+                const contactId = item.dataset.contactId;
+                if (checkbox.checked) {
+                    selectedMembers.push(contactId);
+                    this.addToSelectedMembers(item, selectedMembersList);
+                } else {
+                    selectedMembers = selectedMembers.filter(id => id !== contactId);
+                    this.removeFromSelectedMembers(contactId, selectedMembersList);
+                }
+                memberCount.textContent = selectedMembers.length;
+            });
+        });
+    }
+
+    updateGroupCreationStep(modal, step) {
+        // Hide all steps
+        modal.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        // Show current step
+        modal.querySelector(`[data-step="${step}"]`).classList.add('active');
+    }
+
+    updateStepNavigation(prevBtn, nextBtn, createBtn, currentStep, totalSteps) {
+        prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+        nextBtn.style.display = currentStep < totalSteps ? 'inline-block' : 'none';
+        createBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+    }
+
+    createGroupChat(modal) {
+        const groupName = modal.querySelector('#group-name').value.trim();
+        if (!groupName) {
+            this.app.showToast('Please enter a group name', 'warning');
+            return;
+        }
+
+        // Simulate group creation
+        this.app.showToast(`Group "${groupName}" created successfully!`, 'success');
+        modal.remove();
+    }
+
+    setupFileShareModalEvents(modal) {
+        // Tab switching
+        modal.querySelectorAll('.file-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.switchFileShareTab(modal, tab.dataset.tab);
+            });
+        });
+
+        // File upload
+        const fileInput = modal.querySelector('#file-upload-input');
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            this.handleFileUploadInModal(files, modal);
+        });
+
+        // Setup drag and drop for file upload
+        const dropZone = modal.querySelector('#file-drop-zone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = Array.from(e.dataTransfer.files);
+            this.handleFileUploadInModal(files, modal);
+        });
+    }
+
+    handleFileUploadInModal(files, modal) {
+        const uploadQueue = modal.querySelector('#upload-queue');
+        files.forEach(file => {
+            const uploadItem = this.createUploadItem(file);
+            uploadQueue.appendChild(uploadItem);
+            this.simulateFileUpload(uploadItem, file);
+        });
+    }
+
+    createUploadItem(file) {
+        const item = document.createElement('div');
+        item.className = 'upload-item';
+        item.innerHTML = `
+            <div class="upload-file-info">
+                <i class="fas ${this.getFileIcon(file.type)}"></i>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${this.formatFileSize(file.size)}</div>
+                </div>
+            </div>
+            <div class="upload-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <span class="progress-text">0%</span>
+            </div>
+            <button class="remove-upload-btn" onclick="this.closest('.upload-item').remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        return item;
+    }
+
+    simulateFileUpload(uploadItem, file) {
+        const progressFill = uploadItem.querySelector('.progress-fill');
+        const progressText = uploadItem.querySelector('.progress-text');
+        let progress = 0;
+        
+        const uploadInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(uploadInterval);
+                uploadItem.classList.add('upload-complete');
+                progressText.textContent = 'Complete';
+            } else {
+                progressFill.style.width = progress + '%';
+                progressText.textContent = Math.round(progress) + '%';
+            }
+        }, 200);
+    }
+
+    setupChatSettingsEvents(modal) {
+        // Settings tab switching
+        modal.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.switchSettingsTab(modal, tab.dataset.tab);
+            });
+        });
+    }
+
+    switchSettingsTab(modal, tabName) {
+        // Hide all tabs and content
+        modal.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+        modal.querySelectorAll('.settings-tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Show selected tab and content
+        modal.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        modal.querySelector(`.settings-tab-content[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    switchFileShareTab(modal, tabName) {
+        // Hide all tabs and content
+        modal.querySelectorAll('.file-tab').forEach(tab => tab.classList.remove('active'));
+        modal.querySelectorAll('.file-tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Show selected tab and content
+        modal.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        modal.querySelector(`.file-tab-content[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    setupThreadSearchEvents(searchInterface) {
+        const searchInput = searchInterface.querySelector('#thread-search-input');
+        const searchPrev = searchInterface.querySelector('#search-prev');
+        const searchNext = searchInterface.querySelector('#search-next');
+        const closeSearch = searchInterface.querySelector('#close-thread-search');
+
+        searchInput.addEventListener('input', (e) => {
+            this.performThreadSearch(e.target.value);
+        });
+
+        searchPrev.addEventListener('click', () => {
+            this.navigateSearchResults(-1);
+        });
+
+        searchNext.addEventListener('click', () => {
+            this.navigateSearchResults(1);
+        });
+
+        closeSearch.addEventListener('click', () => {
+            searchInterface.remove();
+        });
+    }
+
+    performThreadSearch(query) {
+        if (!query.trim()) return;
+        
+        const messages = document.querySelectorAll('.message-text');
+        let matches = 0;
+        
+        messages.forEach(message => {
+            const text = message.textContent.toLowerCase();
+            if (text.includes(query.toLowerCase())) {
+                message.innerHTML = this.highlightSearchTerms(message.textContent, query);
+                matches++;
+            }
+        });
+
+        const countElement = document.getElementById('search-count');
+        if (countElement) {
+            countElement.textContent = `${matches > 0 ? 1 : 0}/${matches}`;
+        }
+    }
+
+    navigateSearchResults(direction) {
+        // Navigate through search results
+        const highlighted = document.querySelectorAll('mark');
+        if (highlighted.length === 0) return;
+        
+        // Implementation for navigating search results
+        this.app.showToast(`Navigating search results ${direction > 0 ? 'forward' : 'backward'}`, 'info');
+    }
+
+    saveChatSettings() {
+        const settings = {
+            readReceipts: document.getElementById('read-receipts')?.checked,
+            typingIndicators: document.getElementById('typing-indicators')?.checked,
+            lastSeen: document.getElementById('last-seen')?.checked,
+            soundNotifications: document.getElementById('sound-notifications')?.checked,
+            autoDownloadImages: document.getElementById('auto-download-images')?.checked,
+            autoDownloadVideos: document.getElementById('auto-download-videos')?.checked,
+            compactMode: document.getElementById('compact-mode')?.checked
+        };
+
+        // Save settings (simulate API call)
+        console.log('Saving chat settings:', settings);
+        this.app.showToast('Settings saved successfully', 'success');
+    }
+
+    selectRecentFile(fileIndex) {
+        this.app.showToast(`Selected file for sharing`, 'success');
+    }
+
+    addToSelectedMembers(contactItem, selectedMembersList) {
+        const memberElement = document.createElement('div');
+        memberElement.className = 'selected-member-item';
+        memberElement.dataset.contactId = contactItem.dataset.contactId;
+        memberElement.innerHTML = `
+            <img src="${contactItem.querySelector('.contact-avatar').src}" alt="" class="member-avatar">
+            <span class="member-name">${contactItem.querySelector('.contact-name').textContent}</span>
+            <button class="remove-member-btn" onclick="this.closest('.selected-member-item').remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        selectedMembersList.appendChild(memberElement);
+    }
+
+    removeFromSelectedMembers(contactId, selectedMembersList) {
+        const memberItem = selectedMembersList.querySelector(`[data-contact-id="${contactId}"]`);
+        if (memberItem) {
+            memberItem.remove();
+        }
+    }
+
+    setupAdvancedRecordingControls(recordingModal) {
+        const pauseBtn = recordingModal.querySelector('#pause-recording');
+        const stopBtn = recordingModal.querySelector('#stop-advanced-recording');
+        const cancelBtn = recordingModal.querySelector('#cancel-advanced-recording');
+
+        pauseBtn.addEventListener('click', () => {
+            if (this.voiceRecorder.state === 'recording') {
+                this.voiceRecorder.pause();
+                pauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                this.voiceRecorder.resume();
+                pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            this.voiceRecorder.stop();
+            recordingModal.remove();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            this.voiceRecorder.stop();
+            recordingModal.remove();
+            this.app.showToast('Voice recording cancelled', 'info');
+        });
+    }
+
+    startWaveformVisualization() {
+        const canvas = document.getElementById('recording-waveform');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
+        const draw = () => {
+            this.analyser.getByteFrequencyData(dataArray);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#42b72a';
+            
+            const barWidth = canvas.width / dataArray.length * 2.5;
+            let x = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+
+            if (this.voiceRecorder && this.voiceRecorder.state === 'recording') {
+                requestAnimationFrame(draw);
+            }
+        };
+
+        draw();
+    }
+
+    handleAdvancedVoiceRecordingComplete(audioBlob) {
+        const duration = (Date.now() - this.recordingStartTime) / 1000;
+        
+        // Create voice message object
+        const voiceMessage = {
+            type: 'voice',
+            blob: audioBlob,
+            duration: Math.round(duration),
+            url: URL.createObjectURL(audioBlob)
+        };
+
+        this.sendVoiceMessage(voiceMessage);
+        this.app.showToast('Voice message sent', 'success');
     }
 
     // ========================================

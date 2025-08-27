@@ -12,6 +12,12 @@ let isStreamLive = false;
 let streamDuration = 0;
 let viewerCount = 0;
 
+// Initialize UI component instances
+let profileUIComponents = null;
+let searchUIComponents = null;
+let groupsUIComponents = null;
+let eventsUIComponents = null;
+
 // Sample data arrays
 const samplePosts = [
     {
@@ -364,6 +370,9 @@ function initializeScreenContent(category, screen) {
         case 'social-messages':
             populateConversations();
             break;
+        case 'social-profile':
+            populateProfileScreen();
+            break;
         case 'social-search':
             populateSearchDefaults();
             break;
@@ -478,6 +487,81 @@ function populateConversations() {
                 ${conv.unread ? '<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;" aria-label="Unread message"></div>' : ''}
             </div>
         `).join('');
+    }
+}
+
+function populateProfileScreen() {
+    const profileContainer = document.getElementById('socialProfile');
+    
+    if (profileContainer) {
+        profileContainer.innerHTML = `
+            <div style="background: var(--bg-card); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;">JD</div>
+                    <h2>John Doe</h2>
+                    <p style="color: var(--text-secondary);">Software Developer • ConnectHub Member</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">🎨 Profile Tools (10 interfaces)</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary btn-small" onclick="showAdvancedProfileEditor()">✏️ Advanced Profile Editor</button>
+                            <button class="btn btn-primary btn-small" onclick="showPhotoEditor()">📷 Photo Editor & Filters</button>
+                            <button class="btn btn-primary btn-small" onclick="showPrivacyControlPanel()">🔒 Privacy Control Panel</button>
+                            <button class="btn btn-primary btn-small" onclick="showAchievementsGallery()">🏆 Achievements Gallery</button>
+                            <button class="btn btn-primary btn-small" onclick="showConnectionsManager()">👥 Connections Manager</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">🔍 Search Tools (5 interfaces)</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-secondary btn-small" onclick="showAdvancedSearchFilters()">🎯 Advanced Search Filters</button>
+                            <button class="btn btn-secondary btn-small" onclick="showSearchResultsCustomizer()">⚙️ Search Results Customizer</button>
+                            <button class="btn btn-secondary btn-small" onclick="showSavedSearchesManager()">💾 Saved Searches Manager</button>
+                            <button class="btn btn-secondary btn-small" onclick="showSearchHistoryViewer()">📜 Search History Viewer</button>
+                            <button class="btn btn-secondary btn-small" onclick="showRealTimeSearchSuggestions()">⚡ Real-time Search Suggestions</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">👥 Groups Tools (7 interfaces)</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-success btn-small" onclick="showGroupCreationWizard()">🔧 Group Creation Wizard</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupMembersManager()">👥 Group Members Manager</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupDiscussionBoard()">💬 Group Discussion Board</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupEventsCalendar()">📅 Group Events Calendar</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupSettingsPanel()">⚙️ Group Settings Panel</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupAnalyticsDashboard()">📊 Group Analytics Dashboard</button>
+                            <button class="btn btn-success btn-small" onclick="showGroupResourceLibrary()">📚 Group Resource Library</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">📅 Events Tools (5 interfaces)</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-warning btn-small" onclick="showEventCreationForm()">🔧 Event Creation Form</button>
+                            <button class="btn btn-warning btn-small" onclick="showEventDetailsView()">📝 Event Details View</button>
+                            <button class="btn btn-warning btn-small" onclick="showEventCheckIn()">✅ Event Check-in System</button>
+                            <button class="btn btn-warning btn-small" onclick="showEventPhotoGallery()">📸 Event Photo Gallery</button>
+                            <button class="btn btn-warning btn-small" onclick="showEventFeedbackForm()">📝 Event Feedback Form</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: var(--primary); color: white; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h3 style="margin-bottom: 1rem;">🎉 47 Advanced UI Interfaces Available!</h3>
+                    <p>Click any button above to explore the detailed, interactive user interfaces. Each interface includes advanced features like photo editing, privacy controls, real-time search, group management, event planning, and much more!</p>
+                    <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">✨ Photo Editing</span>
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">🔒 Privacy Controls</span>
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">📊 Analytics</span>
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">⚡ Real-time Features</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 }
 
@@ -1622,10 +1706,209 @@ function forgotPassword() {
     showToast('Password reset link sent to your email', 'info');
 }
 
+// Initialize UI component instances when needed
+function initializeUIComponents() {
+    if (!profileUIComponents && window.ProfileUIComponents) {
+        profileUIComponents = new ProfileUIComponents();
+    }
+    if (!searchUIComponents && window.SearchMissingUIComponents) {
+        searchUIComponents = new SearchMissingUIComponents();
+    }
+    if (!groupsUIComponents && window.GroupsMissingUIComponents) {
+        groupsUIComponents = new GroupsMissingUIComponents();
+    }
+    if (!eventsUIComponents && window.EventsMissingUIComponents) {
+        eventsUIComponents = new EventsMissingUIComponents();
+    }
+}
+
+// Enhanced UI interface functions for Profile Screen
+function showAdvancedProfileEditor() {
+    initializeUIComponents();
+    if (profileUIComponents) {
+        profileUIComponents.showAdvancedProfileEditor();
+        showToast('Advanced Profile Editor opened!', 'success');
+    }
+}
+
+function showPhotoEditor() {
+    initializeUIComponents();
+    if (profileUIComponents) {
+        profileUIComponents.showPhotoEditor();
+        showToast('Photo Editor opened!', 'success');
+    }
+}
+
+function showPrivacyControlPanel() {
+    initializeUIComponents();
+    if (profileUIComponents) {
+        profileUIComponents.showPrivacyControlPanel();
+        showToast('Privacy Control Panel opened!', 'success');
+    }
+}
+
+function showAchievementsGallery() {
+    initializeUIComponents();
+    if (profileUIComponents) {
+        profileUIComponents.showAchievementsGallery();
+        showToast('Achievements Gallery opened!', 'success');
+    }
+}
+
+function showConnectionsManager() {
+    initializeUIComponents();
+    if (profileUIComponents) {
+        profileUIComponents.showConnectionsManager();
+        showToast('Connections Manager opened!', 'success');
+    }
+}
+
+// Enhanced UI interface functions for Search Screen
+function showAdvancedSearchFilters() {
+    initializeUIComponents();
+    if (searchUIComponents) {
+        searchUIComponents.showAdvancedSearchFilters();
+        showToast('Advanced Search Filters opened!', 'success');
+    }
+}
+
+function showSearchResultsCustomizer() {
+    initializeUIComponents();
+    if (searchUIComponents) {
+        searchUIComponents.showSearchResultsCustomizer();
+        showToast('Search Results Customizer opened!', 'success');
+    }
+}
+
+function showSavedSearchesManager() {
+    initializeUIComponents();
+    if (searchUIComponents) {
+        searchUIComponents.showSavedSearchesManager();
+        showToast('Saved Searches Manager opened!', 'success');
+    }
+}
+
+function showSearchHistoryViewer() {
+    initializeUIComponents();
+    if (searchUIComponents) {
+        searchUIComponents.showSearchHistoryViewer();
+        showToast('Search History Viewer opened!', 'success');
+    }
+}
+
+function showRealTimeSearchSuggestions() {
+    initializeUIComponents();
+    if (searchUIComponents) {
+        searchUIComponents.showRealTimeSearchSuggestions();
+        showToast('Real-time Search Suggestions opened!', 'success');
+    }
+}
+
+// Enhanced UI interface functions for Groups Screen
+function showGroupCreationWizard() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupCreationWizard();
+        showToast('Group Creation Wizard opened!', 'success');
+    }
+}
+
+function showGroupMembersManager() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupMembersManager();
+        showToast('Group Members Manager opened!', 'success');
+    }
+}
+
+function showGroupDiscussionBoard() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupDiscussionBoard();
+        showToast('Group Discussion Board opened!', 'success');
+    }
+}
+
+function showGroupEventsCalendar() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupEventsCalendar();
+        showToast('Group Events Calendar opened!', 'success');
+    }
+}
+
+function showGroupSettingsPanel() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupSettingsPanel();
+        showToast('Group Settings Panel opened!', 'success');
+    }
+}
+
+function showGroupAnalyticsDashboard() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupAnalyticsDashboard();
+        showToast('Group Analytics Dashboard opened!', 'success');
+    }
+}
+
+function showGroupResourceLibrary() {
+    initializeUIComponents();
+    if (groupsUIComponents) {
+        groupsUIComponents.showGroupResourceLibrary();
+        showToast('Group Resource Library opened!', 'success');
+    }
+}
+
+// Enhanced UI interface functions for Events Screen
+function showEventCreationForm() {
+    initializeUIComponents();
+    if (eventsUIComponents) {
+        eventsUIComponents.showEventCreationForm();
+        showToast('Event Creation Form opened!', 'success');
+    }
+}
+
+function showEventDetailsView() {
+    initializeUIComponents();
+    if (eventsUIComponents) {
+        eventsUIComponents.showEventDetailsView();
+        showToast('Event Details View opened!', 'success');
+    }
+}
+
+function showEventCheckIn() {
+    initializeUIComponents();
+    if (eventsUIComponents) {
+        eventsUIComponents.showEventCheckIn();
+        showToast('Event Check-in opened!', 'success');
+    }
+}
+
+function showEventPhotoGallery() {
+    initializeUIComponents();
+    if (eventsUIComponents) {
+        eventsUIComponents.showEventPhotoGallery();
+        showToast('Event Photo Gallery opened!', 'success');
+    }
+}
+
+function showEventFeedbackForm() {
+    initializeUIComponents();
+    if (eventsUIComponents) {
+        eventsUIComponents.showEventFeedbackForm();
+        showToast('Event Feedback Form opened!', 'success');
+    }
+}
+
 // Event listeners and initialization
 document.addEventListener('DOMContentLoaded', () => {
     updateMainNav();
     updateSubNav();
+    
+    // Initialize UI components after a short delay to ensure all classes are loaded
+    setTimeout(initializeUIComponents, 500);
 
     // Auth tab switching
     const authTabs = document.querySelectorAll('.auth-tab');

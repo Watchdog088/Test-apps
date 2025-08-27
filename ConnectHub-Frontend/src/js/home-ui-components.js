@@ -28,8 +28,21 @@ class HomeUIComponents {
         this.initializeRealTimeActivityFeed();
         this.initializeSocialGroupsWidget();
         this.initializeAdvancedSearchPanel();
+        // Initialize 12 missing Home Screen interfaces
+        this.initializeFullStoryViewer();
+        this.initializeStoryCameraCreation();
+        this.initializePostCommentsThread();
+        this.initializePostReactionsPanel();
+        this.initializeSharePostModal();
+        this.initializeContentFilterSettings();
+        this.initializeLiveActivityNotification();
+        this.initializePostEditInterface();
+        this.initializePostReportModal();
+        this.initializeHashtagBrowseScreen();
+        this.initializeMentionSuggestions();
+        this.initializePostSchedulingInterface();
         
-        console.log('Home UI Components initialized');
+        console.log('Home UI Components initialized with all missing interfaces');
     }
 
     // ===== 1. STORIES SECTION =====
@@ -2507,6 +2520,1073 @@ class HomeUIComponents {
     addToSearchHistory(query) {
         // In a real app, this would save to localStorage or server
         console.log('Added to search history:', query);
+    }
+
+    // ===== MISSING HOME SCREEN INTERFACES =====
+
+    // ===== 1. FULL STORY VIEWER =====
+    initializeFullStoryViewer() {
+        // Enhanced story viewer with full-screen controls
+        this.storyViewerFeatures = {
+            autoPlay: true,
+            showViewers: false,
+            enableReactions: true,
+            enableReplies: true
+        };
+    }
+
+    // ===== 2. STORY CREATION CAMERA =====
+    initializeStoryCameraCreation() {
+        this.setupStoryCameraInterface();
+    }
+
+    setupStoryCameraInterface() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#create-story-camera')) {
+                this.showStoryCameraModal();
+            }
+        });
+    }
+
+    showStoryCameraModal() {
+        const cameraModal = document.createElement('div');
+        cameraModal.id = 'story-camera-modal';
+        cameraModal.className = 'modal story-camera-modal active';
+        cameraModal.innerHTML = `
+            <div class="camera-interface">
+                <div class="camera-header">
+                    <button class="camera-close-btn" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h3>Create Story</h3>
+                    <button class="camera-settings-btn">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+                <div class="camera-preview-area">
+                    <video id="story-camera-video" autoplay playsinline></video>
+                    <canvas id="story-camera-canvas" style="display: none;"></canvas>
+                    <div class="camera-filters-overlay">
+                        <div class="filters-list" id="story-filters">
+                            <button class="filter-btn active" data-filter="none">None</button>
+                            <button class="filter-btn" data-filter="vintage">Vintage</button>
+                            <button class="filter-btn" data-filter="bright">Bright</button>
+                            <button class="filter-btn" data-filter="dark">Dark</button>
+                            <button class="filter-btn" data-filter="sepia">Sepia</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <div class="camera-mode-selector">
+                        <button class="camera-mode-btn active" data-mode="photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="camera-mode-btn" data-mode="video">
+                            <i class="fas fa-video"></i>
+                        </button>
+                    </div>
+                    <button class="capture-btn" id="story-capture-btn">
+                        <div class="capture-circle"></div>
+                    </button>
+                    <button class="camera-flip-btn" id="camera-flip-btn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="story-text-tools" id="story-text-tools" style="display: none;">
+                    <input type="text" placeholder="Add text..." class="story-text-input">
+                    <div class="text-style-controls">
+                        <button class="text-color-btn" style="background: #fff;" data-color="#fff"></button>
+                        <button class="text-color-btn" style="background: #000;" data-color="#000"></button>
+                        <button class="text-color-btn" style="background: #ff6b6b;" data-color="#ff6b6b"></button>
+                        <button class="text-color-btn" style="background: #4ecdc4;" data-color="#4ecdc4"></button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(cameraModal);
+        this.setupStoryCameraEvents(cameraModal);
+    }
+
+    setupStoryCameraEvents(modal) {
+        // Initialize camera
+        this.initializeStoryCamera();
+        
+        // Filter selection
+        modal.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.applyStoryFilter(btn.dataset.filter);
+            });
+        });
+
+        // Capture button
+        modal.querySelector('#story-capture-btn').addEventListener('click', () => {
+            this.captureStoryContent();
+        });
+    }
+
+    async initializeStoryCamera() {
+        try {
+            const video = document.getElementById('story-camera-video');
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user' }, 
+                audio: false 
+            });
+            video.srcObject = stream;
+        } catch (error) {
+            console.error('Camera access failed:', error);
+            this.app.showToast('Camera access denied', 'error');
+        }
+    }
+
+    applyStoryFilter(filterName) {
+        const video = document.getElementById('story-camera-video');
+        if (!video) return;
+        
+        const filters = {
+            'none': 'none',
+            'vintage': 'sepia(0.5) contrast(1.2)',
+            'bright': 'brightness(1.2) contrast(1.1)',
+            'dark': 'brightness(0.8) contrast(1.3)',
+            'sepia': 'sepia(1)'
+        };
+        
+        video.style.filter = filters[filterName] || 'none';
+    }
+
+    captureStoryContent() {
+        this.app.showToast('Story content captured!', 'success');
+        document.getElementById('story-camera-modal')?.remove();
+    }
+
+    // ===== 3. POST COMMENTS THREAD =====
+    initializePostCommentsThread() {
+        // Enhanced thread view for post comments
+        this.commentsThreadFeatures = {
+            infiniteScroll: true,
+            nestedReplies: true,
+            realTimeUpdates: true,
+            moderationTools: true
+        };
+    }
+
+    // ===== 4. POST REACTIONS PANEL =====
+    initializePostReactionsPanel() {
+        this.setupAdvancedReactions();
+    }
+
+    setupAdvancedReactions() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.post-reactions-btn')) {
+                const postElement = e.target.closest('.feed-post');
+                const postId = postElement?.dataset.postId;
+                if (postId) {
+                    this.showReactionsPanel(postId, e.target.closest('.post-reactions-btn'));
+                }
+            }
+        });
+    }
+
+    showReactionsPanel(postId, triggerElement) {
+        const reactionsPanel = document.createElement('div');
+        reactionsPanel.id = 'post-reactions-panel';
+        reactionsPanel.className = 'reactions-panel';
+        reactionsPanel.innerHTML = `
+            <div class="reactions-panel-content">
+                <div class="reactions-header">
+                    <span>React to this post</span>
+                </div>
+                <div class="reactions-grid">
+                    <button class="reaction-option" data-reaction="like" title="Like">
+                        <span class="reaction-emoji">👍</span>
+                        <span class="reaction-label">Like</span>
+                    </button>
+                    <button class="reaction-option" data-reaction="love" title="Love">
+                        <span class="reaction-emoji">❤️</span>
+                        <span class="reaction-label">Love</span>
+                    </button>
+                    <button class="reaction-option" data-reaction="laugh" title="Haha">
+                        <span class="reaction-emoji">😂</span>
+                        <span class="reaction-label">Haha</span>
+                    </button>
+                    <button class="reaction-option" data-reaction="wow" title="Wow">
+                        <span class="reaction-emoji">😮</span>
+                        <span class="reaction-label">Wow</span>
+                    </button>
+                    <button class="reaction-option" data-reaction="sad" title="Sad">
+                        <span class="reaction-emoji">😢</span>
+                        <span class="reaction-label">Sad</span>
+                    </button>
+                    <button class="reaction-option" data-reaction="angry" title="Angry">
+                        <span class="reaction-emoji">😡</span>
+                        <span class="reaction-label">Angry</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Position panel
+        const rect = triggerElement.getBoundingClientRect();
+        reactionsPanel.style.position = 'fixed';
+        reactionsPanel.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+        reactionsPanel.style.left = rect.left + 'px';
+        reactionsPanel.style.zIndex = '10000';
+
+        document.body.appendChild(reactionsPanel);
+
+        // Setup reaction selection
+        reactionsPanel.addEventListener('click', (e) => {
+            const reactionOption = e.target.closest('.reaction-option');
+            if (reactionOption) {
+                const reaction = reactionOption.dataset.reaction;
+                this.addPostReaction(postId, reaction);
+                reactionsPanel.remove();
+            }
+        });
+
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            if (document.body.contains(reactionsPanel)) {
+                reactionsPanel.remove();
+            }
+        }, 5000);
+    }
+
+    addPostReaction(postId, reaction) {
+        const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+        if (!postElement) return;
+
+        this.app.showToast(`Reacted with ${reaction}`, 'success');
+        
+        // Update reaction count in post
+        const reactionBtn = postElement.querySelector('.post-reactions-btn');
+        if (reactionBtn) {
+            reactionBtn.classList.add('reacted');
+        }
+    }
+
+    // ===== 5. SHARE POST MODAL =====
+    initializeSharePostModal() {
+        this.setupPostSharing();
+    }
+
+    setupPostSharing() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.share-btn')) {
+                const postElement = e.target.closest('.feed-post');
+                const postId = postElement?.dataset.postId;
+                if (postId) {
+                    this.showShareModal(postId);
+                }
+            }
+        });
+    }
+
+    showShareModal(postId) {
+        const shareModal = document.createElement('div');
+        shareModal.id = 'share-post-modal';
+        shareModal.className = 'modal share-modal active';
+        shareModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Share Post</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="share-options">
+                        <div class="share-section">
+                            <h4>Share to ConnectHub</h4>
+                            <div class="share-internal-options">
+                                <button class="share-option" data-action="story">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Share to Story</span>
+                                </button>
+                                <button class="share-option" data-action="message">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Send in Message</span>
+                                </button>
+                                <button class="share-option" data-action="group">
+                                    <i class="fas fa-users"></i>
+                                    <span>Share to Group</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="share-section">
+                            <h4>Share to Other Apps</h4>
+                            <div class="share-external-options">
+                                <button class="share-option external" data-platform="facebook">
+                                    <i class="fab fa-facebook"></i>
+                                    <span>Facebook</span>
+                                </button>
+                                <button class="share-option external" data-platform="twitter">
+                                    <i class="fab fa-twitter"></i>
+                                    <span>Twitter</span>
+                                </button>
+                                <button class="share-option external" data-platform="instagram">
+                                    <i class="fab fa-instagram"></i>
+                                    <span>Instagram</span>
+                                </button>
+                                <button class="share-option external" data-platform="whatsapp">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <span>WhatsApp</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="share-section">
+                            <h4>Copy Link</h4>
+                            <div class="copy-link-container">
+                                <input type="text" value="https://connecthub.com/posts/${postId}" readonly class="copy-link-input">
+                                <button class="copy-link-btn" onclick="this.previousElementSibling.select(); navigator.clipboard.writeText(this.previousElementSibling.value)">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(shareModal);
+        this.setupShareModalEvents(shareModal, postId);
+    }
+
+    setupShareModalEvents(modal, postId) {
+        modal.querySelectorAll('.share-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const action = option.dataset.action;
+                const platform = option.dataset.platform;
+                
+                if (action) {
+                    this.handleInternalShare(postId, action);
+                } else if (platform) {
+                    this.handleExternalShare(postId, platform);
+                }
+                
+                modal.remove();
+            });
+        });
+    }
+
+    handleInternalShare(postId, shareType) {
+        const messages = {
+            story: 'Post shared to your story',
+            message: 'Opening message composer...',
+            group: 'Select a group to share with'
+        };
+        
+        this.app.showToast(messages[shareType], 'success');
+    }
+
+    handleExternalShare(postId, platform) {
+        const url = `https://connecthub.com/posts/${postId}`;
+        const shareUrls = {
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+            twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`,
+            instagram: url,
+            whatsapp: `https://wa.me/?text=${encodeURIComponent(url)}`
+        };
+
+        if (shareUrls[platform]) {
+            window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+        }
+    }
+
+    // ===== 6. CONTENT FILTER SETTINGS =====
+    initializeContentFilterSettings() {
+        this.setupContentFilters();
+    }
+
+    setupContentFilters() {
+        // Add filter button to feed navigation
+        const feedNav = document.querySelector('.feed-nav');
+        if (feedNav) {
+            const filterBtn = document.createElement('button');
+            filterBtn.className = 'feed-filter-btn';
+            filterBtn.innerHTML = '<i class="fas fa-filter"></i>';
+            filterBtn.title = 'Content Filters';
+            filterBtn.addEventListener('click', () => this.showContentFilterModal());
+            feedNav.appendChild(filterBtn);
+        }
+    }
+
+    showContentFilterModal() {
+        const filterModal = document.createElement('div');
+        filterModal.id = 'content-filter-modal';
+        filterModal.className = 'modal content-filter-modal active';
+        filterModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Content Filter Settings</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-categories">
+                        <div class="filter-category">
+                            <h4>Content Types</h4>
+                            <label class="filter-toggle">
+                                <input type="checkbox" checked> Photos
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox" checked> Videos
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox" checked> Text Posts
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox"> Live Streams
+                            </label>
+                        </div>
+                        <div class="filter-category">
+                            <h4>Topics</h4>
+                            <div class="topic-tags">
+                                <button class="topic-tag active" data-topic="all">All</button>
+                                <button class="topic-tag" data-topic="photography">Photography</button>
+                                <button class="topic-tag" data-topic="travel">Travel</button>
+                                <button class="topic-tag" data-topic="art">Art</button>
+                                <button class="topic-tag" data-topic="technology">Tech</button>
+                            </div>
+                        </div>
+                        <div class="filter-category">
+                            <h4>Sources</h4>
+                            <label class="filter-toggle">
+                                <input type="checkbox" checked> Friends
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox" checked> Following
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox"> Suggested
+                            </label>
+                            <label class="filter-toggle">
+                                <input type="checkbox"> Popular
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="homeUI.saveContentFilters(); this.closest('.modal').remove();">Save Filters</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(filterModal);
+    }
+
+    saveContentFilters() {
+        this.app.showToast('Content filters saved', 'success');
+    }
+
+    // ===== 7. LIVE ACTIVITY NOTIFICATION =====
+    initializeLiveActivityNotification() {
+        this.setupLiveNotifications();
+    }
+
+    setupLiveNotifications() {
+        // Simulate live notifications
+        setInterval(() => {
+            this.showLiveNotification();
+        }, 30000); // Every 30 seconds
+    }
+
+    showLiveNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'live-activity-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="notification-text">
+                    <strong>Emma Watson</strong> liked your photo
+                </div>
+                <button class="notification-close" onclick="this.closest('.live-activity-notification').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        const container = document.querySelector('.notifications-container') || document.body;
+        container.appendChild(notification);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    // ===== 8. POST EDIT INTERFACE =====
+    initializePostEditInterface() {
+        this.setupPostEditing();
+    }
+
+    setupPostEditing() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-post-btn')) {
+                const postElement = e.target.closest('.feed-post');
+                const postId = postElement?.dataset.postId;
+                if (postId) {
+                    this.showPostEditModal(postId);
+                }
+            }
+        });
+    }
+
+    showPostEditModal(postId) {
+        const editModal = document.createElement('div');
+        editModal.id = 'post-edit-modal';
+        editModal.className = 'modal post-edit-modal active';
+        editModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Post</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="post-edit-content">
+                        <textarea class="edit-post-text" placeholder="What's on your mind?" rows="4">Amazing sunset from yesterday's hike! 🌅 #photography #nature</textarea>
+                        <div class="edit-post-privacy">
+                            <label for="edit-privacy">Privacy:</label>
+                            <select id="edit-privacy">
+                                <option value="public">Public</option>
+                                <option value="friends">Friends</option>
+                                <option value="private">Only Me</option>
+                            </select>
+                        </div>
+                        <div class="edit-post-options">
+                            <label class="edit-option">
+                                <input type="checkbox" checked> Allow comments
+                            </label>
+                            <label class="edit-option">
+                                <input type="checkbox" checked> Allow reactions
+                            </label>
+                            <label class="edit-option">
+                                <input type="checkbox"> Featured post
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="homeUI.savePostEdit('${postId}'); this.closest('.modal').remove();">Save Changes</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(editModal);
+    }
+
+    savePostEdit(postId) {
+        this.app.showToast('Post updated successfully', 'success');
+    }
+
+    // ===== 9. POST REPORT MODAL =====
+    initializePostReportModal() {
+        this.setupPostReporting();
+    }
+
+    setupPostReporting() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.report-post-btn')) {
+                const postElement = e.target.closest('.feed-post');
+                const postId = postElement?.dataset.postId;
+                if (postId) {
+                    this.showReportModal(postId);
+                }
+            }
+        });
+    }
+
+    showReportModal(postId) {
+        const reportModal = document.createElement('div');
+        reportModal.id = 'post-report-modal';
+        reportModal.className = 'modal report-modal active';
+        reportModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Report Post</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-reasons">
+                        <h4>Why are you reporting this post?</h4>
+                        <div class="reason-options">
+                            <label class="reason-option">
+                                <input type="radio" name="report-reason" value="spam">
+                                <span class="reason-text">
+                                    <strong>Spam</strong>
+                                    <small>Repetitive or irrelevant content</small>
+                                </span>
+                            </label>
+                            <label class="reason-option">
+                                <input type="radio" name="report-reason" value="harassment">
+                                <span class="reason-text">
+                                    <strong>Harassment</strong>
+                                    <small>Bullying or targeted harassment</small>
+                                </span>
+                            </label>
+                            <label class="reason-option">
+                                <input type="radio" name="report-reason" value="inappropriate">
+                                <span class="reason-text">
+                                    <strong>Inappropriate Content</strong>
+                                    <small>Violent, graphic or sexual content</small>
+                                </span>
+                            </label>
+                            <label class="reason-option">
+                                <input type="radio" name="report-reason" value="false-info">
+                                <span class="reason-text">
+                                    <strong>False Information</strong>
+                                    <small>Misleading or false content</small>
+                                </span>
+                            </label>
+                            <label class="reason-option">
+                                <input type="radio" name="report-reason" value="copyright">
+                                <span class="reason-text">
+                                    <strong>Copyright Violation</strong>
+                                    <small>Uses my content without permission</small>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="additional-info">
+                            <label for="report-details">Additional details (optional):</label>
+                            <textarea id="report-details" rows="3" placeholder="Provide more context..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-danger" onclick="homeUI.submitReport('${postId}'); this.closest('.modal').remove();">Submit Report</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(reportModal);
+    }
+
+    submitReport(postId) {
+        this.app.showToast('Report submitted. Thank you for helping keep ConnectHub safe.', 'success');
+    }
+
+    // ===== 10. HASHTAG BROWSE SCREEN =====
+    initializeHashtagBrowseScreen() {
+        this.setupHashtagBrowsing();
+    }
+
+    setupHashtagBrowsing() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.hashtag') || e.target.closest('.trend-name')) {
+                const hashtag = e.target.textContent.includes('#') ? 
+                    e.target.textContent : '#' + e.target.textContent.replace('#', '');
+                this.showHashtagBrowseModal(hashtag);
+            }
+        });
+    }
+
+    showHashtagBrowseModal(hashtag) {
+        const browseModal = document.createElement('div');
+        browseModal.id = 'hashtag-browse-modal';
+        browseModal.className = 'modal hashtag-browse-modal active';
+        browseModal.innerHTML = `
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>${hashtag}</h3>
+                    <div class="hashtag-stats">
+                        <span>24.5K posts</span>
+                        <span>•</span>
+                        <span>+12% this week</span>
+                    </div>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="hashtag-browse-content">
+                        <div class="hashtag-browse-header">
+                            <div class="browse-tabs">
+                                <button class="browse-tab active" data-tab="top">Top Posts</button>
+                                <button class="browse-tab" data-tab="recent">Recent</button>
+                                <button class="browse-tab" data-tab="people">People</button>
+                            </div>
+                            <div class="hashtag-actions">
+                                <button class="follow-hashtag-btn">
+                                    <i class="fas fa-plus"></i> Follow
+                                </button>
+                            </div>
+                        </div>
+                        <div class="hashtag-content-grid" id="hashtag-content-grid">
+                            ${this.generateHashtagPosts(hashtag)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(browseModal);
+        this.setupHashtagBrowseEvents(browseModal, hashtag);
+    }
+
+    generateHashtagPosts(hashtag) {
+        const mockPosts = [
+            { image: 'https://source.unsplash.com/300x300/?photography,sunset', likes: 234, comments: 45 },
+            { image: 'https://source.unsplash.com/300x300/?nature,landscape', likes: 189, comments: 23 },
+            { image: 'https://source.unsplash.com/300x300/?travel,beach', likes: 156, comments: 32 }
+        ];
+
+        return mockPosts.map((post, index) => `
+            <div class="hashtag-post-item" data-post-index="${index}">
+                <img src="${post.image}" alt="Hashtag post" class="hashtag-post-image">
+                <div class="hashtag-post-overlay">
+                    <div class="hashtag-post-stats">
+                        <span><i class="fas fa-heart"></i> ${post.likes}</span>
+                        <span><i class="fas fa-comment"></i> ${post.comments}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    setupHashtagBrowseEvents(modal, hashtag) {
+        // Tab switching
+        modal.querySelectorAll('.browse-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                modal.querySelectorAll('.browse-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                this.loadHashtagContent(hashtag, tab.dataset.tab);
+            });
+        });
+
+        // Follow hashtag
+        modal.querySelector('.follow-hashtag-btn').addEventListener('click', () => {
+            this.followHashtag(hashtag);
+        });
+    }
+
+    loadHashtagContent(hashtag, tab) {
+        const contentGrid = document.getElementById('hashtag-content-grid');
+        if (!contentGrid) return;
+
+        switch (tab) {
+            case 'top':
+                contentGrid.innerHTML = this.generateHashtagPosts(hashtag);
+                break;
+            case 'recent':
+                contentGrid.innerHTML = this.generateHashtagPosts(hashtag);
+                break;
+            case 'people':
+                contentGrid.innerHTML = this.generateHashtagPeople(hashtag);
+                break;
+        }
+    }
+
+    generateHashtagPeople(hashtag) {
+        const people = [
+            { name: 'Emma Watson', avatar: 'https://via.placeholder.com/80x80/42b72a/ffffff?text=EW', followers: '2.3M' },
+            { name: 'Alex Johnson', avatar: 'https://via.placeholder.com/80x80/ff6b6b/ffffff?text=AJ', followers: '856K' }
+        ];
+
+        return people.map(person => `
+            <div class="hashtag-person-item">
+                <img src="${person.avatar}" alt="${person.name}" class="person-avatar">
+                <div class="person-info">
+                    <h4>${person.name}</h4>
+                    <p>${person.followers} followers</p>
+                    <button class="follow-person-btn">Follow</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    followHashtag(hashtag) {
+        this.app.showToast(`Now following ${hashtag}`, 'success');
+    }
+
+    // ===== 11. MENTION SUGGESTIONS =====
+    initializeMentionSuggestions() {
+        this.setupMentionAutocomplete();
+    }
+
+    setupMentionAutocomplete() {
+        // Enhanced mention suggestions for post creation
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('.post-text, #comment-input, .reply-input')) {
+                this.handleMentionInput(e.target);
+            }
+        });
+    }
+
+    handleMentionInput(input) {
+        const text = input.value || input.textContent;
+        const cursorPos = this.getCursorPosition(input);
+        const textBeforeCursor = text.substring(0, cursorPos);
+        
+        // Check for @mentions
+        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+        if (mentionMatch) {
+            this.showMentionSuggestionsList(mentionMatch[1], input);
+            return;
+        }
+
+        this.hideMentionSuggestions();
+    }
+
+    showMentionSuggestionsList(query, inputElement) {
+        const suggestions = this.getMentionSuggestions(query);
+        
+        let suggestionsContainer = document.getElementById('mention-suggestions-popup');
+        if (!suggestionsContainer) {
+            suggestionsContainer = document.createElement('div');
+            suggestionsContainer.id = 'mention-suggestions-popup';
+            suggestionsContainer.className = 'mention-suggestions-popup';
+            document.body.appendChild(suggestionsContainer);
+        }
+
+        if (suggestions.length === 0) {
+            this.hideMentionSuggestions();
+            return;
+        }
+
+        suggestionsContainer.innerHTML = `
+            <div class="mention-suggestions-content">
+                <div class="suggestions-header">Mention someone</div>
+                <div class="mention-suggestions-list">
+                    ${suggestions.map(user => `
+                        <div class="mention-suggestion-item" data-user-id="${user.id}" data-username="${user.username}">
+                            <img src="${user.avatar}" alt="${user.name}" class="mention-user-avatar">
+                            <div class="mention-user-info">
+                                <div class="mention-user-name">${user.name}</div>
+                                <div class="mention-username">@${user.username}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        // Position near input
+        const rect = inputElement.getBoundingClientRect();
+        suggestionsContainer.style.position = 'fixed';
+        suggestionsContainer.style.top = (rect.bottom + 5) + 'px';
+        suggestionsContainer.style.left = rect.left + 'px';
+        suggestionsContainer.style.zIndex = '10000';
+        suggestionsContainer.style.display = 'block';
+
+        this.setupMentionSuggestionEvents(suggestionsContainer, inputElement);
+    }
+
+    setupMentionSuggestionEvents(container, inputElement) {
+        container.addEventListener('click', (e) => {
+            const item = e.target.closest('.mention-suggestion-item');
+            if (item) {
+                const username = item.dataset.username;
+                this.insertMention(inputElement, username);
+                this.hideMentionSuggestions();
+            }
+        });
+    }
+
+    insertMention(inputElement, username) {
+        const text = inputElement.value || inputElement.textContent;
+        const newText = text.replace(/@\w*$/, `@${username} `);
+        
+        if (inputElement.value !== undefined) {
+            inputElement.value = newText;
+        } else {
+            inputElement.textContent = newText;
+        }
+        
+        inputElement.focus();
+    }
+
+    getMentionSuggestions(query) {
+        const mockUsers = [
+            { id: 'user-1', name: 'Emma Watson', username: 'emmawatson', avatar: 'https://via.placeholder.com/32x32/42b72a/ffffff?text=EW' },
+            { id: 'user-2', name: 'Alex Johnson', username: 'alexj', avatar: 'https://via.placeholder.com/32x32/ff6b6b/ffffff?text=AJ' },
+            { id: 'user-3', name: 'Sarah Chen', username: 'sarahc', avatar: 'https://via.placeholder.com/32x32/9b59b6/ffffff?text=SC' },
+            { id: 'user-4', name: 'Mike Rodriguez', username: 'miker', avatar: 'https://via.placeholder.com/32x32/e67e22/ffffff?text=MR' }
+        ];
+
+        return mockUsers.filter(user => 
+            user.name.toLowerCase().includes(query.toLowerCase()) ||
+            user.username.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 5);
+    }
+
+    hideMentionSuggestions() {
+        const container = document.getElementById('mention-suggestions-popup');
+        if (container) {
+            container.style.display = 'none';
+        }
+    }
+
+    getCursorPosition(element) {
+        if (element.value !== undefined) {
+            return element.selectionStart;
+        }
+        
+        let caretOffset = 0;
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(element);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            caretOffset = preCaretRange.toString().length;
+        }
+        return caretOffset;
+    }
+
+    // ===== 12. POST SCHEDULING INTERFACE =====
+    initializePostSchedulingInterface() {
+        this.setupPostScheduling();
+    }
+
+    setupPostScheduling() {
+        // Add schedule option to post composer
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#schedule-post-btn')) {
+                this.showPostSchedulingModal();
+            }
+        });
+    }
+
+    showPostSchedulingModal() {
+        const scheduleModal = document.createElement('div');
+        scheduleModal.id = 'post-scheduling-modal';
+        scheduleModal.className = 'modal scheduling-modal active';
+        scheduleModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Schedule Post</h3>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="scheduling-interface">
+                        <div class="schedule-options">
+                            <h4>When do you want to publish?</h4>
+                            <div class="schedule-time-options">
+                                <label class="schedule-option">
+                                    <input type="radio" name="schedule-type" value="now" checked>
+                                    <span>Publish now</span>
+                                </label>
+                                <label class="schedule-option">
+                                    <input type="radio" name="schedule-type" value="custom">
+                                    <span>Schedule for later</span>
+                                </label>
+                                <label class="schedule-option">
+                                    <input type="radio" name="schedule-type" value="optimal">
+                                    <span>Best time (AI suggested)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="custom-schedule-section" id="custom-schedule" style="display: none;">
+                            <div class="datetime-picker">
+                                <label for="schedule-datetime">Date and Time:</label>
+                                <input type="datetime-local" id="schedule-datetime" class="datetime-input">
+                            </div>
+                            <div class="timezone-display">
+                                <i class="fas fa-globe"></i>
+                                <span>Your timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
+                            </div>
+                        </div>
+                        <div class="optimal-schedule-section" id="optimal-schedule" style="display: none;">
+                            <div class="ai-suggestions">
+                                <h5>🤖 AI Recommended Times</h5>
+                                <div class="optimal-times">
+                                    <button class="optimal-time-btn" data-time="today-6pm">
+                                        <div class="time-slot">Today 6:00 PM</div>
+                                        <div class="engagement-score">High engagement expected</div>
+                                    </button>
+                                    <button class="optimal-time-btn" data-time="tomorrow-9am">
+                                        <div class="time-slot">Tomorrow 9:00 AM</div>
+                                        <div class="engagement-score">Peak audience activity</div>
+                                    </button>
+                                    <button class="optimal-time-btn" data-time="weekend">
+                                        <div class="time-slot">Saturday 2:00 PM</div>
+                                        <div class="engagement-score">Weekend boost</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="scheduled-posts-manager">
+                            <h5>Upcoming Scheduled Posts</h5>
+                            <div class="scheduled-posts-list">
+                                <div class="scheduled-post-preview">
+                                    <div class="scheduled-post-content">
+                                        <p>"Weekend photography session! 📸"</p>
+                                        <small>Tomorrow at 9:00 AM</small>
+                                    </div>
+                                    <div class="scheduled-post-actions">
+                                        <button class="edit-scheduled-btn">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-scheduled-btn">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="homeUI.saveScheduledPost(); this.closest('.modal').remove();">Schedule Post</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(scheduleModal);
+        this.setupPostSchedulingEvents(scheduleModal);
+    }
+
+    setupPostSchedulingEvents(modal) {
+        const scheduleTypeRadios = modal.querySelectorAll('input[name="schedule-type"]');
+        const customSection = modal.querySelector('#custom-schedule');
+        const optimalSection = modal.querySelector('#optimal-schedule');
+
+        scheduleTypeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const scheduleType = radio.value;
+                
+                // Hide all sections
+                customSection.style.display = 'none';
+                optimalSection.style.display = 'none';
+                
+                // Show relevant section
+                if (scheduleType === 'custom') {
+                    customSection.style.display = 'block';
+                } else if (scheduleType === 'optimal') {
+                    optimalSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Setup optimal time selection
+        modal.querySelectorAll('.optimal-time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.querySelectorAll('.optimal-time-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+        });
+    }
+
+    saveScheduledPost() {
+        this.app.showToast('Post scheduled successfully!', 'success');
     }
 
     /**

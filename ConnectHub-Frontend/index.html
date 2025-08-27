@@ -264,8 +264,178 @@
 
         <!-- SOCIAL MEDIA CATEGORY -->
         <section id="socialCategory" class="category-section" aria-label="Social media">
-            <!-- Content will be dynamically loaded -->
-            <div id="socialContent"></div>
+            <!-- Home Screen -->
+            <div id="socialHome" class="screen active">
+                <div class="page-layout">
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+                        <div>
+                            <div style="background: var(--bg-card); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+                                <h2 style="margin-bottom: 1.5rem;">What's on your mind?</h2>
+                                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                    <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;">JD</div>
+                                    <div style="flex: 1; padding: 1rem; background: var(--glass); border-radius: 20px; cursor: pointer;" onclick="openCreatePost()" role="button" tabindex="0">Share something...</div>
+                                </div>
+                                <div style="display: flex; gap: 1rem; justify-content: space-around;">
+                                    <button class="btn btn-secondary btn-small" onclick="openCreatePost('photo')">📷 Photo</button>
+                                    <button class="btn btn-secondary btn-small" onclick="openCreatePost('video')">🎥 Video</button>
+                                    <button class="btn btn-secondary btn-small" onclick="openCreatePost('live')">📺 Live</button>
+                                </div>
+                            </div>
+                            <div id="postsContainer" role="feed" aria-label="Social media posts">
+                                <!-- Posts will be populated here -->
+                            </div>
+                        </div>
+                        <aside>
+                            <div style="background: var(--bg-card); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1rem;">Suggested Friends</h3>
+                                <div id="suggestedFriends">
+                                    <!-- Suggested friends will be populated here -->
+                                </div>
+                            </div>
+                            <div style="background: var(--bg-card); border-radius: 20px; padding: 1.5rem;">
+                                <h3 style="margin-bottom: 1rem;">Active Now</h3>
+                                <div id="activeUsers">
+                                    <!-- Active users will be populated here -->
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Screen -->
+            <div id="socialMessages" class="screen">
+                <div class="page-layout">
+                    <div style="display: grid; grid-template-columns: 300px 1fr; height: calc(100vh - 200px);">
+                        <div style="background: var(--bg-card); border-radius: 20px 0 0 20px; border-right: 1px solid var(--glass-border);">
+                            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border);">
+                                <h3>Messages</h3>
+                            </div>
+                            <div id="conversationsList">
+                                <!-- Conversations will be populated here -->
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-card); border-radius: 0 20px 20px 0;" id="chatArea">
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
+                                Select a conversation to start messaging
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Screen -->
+            <div id="socialProfile" class="screen">
+                <!-- Profile content will be populated here by populateProfileScreen() -->
+            </div>
+
+            <!-- Groups Screen -->
+            <div id="socialGroups" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Groups</h1>
+                        <p style="color: var(--text-secondary);">Discover and join communities</p>
+                    </div>
+                    <div id="groupsList" class="grid-3" role="list" aria-label="Groups">
+                        <!-- Groups will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Screen -->
+            <div id="socialEvents" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Events</h1>
+                        <p style="color: var(--text-secondary);">Discover and join events</p>
+                    </div>
+                    <div id="eventsList" class="grid-3" role="list" aria-label="Events">
+                        <!-- Events will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stories Screen -->
+            <div id="socialStories" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Stories</h1>
+                        <p style="color: var(--text-secondary);">Share your moments</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0; margin-bottom: 2rem;" id="storiesList">
+                        <!-- Stories will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explore Screen -->
+            <div id="socialExplore" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Explore</h1>
+                        <p style="color: var(--text-secondary);">Discover new content and people</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                        <!-- Explore content will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Screen -->
+            <div id="socialSearch" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Search</h1>
+                        <div style="max-width: 500px; margin: 0 auto;">
+                            <input type="search" placeholder="Search people, posts, groups..." style="width: 100%; padding: 1rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary);" onkeyup="if(event.key==='Enter') performSearch(this.value)">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+                        <div>
+                            <h3 style="margin-bottom: 1rem;">Search Results</h3>
+                            <div style="color: var(--text-secondary);">Enter a search term to find people, posts, and groups</div>
+                        </div>
+                        <aside>
+                            <div style="background: var(--bg-card); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1rem;">Trending</h3>
+                                <div id="trendingTopics">
+                                    <!-- Trending topics will be populated here -->
+                                </div>
+                            </div>
+                            <div style="background: var(--bg-card); border-radius: 20px; padding: 1.5rem;">
+                                <h3 style="margin-bottom: 1rem;">Suggested People</h3>
+                                <div id="suggestedPeople">
+                                    <!-- Suggested people will be populated here -->
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div id="socialSettings" class="screen">
+                <div class="page-layout">
+                    <div style="text-align: center; margin-bottom: 3rem;">
+                        <h1 style="margin-bottom: 1rem;">Settings</h1>
+                        <p style="color: var(--text-secondary);">Manage your account and preferences</p>
+                    </div>
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <div style="background: var(--bg-card); border-radius: 20px; padding: 2rem;">
+                            <h3 style="margin-bottom: 2rem;">Account Settings</h3>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">🔐 Privacy & Security</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">🔔 Notifications</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">🎨 Appearance</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">🌐 Language & Region</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">💾 Data & Storage</button>
+                                <button class="btn btn-secondary" style="justify-content: flex-start;">❓ Help & Support</button>
+                                <button class="btn btn-error" style="justify-content: flex-start;">🚪 Sign Out</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- DATING CATEGORY -->
@@ -333,5 +503,9 @@
     </div>
 
     <script src="src/js/app.js"></script>
+    <script src="src/js/profile-ui-components.js"></script>
+    <script src="src/js/search-missing-ui-components.js"></script>
+    <script src="src/js/groups-missing-ui-components.js"></script>
+    <script src="src/js/events-missing-ui-components.js"></script>
 </body>
 </html>
