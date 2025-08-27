@@ -601,9 +601,10 @@
                         <button style="width: 60px; height: 60px; border: none; border-radius: 50%; background: var(--success); color: white; font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;" onclick="swipeCard('right')" aria-label="Like">💕</button>
                     </div>
 
-                    <div style="text-align: center; margin-top: 2rem;">
+                    <div style="text-align: center; margin-top: 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                        <button class="btn btn-secondary" onclick="datingUIComponents.showPhotoGalleryViewer()">📸 View Photos</button>
                         <button class="btn btn-secondary" onclick="switchToScreen('dating', 'matches')">💬 View Matches</button>
-                        <button class="btn btn-secondary" style="margin-left: 1rem;" onclick="switchToScreen('dating', 'preferences')">⚙️ Preferences</button>
+                        <button class="btn btn-secondary" onclick="switchToScreen('dating', 'preferences')">⚙️ Preferences</button>
                     </div>
                 </div>
             </div>
@@ -1387,5 +1388,6 @@
     <script src="src/js/search-missing-ui-components.js"></script>
     <script src="src/js/groups-missing-ui-components.js"></script>
     <script src="src/js/events-missing-ui-components.js"></script>
+    <script src="src/js/dating-missing-ui-components.js"></script>
 </body>
 </html>
