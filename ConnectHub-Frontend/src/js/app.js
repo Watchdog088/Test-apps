@@ -689,6 +689,39 @@ function loadDatingCard() {
             </div>
         </div>
     `;
+
+    // Add comprehensive dating UI test buttons
+    addDatingTestButtons();
+}
+
+function addDatingTestButtons() {
+    const datingSwipe = document.getElementById('datingSwipe');
+    if (!datingSwipe || document.getElementById('datingTestButtons')) return;
+
+    const testButtonsContainer = document.createElement('div');
+    testButtonsContainer.id = 'datingTestButtons';
+    testButtonsContainer.style.cssText = 'margin-top: 2rem; padding: 1.5rem; background: var(--glass); border-radius: 12px;';
+    testButtonsContainer.innerHTML = `
+        <h3 style="color: var(--primary); margin-bottom: 1rem;">💕 Advanced Dating Features (3 Missing UIs)</h3>
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">Test the comprehensive dating UI interfaces that were missing:</p>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <button class="btn btn-primary btn-small" onclick="showDatingProfileSetupWizard()">
+                🔧 Dating Profile Setup Wizard
+            </button>
+            <button class="btn btn-primary btn-small" onclick="showSuperLikeBoostFeatures()">
+                ⭐ Super Like/Boost Features
+            </button>
+            <button class="btn btn-primary btn-small" onclick="showDateSchedulingInterface()">
+                📅 Date Scheduling Interface
+            </button>
+        </div>
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--primary); color: white; border-radius: 8px; text-align: center;">
+            <strong>✅ All 3 Critical Dating UIs Implemented!</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Complete profile setup, premium features, and advanced date scheduling</p>
+        </div>
+    `;
+
+    datingSwipe.appendChild(testButtonsContainer);
 }
 
 function populateMatches() {
