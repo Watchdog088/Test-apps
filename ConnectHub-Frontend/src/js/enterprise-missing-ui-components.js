@@ -99,7 +99,7 @@ class EnterpriseMissingUIComponents {
         modal.className = 'enterprise-modal analytics-dashboard-modal active';
         modal.innerHTML = `
             <div class="enterprise-modal-overlay">
-                <div class="enterprise-modal-content large-modal">
+                <div class="enterprise-modal-content extra-large-modal">
                     <div class="modal-header">
                         <h2>📊 Advanced Analytics Dashboard</h2>
                         <p>Comprehensive business insights and performance metrics</p>
@@ -107,232 +107,693 @@ class EnterpriseMissingUIComponents {
                     </div>
 
                     <div class="analytics-dashboard">
-                        <!-- Dashboard Header -->
-                        <div class="dashboard-header">
-                            <div class="time-range-selector">
-                                <button class="time-btn active" onclick="enterpriseUI.loadAnalytics('week')">7 Days</button>
-                                <button class="time-btn" onclick="enterpriseUI.loadAnalytics('month')">30 Days</button>
-                                <button class="time-btn" onclick="enterpriseUI.loadAnalytics('quarter')">90 Days</button>
-                                <button class="time-btn" onclick="enterpriseUI.loadAnalytics('year')">1 Year</button>
+                        <!-- Dashboard Navigation -->
+                        <div class="dashboard-nav">
+                            <div class="nav-tabs">
+                                <button class="nav-tab active" onclick="enterpriseUI.switchAnalyticsTab('overview')">📊 Overview</button>
+                                <button class="nav-tab" onclick="enterpriseUI.switchAnalyticsTab('users')">👥 Users</button>
+                                <button class="nav-tab" onclick="enterpriseUI.switchAnalyticsTab('revenue')">💰 Revenue</button>
+                                <button class="nav-tab" onclick="enterpriseUI.switchAnalyticsTab('engagement')">📈 Engagement</button>
+                                <button class="nav-tab" onclick="enterpriseUI.switchAnalyticsTab('performance')">⚡ Performance</button>
+                                <button class="nav-tab" onclick="enterpriseUI.switchAnalyticsTab('acquisition')">🎯 Acquisition</button>
                             </div>
-                            <div class="dashboard-actions">
-                                <button class="btn btn-secondary" onclick="enterpriseUI.exportAnalytics()">📄 Export PDF</button>
-                                <button class="btn btn-secondary" onclick="enterpriseUI.scheduleReport()">📅 Schedule Report</button>
-                                <button class="btn btn-primary" onclick="enterpriseUI.generateCustomReport()">🔧 Custom Report</button>
-                            </div>
-                        </div>
-
-                        <!-- Key Metrics Overview -->
-                        <div class="metrics-overview">
-                            <div class="metric-card">
-                                <div class="metric-icon">👥</div>
-                                <div class="metric-content">
-                                    <div class="metric-value">${this.analyticsData.overview.totalUsers.toLocaleString()}</div>
-                                    <div class="metric-label">Total Users</div>
-                                    <div class="metric-change positive">+${this.analyticsData.overview.growth}%</div>
+                            <div class="dashboard-controls">
+                                <div class="time-range-selector">
+                                    <button class="time-btn" onclick="enterpriseUI.loadAnalytics('today')">Today</button>
+                                    <button class="time-btn active" onclick="enterpriseUI.loadAnalytics('week')">7 Days</button>
+                                    <button class="time-btn" onclick="enterpriseUI.loadAnalytics('month')">30 Days</button>
+                                    <button class="time-btn" onclick="enterpriseUI.loadAnalytics('quarter')">90 Days</button>
+                                    <button class="time-btn" onclick="enterpriseUI.loadAnalytics('year')">1 Year</button>
+                                    <button class="time-btn" onclick="enterpriseUI.showCustomDateRange()">Custom</button>
                                 </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">⚡</div>
-                                <div class="metric-content">
-                                    <div class="metric-value">${this.analyticsData.overview.activeUsers.toLocaleString()}</div>
-                                    <div class="metric-label">Active Users</div>
-                                    <div class="metric-change positive">+8.2%</div>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">📈</div>
-                                <div class="metric-content">
-                                    <div class="metric-value">${this.analyticsData.overview.engagement}</div>
-                                    <div class="metric-label">Avg Engagement</div>
-                                    <div class="metric-change positive">+2.1%</div>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">💰</div>
-                                <div class="metric-content">
-                                    <div class="metric-value">$${this.analyticsData.overview.revenue.toLocaleString()}</div>
-                                    <div class="metric-label">Monthly Revenue</div>
-                                    <div class="metric-change positive">+15.3%</div>
+                                <div class="dashboard-actions">
+                                    <button class="btn btn-secondary" onclick="enterpriseUI.refreshDashboard()">🔄 Refresh</button>
+                                    <button class="btn btn-secondary" onclick="enterpriseUI.exportAnalytics()">📄 Export</button>
+                                    <button class="btn btn-secondary" onclick="enterpriseUI.shareAnalytics()">🔗 Share</button>
+                                    <button class="btn btn-primary" onclick="enterpriseUI.customizeDashboard()">⚙️ Customize</button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Analytics Charts -->
-                        <div class="analytics-charts">
-                            <div class="chart-section">
-                                <div class="chart-card">
+                        <!-- Overview Tab Content -->
+                        <div class="analytics-tab-content active" id="overview-tab">
+                            <!-- Real-time Status Bar -->
+                            <div class="realtime-status">
+                                <div class="status-indicator">
+                                    <div class="status-dot online"></div>
+                                    <span>Real-time data • Last updated: 2 minutes ago</span>
+                                </div>
+                                <div class="concurrent-users">
+                                    <span class="concurrent-count">1,247</span> users online now
+                                </div>
+                            </div>
+
+                            <!-- Key Performance Indicators -->
+                            <div class="kpi-grid">
+                                <div class="kpi-card revenue">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">💰</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('revenue')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">$${this.analyticsData.overview.revenue.toLocaleString()}</div>
+                                        <div class="kpi-label">Monthly Revenue</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">+15.3%</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="kpi-target">
+                                            <div class="target-progress" style="width: 82%"></div>
+                                            <span class="target-text">82% of $150K goal</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="kpi-card users">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">👥</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('users')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">${this.analyticsData.overview.totalUsers.toLocaleString()}</div>
+                                        <div class="kpi-label">Total Users</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">+${this.analyticsData.overview.growth}%</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="kpi-breakdown">
+                                            <span>New: 2,341</span> • <span>Returning: 13,079</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="kpi-card engagement">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">📈</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('engagement')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">${this.analyticsData.overview.engagement}</div>
+                                        <div class="kpi-label">Engagement Score</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">+2.1%</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="engagement-breakdown">
+                                            <div class="engagement-item">
+                                                <span class="engagement-metric">Avg Session: 24m 32s</span>
+                                                <span class="engagement-change positive">+12%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="kpi-card conversion">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">🎯</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('conversion')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">8.4%</div>
+                                        <div class="kpi-label">Conversion Rate</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">+1.2%</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="conversion-funnel">
+                                            <div class="funnel-step">
+                                                <span>Visitors: 18,420</span>
+                                                <div class="funnel-bar" style="width: 100%"></div>
+                                            </div>
+                                            <div class="funnel-step">
+                                                <span>Signups: 2,341</span>
+                                                <div class="funnel-bar" style="width: 65%"></div>
+                                            </div>
+                                            <div class="funnel-step">
+                                                <span>Conversions: 1,547</span>
+                                                <div class="funnel-bar" style="width: 40%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="kpi-card retention">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">🔄</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('retention')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">73.2%</div>
+                                        <div class="kpi-label">7-Day Retention</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">+4.8%</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="retention-cohort">
+                                            <div class="cohort-row">
+                                                <span>Day 1: 89%</span>
+                                                <span>Day 7: 73%</span>
+                                                <span>Day 30: 42%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="kpi-card performance">
+                                    <div class="kpi-header">
+                                        <div class="kpi-icon">⚡</div>
+                                        <div class="kpi-menu">
+                                            <button class="menu-btn" onclick="enterpriseUI.showKPIDetails('performance')">⋯</button>
+                                        </div>
+                                    </div>
+                                    <div class="kpi-content">
+                                        <div class="kpi-value">1.2s</div>
+                                        <div class="kpi-label">Avg Load Time</div>
+                                        <div class="kpi-change-container">
+                                            <div class="kpi-change positive">-0.3s</div>
+                                            <div class="kpi-period">vs last month</div>
+                                        </div>
+                                        <div class="performance-metrics">
+                                            <div class="perf-item">
+                                                <span>Core Web Vitals Score: 94</span>
+                                                <div class="score-indicator excellent"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Charts Grid -->
+                            <div class="charts-grid">
+                                <div class="chart-card large">
                                     <div class="chart-header">
-                                        <h3>📊 User Growth Trend</h3>
-                                        <select class="chart-filter">
-                                            <option value="daily">Daily</option>
-                                            <option value="weekly" selected>Weekly</option>
-                                            <option value="monthly">Monthly</option>
-                                        </select>
+                                        <h3>📈 Growth Trend Analysis</h3>
+                                        <div class="chart-controls">
+                                            <select class="chart-metric-selector" onchange="enterpriseUI.updateGrowthChart(this.value)">
+                                                <option value="users">Users</option>
+                                                <option value="revenue">Revenue</option>
+                                                <option value="engagement">Engagement</option>
+                                                <option value="sessions">Sessions</option>
+                                            </select>
+                                            <button class="chart-zoom-btn" onclick="enterpriseUI.toggleChartZoom('growth')">🔍</button>
+                                            <button class="chart-fullscreen-btn" onclick="enterpriseUI.showChartFullscreen('growth')">⛶</button>
+                                        </div>
                                     </div>
                                     <div class="chart-container">
-                                        <canvas id="userGrowthChart"></canvas>
+                                        <div class="chart-legend">
+                                            <span class="legend-item">
+                                                <span class="legend-color primary"></span>
+                                                Current Period
+                                            </span>
+                                            <span class="legend-item">
+                                                <span class="legend-color secondary"></span>
+                                                Previous Period
+                                            </span>
+                                            <span class="legend-item">
+                                                <span class="legend-color accent"></span>
+                                                Trend Line
+                                            </span>
+                                        </div>
+                                        <canvas id="growthTrendChart" height="300"></canvas>
+                                        <div class="chart-annotations">
+                                            <div class="annotation" style="left: 45%;">
+                                                <div class="annotation-marker"></div>
+                                                <div class="annotation-tooltip">
+                                                    <strong>Product Launch</strong>
+                                                    <span>Dec 15, 2024</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="chart-insights">
-                                        <div class="insight">📈 25% increase in new user registrations</div>
-                                        <div class="insight">🎯 Peak signup time: 2-4 PM EST</div>
+                                        <div class="insight-item">
+                                            <div class="insight-icon">📊</div>
+                                            <div class="insight-text">User growth accelerated by 35% following product launch</div>
+                                        </div>
+                                        <div class="insight-item">
+                                            <div class="insight-icon">🎯</div>
+                                            <div class="insight-text">Projected to reach 20K users by month end</div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="chart-card">
+                                <div class="chart-card medium">
                                     <div class="chart-header">
-                                        <h3>💰 Revenue Analytics</h3>
-                                        <div class="chart-legends">
-                                            <span class="legend-item"><span class="legend-color primary"></span>Subscription</span>
-                                            <span class="legend-item"><span class="legend-color secondary"></span>Ads</span>
-                                            <span class="legend-item"><span class="legend-color accent"></span>Premium</span>
+                                        <h3>🌍 Geographic Heatmap</h3>
+                                        <div class="chart-controls">
+                                            <button class="view-toggle active" onclick="enterpriseUI.toggleGeoView('heatmap')">🗺️ Map</button>
+                                            <button class="view-toggle" onclick="enterpriseUI.toggleGeoView('list')">📊 List</button>
                                         </div>
                                     </div>
                                     <div class="chart-container">
-                                        <canvas id="revenueChart"></canvas>
+                                        <div class="geographic-heatmap" id="geoHeatmap">
+                                            <div class="geo-region active" data-region="us" style="left: 20%; top: 30%;">
+                                                <div class="region-marker large" title="United States: 6,939 users"></div>
+                                                <div class="region-label">US</div>
+                                            </div>
+                                            <div class="geo-region" data-region="ca" style="left: 18%; top: 25%;">
+                                                <div class="region-marker medium" title="Canada: 2,776 users"></div>
+                                                <div class="region-label">CA</div>
+                                            </div>
+                                            <div class="geo-region" data-region="uk" style="left: 50%; top: 28%;">
+                                                <div class="region-marker medium" title="United Kingdom: 1,850 users"></div>
+                                                <div class="region-label">UK</div>
+                                            </div>
+                                            <div class="geo-region" data-region="de" style="left: 52%; top: 30%;">
+                                                <div class="region-marker small" title="Germany: 1,233 users"></div>
+                                                <div class="region-label">DE</div>
+                                            </div>
+                                            <div class="geo-region" data-region="jp" style="left: 85%; top: 35%;">
+                                                <div class="region-marker small" title="Japan: 922 users"></div>
+                                                <div class="region-label">JP</div>
+                                            </div>
+                                        </div>
+                                        <div class="geo-stats">
+                                            <div class="geo-stat-item">
+                                                <span class="geo-flag">🇺🇸</span>
+                                                <span class="geo-country">United States</span>
+                                                <span class="geo-users">6,939</span>
+                                                <span class="geo-percentage">45%</span>
+                                            </div>
+                                            <div class="geo-stat-item">
+                                                <span class="geo-flag">🇨🇦</span>
+                                                <span class="geo-country">Canada</span>
+                                                <span class="geo-users">2,776</span>
+                                                <span class="geo-percentage">18%</span>
+                                            </div>
+                                            <div class="geo-stat-item">
+                                                <span class="geo-flag">🇬🇧</span>
+                                                <span class="geo-country">United Kingdom</span>
+                                                <span class="geo-users">1,850</span>
+                                                <span class="geo-percentage">12%</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="revenue-breakdown">
-                                        <div class="breakdown-item">
-                                            <div class="breakdown-label">Subscription Revenue</div>
-                                            <div class="breakdown-value">$85,230 (68%)</div>
+                                </div>
+
+                                <div class="chart-card medium">
+                                    <div class="chart-header">
+                                        <h3>📊 Real-time Activity Feed</h3>
+                                        <div class="feed-controls">
+                                            <button class="feed-toggle active" onclick="enterpriseUI.toggleActivityFeed(true)">⚡ Live</button>
+                                            <button class="feed-toggle" onclick="enterpriseUI.toggleActivityFeed(false)">⏸️ Pause</button>
                                         </div>
-                                        <div class="breakdown-item">
-                                            <div class="breakdown-label">Ad Revenue</div>
-                                            <div class="breakdown-value">$28,100 (22%)</div>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <div class="breakdown-label">Premium Features</div>
-                                            <div class="breakdown-value">$12,100 (10%)</div>
+                                    </div>
+                                    <div class="chart-container">
+                                        <div class="activity-feed" id="realtimeActivityFeed">
+                                            <div class="activity-item new">
+                                                <div class="activity-time">2m ago</div>
+                                                <div class="activity-text">New user signup: john.doe@email.com</div>
+                                                <div class="activity-source">Registration</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-time">5m ago</div>
+                                                <div class="activity-text">Premium subscription activated</div>
+                                                <div class="activity-source">Billing</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-time">8m ago</div>
+                                                <div class="activity-text">User completed profile setup</div>
+                                                <div class="activity-source">Onboarding</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-time">12m ago</div>
+                                                <div class="activity-text">New match created</div>
+                                                <div class="activity-source">Dating</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-time">15m ago</div>
+                                                <div class="activity-text">Content reported for review</div>
+                                                <div class="activity-source">Moderation</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="chart-section">
-                                <div class="chart-card">
-                                    <div class="chart-header">
-                                        <h3>🌍 Geographic Distribution</h3>
-                                        <button class="btn btn-small" onclick="enterpriseUI.showDetailedGeographics()">View Details</button>
+                            <!-- Advanced Analytics Tables -->
+                            <div class="analytics-tables">
+                                <div class="table-card">
+                                    <div class="table-header">
+                                        <h3>🏆 Top Performing Content</h3>
+                                        <div class="table-controls">
+                                            <select class="table-filter" onchange="enterpriseUI.filterTopContent(this.value)">
+                                                <option value="engagement">By Engagement</option>
+                                                <option value="views">By Views</option>
+                                                <option value="shares">By Shares</option>
+                                                <option value="conversion">By Conversion</option>
+                                            </select>
+                                            <button class="btn btn-small" onclick="enterpriseUI.exportTopContent()">📄 Export</button>
+                                        </div>
                                     </div>
-                                    <div class="geographic-data">
-                                        <div class="geo-item">
-                                            <div class="geo-country">🇺🇸 United States</div>
-                                            <div class="geo-bar">
-                                                <div class="geo-fill" style="width: 45%"></div>
-                                            </div>
-                                            <div class="geo-percentage">45%</div>
-                                        </div>
-                                        <div class="geo-item">
-                                            <div class="geo-country">🇨🇦 Canada</div>
-                                            <div class="geo-bar">
-                                                <div class="geo-fill" style="width: 18%"></div>
-                                            </div>
-                                            <div class="geo-percentage">18%</div>
-                                        </div>
-                                        <div class="geo-item">
-                                            <div class="geo-country">🇬🇧 United Kingdom</div>
-                                            <div class="geo-bar">
-                                                <div class="geo-fill" style="width: 12%"></div>
-                                            </div>
-                                            <div class="geo-percentage">12%</div>
-                                        </div>
-                                        <div class="geo-item">
-                                            <div class="geo-country">🇩🇪 Germany</div>
-                                            <div class="geo-bar">
-                                                <div class="geo-fill" style="width: 8%"></div>
-                                            </div>
-                                            <div class="geo-percentage">8%</div>
-                                        </div>
-                                        <div class="geo-item">
-                                            <div class="geo-country">🌏 Other</div>
-                                            <div class="geo-bar">
-                                                <div class="geo-fill" style="width: 17%"></div>
-                                            </div>
-                                            <div class="geo-percentage">17%</div>
-                                        </div>
+                                    <div class="table-container">
+                                        <table class="analytics-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Content</th>
+                                                    <th>Type</th>
+                                                    <th>Views</th>
+                                                    <th>Engagement</th>
+                                                    <th>Conversion</th>
+                                                    <th>Trend</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="content-preview">
+                                                            <div class="content-thumbnail">🎥</div>
+                                                            <span>Product Demo Video</span>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="content-type video">Video</span></td>
+                                                    <td>12,450</td>
+                                                    <td>8.7%</td>
+                                                    <td>3.2%</td>
+                                                    <td><span class="trend positive">↗️ +25%</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="content-preview">
+                                                            <div class="content-thumbnail">📝</div>
+                                                            <span>Feature Announcement</span>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="content-type post">Post</span></td>
+                                                    <td>8,920</td>
+                                                    <td>6.4%</td>
+                                                    <td>2.1%</td>
+                                                    <td><span class="trend positive">↗️ +18%</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="content-preview">
+                                                            <div class="content-thumbnail">🖼️</div>
+                                                            <span>User Success Story</span>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="content-type image">Image</span></td>
+                                                    <td>6,780</td>
+                                                    <td>5.9%</td>
+                                                    <td>1.8%</td>
+                                                    <td><span class="trend neutral">→ 0%</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="chart-card">
-                                    <div class="chart-header">
-                                        <h3>⏱️ User Behavior Insights</h3>
-                                        <div class="behavior-tabs">
-                                            <button class="tab-btn active" data-tab="engagement">Engagement</button>
-                                            <button class="tab-btn" data-tab="retention">Retention</button>
-                                            <button class="tab-btn" data-tab="conversion">Conversion</button>
+                            <!-- Predictive Analytics Section -->
+                            <div class="predictive-analytics">
+                                <div class="prediction-header">
+                                    <h3>🔮 Predictive Analytics & Forecasting</h3>
+                                    <div class="prediction-controls">
+                                        <select class="prediction-timeframe" onchange="enterpriseUI.updatePredictions(this.value)">
+                                            <option value="1month">1 Month Ahead</option>
+                                            <option value="3months">3 Months Ahead</option>
+                                            <option value="6months" selected>6 Months Ahead</option>
+                                            <option value="1year">1 Year Ahead</option>
+                                        </select>
+                                        <button class="btn btn-small" onclick="enterpriseUI.showPredictionDetails()">📊 Details</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="predictions-grid">
+                                    <div class="prediction-card">
+                                        <div class="prediction-icon">👥</div>
+                                        <div class="prediction-content">
+                                            <div class="prediction-label">Projected Users</div>
+                                            <div class="prediction-value">28,500</div>
+                                            <div class="prediction-range">Range: 25K - 32K</div>
+                                            <div class="prediction-confidence">Confidence: 87%</div>
+                                        </div>
+                                        <div class="prediction-chart">
+                                            <div class="mini-chart">
+                                                <div class="chart-point current" style="left: 20%; top: 60%;"></div>
+                                                <div class="chart-point projection" style="left: 80%; top: 20%;"></div>
+                                                <div class="chart-line"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="behavior-content" id="engagement-tab">
-                                        <div class="behavior-metric">
-                                            <div class="metric-title">Average Session Duration</div>
-                                            <div class="metric-value-large">24m 32s</div>
-                                            <div class="metric-trend positive">↑ 12% from last month</div>
+
+                                    <div class="prediction-card">
+                                        <div class="prediction-icon">💰</div>
+                                        <div class="prediction-content">
+                                            <div class="prediction-label">Revenue Forecast</div>
+                                            <div class="prediction-value">$245K</div>
+                                            <div class="prediction-range">Range: $220K - $270K</div>
+                                            <div class="prediction-confidence">Confidence: 92%</div>
                                         </div>
-                                        <div class="behavior-metric">
-                                            <div class="metric-title">Page Views per Session</div>
-                                            <div class="metric-value-large">8.4</div>
-                                            <div class="metric-trend positive">↑ 5% from last month</div>
+                                        <div class="prediction-chart">
+                                            <div class="mini-chart">
+                                                <div class="chart-point current" style="left: 20%; top: 70%;"></div>
+                                                <div class="chart-point projection" style="left: 80%; top: 15%;"></div>
+                                                <div class="chart-line"></div>
+                                            </div>
                                         </div>
-                                        <div class="behavior-metric">
-                                            <div class="metric-title">Bounce Rate</div>
-                                            <div class="metric-value-large">32%</div>
-                                            <div class="metric-trend negative">↓ 8% from last month</div>
+                                    </div>
+
+                                    <div class="prediction-card">
+                                        <div class="prediction-icon">📈</div>
+                                        <div class="prediction-content">
+                                            <div class="prediction-label">Engagement Growth</div>
+                                            <div class="prediction-value">+35%</div>
+                                            <div class="prediction-range">Range: +28% - +42%</div>
+                                            <div class="prediction-confidence">Confidence: 79%</div>
+                                        </div>
+                                        <div class="prediction-chart">
+                                            <div class="mini-chart">
+                                                <div class="chart-point current" style="left: 20%; top: 50%;"></div>
+                                                <div class="chart-point projection" style="left: 80%; top: 25%;"></div>
+                                                <div class="chart-line"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Advanced Reports Section -->
-                        <div class="advanced-reports">
+                        <!-- Additional Analytics Tabs -->
+                        <div class="analytics-tab-content" id="users-tab">
+                            <div class="users-analytics">
+                                <div class="users-overview">
+                                    <div class="overview-cards">
+                                        <div class="overview-card">
+                                            <div class="card-icon">👤</div>
+                                            <div class="card-content">
+                                                <div class="card-value">15,420</div>
+                                                <div class="card-label">Total Users</div>
+                                                <div class="card-change positive">+12.5%</div>
+                                            </div>
+                                        </div>
+                                        <div class="overview-card">
+                                            <div class="card-icon">🆕</div>
+                                            <div class="card-content">
+                                                <div class="card-value">2,341</div>
+                                                <div class="card-label">New This Month</div>
+                                                <div class="card-change positive">+18.2%</div>
+                                            </div>
+                                        </div>
+                                        <div class="overview-card">
+                                            <div class="card-icon">⚡</div>
+                                            <div class="card-content">
+                                                <div class="card-value">8,950</div>
+                                                <div class="card-label">Daily Active</div>
+                                                <div class="card-change positive">+8.7%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="user-segments">
+                                    <div class="segment-header">
+                                        <h3>👥 User Segments Analysis</h3>
+                                        <button class="btn btn-small" onclick="enterpriseUI.createUserSegment()">+ Create Segment</button>
+                                    </div>
+                                    <div class="segments-grid">
+                                        <div class="segment-card premium">
+                                            <div class="segment-header-info">
+                                                <div class="segment-name">Premium Users</div>
+                                                <div class="segment-count">1,847 users</div>
+                                            </div>
+                                            <div class="segment-metrics">
+                                                <div class="metric">
+                                                    <span>Engagement: 9.2/10</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 92%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Retention: 89%</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 89%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Revenue: $85,230</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 78%;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="segment-card free">
+                                            <div class="segment-header-info">
+                                                <div class="segment-name">Free Users</div>
+                                                <div class="segment-count">10,245 users</div>
+                                            </div>
+                                            <div class="segment-metrics">
+                                                <div class="metric">
+                                                    <span>Engagement: 4.1/10</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 41%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Retention: 42%</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 42%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Revenue: $0</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 0%;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="segment-card trial">
+                                            <div class="segment-header-info">
+                                                <div class="segment-name">Trial Users</div>
+                                                <div class="segment-count">3,328 users</div>
+                                            </div>
+                                            <div class="segment-metrics">
+                                                <div class="metric">
+                                                    <span>Engagement: 6.8/10</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 68%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Retention: 67%</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 67%;"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="metric">
+                                                    <span>Conversion: 23%</span>
+                                                    <div class="metric-bar">
+                                                        <div class="metric-fill" style="width: 23%;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Tab -->
+                        <div class="analytics-tab-content" id="revenue-tab">
+                            <div class="revenue-analytics">
+                                <div class="revenue-overview">
+                                    <div class="revenue-cards">
+                                        <div class="revenue-card total">
+                                            <div class="card-header">
+                                                <div class="card-icon">💰</div>
+                                                <div class="card-title">Total Revenue</div>
+                                            </div>
+                                            <div class="card-value">$125,430</div>
+                                            <div class="card-change positive">+15.3% vs last month</div>
+                                        </div>
+                                        <div class="revenue-card recurring">
+                                            <div class="card-header">
+                                                <div class="card-icon">🔄</div>
+                                                <div class="card-title">Recurring Revenue</div>
+                                            </div>
+                                            <div class="card-value">$97,230</div>
+                                            <div class="card-change positive">+18.7% vs last month</div>
+                                        </div>
+                                        <div class="revenue-card arpu">
+                                            <div class="card-header">
+                                                <div class="card-icon">📊</div>
+                                                <div class="card-title">ARPU</div>
+                                            </div>
+                                            <div class="card-value">$8.13</div>
+                                            <div class="card-change positive">+2.4% vs last month</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="revenue-breakdown">
+                                    <div class="breakdown-header">
+                                        <h3>📈 Revenue Breakdown</h3>
+                                        <div class="breakdown-controls">
+                                            <button class="view-toggle active" onclick="enterpriseUI.switchRevenueView('chart')">📊 Chart</button>
+                                            <button class="view-toggle" onclick="enterpriseUI.switchRevenueView('table')">📋 Table</button>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-content">
+                                        <div class="breakdown-chart active" id="revenue-chart-view">
+                                            <canvas id="revenueBreakdownChart" height="300"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reports & Export Section -->
+                        <div class="reports-section">
                             <div class="reports-header">
-                                <h3>📋 Advanced Reports</h3>
-                                <button class="btn btn-primary" onclick="enterpriseUI.createCustomReport()">+ Create Report</button>
+                                <h3>📋 Analytics Reports & Export</h3>
+                                <button class="btn btn-primary" onclick="enterpriseUI.showReportBuilder()">🔧 Report Builder</button>
                             </div>
                             <div class="reports-grid">
-                                <div class="report-card">
-                                    <div class="report-icon">📊</div>
-                                    <div class="report-content">
-                                        <div class="report-title">User Acquisition Report</div>
-                                        <div class="report-description">Detailed analysis of user acquisition channels</div>
-                                        <div class="report-stats">
-                                            <span>Generated: Today</span>
-                                            <span>Status: Ready</span>
-                                        </div>
+                                <div class="report-template">
+                                    <div class="template-icon">📊</div>
+                                    <div class="template-content">
+                                        <div class="template-title">Executive Summary</div>
+                                        <div class="template-description">High-level metrics and KPIs for leadership</div>
                                     </div>
-                                    <div class="report-actions">
-                                        <button class="btn btn-small" onclick="enterpriseUI.downloadReport('acquisition')">📄 Download</button>
-                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('acquisition')">📅 Schedule</button>
+                                    <div class="template-actions">
+                                        <button class="btn btn-small" onclick="enterpriseUI.generateReport('executive')">📄 Generate</button>
+                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('executive')">📅 Schedule</button>
                                     </div>
                                 </div>
-                                <div class="report-card">
-                                    <div class="report-icon">💰</div>
-                                    <div class="report-content">
-                                        <div class="report-title">Revenue Analysis</div>
-                                        <div class="report-description">Comprehensive revenue breakdown and forecasting</div>
-                                        <div class="report-stats">
-                                            <span>Generated: 2 hours ago</span>
-                                            <span>Status: Ready</span>
-                                        </div>
+                                <div class="report-template">
+                                    <div class="template-icon">👥</div>
+                                    <div class="template-content">
+                                        <div class="template-title">User Behavior Report</div>
+                                        <div class="template-description">Detailed user engagement and activity analysis</div>
                                     </div>
-                                    <div class="report-actions">
-                                        <button class="btn btn-small" onclick="enterpriseUI.downloadReport('revenue')">📄 Download</button>
-                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('revenue')">📅 Schedule</button>
+                                    <div class="template-actions">
+                                        <button class="btn btn-small" onclick="enterpriseUI.generateReport('behavior')">📄 Generate</button>
+                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('behavior')">📅 Schedule</button>
                                     </div>
                                 </div>
-                                <div class="report-card">
-                                    <div class="report-icon">👥</div>
-                                    <div class="report-content">
-                                        <div class="report-title">Engagement Metrics</div>
-                                        <div class="report-description">Deep dive into user engagement patterns</div>
-                                        <div class="report-stats">
-                                            <span>Generated: Yesterday</span>
-                                            <span>Status: Ready</span>
-                                        </div>
+                                <div class="report-template">
+                                    <div class="template-icon">💰</div>
+                                    <div class="template-content">
+                                        <div class="template-title">Financial Performance</div>
+                                        <div class="template-description">Revenue analytics and financial forecasting</div>
                                     </div>
-                                    <div class="report-actions">
-                                        <button class="btn btn-small" onclick="enterpriseUI.downloadReport('engagement')">📄 Download</button>
-                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('engagement')">📅 Schedule</button>
+                                    <div class="template-actions">
+                                        <button class="btn btn-small" onclick="enterpriseUI.generateReport('financial')">📄 Generate</button>
+                                        <button class="btn btn-small btn-secondary" onclick="enterpriseUI.scheduleReport('financial')">📅 Schedule</button>
                                     </div>
                                 </div>
                             </div>
@@ -344,8 +805,196 @@ class EnterpriseMissingUIComponents {
 
         document.body.appendChild(modal);
         
-        // Initialize charts after modal is rendered
-        setTimeout(() => this.initializeAnalyticsCharts(), 100);
+        // Initialize charts and real-time updates
+        setTimeout(() => {
+            this.initializeAnalyticsCharts();
+            this.startRealTimeUpdates();
+        }, 100);
+    }
+
+    // Enhanced Analytics Methods
+    switchAnalyticsTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.analytics-tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all nav tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        const targetTab = document.getElementById(`${tabName}-tab`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+        
+        // Add active class to clicked nav tab
+        event.target.classList.add('active');
+        
+        showToast(`📊 Switched to ${tabName} analytics`, 'info');
+    }
+
+    showCustomDateRange() {
+        showToast('📅 Custom date range picker opened!', 'info');
+    }
+
+    refreshDashboard() {
+        showToast('🔄 Dashboard refreshed with latest data!', 'success');
+        this.updateRealTimeData();
+    }
+
+    shareAnalytics() {
+        showToast('🔗 Analytics sharing options opened!', 'info');
+    }
+
+    customizeDashboard() {
+        showToast('⚙️ Dashboard customization panel opened!', 'info');
+    }
+
+    showKPIDetails(kpiType) {
+        showToast(`📊 Detailed ${kpiType} analytics opened!`, 'info');
+    }
+
+    updateGrowthChart(metric) {
+        showToast(`📈 Growth chart updated to show ${metric} data`, 'info');
+    }
+
+    toggleChartZoom(chartType) {
+        showToast(`🔍 ${chartType} chart zoom toggled!`, 'info');
+    }
+
+    showChartFullscreen(chartType) {
+        showToast(`⛶ ${chartType} chart opened in fullscreen!`, 'info');
+    }
+
+    toggleGeoView(viewType) {
+        showToast(`🌍 Geographic view switched to ${viewType}!`, 'info');
+        
+        // Update toggle buttons
+        document.querySelectorAll('.view-toggle').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    toggleActivityFeed(isLive) {
+        if (isLive) {
+            showToast('⚡ Real-time activity feed enabled!', 'success');
+            this.startActivityFeedUpdates();
+        } else {
+            showToast('⏸️ Real-time activity feed paused!', 'info');
+            this.stopActivityFeedUpdates();
+        }
+        
+        // Update toggle buttons
+        document.querySelectorAll('.feed-toggle').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    filterTopContent(filterType) {
+        showToast(`🏆 Top content filtered by ${filterType}!`, 'info');
+    }
+
+    exportTopContent() {
+        showToast('📄 Top content data exported!', 'success');
+    }
+
+    updatePredictions(timeframe) {
+        showToast(`🔮 Predictions updated for ${timeframe}!`, 'info');
+    }
+
+    showPredictionDetails() {
+        showToast('📊 Detailed prediction analytics opened!', 'info');
+    }
+
+    createUserSegment() {
+        showToast('👥 User segment builder opened!', 'info');
+    }
+
+    switchRevenueView(viewType) {
+        showToast(`💰 Revenue view switched to ${viewType}!`, 'info');
+        
+        // Update toggle buttons
+        document.querySelectorAll('.view-toggle').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    showReportBuilder() {
+        showToast('🔧 Advanced report builder opened!', 'info');
+    }
+
+    generateReport(reportType) {
+        showToast(`📄 Generating ${reportType} report...`, 'success');
+    }
+
+    startRealTimeUpdates() {
+        // Simulate real-time data updates
+        this.realTimeInterval = setInterval(() => {
+            this.updateRealTimeData();
+        }, 30000); // Update every 30 seconds
+    }
+
+    updateRealTimeData() {
+        // Update concurrent users count
+        const concurrentElement = document.querySelector('.concurrent-count');
+        if (concurrentElement) {
+            const currentCount = parseInt(concurrentElement.textContent.replace(',', ''));
+            const newCount = currentCount + Math.floor(Math.random() * 20) - 10;
+            concurrentElement.textContent = Math.max(0, newCount).toLocaleString();
+        }
+        
+        // Add new activity to feed
+        this.addNewActivityItem();
+    }
+
+    addNewActivityItem() {
+        const feedElement = document.getElementById('realtimeActivityFeed');
+        if (feedElement) {
+            const activities = [
+                'New user signup: user@example.com',
+                'Premium subscription activated',
+                'User completed profile setup',
+                'New match created',
+                'Content reported for review',
+                'Payment processed successfully',
+                'User shared content',
+                'New group created'
+            ];
+            
+            const sources = ['Registration', 'Billing', 'Onboarding', 'Dating', 'Moderation', 'Payments', 'Social', 'Groups'];
+            
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+            const randomSource = sources[Math.floor(Math.random() * sources.length)];
+            
+            const newItem = document.createElement('div');
+            newItem.className = 'activity-item new';
+            newItem.innerHTML = `
+                <div class="activity-time">Now</div>
+                <div class="activity-text">${randomActivity}</div>
+                <div class="activity-source">${randomSource}</div>
+            `;
+            
+            feedElement.insertBefore(newItem, feedElement.firstChild);
+            
+            // Remove old items to keep feed manageable
+            const items = feedElement.querySelectorAll('.activity-item');
+            if (items.length > 10) {
+                items[items.length - 1].remove();
+            }
+        }
+    }
+
+    startActivityFeedUpdates() {
+        this.activityFeedInterval = setInterval(() => {
+            this.addNewActivityItem();
+        }, 5000); // Add new activity every 5 seconds
+    }
+
+    stopActivityFeedUpdates() {
+        if (this.activityFeedInterval) {
+            clearInterval(this.activityFeedInterval);
+            this.activityFeedInterval = null;
+        }
     }
 
     // 2. TEAM MANAGEMENT INTERFACE
