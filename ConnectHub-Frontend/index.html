@@ -1157,6 +1157,37 @@
                             <button class="btn btn-secondary" onclick="viewIntegrations()">View All</button>
                         </div>
                     </div>
+
+                    <!-- Enterprise Features Section -->
+                    <div style="margin-top: 3rem;">
+                        <h2 style="margin-bottom: 1.5rem;">🏢 Enterprise Features</h2>
+                        <div class="grid-4">
+                            <div class="card" style="text-align: center;" onclick="enterpriseMissingUI.showAdvancedAnalyticsDashboard()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Analytics">📊</div>
+                                <h3>Advanced Analytics</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Comprehensive business metrics and performance insights</p>
+                                <button class="btn btn-primary">Open Dashboard</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="enterpriseMissingUI.showTeamManagementInterface()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Team management">👥</div>
+                                <h3>Team Management</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Invite members, assign roles, and manage permissions</p>
+                                <button class="btn btn-primary">Manage Team</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="enterpriseMissingUI.showEnterpriseAdminPanel()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Admin panel">⚙️</div>
+                                <h3>Admin Panel</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">System settings, API management, and whitelabel configuration</p>
+                                <button class="btn btn-primary">Admin Settings</button>
+                            </div>
+                            <div class="card" style="text-align: center;" onclick="enterpriseMissingUI.showContentModerationDashboard()" role="button" tabindex="0">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Content moderation">🛡️</div>
+                                <h3>Content Moderation</h3>
+                                <p style="color: var(--text-secondary); margin: 1rem 0;">Review content, manage reports, and user moderation tools</p>
+                                <button class="btn btn-primary">Open Dashboard</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1478,5 +1509,6 @@
     <script src="src/js/calls.js"></script>
     <script src="src/js/privacy-security-ui-components.js"></script>
     <script src="src/js/ai-automation-ui-components.js"></script>
+    <script src="src/js/enterprise-missing-ui-components.js"></script>
 </body>
 </html>

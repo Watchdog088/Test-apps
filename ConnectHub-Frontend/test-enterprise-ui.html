@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise UI Test</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+        }
+
+        .test-section {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .test-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--glass);
+        }
+
+        .success { background: var(--success); }
+        .error { background: var(--error); }
+        .warning { background: var(--warning); }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Enterprise UI Components Test</h1>
+        
+        <div class="test-section">
+            <h2>Enterprise Interface Testing</h2>
+            <p>Click the buttons below to test each of the 4 enterprise UI interfaces:</p>
+            
+            <div class="test-grid">
+                <button class="test-button" onclick="testAdvancedAnalytics()">
+                    📊 Test Advanced Analytics Dashboard
+                </button>
+                <button class="test-button" onclick="testTeamManagement()">
+                    👥 Test Team Management Interface
+                </button>
+                <button class="test-button" onclick="testAdminPanel()">
+                    ⚙️ Test Enterprise Admin Panel
+                </button>
+                <button class="test-button" onclick="testContentModeration()">
+                    🛡️ Test Content Moderation Dashboard
+                </button>
+            </div>
+            
+            <div id="testStatus" class="status">
+                Ready to test enterprise interfaces...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Results</h2>
+            <div id="testResults">
+                <p>No tests run yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the enterprise UI components script -->
+    <script src="src/js/enterprise-missing-ui-components.js"></script>
+    
+    <script>
+        let testResults = [];
+        let enterpriseMissingUI;
+
+        // Initialize enterprise UI components
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (typeof EnterpriseMissingUIComponents !== 'undefined') {
+                    enterpriseMissingUI = new EnterpriseMissingUIComponents();
+                    updateStatus('Enterprise UI Components loaded successfully!', 'success');
+                } else {
+                    updateStatus('Error: Enterprise UI Components not found!', 'error');
+                }
+            } catch (error) {
+                updateStatus('Error initializing Enterprise UI Components: ' + error.message, 'error');
+            }
+        });
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('testStatus');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function addTestResult(test, success, message) {
+            testResults.push({ test, success, message });
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const resultsEl = document.getElementById('testResults');
+            if (testResults.length === 0) {
+                resultsEl.innerHTML = '<p>No tests run yet.</p>';
+                return;
+            }
+            
+            resultsEl.innerHTML = testResults.map(result => `
+                <div class="status ${result.success ? 'success' : 'error'}" style="margin-bottom: 0.5rem;">
+                    <strong>${result.test}:</strong> ${result.message}
+                </div>
+            `).join('');
+        }
+
+        function testAdvancedAnalytics() {
+            updateStatus('Testing Advanced Analytics Dashboard...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showAdvancedAnalyticsDashboard === 'function') {
+                    enterpriseMissingUI.showAdvancedAnalyticsDashboard();
+                    addTestResult('Advanced Analytics Dashboard', true, 'Successfully opened analytics dashboard interface');
+                    updateStatus('Advanced Analytics Dashboard test completed successfully!', 'success');
+                } else {
+                    addTestResult('Advanced Analytics Dashboard', false, 'Method not found or not initialized');
+                    updateStatus('Error: showAdvancedAnalyticsDashboard method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('Advanced Analytics Dashboard', false, 'Error: ' + error.message);
+                updateStatus('Error testing Advanced Analytics: ' + error.message, 'error');
+            }
+        }
+
+        function testTeamManagement() {
+            updateStatus('Testing Team Management Interface...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showTeamManagementInterface === 'function') {
+                    enterpriseMissingUI.showTeamManagementInterface();
+                    addTestResult('Team Management Interface', true, 'Successfully opened team management interface');
+                    updateStatus('Team Management Interface test completed successfully!', 'success');
+                } else {
+                    addTestResult('Team Management Interface', false, 'Method not found or not initialized');
+                    updateStatus('Error: showTeamManagementInterface method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('Team Management Interface', false, 'Error: ' + error.message);
+                updateStatus('Error testing Team Management: ' + error.message, 'error');
+            }
+        }
+
+        function testAdminPanel() {
+            updateStatus('Testing Enterprise Admin Panel...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showEnterpriseAdminPanel === 'function') {
+                    enterpriseMissingUI.showEnterpriseAdminPanel();
+                    addTestResult('Enterprise Admin Panel', true, 'Successfully opened admin panel interface');
+                    updateStatus('Enterprise Admin Panel test completed successfully!', 'success');
+                } else {
+                    addTestResult('Enterprise Admin Panel', false, 'Method not found or not initialized');
+                    updateStatus('Error: showEnterpriseAdminPanel method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('Enterprise Admin Panel', false, 'Error: ' + error.message);
+                updateStatus('Error testing Admin Panel: ' + error.message, 'error');
+            }
+        }
+
+        function testContentModeration() {
+            updateStatus('Testing Content Moderation Dashboard...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showContentModerationDashboard === 'function') {
+                    enterpriseMissingUI.showContentModerationDashboard();
+                    addTestResult('Content Moderation Dashboard', true, 'Successfully opened content moderation dashboard');
+                    updateStatus('Content Moderation Dashboard test completed successfully!', 'success');
+                } else {
+                    addTestResult('Content Moderation Dashboard', false, 'Method not found or not initialized');
+                    updateStatus('Error: showContentModerationDashboard method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('Content Moderation Dashboard', false, 'Error: ' + error.message);
+                updateStatus('Error testing Content Moderation: ' + error.message, 'error');
+            }
+        }
+
+        // Test all interfaces at once
+        function testAllInterfaces() {
+            testAdvancedAnalytics();
+            setTimeout(() => testTeamManagement(), 500);
+            setTimeout(() => testAdminPanel(), 1000);
+            setTimeout(() => testContentModeration(), 1500);
+        }
+    </script>
+</body>
+</html>
