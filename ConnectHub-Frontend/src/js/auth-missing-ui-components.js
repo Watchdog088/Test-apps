@@ -6,6 +6,9 @@ class AuthenticationMissingUIComponents {
         this.currentUser = null;
         this.verificationPolling = null;
         this.resendTimer = null;
+        this.navigationHistory = [];
+        this.currentHistoryIndex = -1;
+        this.currentInterface = null;
         this.init();
     }
 
@@ -82,6 +85,15 @@ class AuthenticationMissingUIComponents {
                 .session-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center; }
                 .stat-item h3 { margin: 0 0 5px 0; font-size: 24px; font-weight: 700; color: #007bff; }
                 .stat-item p { margin: 0; color: #666; font-size: 14px; }
+                .auth-navigation { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px 20px; background: #f8f9fa; border-radius: 8px; border-bottom: 1px solid #e9ecef; }
+                .nav-btn { background: #6c757d; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
+                .nav-btn:hover { background: #5a6268; }
+                .nav-btn:disabled { background: #e9ecef; color: #999; cursor: not-allowed; }
+                .breadcrumb { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+                .breadcrumb-item { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s ease; }
+                .breadcrumb-item:hover { background: #e9ecef; }
+                .breadcrumb-item.active { color: #007bff; font-weight: 500; }
+                .breadcrumb-separator { color: #ccc; font-size: 12px; }
             `;
             document.head.appendChild(style);
         }
@@ -871,6 +883,178 @@ class AuthenticationMissingUIComponents {
 
     exportSessionData() {
         this.showToast('Session data export feature coming soon!', 'warning');
+    }
+
+    // ==================== NAVIGATION METHODS ====================
+    addToNavigationHistory(interfaceName, params = {}) {
+        // Remove any pages after current position (when navigating back then forward to new page)
+        this.navigationHistory = this.navigationHistory.slice(0, this.currentHistoryIndex + 1);
+        
+        // Add new page to history
+        this.navigationHistory.push({ interface: interfaceName, params, timestamp: Date.now() });
+        this.currentHistoryIndex = this.navigationHistory.length - 1;
+        this.currentInterface = interfaceName;
+    }
+
+    createNavigationBar(currentInterface, customBreadcrumb = []) {
+        const canGoBack = this.navigationHistory.length > 1 && this.currentHistoryIndex > 0;
+        const canGoForward = this.currentHistoryIndex < this.navigationHistory.length - 1;
+        
+        const interfaceNames = {
+            'password-reset': { name: 'Password Reset', icon: 'fa-key' },
+            'email-verification': { name: 'Email Verification', icon: 'fa-envelope' },
+            'profile-edit': { name: 'Edit Profile', icon: 'fa-user-edit' },
+            'security-settings': { name: 'Account Security', icon: 'fa-shield-alt' },
+            'session-management': { name: 'Active Sessions', icon: 'fa-clock' }
+        };
+
+        let breadcrumb = customBreadcrumb.length > 0 ? customBreadcrumb : [];
+        if (breadcrumb.length === 0) {
+            breadcrumb = [
+                { name: 'Authentication', icon: 'fa-lock', clickable: false },
+                { name: interfaceNames[currentInterface]?.name || 'Current Page', icon: interfaceNames[currentInterface]?.icon || 'fa-cog', active: true }
+            ];
+        }
+
+        return `
+            <div class="auth-navigation">
+                <button class="nav-btn" ${canGoBack ? '' : 'disabled'} onclick="authMissingUIComponents.navigateBack()" title="Go Back">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                
+                <div class="breadcrumb">
+                    ${breadcrumb.map((item, index) => `
+                        <div class="breadcrumb-item ${item.active ? 'active' : ''}" 
+                             ${item.clickable !== false ? `onclick="authMissingUIComponents.navigateTo('${item.interface}')"` : ''}>
+                            <i class="fas ${item.icon}"></i>
+                            <span>${item.name}</span>
+                        </div>
+                        ${index < breadcrumb.length - 1 ? '<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>' : ''}
+                    `).join('')}
+                </div>
+
+                <button class="nav-btn" ${canGoForward ? '' : 'disabled'} onclick="authMissingUIComponents.navigateForward()" title="Go Forward">
+                    Forward <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    navigateBack() {
+        if (this.currentHistoryIndex > 0) {
+            this.currentHistoryIndex--;
+            const previousPage = this.navigationHistory[this.currentHistoryIndex];
+            this.navigateToInterface(previousPage.interface, previousPage.params, false);
+        }
+    }
+
+    navigateForward() {
+        if (this.currentHistoryIndex < this.navigationHistory.length - 1) {
+            this.currentHistoryIndex++;
+            const nextPage = this.navigationHistory[this.currentHistoryIndex];
+            this.navigateToInterface(nextPage.interface, nextPage.params, false);
+        }
+    }
+
+    navigateTo(interfaceName, params = {}) {
+        this.navigateToInterface(interfaceName, params, true);
+    }
+
+    navigateToInterface(interfaceName, params = {}, addToHistory = true) {
+        // Close any open modals first
+        this.closeAllModals();
+
+        // Add to history only if this is a new navigation (not back/forward)
+        if (addToHistory) {
+            this.addToNavigationHistory(interfaceName, params);
+        }
+
+        // Navigate to the requested interface
+        setTimeout(() => {
+            switch (interfaceName) {
+                case 'password-reset':
+                    this.showPasswordResetModal(params.token || '');
+                    break;
+                case 'email-verification':
+                    this.showEmailVerificationInterface(params.email || this.currentUser?.email || 'user@example.com');
+                    break;
+                case 'profile-edit':
+                    this.showProfileEditModal();
+                    break;
+                case 'security-settings':
+                    this.showAccountSecuritySettings();
+                    break;
+                case 'session-management':
+                    this.showSessionManagement();
+                    break;
+                default:
+                    this.showToast(`Unknown interface: ${interfaceName}`, 'error');
+            }
+        }, 100);
+    }
+
+    closeAllModals() {
+        const modals = [
+            'password-reset-modal',
+            'email-verification-modal', 
+            'profile-edit-modal',
+            'security-settings-modal',
+            'session-management-modal'
+        ];
+
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.remove(), 300);
+            }
+        });
+    }
+
+    // Create quick access navigation menu
+    showAuthNavigationMenu() {
+        const menuModal = `
+            <div class="auth-modal-overlay" id="auth-nav-menu">
+                <div class="auth-modal" style="max-width: 500px;">
+                    <div class="auth-modal-header">
+                        <h2><i class="fas fa-bars"></i> Authentication Menu</h2>
+                        <button class="modal-close-btn" onclick="authMissingUIComponents.closeNavigationMenu()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="auth-modal-content">
+                        <div style="display: grid; gap: 15px;">
+                            <button class="btn btn-outline btn-full" onclick="authMissingUIComponents.navigateTo('password-reset')">
+                                <i class="fas fa-key"></i> Reset Password
+                            </button>
+                            <button class="btn btn-outline btn-full" onclick="authMissingUIComponents.navigateTo('email-verification')">
+                                <i class="fas fa-envelope"></i> Email Verification
+                            </button>
+                            <button class="btn btn-outline btn-full" onclick="authMissingUIComponents.navigateTo('profile-edit')">
+                                <i class="fas fa-user-edit"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-outline btn-full" onclick="authMissingUIComponents.navigateTo('security-settings')">
+                                <i class="fas fa-shield-alt"></i> Account Security
+                            </button>
+                            <button class="btn btn-outline btn-full" onclick="authMissingUIComponents.navigateTo('session-management')">
+                                <i class="fas fa-clock"></i> Active Sessions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', menuModal);
+        setTimeout(() => document.getElementById('auth-nav-menu').classList.add('show'), 10);
+    }
+
+    closeNavigationMenu() {
+        const modal = document.getElementById('auth-nav-menu');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        }
     }
 
     // ==================== UTILITY METHODS ====================
