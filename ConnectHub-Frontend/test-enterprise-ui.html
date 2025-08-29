@@ -122,7 +122,7 @@
         
         <div class="test-section">
             <h2>Enterprise Interface Testing</h2>
-            <p>Click the buttons below to test each of the 4 enterprise UI interfaces:</p>
+            <p>Click the buttons below to test each of the 7 enterprise UI interfaces:</p>
             
             <div class="test-grid">
                 <button class="test-button" onclick="testAdvancedAnalytics()">
@@ -136,6 +136,15 @@
                 </button>
                 <button class="test-button" onclick="testContentModeration()">
                     🛡️ Test Content Moderation Dashboard
+                </button>
+                <button class="test-button" onclick="testUserBehaviorInsights()" style="background: var(--success);">
+                    🧠 Test User Behavior Insights (NEW)
+                </button>
+                <button class="test-button" onclick="testBusinessIntelligence()" style="background: var(--success);">
+                    📊 Test Business Intelligence (NEW)
+                </button>
+                <button class="test-button" onclick="testAPIManagement()" style="background: var(--success);">
+                    🔌 Test API Management Interface (NEW)
                 </button>
             </div>
             
@@ -266,12 +275,67 @@
             }
         }
 
+        // NEW UI INTERFACE TESTS
+        function testUserBehaviorInsights() {
+            updateStatus('Testing User Behavior Insights Dashboard...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showUserBehaviorInsightsDashboard === 'function') {
+                    enterpriseMissingUI.showUserBehaviorInsightsDashboard();
+                    addTestResult('User Behavior Insights Dashboard', true, 'Successfully opened user behavior insights dashboard');
+                    updateStatus('User Behavior Insights Dashboard test completed successfully!', 'success');
+                } else {
+                    addTestResult('User Behavior Insights Dashboard', false, 'Method not found or not initialized');
+                    updateStatus('Error: showUserBehaviorInsightsDashboard method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('User Behavior Insights Dashboard', false, 'Error: ' + error.message);
+                updateStatus('Error testing User Behavior Insights: ' + error.message, 'error');
+            }
+        }
+
+        function testBusinessIntelligence() {
+            updateStatus('Testing Business Intelligence Dashboard...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showBusinessIntelligenceDashboard === 'function') {
+                    enterpriseMissingUI.showBusinessIntelligenceDashboard();
+                    addTestResult('Business Intelligence Dashboard', true, 'Successfully opened business intelligence dashboard');
+                    updateStatus('Business Intelligence Dashboard test completed successfully!', 'success');
+                } else {
+                    addTestResult('Business Intelligence Dashboard', false, 'Method not found or not initialized');
+                    updateStatus('Error: showBusinessIntelligenceDashboard method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('Business Intelligence Dashboard', false, 'Error: ' + error.message);
+                updateStatus('Error testing Business Intelligence: ' + error.message, 'error');
+            }
+        }
+
+        function testAPIManagement() {
+            updateStatus('Testing API Management Interface...', 'warning');
+            try {
+                if (enterpriseMissingUI && typeof enterpriseMissingUI.showAPIManagementInterface === 'function') {
+                    enterpriseMissingUI.showAPIManagementInterface();
+                    addTestResult('API Management Interface', true, 'Successfully opened API management interface');
+                    updateStatus('API Management Interface test completed successfully!', 'success');
+                } else {
+                    addTestResult('API Management Interface', false, 'Method not found or not initialized');
+                    updateStatus('Error: showAPIManagementInterface method not found', 'error');
+                }
+            } catch (error) {
+                addTestResult('API Management Interface', false, 'Error: ' + error.message);
+                updateStatus('Error testing API Management: ' + error.message, 'error');
+            }
+        }
+
         // Test all interfaces at once
         function testAllInterfaces() {
             testAdvancedAnalytics();
             setTimeout(() => testTeamManagement(), 500);
             setTimeout(() => testAdminPanel(), 1000);
             setTimeout(() => testContentModeration(), 1500);
+            setTimeout(() => testUserBehaviorInsights(), 2000);
+            setTimeout(() => testBusinessIntelligence(), 2500);
+            setTimeout(() => testAPIManagement(), 3000);
         }
     </script>
 </body>

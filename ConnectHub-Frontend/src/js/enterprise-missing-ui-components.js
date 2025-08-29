@@ -1,11 +1,14 @@
 /**
  * Enterprise Missing UI Components
  * 
- * This file contains the 4 missing UI interfaces for the Enterprise section:
+ * This file contains the 7 UI interfaces for the Enterprise & Analytics section:
  * 1. Advanced Analytics Dashboard - Detailed business metrics and performance reports
  * 2. Team Management Interface - Invite members, manage roles and permissions
  * 3. Enterprise Admin Panel - Advanced settings, API management, whitelabel config
  * 4. Content Moderation Dashboard - Review content, manage reports, user management
+ * 5. User Behavior Insights Dashboard - Deep user behavior analysis (NEW)
+ * 6. Business Intelligence Dashboard - Strategic business metrics and KPI tracking (NEW)
+ * 7. API Management Interface - Developer tools and API configuration (NEW)
  */
 
 function EnterpriseMissingUIComponents() {
@@ -14,6 +17,7 @@ function EnterpriseMissingUIComponents() {
     this.teamMembers = [];
     this.analyticsData = {};
     this.moderationQueue = [];
+    this.apiKeys = [];
     
     // Initialize
     this.init = function() {
@@ -64,6 +68,13 @@ function EnterpriseMissingUIComponents() {
             { id: 1, type: 'post', content: 'This is a sample post that needs review...', reporter: 'user@example.com', reason: 'spam', status: 'pending', timestamp: '2024-12-07 14:30' },
             { id: 2, type: 'user', content: 'User profile: suspicious activity detected', reporter: 'system', reason: 'suspicious_activity', status: 'pending', timestamp: '2024-12-07 13:45' },
             { id: 3, type: 'message', content: 'Inappropriate message in group chat', reporter: 'moderator@example.com', reason: 'harassment', status: 'reviewing', timestamp: '2024-12-07 12:20' }
+        ];
+
+        // Sample API keys
+        this.apiKeys = [
+            { id: 1, name: 'Production API', key: 'ck_1a2b3c4d5e6f7g8h9i0j...', status: 'active', created: '2024-01-15', lastUsed: '2024-12-07 15:30', requests: 45280 },
+            { id: 2, name: 'Development API', key: 'ck_9z8y7x6w5v4u3t2s1r0q...', status: 'active', created: '2024-03-10', lastUsed: '2024-12-07 12:15', requests: 12450 },
+            { id: 3, name: 'Testing API', key: 'ck_p9o8n7m6l5k4j3h2g1f0...', status: 'inactive', created: '2024-06-20', lastUsed: '2024-11-15 09:22', requests: 2340 }
         ];
     };
     
@@ -253,17 +264,6 @@ function EnterpriseMissingUIComponents() {
                 '<div class="member-email">' + member.email + '</div>' +
                 '<div class="member-meta">' +
                 '<span class="role-badge ' + member.role + '">' + 
-                member.role.charAt(0).toUpperCase() + member.role.slice(1) + '</span>' +
-                '<span class="join-date">Joined: ' + (member.joinedAt || 'Pending') + '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                '<div class="member-actions">' +
-                '<button class="action-btn" title="View Details">👁️</button>' +
-                '<button class="action-btn" title="Edit Member">✏️</button>' +
-                '<button class="action-btn" title="Manage Permissions">🔐</button>' +
-                resendButton +
-                '<button class="action-btn danger" title="Remove Member">🗑️</button>' +
                 '</div>' +
                 '</div>';
         }
@@ -496,6 +496,342 @@ function EnterpriseMissingUIComponents() {
         document.body.appendChild(modal);
     };
 
+    // 5. USER BEHAVIOR INSIGHTS DASHBOARD - NEW MISSING UI #1
+    this.showUserBehaviorInsightsDashboard = function() {
+        var modal = document.createElement('div');
+        modal.className = 'enterprise-modal behavior-insights-modal active';
+        
+        // Sample behavior data
+        var behaviorData = {
+            userJourney: [
+                { step: 'Registration', users: 10000, conversion: 100 },
+                { step: 'Profile Setup', users: 8500, conversion: 85 },
+                { step: 'First Post', users: 6800, conversion: 68 },
+                { step: 'First Connection', users: 5200, conversion: 52 },
+                { step: 'Active User (30 days)', users: 4100, conversion: 41 }
+            ],
+            behaviorPatterns: [
+                { pattern: 'Morning Active (6-10 AM)', percentage: 32, users: 4920 },
+                { pattern: 'Lunch Break Active (12-1 PM)', percentage: 28, users: 4312 },
+                { pattern: 'Evening Active (6-10 PM)', percentage: 45, users: 6930 },
+                { pattern: 'Night Owl Active (10 PM-2 AM)', percentage: 18, users: 2770 }
+            ],
+            topFeatures: [
+                { feature: 'Messaging', usage: 89, engagement: 4.7 },
+                { feature: 'Home Feed', usage: 87, engagement: 4.2 },
+                { feature: 'Profile Viewing', usage: 76, engagement: 3.8 },
+                { feature: 'Photo Sharing', usage: 68, engagement: 4.5 },
+                { feature: 'Video Calls', usage: 34, engagement: 4.9 }
+            ]
+        };
+        
+        var journeyHtml = '';
+        for (var i = 0; i < behaviorData.userJourney.length; i++) {
+            var step = behaviorData.userJourney[i];
+            journeyHtml += '<div class="journey-step">' +
+                '<div class="step-icon">📊</div>' +
+                '<div class="step-content">' +
+                '<div class="step-title">' + step.step + '</div>' +
+                '<div class="step-stats">' +
+                '<span class="user-count">' + step.users.toLocaleString() + ' users</span>' +
+                '<span class="conversion-rate">' + step.conversion + '% conversion</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+        
+        var patternsHtml = '';
+        for (var i = 0; i < behaviorData.behaviorPatterns.length; i++) {
+            var pattern = behaviorData.behaviorPatterns[i];
+            patternsHtml += '<div class="pattern-item">' +
+                '<div class="pattern-info">' +
+                '<div class="pattern-name">' + pattern.pattern + '</div>' +
+                '<div class="pattern-stats">' + pattern.users.toLocaleString() + ' users (' + pattern.percentage + '%)</div>' +
+                '</div>' +
+                '<div class="pattern-bar">' +
+                '<div class="bar-fill" style="width: ' + pattern.percentage + '%"></div>' +
+                '</div>' +
+                '</div>';
+        }
+        
+        var featuresHtml = '';
+        for (var i = 0; i < behaviorData.topFeatures.length; i++) {
+            var feature = behaviorData.topFeatures[i];
+            featuresHtml += '<tr>' +
+                '<td>' + feature.feature + '</td>' +
+                '<td>' + feature.usage + '%</td>' +
+                '<td>' +
+                '<div class="rating-stars">' +
+                '★'.repeat(Math.floor(feature.engagement)) +
+                '☆'.repeat(5 - Math.floor(feature.engagement)) +
+                ' ' + feature.engagement +
+                '</div>' +
+                '</td>' +
+                '</tr>';
+        }
+        
+        var modalContent = '<div class="enterprise-modal-overlay">' +
+            '<div class="enterprise-modal-content extra-large-modal">' +
+            '<div class="modal-header">' +
+            '<h2>🧠 User Behavior Insights Dashboard</h2>' +
+            '<p>Deep analysis of user behavior patterns and engagement metrics</p>' +
+            '<button class="close-modal">×</button>' +
+            '</div>' +
+            '<div class="behavior-insights-dashboard">' +
+            '<div class="insights-tabs">' +
+            '<button class="insights-tab active">🚶 User Journey</button>' +
+            '<button class="insights-tab">⏰ Activity Patterns</button>' +
+            '<button class="insights-tab">🎯 Feature Engagement</button>' +
+            '<button class="insights-tab">🔮 Predictive Insights</button>' +
+            '</div>' +
+            '<div class="insights-content">' +
+            '<div class="user-journey-section">' +
+            '<div class="section-header">' +
+            '<h3>🚶‍♂️ User Journey Analysis</h3>' +
+            '<p>Track user progression through key platform milestones</p>' +
+            '</div>' +
+            '<div class="journey-flow">' +
+            journeyHtml +
+            '</div>' +
+            '</div>' +
+            '<div class="behavior-patterns-section">' +
+            '<div class="section-header">' +
+            '<h3>⏰ Activity Patterns</h3>' +
+            '<p>When users are most active throughout the day</p>' +
+            '</div>' +
+            '<div class="patterns-list">' +
+            patternsHtml +
+            '</div>' +
+            '</div>' +
+            '<div class="feature-engagement-section">' +
+            '<div class="section-header">' +
+            '<h3>🎯 Feature Engagement Analysis</h3>' +
+            '<p>Most used features and their engagement scores</p>' +
+            '</div>' +
+            '<div class="feature-table">' +
+            '<table>' +
+            '<thead>' +
+            '<tr>' +
+            '<th>Feature</th>' +
+            '<th>Usage Rate</th>' +
+            '<th>Engagement Score</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+            featuresHtml +
+            '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '</div>' +
+            '<div class="predictive-insights-section">' +
+            '<div class="section-header">' +
+            '<h3>🔮 Predictive Insights</h3>' +
+            '<p>AI-powered predictions and recommendations</p>' +
+            '</div>' +
+            '<div class="predictions-grid">' +
+            '<div class="prediction-card">' +
+            '<div class="prediction-icon">📈</div>' +
+            '<div class="prediction-content">' +
+            '<div class="prediction-title">User Growth Forecast</div>' +
+            '<div class="prediction-value">+23% next month</div>' +
+            '<div class="prediction-confidence">85% confidence</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="prediction-card">' +
+            '<div class="prediction-icon">⚠️</div>' +
+            '<div class="prediction-content">' +
+            '<div class="prediction-title">Churn Risk</div>' +
+            '<div class="prediction-value">1,247 users at risk</div>' +
+            '<div class="prediction-confidence">92% confidence</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="prediction-card">' +
+            '<div class="prediction-icon">💡</div>' +
+            '<div class="prediction-content">' +
+            '<div class="prediction-title">Optimization Opportunity</div>' +
+            '<div class="prediction-value">Improve onboarding flow</div>' +
+            '<div class="prediction-confidence">Impact: +12% retention</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+    };
+
+    // 6. BUSINESS INTELLIGENCE DASHBOARD - NEW MISSING UI #2
+    this.showBusinessIntelligenceDashboard = function() {
+        var modal = document.createElement('div');
+        modal.className = 'enterprise-modal business-intelligence-modal active';
+        
+        // Sample BI data
+        var biData = {
+            kpis: [
+                { name: 'Revenue Growth', value: 25.7, unit: '%', trend: 'up', target: 20 },
+                { name: 'Market Share', value: 12.3, unit: '%', trend: 'up', target: 15 },
+                { name: 'Customer Retention', value: 89.2, unit: '%', trend: 'stable', target: 85 },
+                { name: 'ROI', value: 340, unit: '%', trend: 'up', target: 300 }
+            ],
+            departments: [
+                { name: 'Sales', performance: 95, budget: 120000, spent: 118500 },
+                { name: 'Marketing', performance: 87, budget: 85000, spent: 82300 },
+                { name: 'Development', performance: 92, budget: 150000, spent: 145000 },
+                { name: 'Support', performance: 98, budget: 60000, spent: 58200 }
+            ]
+        };
+        
+        var kpiHtml = '';
+        for (var i = 0; i < biData.kpis.length; i++) {
+            var kpi = biData.kpis[i];
+            var trendIcon = kpi.trend === 'up' ? '📈' : kpi.trend === 'down' ? '📉' : '➡️';
+            kpiHtml += '<div class="bi-kpi-card">' +
+                '<div class="kpi-header">' +
+                '<div class="kpi-name">' + kpi.name + '</div>' +
+                '<div class="kpi-trend">' + trendIcon + '</div>' +
+                '</div>' +
+                '<div class="kpi-value">' + kpi.value + kpi.unit + '</div>' +
+                '<div class="kpi-target">Target: ' + kpi.target + kpi.unit + '</div>' +
+                '</div>';
+        }
+        
+        var departmentHtml = '';
+        for (var i = 0; i < biData.departments.length; i++) {
+            var dept = biData.departments[i];
+            var budgetUtilization = (dept.spent / dept.budget * 100).toFixed(1);
+            departmentHtml += '<div class="department-card">' +
+                '<div class="dept-header">' +
+                '<div class="dept-name">' + dept.name + '</div>' +
+                '<div class="dept-performance">' + dept.performance + '%</div>' +
+                '</div>' +
+                '<div class="dept-budget">Budget: $' + dept.budget.toLocaleString() + ' | Used: ' + budgetUtilization + '%</div>' +
+                '</div>';
+        }
+        
+        var modalContent = '<div class="enterprise-modal-overlay">' +
+            '<div class="enterprise-modal-content extra-large-modal">' +
+            '<div class="modal-header">' +
+            '<h2>📊 Business Intelligence Dashboard</h2>' +
+            '<p>Strategic business metrics and comprehensive KPI tracking</p>' +
+            '<button class="close-modal">×</button>' +
+            '</div>' +
+            '<div class="business-intelligence-dashboard">' +
+            '<div class="bi-content">' +
+            '<div class="bi-section">' +
+            '<div class="section-header">' +
+            '<h3>🎯 Key Performance Indicators</h3>' +
+            '</div>' +
+            '<div class="kpi-grid">' +
+            kpiHtml +
+            '</div>' +
+            '</div>' +
+            '<div class="bi-section">' +
+            '<div class="section-header">' +
+            '<h3>🏢 Department Performance</h3>' +
+            '</div>' +
+            '<div class="departments-grid">' +
+            departmentHtml +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+    };
+
+    // 7. API MANAGEMENT INTERFACE - NEW MISSING UI #3
+    this.showAPIManagementInterface = function() {
+        var modal = document.createElement('div');
+        modal.className = 'enterprise-modal api-management-modal active';
+        
+        var apiKeysHtml = '';
+        for (var i = 0; i < this.apiKeys.length; i++) {
+            var api = this.apiKeys[i];
+            var statusIcon = api.status === 'active' ? '✅' : '🔒';
+            
+            apiKeysHtml += '<div class="api-key-card ' + api.status + '">' +
+                '<div class="api-header">' +
+                '<div class="api-info">' +
+                '<div class="api-name">' + api.name + '</div>' +
+                '<div class="api-status">' + statusIcon + ' ' + api.status.toUpperCase() + '</div>' +
+                '</div>' +
+                '<div class="api-actions">' +
+                '<button class="btn-small btn-secondary">👁️ View</button>' +
+                '<button class="btn-small btn-primary">✏️ Edit</button>' +
+                '<button class="btn-small btn-danger">🗑️ Delete</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="api-details">' +
+                '<div class="api-key-display">' +
+                '<label>API Key:</label>' +
+                '<span class="key-text">' + api.key + '</span>' +
+                '<button class="btn-copy" title="Copy to clipboard">📋</button>' +
+                '</div>' +
+                '<div class="api-stats">' +
+                '<span>Created: ' + api.created + '</span> | ' +
+                '<span>Requests: ' + api.requests.toLocaleString() + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+        
+        var modalContent = '<div class="enterprise-modal-overlay">' +
+            '<div class="enterprise-modal-content extra-large-modal">' +
+            '<div class="modal-header">' +
+            '<h2>🔌 API Management Interface</h2>' +
+            '<p>Developer tools and API configuration management</p>' +
+            '<button class="close-modal">×</button>' +
+            '</div>' +
+            '<div class="api-management-dashboard">' +
+            '<div class="api-header">' +
+            '<div class="api-summary">' +
+            '<div class="summary-stats">' +
+            '<div class="stat-card">' +
+            '<div class="stat-icon">🔑</div>' +
+            '<div class="stat-content">' +
+            '<div class="stat-value">' + this.apiKeys.length + '</div>' +
+            '<div class="stat-label">Total API Keys</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="stat-card">' +
+            '<div class="stat-icon">✅</div>' +
+            '<div class="stat-content">' +
+            '<div class="stat-value">' + this.apiKeys.filter(function(k) { return k.status === 'active'; }).length + '</div>' +
+            '<div class="stat-label">Active Keys</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="api-actions">' +
+            '<button class="btn btn-primary">➕ Generate New API Key</button>' +
+            '<button class="btn btn-secondary">📄 Documentation</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="api-content">' +
+            '<div class="api-section">' +
+            '<div class="section-header">' +
+            '<h3>🔑 API Keys Management</h3>' +
+            '</div>' +
+            '<div class="api-keys-list">' +
+            apiKeysHtml +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+    };
+
     // Supporting Methods
     this.startRealTimeUpdates = function() {
         var self = this;
@@ -516,7 +852,7 @@ function EnterpriseMissingUIComponents() {
 
 // Initialize the enterprise UI components
 var enterpriseUI = new EnterpriseMissingUIComponents();
-enterpriseUI.init(); // Initialize the data
+enterpriseUI.init();
 
 // Global functions to call the enterprise interfaces
 function showAdvancedAnalyticsDashboard() {
@@ -535,6 +871,19 @@ function showContentModerationDashboard() {
     enterpriseUI.showContentModerationDashboard();
 }
 
+// NEW MISSING UI INTERFACE FUNCTIONS
+function showUserBehaviorInsightsDashboard() {
+    enterpriseUI.showUserBehaviorInsightsDashboard();
+}
+
+function showBusinessIntelligenceDashboard() {
+    enterpriseUI.showBusinessIntelligenceDashboard();
+}
+
+function showAPIManagementInterface() {
+    enterpriseUI.showAPIManagementInterface();
+}
+
 // Toast notification function
 function showToast(message, type) {
     type = type || 'info';
@@ -549,7 +898,7 @@ function showToast(message, type) {
     };
     
     toast.innerHTML = icons[type] + ' ' + message;
-    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #333; color: #fff; padding: 1rem 1.5rem; border-radius: 8px; z-index: 10000;';
+    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #333; color: #fff; padding: 1rem 1.5rem; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
     
     document.body.appendChild(toast);
     
