@@ -966,7 +966,12 @@ function shareTrack() {
 }
 
 function openMusicLibrary() {
-    showToast('Opening music library...', 'info');
+    if (window.musicLibraryUI) {
+        window.musicLibraryUI.showMusicLibrary();
+        showToast('Enhanced Music Library opened!', 'success');
+    } else {
+        showToast('Music Library not available', 'error');
+    }
 }
 
 function startLiveSession() {
