@@ -17,6 +17,7 @@ let profileUIComponents = null;
 let searchUIComponents = null;
 let groupsUIComponents = null;
 let eventsUIComponents = null;
+let advancedSearchResultsUI = null;
 
 // Sample data arrays
 const samplePosts = [
@@ -1753,6 +1754,11 @@ function initializeUIComponents() {
     if (!eventsUIComponents && window.EventsMissingUIComponents) {
         eventsUIComponents = new EventsMissingUIComponents();
     }
+    if (!advancedSearchResultsUI && window.AdvancedSearchResultsUI) {
+        advancedSearchResultsUI = new AdvancedSearchResultsUI({
+            showToast: showToast
+        });
+    }
 }
 
 // Enhanced UI interface functions for Profile Screen
@@ -1834,6 +1840,17 @@ function showRealTimeSearchSuggestions() {
     if (searchUIComponents) {
         searchUIComponents.showRealTimeSearchSuggestions();
         showToast('Real-time Search Suggestions opened!', 'success');
+    }
+}
+
+// NEW: Advanced Search Results UI function - The 1 Missing Search & Discovery Interface
+function showAdvancedSearchResults(query = 'photography', results = {}) {
+    initializeUIComponents();
+    if (advancedSearchResultsUI) {
+        advancedSearchResultsUI.showAdvancedSearchResults(query, results);
+        showToast('Advanced Search Results opened!', 'success');
+    } else {
+        showToast('Advanced Search Results UI not available', 'warning');
     }
 }
 
