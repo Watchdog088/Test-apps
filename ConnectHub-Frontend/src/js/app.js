@@ -18,6 +18,7 @@ let searchUIComponents = null;
 let groupsUIComponents = null;
 let eventsUIComponents = null;
 let advancedSearchResultsUI = null;
+let searchDiscoveryStreamingComponents = null;
 
 // Sample data arrays
 const samplePosts = [
@@ -1759,6 +1760,9 @@ function initializeUIComponents() {
             showToast: showToast
         });
     }
+    if (!searchDiscoveryStreamingComponents && window.SearchDiscoveryStreamingComponents) {
+        searchDiscoveryStreamingComponents = new SearchDiscoveryStreamingComponents();
+    }
 }
 
 // Enhanced UI interface functions for Profile Screen
@@ -1851,6 +1855,37 @@ function showAdvancedSearchResults(query = 'photography', results = {}) {
         showToast('Advanced Search Results opened!', 'success');
     } else {
         showToast('Advanced Search Results UI not available', 'warning');
+    }
+}
+
+// NEW: Search & Discovery Streaming UI interface functions - The 3 Missing Search & Discovery Streaming Interfaces
+function showLiveStreamSearch() {
+    initializeUIComponents();
+    if (searchDiscoveryStreamingComponents) {
+        searchDiscoveryStreamingComponents.showLiveStreamSearch();
+        showToast('Live Stream Search & Discovery opened!', 'success');
+    } else {
+        showToast('Live Stream Search UI not available', 'warning');
+    }
+}
+
+function showContentRecommendations() {
+    initializeUIComponents();
+    if (searchDiscoveryStreamingComponents) {
+        searchDiscoveryStreamingComponents.showContentRecommendations();
+        showToast('Content Recommendation Engine opened!', 'success');
+    } else {
+        showToast('Content Recommendations UI not available', 'warning');
+    }
+}
+
+function showTrendingAnalytics() {
+    initializeUIComponents();
+    if (searchDiscoveryStreamingComponents) {
+        searchDiscoveryStreamingComponents.showTrendingAnalytics();
+        showToast('Trending Streams Analytics opened!', 'success');
+    } else {
+        showToast('Trending Analytics UI not available', 'warning');
     }
 }
 
