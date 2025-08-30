@@ -129,7 +129,9 @@ class StreamingManager {
                             </div>
                         </div>
                         <div class="control-buttons">
-                            <button id="start-stream-btn">Start Stream</button>
+                            <button id="start-session-btn" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                                🔴 Start Session
+                            </button>
                             <button id="end-stream-btn" style="display: none;">End Stream</button>
                             <button id="toggle-camera-btn">📹 Camera</button>
                             <button id="toggle-mic-btn">🎤 Mic</button>
@@ -208,8 +210,10 @@ class StreamingManager {
 
         // Stream controls
         const startStreamBtn = document.getElementById('start-stream-btn');
+        const startSessionBtn = document.getElementById('start-session-btn');
         const endStreamBtn = document.getElementById('end-stream-btn');
         if (startStreamBtn) startStreamBtn.addEventListener('click', () => this.startStream());
+        if (startSessionBtn) startSessionBtn.addEventListener('click', () => this.startSession());
         if (endStreamBtn) endStreamBtn.addEventListener('click', () => this.endStream());
 
         // Chat
@@ -559,6 +563,16 @@ class StreamingManager {
         document.getElementById('live-streams-grid').style.display = 'none';
         document.getElementById('stream-creator').style.display = 'none';
         document.getElementById('stream-controls').style.display = 'block';
+    }
+
+    startSession() {
+        // Launch the comprehensive stream dashboard
+        if (window.streamSessionDashboard) {
+            window.streamSessionDashboard.showSetupModal();
+        } else {
+            console.error('Stream Session Dashboard not available');
+            alert('Stream dashboard not loaded. Please refresh the page.');
+        }
     }
 
     async startStream() {

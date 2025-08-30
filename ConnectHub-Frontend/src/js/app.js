@@ -975,7 +975,21 @@ function openMusicLibrary() {
 }
 
 function startLiveSession() {
-    showToast('Starting live music session...', 'info');
+    // Launch the comprehensive stream session dashboard
+    if (window.streamSessionDashboard) {
+        window.streamSessionDashboard.showSetupModal();
+        showToast('Stream setup opened!', 'success');
+    } else {
+        showToast('Stream dashboard loading...', 'info');
+        // Fallback: try to access streaming manager
+        setTimeout(() => {
+            if (window.streamingManager) {
+                window.streamingManager.startSession();
+            } else {
+                showToast('Stream dashboard not available. Please refresh the page.', 'error');
+            }
+        }, 500);
+    }
 }
 
 function discoverMusic() {
