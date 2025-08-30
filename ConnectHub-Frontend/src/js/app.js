@@ -993,7 +993,26 @@ function startLiveSession() {
 }
 
 function discoverMusic() {
-    showToast('Discovering new music based on your taste...', 'info');
+    // Launch the comprehensive music discovery interface
+    if (window.musicLibraryUI) {
+        window.musicLibraryUI.activeInterface = 'discovery';
+        window.musicLibraryUI.activeTab = 'trending'; // Start with trending as specified
+        window.musicLibraryUI.showMusicLibrary();
+        showToast('Music Discovery opened! 🎵', 'success');
+    } else {
+        showToast('Loading music discovery interface...', 'info');
+        // Fallback: try to initialize the music library after a brief delay
+        setTimeout(() => {
+            if (window.musicLibraryUI) {
+                window.musicLibraryUI.activeInterface = 'discovery';
+                window.musicLibraryUI.activeTab = 'trending';
+                window.musicLibraryUI.showMusicLibrary();
+                showToast('Music Discovery loaded! 🎵', 'success');
+            } else {
+                showToast('Music Discovery interface not available. Please refresh the page.', 'error');
+            }
+        }, 500);
+    }
 }
 
 function toggleMic() {
