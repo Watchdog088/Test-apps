@@ -1939,7 +1939,304 @@ function reportComment(userName) {
 }
 
 function sharePost(postId) {
-    showToast('Post shared!', 'success');
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) {
+        showToast('Post not found', 'error');
+        return;
+    }
+    
+    // Show comprehensive share modal
+    showShareModal(post);
+}
+
+function showShareModal(post) {
+    // Remove existing share modal
+    const existingModal = document.getElementById('shareModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'shareModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    📤 Share Post
+                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">by ${post.user}</span>
+                </h2>
+                <button onclick="closeModal('shareModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;" aria-label="Close share modal">×</button>
+            </div>
+
+            <!-- Post Preview -->
+            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: var(--glass);">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${post.avatar}</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">${post.user}</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">${post.time}</div>
+                    </div>
+                </div>
+                <div style="font-size: 0.9rem; line-height: 1.4; color: var(--text-secondary);">
+                    ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}
+                </div>
+            </div>
+
+            <!-- Share Options -->
+            <div style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+                <!-- Quick Share Options -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">📱 Share to Social Platforms</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareToExternal('facebook', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📘</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Facebook</span>
+                    </button>
+                    <button onclick="shareToExternal('twitter', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">🐦</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Twitter</span>
+                    </button>
+                    <button onclick="shareToExternal('instagram', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📷</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Instagram</span>
+                    </button>
+                    <button onclick="shareToExternal('linkedin', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💼</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">LinkedIn</span>
+                    </button>
+                </div>
+
+                <!-- ConnectHub Internal Sharing -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🏠 Share on ConnectHub</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareToConnectHub('story', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">📱</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Story</span>
+                    </button>
+                    <button onclick="shareToConnectHub('friends', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">👥</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Friends</span>
+                    </button>
+                    <button onclick="shareToConnectHub('groups', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--success) 0%, var(--accent) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">🔗</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Groups</span>
+                    </button>
+                </div>
+
+                <!-- Direct Communication -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">💬 Send Directly</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareViaMethod('email', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📧</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Email</span>
+                    </button>
+                    <button onclick="shareViaMethod('sms', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💬</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Text Message</span>
+                    </button>
+                    <button onclick="shareViaMethod('whatsapp', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💚</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">WhatsApp</span>
+                    </button>
+                    <button onclick="copyPostLink(${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">🔗</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Copy Link</span>
+                    </button>
+                </div>
+
+                <!-- Add Custom Message -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">✏️ Add Your Message</h3>
+                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <textarea id="shareMessage" placeholder="Add a personal message to your share (optional)..." style="width: 100%; min-height: 80px; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; font-size: 0.9rem;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">
+                            💡 Tip: Add context to help your audience understand why you're sharing
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;" id="shareCharCount">
+                            <span id="shareCharCountNumber">0</span>/280
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🔒 Privacy Settings</h3>
+                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="public" checked style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">🌍 Public</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Anyone can see this shared post</div>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="friends" style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">👥 Friends Only</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only your friends can see this share</div>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="private" style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">🔒 Private</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only you can see this in your saved posts</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="quickShare(${post.id})" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <span>🚀</span>
+                        Quick Share
+                    </button>
+                    <button onclick="closeModal('shareModal')" style="background: var(--glass); color: var(--text-primary); border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.classList.add('active');
+    
+    // Setup character counter for share message
+    setTimeout(() => {
+        const shareInput = document.getElementById('shareMessage');
+        if (shareInput) {
+            shareInput.addEventListener('input', updateShareCharCount);
+        }
+    }, 100);
+}
+
+function updateShareCharCount() {
+    const input = document.getElementById('shareMessage');
+    const counter = document.getElementById('shareCharCountNumber');
+    if (input && counter) {
+        counter.textContent = input.value.length;
+        const charCount = document.getElementById('shareCharCount');
+        if (input.value.length > 280) {
+            charCount.style.color = 'var(--error)';
+        } else if (input.value.length > 240) {
+            charCount.style.color = 'var(--warning)';
+        } else {
+            charCount.style.color = 'var(--text-muted)';
+        }
+    }
+}
+
+function shareToExternal(platform, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    switch(platform) {
+        case 'facebook':
+            showToast(`Sharing to Facebook... 📘`, 'info');
+            break;
+        case 'twitter':
+            showToast(`Sharing to Twitter... 🐦`, 'info');
+            break;
+        case 'instagram':
+            showToast(`Sharing to Instagram Stories... 📷`, 'info');
+            break;
+        case 'linkedin':
+            showToast(`Sharing to LinkedIn... 💼`, 'info');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function shareToConnectHub(type, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    
+    switch(type) {
+        case 'story':
+            showToast(`Shared to your Story! 📱`, 'success');
+            break;
+        case 'friends':
+            showToast(`Shared with friends! 👥`, 'success');
+            break;
+        case 'groups':
+            showToast(`Shared to groups! 🔗`, 'success');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function shareViaMethod(method, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    switch(method) {
+        case 'email':
+            showToast(`Opening email client... 📧`, 'info');
+            break;
+        case 'sms':
+            showToast(`Opening SMS app... 💬`, 'info');
+            break;
+        case 'whatsapp':
+            showToast(`Opening WhatsApp... 💚`, 'info');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function copyPostLink(postId) {
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    // Create temporary text area to copy text
+    const textArea = document.createElement('textarea');
+    textArea.value = postUrl;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    showToast('Post link copied to clipboard! 🔗', 'success');
+    
+    // Update share count
+    const post = samplePosts.find(p => p.id === postId);
+    if (post) {
+        post.shares += 1;
+    }
+    
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function quickShare(postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const privacy = document.querySelector('input[name="sharePrivacy"]:checked')?.value || 'public';
+    
+    showToast(`Post shared ${privacy === 'public' ? 'publicly' : privacy === 'friends' ? 'with friends' : 'privately'}! 🚀`, 'success');
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
 }
 
 function addFriend(name) {
