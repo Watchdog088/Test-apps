@@ -25,6 +25,7 @@ class MusicLibraryUI {
         this.selectedRecommendation = null;
         this.selectedTrack = null;
         this.navigationStack = [];
+        this.genreSearchQuery = '';
 
         // Live Dashboard State
         this.liveMetrics = {
@@ -73,18 +74,45 @@ class MusicLibraryUI {
             'Electronic': {
                 id: 'electronic', name: 'Electronic', description: 'Synthetic beats and digital soundscapes',
                 totalTracks: 1247, totalListeners: 89432,
+                gradient: 'linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%)',
                 artists: ['Synthwave Masters', 'Neon Collective', 'Future Bass', 'Cyber City'],
                 tracks: [
                     { id: 101, title: "Digital Horizon", artist: "Synthwave Masters", album: "Cyber Dreams", duration: "4:12", plays: 892341, liked: false, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop" },
-                    { id: 102, title: "Electric Pulse", artist: "Neon Collective", album: "Digital Soul", duration: "4:18", plays: 756432, liked: true, image: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=200&h=200&fit=crop" }
+                    { id: 102, title: "Electric Pulse", artist: "Neon Collective", album: "Digital Soul", duration: "4:18", plays: 756432, liked: true, image: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=200&h=200&fit=crop" },
+                    { id: 103, title: "Neon Dreams", artist: "Future Bass", album: "Synthetic Reality", duration: "3:45", plays: 634521, liked: false, image: "https://images.unsplash.com/photo-1520637836862-4d197d17c97a?w=200&h=200&fit=crop" },
+                    { id: 104, title: "Cyber Nights", artist: "Cyber City", album: "Digital Metropolis", duration: "5:02", plays: 543219, liked: true, image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&h=200&fit=crop" },
+                    { id: 105, title: "Quantum Beats", artist: "Synthwave Masters", album: "Future Waves", duration: "4:33", plays: 421876, liked: false, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop" }
                 ]
             },
             'Hip-Hop': {
                 id: 'hiphop', name: 'Hip-Hop', description: 'Beats, rhymes, and urban culture',
                 totalTracks: 892, totalListeners: 124567,
+                gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)',
                 artists: ['City Lights', 'Lyrical Minds', 'Beat Collective'],
                 tracks: [
-                    { id: 201, title: "Urban Symphony", artist: "City Lights", album: "Metropolitan", duration: "3:55", plays: 1234567, liked: true, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop" }
+                    { id: 201, title: "Urban Symphony", artist: "City Lights", album: "Metropolitan", duration: "3:55", plays: 1234567, liked: true, image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&h=200&fit=crop" },
+                    { id: 202, title: "Street Poetry", artist: "Lyrical Minds", album: "Words & Beats", duration: "4:21", plays: 987654, liked: false, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop" },
+                    { id: 203, title: "Bass Drop", artist: "Beat Collective", album: "Underground", duration: "3:12", plays: 765432, liked: true, image: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=200&h=200&fit=crop" }
+                ]
+            },
+            'Jazz': {
+                id: 'jazz', name: 'Jazz', description: 'Smooth rhythms and improvised melodies',
+                totalTracks: 674, totalListeners: 67890,
+                gradient: 'linear-gradient(135deg, #eab308 0%, #f97316 100%)',
+                artists: ['Smooth Collective', 'Jazz Masters', 'Blue Note'],
+                tracks: [
+                    { id: 301, title: "Midnight Jazz", artist: "Smooth Collective", album: "After Hours", duration: "6:45", plays: 456789, liked: false, image: "https://images.unsplash.com/photo-1520637836862-4d197d17c97a?w=200&h=200&fit=crop" },
+                    { id: 302, title: "Blue Harmony", artist: "Jazz Masters", album: "Classic Sessions", duration: "5:23", plays: 234567, liked: true, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop" }
+                ]
+            },
+            'Rock': {
+                id: 'rock', name: 'Rock', description: 'Powerful guitars and driving rhythms',
+                totalTracks: 1156, totalListeners: 198765,
+                gradient: 'linear-gradient(135deg, #dc2626 0%, #ec4899 100%)',
+                artists: ['Thunder Strike', 'Electric Storm', 'Rock Legends'],
+                tracks: [
+                    { id: 401, title: "Thunder Road", artist: "Thunder Strike", album: "Electric Dreams", duration: "4:56", plays: 1456789, liked: true, image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&h=200&fit=crop" },
+                    { id: 402, title: "Storm Chaser", artist: "Electric Storm", album: "Lightning", duration: "3:42", plays: 876543, liked: false, image: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=200&h=200&fit=crop" }
                 ]
             }
         };
@@ -711,6 +739,11 @@ class MusicLibraryUI {
     }
 
     renderDiscoveryContent() {
+        // Check if we're in genre detail view
+        if (this.currentView === 'genreDetail' && this.selectedGenre) {
+            return this.renderGenreDetailView();
+        }
+        
         switch(this.activeTab) {
             case 'trending':
                 return `
@@ -892,7 +925,225 @@ class MusicLibraryUI {
 
     exploreGenre(genreName) {
         console.log('Exploring genre:', genreName);
-        // This would typically navigate to a detailed genre view
+        
+        // Save current navigation state
+        this.navigationStack.push({
+            view: 'main',
+            tab: 'genres',
+            data: null
+        });
+        
+        // Update state
+        this.selectedGenre = this.genreData[genreName];
+        this.currentView = 'genreDetail';
+        this.genreSearchQuery = '';
+        
+        // Re-render interface
+        this.switchInterface(this.activeInterface);
+    }
+
+    renderGenreDetailView() {
+        const genre = this.selectedGenre;
+        if (!genre) return '<div>Genre not found</div>';
+
+        // Filter tracks based on search query
+        const filteredTracks = genre.tracks.filter(track => 
+            !this.genreSearchQuery || 
+            track.title.toLowerCase().includes(this.genreSearchQuery.toLowerCase()) ||
+            track.artist.toLowerCase().includes(this.genreSearchQuery.toLowerCase()) ||
+            track.album.toLowerCase().includes(this.genreSearchQuery.toLowerCase())
+        );
+
+        return `
+            <!-- Navigation Breadcrumbs -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <button onclick="musicLibraryUI.navigateBack()" style="background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                    <span style="font-size: 16px;">←</span>
+                    <span style="font-weight: 500;">Back</span>
+                </button>
+                <span style="color: rgba(255,255,255,0.5); font-size: 14px;">/</span>
+                <span style="color: white; font-weight: 600; font-size: 16px;">${genre.name}</span>
+            </div>
+
+            <!-- Genre Hero Section -->
+            <div style="background: ${genre.gradient}; border-radius: 20px; padding: 40px; margin-bottom: 32px; position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 32px;">
+                    <!-- Genre Icon -->
+                    <div style="width: 128px; height: 128px; background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                        <div style="font-size: 64px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">🎵</div>
+                    </div>
+                    
+                    <!-- Genre Info -->
+                    <div style="flex: 1;">
+                        <h1 style="font-size: 48px; font-weight: 700; color: white; margin: 0 0 12px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${genre.name}</h1>
+                        <p style="font-size: 18px; color: rgba(255,255,255,0.9); margin: 0 0 16px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${genre.description}</p>
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.8); display: flex; gap: 16px;">
+                            <span>${genre.totalTracks.toLocaleString()} tracks</span>
+                            <span>•</span>
+                            <span>${genre.totalListeners.toLocaleString()} listeners</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Decorative Background -->
+                <div style="position: absolute; top: -20px; right: -20px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px); pointer-events: none;"></div>
+                <div style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(30px); pointer-events: none;"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 16px; margin-bottom: 40px;">
+                <button onclick="musicLibraryUI.playAllTracks('${genre.name}')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 12px; color: white; padding: 12px 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
+                    <span style="font-size: 16px;">▶️</span>
+                    Play All
+                </button>
+                <button onclick="musicLibraryUI.shuffleTracks('${genre.name}')" style="background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: white; padding: 12px 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                    <span style="font-size: 16px;">🔀</span>
+                    Shuffle
+                </button>
+                <button onclick="musicLibraryUI.followGenre('${genre.name}')" style="background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: white; padding: 12px 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                    <span style="font-size: 16px;">❤️</span>
+                    Follow Genre
+                </button>
+            </div>
+
+            <!-- Popular Artists Section -->
+            <div style="margin-bottom: 40px;">
+                <h2 style="font-size: 20px; font-weight: 600; color: white; margin-bottom: 20px;">Popular Artists</h2>
+                <div style="display: flex; gap: 12px; overflow-x: auto; padding: 4px;">
+                    ${genre.artists.map((artist, index) => `
+                        <div style="background: rgba(107, 114, 128, 1); hover:background: rgba(75, 85, 99, 1); border-radius: 12px; padding: 12px 20px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; min-width: fit-content;">
+                            <div style="color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; margin-bottom: 2px;">#${index + 1}</div>
+                            <div style="color: white; font-weight: 500; font-size: 14px;">${artist}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Popular Tracks Section -->
+            <div>
+                <h2 style="font-size: 20px; font-weight: 600; color: white; margin-bottom: 20px;">Popular Tracks</h2>
+                
+                <!-- Search Bar -->
+                <div style="margin-bottom: 24px;">
+                    <input 
+                        type="text" 
+                        placeholder="Search in genre..." 
+                        value="${this.genreSearchQuery}"
+                        id="genre-search-input"
+                        style="background: rgba(107, 114, 128, 1); border: none; border-radius: 12px; color: white; padding: 12px 16px 12px 44px; width: 100%; max-width: 400px; font-size: 14px;"
+                    />
+                    <div style="position: relative; top: -36px; left: 16px; color: rgba(255,255,255,0.5); pointer-events: none;">
+                        <span style="font-size: 16px;">🔍</span>
+                    </div>
+                </div>
+
+                <!-- Tracks List -->
+                <div style="background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7);">
+                        <span style="width: 24px; text-align: center;">#</span>
+                        <span style="width: 32px;"></span>
+                        <span style="width: 56px;"></span>
+                        <span style="flex: 1;">Title</span>
+                        <span style="width: 100px; text-align: right;">Plays</span>
+                        <span style="width: 60px; text-align: right; font-family: 'Courier New', monospace;">Time</span>
+                        <span style="width: 40px;"></span>
+                        <span style="width: 24px;"></span>
+                    </div>
+                    
+                    <!-- Track Rows -->
+                    ${filteredTracks.map((track, index) => `
+                        <div onclick="musicLibraryUI.playTrack(${track.id})" style="display: flex; align-items: center; gap: 16px; padding: 12px 20px; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.05); group;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                            <!-- Index -->
+                            <span style="width: 24px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">${index + 1}</span>
+                            
+                            <!-- Play Button -->
+                            <button class="play-btn" style="width: 32px; height: 32px; font-size: 12px; opacity: 0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">▶️</button>
+                            
+                            <!-- Album Art -->
+                            <img src="${track.image}" alt="${track.title}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+                            
+                            <!-- Track Info -->
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; color: white; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${track.title}</div>
+                                <div style="color: rgba(255,255,255,0.7); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${track.artist} • ${track.album}</div>
+                            </div>
+                            
+                            <!-- Play Count -->
+                            <span style="width: 100px; text-align: right; color: rgba(255,255,255,0.5); font-size: 14px;">${track.plays.toLocaleString()}</span>
+                            
+                            <!-- Duration -->
+                            <span style="width: 60px; text-align: right; color: rgba(255,255,255,0.5); font-size: 14px; font-family: 'Courier New', monospace;">${track.duration}</span>
+                            
+                            <!-- Like Button -->
+                            <button onclick="event.stopPropagation(); musicLibraryUI.toggleGenreTrackLike(${track.id})" style="width: 40px; height: 40px; background: none; border: none; color: ${track.liked ? '#ef4444' : 'rgba(255,255,255,0.5)'}; cursor: pointer; font-size: 16px; border-radius: 50%; transition: all 0.2s ease;">
+                                ${track.liked ? '❤️' : '🤍'}
+                            </button>
+                            
+                            <!-- More Options -->
+                            <button style="width: 24px; height: 24px; background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 16px; opacity: 0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'; this.parentElement.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                                <span style="transform: rotate(90deg); display: inline-block;">⋯</span>
+                            </button>
+                        </div>
+                    `).join('')}
+                    
+                    ${filteredTracks.length === 0 ? `
+                        <div style="padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.5);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                            <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No tracks found</div>
+                            <div style="font-size: 14px;">Try adjusting your search terms</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    navigateBack() {
+        const previous = this.navigationStack.pop();
+        if (previous) {
+            this.currentView = previous.view;
+            this.activeTab = previous.tab;
+            this.selectedGenre = previous.data?.genre || null;
+        } else {
+            this.currentView = 'main';
+            this.activeTab = 'genres';
+            this.selectedGenre = null;
+        }
+        this.switchInterface(this.activeInterface);
+    }
+
+    playAllTracks(genreName) {
+        const genre = this.genreData[genreName];
+        if (genre && genre.tracks.length > 0) {
+            this.playTrack(genre.tracks[0].id);
+            console.log(`Playing all tracks from ${genreName} genre`);
+        }
+    }
+
+    shuffleTracks(genreName) {
+        const genre = this.genreData[genreName];
+        if (genre && genre.tracks.length > 0) {
+            const randomIndex = Math.floor(Math.random() * genre.tracks.length);
+            this.playTrack(genre.tracks[randomIndex].id);
+            console.log(`Shuffling tracks from ${genreName} genre`);
+        }
+    }
+
+    followGenre(genreName) {
+        console.log(`Following ${genreName} genre`);
+        // Add follow logic here
+    }
+
+    toggleGenreTrackLike(trackId) {
+        // Find track in current genre and toggle like
+        if (this.selectedGenre) {
+            const track = this.selectedGenre.tracks.find(t => t.id === trackId);
+            if (track) {
+                track.liked = !track.liked;
+                this.switchInterface(this.activeInterface); // Refresh the interface
+            }
+        }
     }
 
     showMiniPlayer() {
@@ -984,6 +1235,14 @@ class MusicLibraryUI {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchQuery = e.target.value;
+                this.switchInterface(this.activeInterface);
+            });
+        }
+
+        const genreSearchInput = document.getElementById('genre-search-input');
+        if (genreSearchInput) {
+            genreSearchInput.addEventListener('input', (e) => {
+                this.genreSearchQuery = e.target.value;
                 this.switchInterface(this.activeInterface);
             });
         }
