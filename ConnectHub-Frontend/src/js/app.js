@@ -1630,11 +1630,613 @@ function toggleLike(btn, postId) {
 }
 
 function showComments(postId) {
-    showToast('Opening comments...', 'info');
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) {
+        showToast('Post not found', 'error');
+        return;
+    }
+    
+    // Generate sample comments for the post
+    const sampleComments = generateCommentsForPost(postId, post);
+    
+    // Create and show comments modal
+    showCommentsModal(post, sampleComments);
+}
+
+function generateCommentsForPost(postId, post) {
+    const commentTemplates = [
+        { user: 'Sarah Miller', avatar: 'SM', text: 'Love this post! 😍 Thanks for sharing!', time: '2m ago', likes: 12, replies: [] },
+        { user: 'Mike Johnson', avatar: 'MJ', text: 'This is exactly what I needed to hear today. Appreciate it!', time: '15m ago', likes: 8, replies: [
+            { user: 'Emma Wilson', avatar: 'EW', text: '@Mike Johnson Same here! 💯', time: '10m ago', likes: 3 }
+        ]},
+        { user: 'Alex Chen', avatar: 'AC', text: 'Great insights! Have you considered the environmental impact as well?', time: '1h ago', likes: 15, replies: [] },
+        { user: 'Lisa Garcia', avatar: 'LG', text: 'Amazing work! Keep it up 👏', time: '2h ago', likes: 6, replies: [] }
+    ];
+
+    // Return appropriate comments based on post content
+    return commentTemplates.slice(0, Math.min(post.comments, commentTemplates.length));
+}
+
+function showCommentsModal(post, comments) {
+    // Remove existing comments modal
+    const existingModal = document.getElementById('commentsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'commentsModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 700px; max-height: 80vh; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    💬 Comments 
+                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">${comments.length}</span>
+                </h2>
+                <button onclick="closeModal('commentsModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;" aria-label="Close comments">×</button>
+            </div>
+
+            <!-- Original Post Preview -->
+            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: var(--glass);">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${post.avatar}</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">${post.user}</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">${post.time}</div>
+                    </div>
+                </div>
+                <div style="font-size: 0.9rem; line-height: 1.4; color: var(--text-secondary);">
+                    ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div style="flex: 1; overflow-y: auto; padding: 0;">
+                <!-- Comments Header with Sort Options -->
+                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: between; background: var(--bg-secondary);">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="comment-sort-btn active" data-sort="recent" onclick="sortComments('recent', ${post.id})" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">Most Recent</button>
+                        <button class="comment-sort-btn" data-sort="popular" onclick="sortComments('popular', ${post.id})" style="padding: 0.5rem 1rem; background: var(--glass); border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer; color: var(--text-primary);">Most Popular</button>
+                        <button class="comment-sort-btn" data-sort="oldest" onclick="sortComments('oldest', ${post.id})" style="padding: 0.5rem 1rem; background: var(--glass); border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer; color: var(--text-primary);">Oldest First</button>
+                    </div>
+                </div>
+
+                <!-- Comments List -->
+                <div id="commentsList" style="padding: 1rem 1.5rem;">
+                    ${comments.length === 0 ? 
+                        `<div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                            <h3 style="margin-bottom: 0.5rem;">No comments yet</h3>
+                            <p>Be the first to share your thoughts!</p>
+                        </div>` 
+                        : 
+                        comments.map(comment => renderComment(comment, post.id)).join('')
+                    }
+                </div>
+            </div>
+
+            <!-- Add Comment Section -->
+            <div style="padding: 1.5rem; border-top: 1px solid var(--glass-border); background: var(--bg-card);">
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">JD</div>
+                    <div style="flex: 1;">
+                        <textarea id="commentInput" placeholder="Write a comment..." style="width: 100%; min-height: 60px; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-family: inherit; resize: vertical; font-size: 0.9rem;" onkeydown="handleCommentKeyPress(event, ${post.id})"></textarea>
+                        <div style="display: flex; justify-content: between; align-items: center; margin-top: 0.75rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="insertEmoji('😀')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">😀</button>
+                                <button onclick="insertEmoji('❤️')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">❤️</button>
+                                <button onclick="insertEmoji('👏')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">👏</button>
+                                <button onclick="insertEmoji('🔥')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">🔥</button>
+                                <button onclick="insertEmoji('💯')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">💯</button>
+                            </div>
+                            <button onclick="postComment(${post.id})" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Post Comment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.classList.add('active');
+    
+    // Focus on comment input after a brief delay
+    setTimeout(() => {
+        const input = document.getElementById('commentInput');
+        if (input) input.focus();
+    }, 100);
+}
+
+function renderComment(comment, postId) {
+    return `
+        <div class="comment-item" style="margin-bottom: 1.5rem;" data-comment-likes="${comment.likes}">
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${comment.avatar}</div>
+                <div style="flex: 1;">
+                    <div style="background: var(--glass); border-radius: 12px; padding: 0.75rem 1rem;">
+                        <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem;">${comment.user}</div>
+                        <div style="line-height: 1.4; font-size: 0.9rem;">${comment.text}</div>
+                    </div>
+                    
+                    <!-- Comment Actions -->
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; font-size: 0.8rem;">
+                        <span style="color: var(--text-muted);">${comment.time}</span>
+                        <button onclick="likeComment(this, '${comment.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass)'" onmouseout="this.style.background='none'">
+                            <span>❤️</span>
+                            <span>${comment.likes}</span>
+                        </button>
+                        <button onclick="replyToComment('${comment.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='none'; this.style.color='var(--text-secondary)'">Reply</button>
+                        <button onclick="reportComment('${comment.user}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.color='var(--error)'" onmouseout="this.style.color='var(--text-muted)'">Report</button>
+                    </div>
+
+                    <!-- Replies Section -->
+                    ${comment.replies && comment.replies.length > 0 ? `
+                        <div style="margin-top: 1rem; margin-left: 1rem; border-left: 2px solid var(--glass-border); padding-left: 1rem;">
+                            ${comment.replies.map(reply => `
+                                <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.8rem;">${reply.avatar}</div>
+                                    <div style="flex: 1;">
+                                        <div style="background: var(--glass); border-radius: 10px; padding: 0.5rem 0.75rem;">
+                                            <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">${reply.user}</div>
+                                            <div style="font-size: 0.8rem; line-height: 1.3;">${reply.text}</div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem; font-size: 0.75rem;">
+                                            <span style="color: var(--text-muted);">${reply.time}</span>
+                                            <button onclick="likeComment(this, '${reply.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                                <span>❤️</span>
+                                                <span>${reply.likes}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function sortComments(sortType, postId) {
+    // Update active sort button
+    document.querySelectorAll('.comment-sort-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'var(--glass)';
+        btn.style.color = 'var(--text-primary)';
+    });
+    
+    const activeBtn = document.querySelector(`[data-sort="${sortType}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = 'var(--primary)';
+        activeBtn.style.color = 'white';
+    }
+    
+    const commentsList = document.getElementById('commentsList');
+    const comments = Array.from(commentsList.querySelectorAll('.comment-item'));
+    
+    comments.sort((a, b) => {
+        switch(sortType) {
+            case 'popular':
+                return parseInt(b.dataset.commentLikes) - parseInt(a.dataset.commentLikes);
+            case 'oldest':
+                return 0; // Keep original order for oldest
+            case 'recent':
+            default:
+                return 0; // Keep original order for most recent
+        }
+    });
+    
+    // Clear and re-append sorted comments
+    commentsList.innerHTML = '';
+    comments.forEach(comment => commentsList.appendChild(comment));
+    
+    showToast(`Comments sorted by ${sortType}`, 'info');
+}
+
+function handleCommentKeyPress(event, postId) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        postComment(postId);
+    }
+}
+
+function insertEmoji(emoji) {
+    const input = document.getElementById('commentInput');
+    if (input) {
+        const cursorPos = input.selectionStart;
+        const textBefore = input.value.substring(0, cursorPos);
+        const textAfter = input.value.substring(input.selectionEnd);
+        input.value = textBefore + emoji + textAfter;
+        input.selectionStart = input.selectionEnd = cursorPos + emoji.length;
+        input.focus();
+    }
+}
+
+function postComment(postId) {
+    const input = document.getElementById('commentInput');
+    if (!input) return;
+    
+    const commentText = input.value.trim();
+    if (!commentText) {
+        showToast('Please enter a comment', 'warning');
+        return;
+    }
+    
+    // Create new comment element
+    const newComment = {
+        user: 'John Doe',
+        avatar: 'JD',
+        text: commentText,
+        time: 'just now',
+        likes: 0,
+        replies: []
+    };
+    
+    // Add comment to the list
+    const commentsList = document.getElementById('commentsList');
+    if (commentsList) {
+        const commentElement = document.createElement('div');
+        commentElement.innerHTML = renderComment(newComment, postId);
+        commentsList.insertBefore(commentElement, commentsList.firstChild);
+    }
+    
+    // Update comment count in the original post
+    const post = samplePosts.find(p => p.id === postId);
+    if (post) {
+        post.comments += 1;
+        // Update the comment count in the header
+        const commentCountSpan = document.querySelector('#commentsModal h2 span');
+        if (commentCountSpan) {
+            commentCountSpan.textContent = post.comments;
+        }
+    }
+    
+    // Clear input and show success message
+    input.value = '';
+    showToast('Comment posted successfully! 💬', 'success');
+    
+    // Scroll to top to show new comment
+    const commentsSection = commentsList.closest('[style*="overflow-y: auto"]');
+    if (commentsSection) {
+        commentsSection.scrollTop = 0;
+    }
+}
+
+function likeComment(button, userName) {
+    const likeCount = button.querySelector('span:last-child');
+    const currentLikes = parseInt(likeCount.textContent);
+    const isLiked = button.classList.contains('liked');
+    
+    if (isLiked) {
+        likeCount.textContent = currentLikes - 1;
+        button.classList.remove('liked');
+        button.style.color = 'var(--text-secondary)';
+        showToast('Comment unliked', 'info');
+    } else {
+        likeCount.textContent = currentLikes + 1;
+        button.classList.add('liked');
+        button.style.color = 'var(--error)';
+        showToast(`Liked ${userName}'s comment! ❤️`, 'success');
+    }
+}
+
+function replyToComment(userName) {
+    const input = document.getElementById('commentInput');
+    if (input) {
+        input.value = `@${userName} `;
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+        showToast(`Replying to ${userName}`, 'info');
+    }
+}
+
+function reportComment(userName) {
+    showToast(`Comment by ${userName} reported to moderators`, 'warning');
 }
 
 function sharePost(postId) {
-    showToast('Post shared!', 'success');
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) {
+        showToast('Post not found', 'error');
+        return;
+    }
+    
+    // Show comprehensive share modal
+    showShareModal(post);
+}
+
+function showShareModal(post) {
+    // Remove existing share modal
+    const existingModal = document.getElementById('shareModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'shareModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    📤 Share Post
+                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">by ${post.user}</span>
+                </h2>
+                <button onclick="closeModal('shareModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;" aria-label="Close share modal">×</button>
+            </div>
+
+            <!-- Post Preview -->
+            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: var(--glass);">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${post.avatar}</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">${post.user}</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">${post.time}</div>
+                    </div>
+                </div>
+                <div style="font-size: 0.9rem; line-height: 1.4; color: var(--text-secondary);">
+                    ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}
+                </div>
+            </div>
+
+            <!-- Share Options -->
+            <div style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+                <!-- Quick Share Options -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">📱 Share to Social Platforms</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareToExternal('facebook', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📘</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Facebook</span>
+                    </button>
+                    <button onclick="shareToExternal('twitter', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">🐦</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Twitter</span>
+                    </button>
+                    <button onclick="shareToExternal('instagram', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📷</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Instagram</span>
+                    </button>
+                    <button onclick="shareToExternal('linkedin', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💼</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">LinkedIn</span>
+                    </button>
+                </div>
+
+                <!-- ConnectHub Internal Sharing -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🏠 Share on ConnectHub</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareToConnectHub('story', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">📱</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Story</span>
+                    </button>
+                    <button onclick="shareToConnectHub('friends', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">👥</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Friends</span>
+                    </button>
+                    <button onclick="shareToConnectHub('groups', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--success) 0%, var(--accent) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem;">🔗</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Groups</span>
+                    </button>
+                </div>
+
+                <!-- Direct Communication -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">💬 Send Directly</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <button onclick="shareViaMethod('email', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">📧</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Email</span>
+                    </button>
+                    <button onclick="shareViaMethod('sms', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💬</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Text Message</span>
+                    </button>
+                    <button onclick="shareViaMethod('whatsapp', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">💚</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">WhatsApp</span>
+                    </button>
+                    <button onclick="copyPostLink(${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        <div style="font-size: 1.5rem;">🔗</div>
+                        <span style="font-size: 0.8rem; font-weight: 500;">Copy Link</span>
+                    </button>
+                </div>
+
+                <!-- Add Custom Message -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">✏️ Add Your Message</h3>
+                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <textarea id="shareMessage" placeholder="Add a personal message to your share (optional)..." style="width: 100%; min-height: 80px; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; font-size: 0.9rem;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">
+                            💡 Tip: Add context to help your audience understand why you're sharing
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;" id="shareCharCount">
+                            <span id="shareCharCountNumber">0</span>/280
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🔒 Privacy Settings</h3>
+                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="public" checked style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">🌍 Public</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Anyone can see this shared post</div>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="friends" style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">👥 Friends Only</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only your friends can see this share</div>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                            <input type="radio" name="sharePrivacy" value="private" style="margin: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--text-primary);">🔒 Private</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only you can see this in your saved posts</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="quickShare(${post.id})" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <span>🚀</span>
+                        Quick Share
+                    </button>
+                    <button onclick="closeModal('shareModal')" style="background: var(--glass); color: var(--text-primary); border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.classList.add('active');
+    
+    // Setup character counter for share message
+    setTimeout(() => {
+        const shareInput = document.getElementById('shareMessage');
+        if (shareInput) {
+            shareInput.addEventListener('input', updateShareCharCount);
+        }
+    }, 100);
+}
+
+function updateShareCharCount() {
+    const input = document.getElementById('shareMessage');
+    const counter = document.getElementById('shareCharCountNumber');
+    if (input && counter) {
+        counter.textContent = input.value.length;
+        const charCount = document.getElementById('shareCharCount');
+        if (input.value.length > 280) {
+            charCount.style.color = 'var(--error)';
+        } else if (input.value.length > 240) {
+            charCount.style.color = 'var(--warning)';
+        } else {
+            charCount.style.color = 'var(--text-muted)';
+        }
+    }
+}
+
+function shareToExternal(platform, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    switch(platform) {
+        case 'facebook':
+            showToast(`Sharing to Facebook... 📘`, 'info');
+            break;
+        case 'twitter':
+            showToast(`Sharing to Twitter... 🐦`, 'info');
+            break;
+        case 'instagram':
+            showToast(`Sharing to Instagram Stories... 📷`, 'info');
+            break;
+        case 'linkedin':
+            showToast(`Sharing to LinkedIn... 💼`, 'info');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function shareToConnectHub(type, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    
+    switch(type) {
+        case 'story':
+            showToast(`Shared to your Story! 📱`, 'success');
+            break;
+        case 'friends':
+            showToast(`Shared with friends! 👥`, 'success');
+            break;
+        case 'groups':
+            showToast(`Shared to groups! 🔗`, 'success');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function shareViaMethod(method, postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    switch(method) {
+        case 'email':
+            showToast(`Opening email client... 📧`, 'info');
+            break;
+        case 'sms':
+            showToast(`Opening SMS app... 💬`, 'info');
+            break;
+        case 'whatsapp':
+            showToast(`Opening WhatsApp... 💚`, 'info');
+            break;
+    }
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function copyPostLink(postId) {
+    const postUrl = `https://connecthub.app/posts/${postId}`;
+    
+    // Create temporary text area to copy text
+    const textArea = document.createElement('textarea');
+    textArea.value = postUrl;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    showToast('Post link copied to clipboard! 🔗', 'success');
+    
+    // Update share count
+    const post = samplePosts.find(p => p.id === postId);
+    if (post) {
+        post.shares += 1;
+    }
+    
+    setTimeout(() => closeModal('shareModal'), 1000);
+}
+
+function quickShare(postId) {
+    const post = samplePosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const shareMessage = document.getElementById('shareMessage')?.value || '';
+    const privacy = document.querySelector('input[name="sharePrivacy"]:checked')?.value || 'public';
+    
+    showToast(`Post shared ${privacy === 'public' ? 'publicly' : privacy === 'friends' ? 'with friends' : 'privately'}! 🚀`, 'success');
+    
+    // Update share count
+    post.shares += 1;
+    setTimeout(() => closeModal('shareModal'), 1000);
 }
 
 function addFriend(name) {
@@ -1646,7 +2248,11 @@ function followUser(name) {
 }
 
 function joinGroup(name) {
-    showToast(`Joined ${name}`, 'success');
+    if (window.joinGroupSystem) {
+        window.joinGroupSystem.handleJoinGroup(name);
+    } else {
+        showToast(`Joined ${name}`, 'success');
+    }
 }
 
 function joinEvent(name) {
