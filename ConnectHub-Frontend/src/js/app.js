@@ -1927,12 +1927,40 @@ function showTrendingAnalytics() {
     }
 }
 
+// Global function for Create Group button in HTML
+function createGroup() {
+    showGroupCreationWizard();
+}
+
 // Enhanced UI interface functions for Groups Screen
 function showGroupCreationWizard() {
     initializeUIComponents();
     if (groupsUIComponents) {
         groupsUIComponents.showGroupCreationWizard();
         showToast('Group Creation Wizard opened!', 'success');
+    } else {
+        // Fallback: Initialize GroupsMissingUIComponents directly
+        if (typeof GroupsMissingUIComponents !== 'undefined') {
+            const fallbackGroupsUI = new GroupsMissingUIComponents({
+                showToast: showToast
+            });
+            fallbackGroupsUI.showGroupCreationWizard();
+            showToast('Group Creation Wizard opened!', 'success');
+        } else {
+            showToast('Group Creation Wizard is loading...', 'info');
+            // Try again after a short delay
+            setTimeout(() => {
+                if (typeof GroupsMissingUIComponents !== 'undefined') {
+                    const delayedGroupsUI = new GroupsMissingUIComponents({
+                        showToast: showToast
+                    });
+                    delayedGroupsUI.showGroupCreationWizard();
+                    showToast('Group Creation Wizard loaded!', 'success');
+                } else {
+                    showToast('Group Creation Wizard not available. Please refresh the page.', 'error');
+                }
+            }, 500);
+        }
     }
 }
 
