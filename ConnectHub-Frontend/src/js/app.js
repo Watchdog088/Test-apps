@@ -2268,7 +2268,13 @@ function joinGroup(name) {
 }
 
 function joinEvent(name) {
-    showToast(`Registered for ${name}`, 'success');
+    // Use the comprehensive join event system
+    if (window.joinEventSystem) {
+        window.joinEventSystem.joinEvent(name);
+    } else {
+        // Fallback if system not loaded
+        showToast(`Registered for ${name}`, 'success');
+    }
 }
 
 function createNewEvent() {
@@ -2752,6 +2758,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize UI components after a short delay to ensure all classes are loaded
     setTimeout(initializeUIComponents, 500);
+    
+    // Initialize Join Event System
+    setTimeout(() => {
+        if (window.JoinEventSystem && !window.joinEventSystem) {
+            window.joinEventSystem = new window.JoinEventSystem(window.app || { showToast });
+            console.log('Join Event System initialized');
+        }
+    }, 600);
 
     // Auth tab switching
     const authTabs = document.querySelectorAll('.auth-tab');
