@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub - Events Dashboard Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .test-header {
+            margin-bottom: 3rem;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .test-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+        }
+        
+        .test-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .test-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .modal-content.large {
+            max-width: 900px;
+        }
+        
+        .modal-content.extra-large {
+            max-width: 1200px;
+        }
+        
+        /* Custom styles for the missing CSS properties */
+        :root {
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --success-light: rgba(16, 185, 129, 0.1);
+            --error-light: rgba(239, 68, 68, 0.1);
+            --primary-light: rgba(79, 70, 229, 0.1);
+            --glass-light: rgba(255, 255, 255, 0.03);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1 class="gradient-text">ConnectHub Events Dashboard</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-top: 1rem;">
+                Comprehensive event management system with professional-grade features
+            </p>
+        </div>
+        
+        <div class="test-buttons">
+            <div class="test-card" onclick="showCreateEventForm()">
+                <i class="fas fa-calendar-plus" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Create New Event</h3>
+                <p>Professional event creation dashboard with image upload, dynamic forms, speaker management, and comprehensive settings</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Event
+                </button>
+            </div>
+            
+            <div class="test-card" onclick="showEventDetails()">
+                <i class="fas fa-calendar-day" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                <h3>Event Details View</h3>
+                <p>Comprehensive event information display with hero sections, schedules, speakers, and attendee management</p>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-eye"></i> View Event
+                </button>
+            </div>
+            
+            <div class="test-card" onclick="showEventCheckIn()">
+                <i class="fas fa-qrcode" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></i>
+                <h3>Event Check-In</h3>
+                <p>Multi-method check-in system with QR codes, manual entry, and NFC support for seamless event attendance</p>
+                <button class="btn" style="background: var(--accent); color: white;">
+                    <i class="fas fa-check"></i> Check In
+                </button>
+            </div>
+            
+            <div class="test-card" onclick="showPhotoGallery()">
+                <i class="fas fa-images" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h3>Photo Gallery</h3>
+                <p>Event photo sharing and management with upload capabilities, gallery views, and social features</p>
+                <button class="btn btn-success">
+                    <i class="fas fa-camera"></i> View Gallery
+                </button>
+            </div>
+            
+            <div class="test-card" onclick="showFeedbackForm()">
+                <i class="fas fa-star" style="font-size: 3rem; color: var(--warning); margin-bottom: 1rem;"></i>
+                <h3>Event Feedback</h3>
+                <p>Comprehensive feedback collection system with ratings, detailed assessments, and improvement suggestions</p>
+                <button class="btn btn-warning">
+                    <i class="fas fa-comment"></i> Give Feedback
+                </button>
+            </div>
+        </div>
+        
+        <div style="background: var(--glass); border-radius: 16px; padding: 2rem; border: 1px solid var(--glass-border);">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Dashboard Features</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: left;">
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🎨 Professional Design</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Modern glassmorphism UI with smooth animations</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">📱 Responsive Layout</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Works perfectly on all devices and screen sizes</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔧 Dynamic Forms</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Smart form fields that adapt based on selections</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">✅ Form Validation</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Real-time validation with helpful error messages</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🖼️ Image Upload</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Drag & drop image upload with preview</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">👥 Speaker Management</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Add/remove speakers dynamically</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/events-missing-ui-components.js"></script>
+    <script>
+        // Mock app object for testing
+        const mockApp = {
+            showToast: (message, type = 'info') => {
+                // Create a toast notification
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 3000);
+            }
+        };
+        
+        // Initialize the Events UI Components
+        const eventsUI = new EventsMissingUIComponents(mockApp);
+        
+        // Test functions
+        function showCreateEventForm() {
+            eventsUI.showEventCreationForm();
+        }
+        
+        function showEventDetails() {
+            eventsUI.showEventDetailsView();
+        }
+        
+        function showEventCheckIn() {
+            eventsUI.showEventCheckIn();
+        }
+        
+        function showPhotoGallery() {
+            eventsUI.showEventPhotoGallery();
+        }
+        
+        function showFeedbackForm() {
+            eventsUI.showEventFeedbackForm();
+        }
+        
+        // Add some demo styling
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('ConnectHub Events Dashboard Test Loaded');
+            console.log('Available functions:', {
+                'Create Event': 'showCreateEventForm()',
+                'Event Details': 'showEventDetails()',
+                'Check-In': 'showEventCheckIn()',
+                'Photo Gallery': 'showPhotoGallery()',
+                'Feedback Form': 'showFeedbackForm()'
+            });
+        });
+    </script>
+</body>
+</html>

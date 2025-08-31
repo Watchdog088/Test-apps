@@ -638,7 +638,19 @@ function populateEvents() {
     ];
 
     if (eventsList) {
-        eventsList.innerHTML = sampleEvents.map(event => `
+        // Add Create Event button at the top
+        const createEventButton = `
+            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; text-align: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.3);" onclick="showEventCreationForm()" role="button" tabindex="0">
+                <div style="font-size: 4rem; margin-bottom: 1rem;" role="img" aria-label="Create Event">➕</div>
+                <h3 style="color: white; margin-bottom: 1rem;">Create New Event</h3>
+                <p style="color: rgba(255,255,255,0.9); margin: 1rem 0; font-size: 0.9rem;">Start planning your next amazing event with our professional event creation tools</p>
+                <div class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); margin-top: 1rem;">
+                    <i class="fas fa-calendar-plus"></i> Create Event
+                </div>
+            </div>
+        `;
+
+        eventsList.innerHTML = createEventButton + sampleEvents.map(event => `
             <div class="card" role="listitem">
                 <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Event">📅</div>
                 <h3>${event.name}</h3>
@@ -2259,6 +2271,11 @@ function joinEvent(name) {
     showToast(`Registered for ${name}`, 'success');
 }
 
+function createNewEvent() {
+    // Ensure both Create Event buttons work the same way
+    showEventCreationForm();
+}
+
 function createStory() {
     showToast('Story creation opened', 'info');
 }
@@ -2620,10 +2637,43 @@ function showGroupResourceLibrary() {
 
 // Enhanced UI interface functions for Events Screen
 function showEventCreationForm() {
-    initializeUIComponents();
-    if (eventsUIComponents) {
-        eventsUIComponents.showEventCreationForm();
-        showToast('Event Creation Form opened!', 'success');
+    try {
+        initializeUIComponents();
+        if (eventsUIComponents) {
+            eventsUIComponents.showEventCreationForm();
+            showToast('Event Creation Form opened!', 'success');
+        } else {
+            // Fallback: Create EventsMissingUIComponents directly
+            if (typeof EventsMissingUIComponents !== 'undefined') {
+                const fallbackEventsUI = new EventsMissingUIComponents({
+                    showToast: showToast
+                });
+                fallbackEventsUI.showEventCreationForm();
+                showToast('Event Creation Form opened!', 'success');
+            } else {
+                showToast('Event Creation Form is loading...', 'info');
+                // Try again after a short delay to ensure the class is loaded
+                setTimeout(() => {
+                    try {
+                        if (typeof EventsMissingUIComponents !== 'undefined') {
+                            const delayedEventsUI = new EventsMissingUIComponents({
+                                showToast: showToast
+                            });
+                            delayedEventsUI.showEventCreationForm();
+                            showToast('Event Creation Form loaded!', 'success');
+                        } else {
+                            showToast('Event Creation Form not available. Please refresh the page.', 'error');
+                        }
+                    } catch (delayError) {
+                        console.error('Delayed Event Creation Form error:', delayError);
+                        showToast('Unable to load Event Creation Form. Please try refreshing the page.', 'error');
+                    }
+                }, 500);
+            }
+        }
+    } catch (error) {
+        console.error('Error opening Event Creation Form:', error);
+        showToast('Unable to open Event Creation Form. Please try again or refresh the page.', 'error');
     }
 }
 
