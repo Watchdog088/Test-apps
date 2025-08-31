@@ -1803,18 +1803,22 @@ class SocialMissingUIComponents {
                         <div class="story-header-left">
                             <h3>Create Story</h3>
                             <div class="story-privacy-duration">
-                                <button class="story-privacy-btn" onclick="socialMissingUI.openStoryPrivacy()">
+                                <button class="story-privacy-btn" onclick="socialMissingUI.openStoryPrivacy()" title="Privacy Settings">
                                     <i class="fas fa-lock"></i>
                                     <span id="current-privacy">Public</span>
                                 </button>
-                                <button class="story-duration-btn" onclick="socialMissingUI.toggleStoryDuration()">
+                                <button class="story-duration-btn" onclick="socialMissingUI.toggleStoryDuration()" title="Story Duration">
                                     <i class="fas fa-clock"></i>
                                     <span id="current-duration">24h</span>
                                 </button>
                             </div>
                         </div>
-                        <button class="close-story-creation" onclick="socialMissingUI.closeStoryCreation()">
-                            <i class="fas fa-times"></i>
+                        <button class="close-story-creation" onclick="socialMissingUI.closeStoryCreation()" title="Close" 
+                                tabindex="0" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); 
+                                border: none; color: white; width: 40px; height: 40px; border-radius: 50%; 
+                                cursor: pointer; display: flex; align-items: center; justify-content: center; 
+                                font-size: 18px; z-index: 1000; transition: all 0.2s ease;">
+                            <i class="fas fa-times" style="pointer-events: none;"></i>
                         </button>
                     </div>
                     <div class="story-creation-content">
@@ -1836,43 +1840,70 @@ class SocialMissingUIComponents {
                             <!-- Camera Tab -->
                             <div class="story-content-area active" data-content="camera">
                                 <div class="camera-preview-container">
-                                    <div class="camera-preview" id="camera-preview">
+                                    <div class="camera-preview" id="camera-preview" role="region" aria-label="Camera preview">
                                         <div class="camera-placeholder" id="camera-placeholder">
-                                            <i class="fas fa-camera"></i>
-                                            <p>Camera preview</p>
-                                            <button class="start-camera-btn" onclick="socialMissingUI.startCamera()">
-                                                <i class="fas fa-video"></i>
+                                            <i class="fas fa-camera" aria-hidden="true"></i>
+                                            <p>Click "Start Camera" to begin capturing</p>
+                                            <p class="camera-help-text">Allow camera permissions when prompted</p>
+                                            <button class="start-camera-btn" onclick="socialMissingUI.startCamera()" 
+                                                    aria-label="Start camera for story capture">
+                                                <i class="fas fa-video" aria-hidden="true"></i>
                                                 Start Camera
                                             </button>
+                                            <div class="camera-fallback" style="display: none;">
+                                                <p>Camera not available</p>
+                                                <button class="fallback-upload-btn" onclick="socialMissingUI.switchToUploadTab()"
+                                                        aria-label="Switch to upload mode">
+                                                    <i class="fas fa-upload" aria-hidden="true"></i>
+                                                    Upload Photo Instead
+                                                </button>
+                                            </div>
                                         </div>
-                                        <video id="camera-stream" class="camera-stream" autoplay muted playsinline style="display: none;"></video>
+                                        <video id="camera-stream" class="camera-stream" autoplay muted playsinline 
+                                               style="display: none;" aria-label="Live camera feed"></video>
                                         <canvas id="camera-canvas" class="camera-canvas" style="display: none;"></canvas>
+                                        <div class="capture-overlay" id="capture-overlay" style="display: none;">
+                                            <div class="capture-countdown" id="capture-countdown"></div>
+                                        </div>
                                     </div>
                                     <div class="camera-controls" id="camera-controls" style="display: none;">
                                         <div class="camera-controls-top">
-                                            <button class="camera-control-btn flash-toggle" onclick="socialMissingUI.toggleFlash()" title="Flash">
-                                                <i class="fas fa-bolt"></i>
+                                            <button class="camera-control-btn flash-toggle" onclick="socialMissingUI.toggleFlash()" 
+                                                    title="Toggle Flash" aria-label="Toggle camera flash">
+                                                <i class="fas fa-bolt" aria-hidden="true"></i>
+                                                <span class="flash-status">Off</span>
                                             </button>
-                                            <button class="camera-control-btn flip-camera" onclick="socialMissingUI.flipCamera()" title="Switch Camera">
-                                                <i class="fas fa-sync-alt"></i>
+                                            <button class="camera-control-btn flip-camera" onclick="socialMissingUI.flipCamera()" 
+                                                    title="Switch Camera" aria-label="Switch between front and back camera">
+                                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                                <span class="camera-status">Front</span>
                                             </button>
-                                            <button class="camera-control-btn timer-toggle" onclick="socialMissingUI.toggleTimer()" title="Timer">
-                                                <i class="fas fa-stopwatch"></i>
+                                            <button class="camera-control-btn timer-toggle" onclick="socialMissingUI.toggleTimer()" 
+                                                    title="Timer" aria-label="Set capture timer">
+                                                <i class="fas fa-stopwatch" aria-hidden="true"></i>
                                                 <span id="timer-text">0s</span>
                                             </button>
                                         </div>
                                         <div class="camera-capture-area">
-                                            <button class="camera-capture-btn" onclick="socialMissingUI.capturePhoto()">
-                                                <div class="capture-ring"></div>
+                                            <button class="camera-capture-btn" onclick="socialMissingUI.capturePhoto()"
+                                                    aria-label="Capture photo" title="Click to take photo">
+                                                <div class="capture-ring">
+                                                    <div class="capture-ring-inner"></div>
+                                                </div>
                                             </button>
                                         </div>
                                         <div class="camera-effects">
-                                            <div class="effects-carousel">
-                                                <button class="effect-btn active" data-effect="none">Normal</button>
-                                                <button class="effect-btn" data-effect="vintage">Vintage</button>
-                                                <button class="effect-btn" data-effect="cool">Cool</button>
-                                                <button class="effect-btn" data-effect="warm">Warm</button>
-                                                <button class="effect-btn" data-effect="bw">B&W</button>
+                                            <div class="effects-carousel" role="tablist" aria-label="Camera effects">
+                                                <button class="effect-btn active" data-effect="none" role="tab" 
+                                                        aria-selected="true" onclick="socialMissingUI.applyEffect('none')">Normal</button>
+                                                <button class="effect-btn" data-effect="vintage" role="tab" 
+                                                        aria-selected="false" onclick="socialMissingUI.applyEffect('vintage')">Vintage</button>
+                                                <button class="effect-btn" data-effect="cool" role="tab" 
+                                                        aria-selected="false" onclick="socialMissingUI.applyEffect('cool')">Cool</button>
+                                                <button class="effect-btn" data-effect="warm" role="tab" 
+                                                        aria-selected="false" onclick="socialMissingUI.applyEffect('warm')">Warm</button>
+                                                <button class="effect-btn" data-effect="bw" role="tab" 
+                                                        aria-selected="false" onclick="socialMissingUI.applyEffect('bw')">B&W</button>
                                             </div>
                                         </div>
                                     </div>
@@ -1934,37 +1965,67 @@ class SocialMissingUIComponents {
                             
                             <!-- Upload Tab -->
                             <div class="story-content-area" data-content="upload">
-                                <div class="upload-area">
-                                    <input type="file" id="story-file-input" accept="image/jpeg,image/png,video/mp4" hidden onchange="socialMissingUI.handleStoryFileUpload(this.files[0])">
-                                    <div class="upload-placeholder" id="upload-placeholder" onclick="socialMissingUI.triggerFileUpload()">
+                                <div class="upload-area" id="upload-drop-zone">
+                                    <input type="file" id="story-file-input" accept="image/jpeg,image/png,video/mp4" 
+                                           hidden onchange="socialMissingUI.handleStoryFileUpload(this.files[0])"
+                                           aria-label="Upload media file">
+                                    <div class="upload-placeholder" id="upload-placeholder" 
+                                         onclick="socialMissingUI.triggerFileUpload()" 
+                                         tabindex="0" role="button"
+                                         aria-label="Click to upload photo or video">
                                         <div class="upload-icon">
-                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
                                         </div>
                                         <h4>Upload Photo or Video</h4>
                                         <p>Drag & drop files here or click to browse</p>
                                         <div class="upload-specs">
-                                            <span>📷 JPG, PNG</span>
-                                            <span>🎥 MP4 (max 15s)</span>
-                                            <span>📏 Max 10MB</span>
+                                            <span><i class="fas fa-camera" aria-hidden="true"></i> JPG, PNG</span>
+                                            <span><i class="fas fa-video" aria-hidden="true"></i> MP4 (max 15s)</span>
+                                            <span><i class="fas fa-weight-hanging" aria-hidden="true"></i> Max 10MB</span>
                                         </div>
-                                        <button class="upload-browse-btn">
-                                            <i class="fas fa-folder-open"></i>
+                                        <button class="upload-browse-btn" onclick="socialMissingUI.triggerFileUpload()"
+                                                aria-label="Browse for files">
+                                            <i class="fas fa-folder-open" aria-hidden="true"></i>
                                             Browse Files
                                         </button>
                                     </div>
-                                    <div class="uploaded-preview" id="uploaded-story-preview"></div>
+                                    <div class="uploaded-preview" id="uploaded-story-preview" 
+                                         role="region" aria-label="Media preview"></div>
                                     <div class="upload-tools" id="upload-tools" style="display: none;">
+                                        <div class="upload-progress" id="upload-progress" style="display: none;">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" id="progress-fill"></div>
+                                            </div>
+                                            <span class="progress-text" id="progress-text">Uploading... 0%</span>
+                                        </div>
                                         <div class="media-edit-controls">
-                                            <button class="edit-btn crop-btn" onclick="socialMissingUI.cropMedia()">
-                                                <i class="fas fa-crop"></i> Crop
+                                            <button class="edit-btn crop-btn" onclick="socialMissingUI.cropMedia()" 
+                                                    title="Crop image" aria-label="Crop uploaded image">
+                                                <i class="fas fa-crop" aria-hidden="true"></i> Crop
                                             </button>
-                                            <button class="edit-btn trim-btn" onclick="socialMissingUI.trimVideo()" style="display: none;">
-                                                <i class="fas fa-cut"></i> Trim
+                                            <button class="edit-btn trim-btn" onclick="socialMissingUI.trimVideo()" 
+                                                    style="display: none;" title="Trim video" aria-label="Trim video length">
+                                                <i class="fas fa-cut" aria-hidden="true"></i> Trim
                                             </button>
-                                            <button class="edit-btn remove-btn" onclick="socialMissingUI.removeUploadedMedia()">
-                                                <i class="fas fa-trash"></i> Remove
+                                            <button class="edit-btn filter-btn" onclick="socialMissingUI.openFilterEditor()" 
+                                                    title="Apply filters" aria-label="Apply photo filters">
+                                                <i class="fas fa-palette" aria-hidden="true"></i> Filters
+                                            </button>
+                                            <button class="edit-btn remove-btn" onclick="socialMissingUI.removeUploadedMedia()" 
+                                                    title="Remove media" aria-label="Remove uploaded media">
+                                                <i class="fas fa-trash" aria-hidden="true"></i> Remove
                                             </button>
                                         </div>
+                                        <div class="media-info" id="media-info"></div>
+                                    </div>
+                                    <div class="upload-error" id="upload-error" style="display: none;" role="alert">
+                                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                                        <span class="error-message"></span>
+                                        <button class="retry-upload-btn" onclick="socialMissingUI.retryUpload()" 
+                                                aria-label="Retry upload">
+                                            <i class="fas fa-redo" aria-hidden="true"></i>
+                                            Retry
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -2038,6 +2099,14 @@ class SocialMissingUIComponents {
         document.addEventListener('change', (e) => {
             if (e.target.id === 'story-file-input') {
                 this.handleStoryFileUpload(e.target.files[0]);
+            }
+        });
+
+        // Add ESC key support for closing story creation modal
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('story-creation-modal');
+            if (modal && modal.classList.contains('show') && e.key === 'Escape') {
+                this.closeStoryCreation();
             }
         });
     }
@@ -3089,8 +3158,8 @@ class SocialMissingUIComponents {
         publishBtn.disabled = true;
 
         try {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Simulate API call delay with progress updates
+            await this.simulateUploadProgress();
             
             // Add selected music and privacy settings to story content
             if (this.selectedMusic) {
@@ -3100,14 +3169,24 @@ class SocialMissingUIComponents {
             storyContent.privacy = this.storyPrivacySettings;
             storyContent.duration = document.getElementById('current-duration')?.textContent || '24h';
             storyContent.allowReplies = document.getElementById('reply-setting')?.value || 'everyone';
+            storyContent.timestamp = new Date();
+            storyContent.id = `story-${Date.now()}`;
+            
+            // Save to highlights if selected
+            if (this.saveToHighlights) {
+                await this.addToStoryHighlights(storyContent);
+            }
             
             this.app.showToast('Story published successfully!', 'success');
             this.closeStoryCreation();
             this.addStoryToFeed(storyContent);
             
+            // Show post-creation options
+            this.showPostCreationOptions(storyContent);
+            
         } catch (error) {
             console.error('Failed to publish story:', error);
-            this.app.showToast('Failed to publish story. Please try again.', 'error');
+            this.showUploadError(error);
         } finally {
             // Restore button state
             if (publishBtn) {
@@ -3115,6 +3194,570 @@ class SocialMissingUIComponents {
                 publishBtn.disabled = false;
             }
         }
+    }
+
+    // =================================================================================
+    // ADVANCED STORY CREATION FEATURES
+    // =================================================================================
+
+    async simulateUploadProgress() {
+        const progressBar = document.getElementById('upload-progress');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        
+        if (progressBar) {
+            progressBar.style.display = 'block';
+            
+            for (let i = 0; i <= 100; i += 10) {
+                if (progressFill) progressFill.style.width = i + '%';
+                if (progressText) progressText.textContent = `Uploading... ${i}%`;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            progressBar.style.display = 'none';
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
+
+    showUploadError(error) {
+        const uploadError = document.getElementById('upload-error');
+        const errorMessage = uploadError?.querySelector('.error-message');
+        
+        if (uploadError && errorMessage) {
+            errorMessage.textContent = error.message || 'Upload failed. Please try again.';
+            uploadError.style.display = 'block';
+        }
+        
+        this.app.showToast('Failed to publish story. Please try again.', 'error');
+    }
+
+    retryUpload() {
+        const uploadError = document.getElementById('upload-error');
+        if (uploadError) {
+            uploadError.style.display = 'none';
+        }
+        this.publishStory();
+    }
+
+    showPostCreationOptions(storyContent) {
+        const optionsModal = document.createElement('div');
+        optionsModal.className = 'post-creation-options-modal';
+        optionsModal.innerHTML = `
+            <div class="options-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="options-content">
+                <h3>Story Published!</h3>
+                <div class="success-animation">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="post-options">
+                    <button class="option-btn view-story" onclick="socialMissingUI.viewPublishedStory('${storyContent.id}')">
+                        <i class="fas fa-eye"></i>
+                        View Story
+                    </button>
+                    <button class="option-btn share-external" onclick="socialMissingUI.shareStoryExternal('${storyContent.id}')">
+                        <i class="fas fa-share-alt"></i>
+                        Share to Other Platforms
+                    </button>
+                    <button class="option-btn view-analytics" onclick="socialMissingUI.openStoryAnalytics()">
+                        <i class="fas fa-chart-bar"></i>
+                        View Analytics
+                    </button>
+                    <button class="option-btn add-to-highlights" onclick="socialMissingUI.addToHighlightsPrompt('${storyContent.id}')">
+                        <i class="fas fa-bookmark"></i>
+                        Add to Highlights
+                    </button>
+                </div>
+                <button class="close-options-btn" onclick="this.parentElement.remove()">
+                    Continue
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(optionsModal);
+        
+        // Auto-close after 10 seconds
+        setTimeout(() => {
+            if (optionsModal.parentElement) {
+                optionsModal.remove();
+            }
+        }, 10000);
+    }
+
+    viewPublishedStory(storyId) {
+        this.openStoryViewer('current-user');
+        document.querySelector('.post-creation-options-modal')?.remove();
+    }
+
+    shareStoryExternal(storyId) {
+        const shareModal = document.createElement('div');
+        shareModal.className = 'external-share-modal';
+        shareModal.innerHTML = `
+            <div class="share-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="share-content">
+                <h3>Share Story</h3>
+                <div class="share-platforms">
+                    <button class="platform-btn instagram" onclick="socialMissingUI.shareToInstagram('${storyId}')">
+                        <i class="fab fa-instagram"></i>
+                        Instagram
+                    </button>
+                    <button class="platform-btn facebook" onclick="socialMissingUI.shareToFacebook('${storyId}')">
+                        <i class="fab fa-facebook"></i>
+                        Facebook
+                    </button>
+                    <button class="platform-btn twitter" onclick="socialMissingUI.shareToTwitter('${storyId}')">
+                        <i class="fab fa-twitter"></i>
+                        Twitter
+                    </button>
+                    <button class="platform-btn whatsapp" onclick="socialMissingUI.shareToWhatsApp('${storyId}')">
+                        <i class="fab fa-whatsapp"></i>
+                        WhatsApp
+                    </button>
+                    <button class="platform-btn copy-link" onclick="socialMissingUI.copyStoryLink('${storyId}')">
+                        <i class="fas fa-link"></i>
+                        Copy Link
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(shareModal);
+        document.querySelector('.post-creation-options-modal')?.remove();
+    }
+
+    addToHighlightsPrompt(storyId) {
+        const highlightsModal = document.createElement('div');
+        highlightsModal.className = 'highlights-modal';
+        highlightsModal.innerHTML = `
+            <div class="highlights-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="highlights-content">
+                <h3>Add to Story Highlights</h3>
+                <div class="highlight-collections">
+                    <div class="create-new-highlight">
+                        <button class="new-highlight-btn" onclick="socialMissingUI.createNewHighlight('${storyId}')">
+                            <i class="fas fa-plus"></i>
+                            Create New Highlight
+                        </button>
+                    </div>
+                    <div class="existing-highlights">
+                        <div class="highlight-item" onclick="socialMissingUI.addToExistingHighlight('travel', '${storyId}')">
+                            <div class="highlight-cover">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                            <span class="highlight-name">Travel</span>
+                        </div>
+                        <div class="highlight-item" onclick="socialMissingUI.addToExistingHighlight('food', '${storyId}')">
+                            <div class="highlight-cover">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <span class="highlight-name">Food</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(highlightsModal);
+        document.querySelector('.post-creation-options-modal')?.remove();
+    }
+
+    // Social media sharing methods
+    shareToInstagram(storyId) {
+        this.app.showToast('Opening Instagram...', 'info');
+        // In a real implementation, this would use Instagram's sharing API
+        document.querySelector('.external-share-modal')?.remove();
+    }
+
+    shareToFacebook(storyId) {
+        this.app.showToast('Opening Facebook...', 'info');
+        // In a real implementation, this would use Facebook's sharing API
+        document.querySelector('.external-share-modal')?.remove();
+    }
+
+    shareToTwitter(storyId) {
+        this.app.showToast('Opening Twitter...', 'info');
+        // In a real implementation, this would use Twitter's sharing API
+        document.querySelector('.external-share-modal')?.remove();
+    }
+
+    shareToWhatsApp(storyId) {
+        this.app.showToast('Opening WhatsApp...', 'info');
+        // In a real implementation, this would use WhatsApp's sharing API
+        document.querySelector('.external-share-modal')?.remove();
+    }
+
+    copyStoryLink(storyId) {
+        const link = `${window.location.origin}/story/${storyId}`;
+        navigator.clipboard.writeText(link).then(() => {
+            this.app.showToast('Story link copied to clipboard!', 'success');
+        }).catch(() => {
+            this.app.showToast('Failed to copy link', 'error');
+        });
+        document.querySelector('.external-share-modal')?.remove();
+    }
+
+    // Story highlights functionality
+    createNewHighlight(storyId) {
+        const namePrompt = prompt('Enter a name for your highlight:');
+        if (namePrompt && namePrompt.trim()) {
+            this.app.showToast(`Story added to "${namePrompt}" highlight!`, 'success');
+            this.storyHighlights = this.storyHighlights || new Map();
+            this.storyHighlights.set(namePrompt, [storyId]);
+        }
+        document.querySelector('.highlights-modal')?.remove();
+    }
+
+    addToExistingHighlight(highlightName, storyId) {
+        this.app.showToast(`Story added to "${highlightName}" highlight!`, 'success');
+        this.storyHighlights = this.storyHighlights || new Map();
+        if (!this.storyHighlights.has(highlightName)) {
+            this.storyHighlights.set(highlightName, []);
+        }
+        this.storyHighlights.get(highlightName).push(storyId);
+        document.querySelector('.highlights-modal')?.remove();
+    }
+
+    async addToStoryHighlights(storyContent) {
+        // Auto-save to "Recent" highlight
+        this.storyHighlights = this.storyHighlights || new Map();
+        if (!this.storyHighlights.has('Recent')) {
+            this.storyHighlights.set('Recent', []);
+        }
+        this.storyHighlights.get('Recent').unshift(storyContent.id);
+        
+        // Keep only last 20 in Recent
+        if (this.storyHighlights.get('Recent').length > 20) {
+            this.storyHighlights.get('Recent').splice(20);
+        }
+    }
+
+    // Missing camera effect implementation
+    applyEffect(effectName) {
+        const effectBtns = document.querySelectorAll('.effect-btn');
+        effectBtns.forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        
+        const activeBtn = document.querySelector(`[data-effect="${effectName}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            activeBtn.setAttribute('aria-selected', 'true');
+        }
+        
+        // Apply visual effect to camera stream
+        const cameraStream = document.getElementById('camera-stream');
+        if (cameraStream) {
+            // Reset all effects
+            cameraStream.style.filter = '';
+            
+            // Apply selected effect
+            switch (effectName) {
+                case 'vintage':
+                    cameraStream.style.filter = 'sepia(0.8) contrast(1.2) brightness(0.9)';
+                    break;
+                case 'cool':
+                    cameraStream.style.filter = 'hue-rotate(180deg) saturate(1.2)';
+                    break;
+                case 'warm':
+                    cameraStream.style.filter = 'hue-rotate(45deg) saturate(1.1) brightness(1.1)';
+                    break;
+                case 'bw':
+                    cameraStream.style.filter = 'grayscale(1) contrast(1.2)';
+                    break;
+                case 'none':
+                default:
+                    cameraStream.style.filter = 'none';
+                    break;
+            }
+        }
+        
+        this.app.showToast(`Applied ${effectName} effect`, 'info');
+    }
+
+    // Missing filter editor for uploads
+    openFilterEditor() {
+        const filterModal = document.createElement('div');
+        filterModal.className = 'filter-editor-modal';
+        filterModal.innerHTML = `
+            <div class="filter-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="filter-content">
+                <h3>Apply Filters</h3>
+                <div class="filter-preview">
+                    <img id="filter-preview-image" src="" alt="Preview" style="max-width: 100%; height: auto;">
+                </div>
+                <div class="filter-controls">
+                    <div class="filter-presets">
+                        <button class="filter-preset active" data-filter="none" onclick="socialMissingUI.applyFilterPreset('none')">Original</button>
+                        <button class="filter-preset" data-filter="vintage" onclick="socialMissingUI.applyFilterPreset('vintage')">Vintage</button>
+                        <button class="filter-preset" data-filter="cool" onclick="socialMissingUI.applyFilterPreset('cool')">Cool</button>
+                        <button class="filter-preset" data-filter="warm" onclick="socialMissingUI.applyFilterPreset('warm')">Warm</button>
+                        <button class="filter-preset" data-filter="bw" onclick="socialMissingUI.applyFilterPreset('bw')">B&W</button>
+                    </div>
+                    <div class="filter-sliders">
+                        <div class="slider-control">
+                            <label>Brightness</label>
+                            <input type="range" id="brightness-slider" min="0" max="200" value="100" 
+                                   onchange="socialMissingUI.updateFilter()">
+                        </div>
+                        <div class="slider-control">
+                            <label>Contrast</label>
+                            <input type="range" id="contrast-slider" min="0" max="200" value="100" 
+                                   onchange="socialMissingUI.updateFilter()">
+                        </div>
+                        <div class="slider-control">
+                            <label>Saturation</label>
+                            <input type="range" id="saturation-slider" min="0" max="200" value="100" 
+                                   onchange="socialMissingUI.updateFilter()">
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="filter-cancel-btn" onclick="this.parentElement.parentElement.remove()">Cancel</button>
+                    <button class="filter-apply-btn" onclick="socialMissingUI.applyFilters()">Apply</button>
+                </div>
+            </div>
+        `;
+        
+        // Copy current image to preview
+        const currentImage = document.querySelector('.story-preview-media');
+        if (currentImage && currentImage.src) {
+            setTimeout(() => {
+                const previewImage = document.getElementById('filter-preview-image');
+                if (previewImage) {
+                    previewImage.src = currentImage.src;
+                }
+            }, 100);
+        }
+        
+        document.body.appendChild(filterModal);
+    }
+
+    applyFilterPreset(filterName) {
+        const presetBtns = document.querySelectorAll('.filter-preset');
+        presetBtns.forEach(btn => btn.classList.remove('active'));
+        
+        document.querySelector(`[data-filter="${filterName}"]`)?.classList.add('active');
+        
+        const previewImage = document.getElementById('filter-preview-image');
+        if (previewImage) {
+            let filter = '';
+            switch (filterName) {
+                case 'vintage':
+                    filter = 'sepia(0.8) contrast(120%) brightness(90%)';
+                    break;
+                case 'cool':
+                    filter = 'hue-rotate(180deg) saturate(120%)';
+                    break;
+                case 'warm':
+                    filter = 'hue-rotate(45deg) saturate(110%) brightness(110%)';
+                    break;
+                case 'bw':
+                    filter = 'grayscale(1) contrast(120%)';
+                    break;
+                case 'none':
+                default:
+                    filter = 'none';
+                    break;
+            }
+            previewImage.style.filter = filter;
+        }
+    }
+
+    updateFilter() {
+        const brightness = document.getElementById('brightness-slider')?.value || 100;
+        const contrast = document.getElementById('contrast-slider')?.value || 100;
+        const saturation = document.getElementById('saturation-slider')?.value || 100;
+        
+        const previewImage = document.getElementById('filter-preview-image');
+        if (previewImage) {
+            previewImage.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+        }
+    }
+
+    applyFilters() {
+        const previewImage = document.getElementById('filter-preview-image');
+        const originalImage = document.querySelector('.story-preview-media');
+        
+        if (previewImage && originalImage) {
+            originalImage.style.filter = previewImage.style.filter;
+            this.app.showToast('Filters applied!', 'success');
+        }
+        
+        document.querySelector('.filter-editor-modal')?.remove();
+    }
+
+    // Auto-save functionality
+    initAutoSave() {
+        this.autoSaveTimer = setInterval(() => {
+            this.saveStoryDraft();
+        }, 30000); // Auto-save every 30 seconds
+    }
+
+    saveStoryDraft() {
+        const activeTab = document.querySelector('.story-tab.active')?.dataset.tab;
+        const draft = {
+            timestamp: new Date(),
+            tab: activeTab,
+            content: null
+        };
+
+        if (activeTab === 'text') {
+            const textInput = document.querySelector('.story-text-input');
+            const activeColor = document.querySelector('.color-option.active');
+            
+            if (textInput && textInput.value.trim()) {
+                draft.content = {
+                    text: textInput.value,
+                    backgroundColor: activeColor?.dataset.color,
+                    fontSize: document.getElementById('font-size-slider')?.value,
+                    textAlign: document.querySelector('.align-btn.active')?.dataset.align
+                };
+            }
+        }
+
+        if (draft.content) {
+            localStorage.setItem('story_draft', JSON.stringify(draft));
+        }
+    }
+
+    loadStoryDraft() {
+        const draftJson = localStorage.getItem('story_draft');
+        if (draftJson) {
+            try {
+                const draft = JSON.parse(draftJson);
+                // Only load drafts from the last 24 hours
+                const draftAge = Date.now() - new Date(draft.timestamp).getTime();
+                if (draftAge < 24 * 60 * 60 * 1000) {
+                    return draft;
+                } else {
+                    localStorage.removeItem('story_draft');
+                }
+            } catch (error) {
+                console.error('Failed to load story draft:', error);
+                localStorage.removeItem('story_draft');
+            }
+        }
+        return null;
+    }
+
+    clearStoryDraft() {
+        localStorage.removeItem('story_draft');
+        if (this.autoSaveTimer) {
+            clearInterval(this.autoSaveTimer);
+        }
+    }
+
+    // Story templates functionality
+    initStoryTemplates() {
+        this.storyTemplates = [
+            {
+                id: 'good-morning',
+                name: 'Good Morning',
+                background: '#FFA07A',
+                text: 'Good morning! ☀️',
+                fontSize: '32',
+                textAlign: 'center'
+            },
+            {
+                id: 'workout',
+                name: 'Workout',
+                background: '#FF6347',
+                text: 'Workout time! 💪',
+                fontSize: '28',
+                textAlign: 'center'
+            },
+            {
+                id: 'food',
+                name: 'Food',
+                background: '#FFD700',
+                text: 'Delicious! 🍽️',
+                fontSize: '30',
+                textAlign: 'center'
+            },
+            {
+                id: 'travel',
+                name: 'Travel',
+                background: '#87CEEB',
+                text: 'Adventure awaits! ✈️',
+                fontSize: '26',
+                textAlign: 'center'
+            }
+        ];
+    }
+
+    showStoryTemplates() {
+        const templatesModal = document.createElement('div');
+        templatesModal.className = 'story-templates-modal';
+        templatesModal.innerHTML = `
+            <div class="templates-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="templates-content">
+                <h3>Choose a Template</h3>
+                <div class="templates-grid">
+                    ${this.storyTemplates.map(template => `
+                        <div class="template-item" onclick="socialMissingUI.applyTemplate('${template.id}')">
+                            <div class="template-preview" style="background-color: ${template.background}">
+                                <span style="font-size: 18px; text-align: ${template.textAlign}">${template.text}</span>
+                            </div>
+                            <span class="template-name">${template.name}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="close-templates-btn" onclick="this.parentElement.remove()">
+                    Close
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(templatesModal);
+    }
+
+    applyTemplate(templateId) {
+        const template = this.storyTemplates.find(t => t.id === templateId);
+        if (!template) return;
+        
+        // Switch to text tab
+        const textTab = document.querySelector('[data-tab="text"]');
+        if (textTab) {
+            this.switchStoryTab(textTab);
+        }
+        
+        // Apply template settings
+        const textInput = document.getElementById('story-text-input');
+        const colorOption = document.querySelector(`[data-color="${template.background}"]`);
+        const fontSizeSlider = document.getElementById('font-size-slider');
+        
+        if (textInput) {
+            textInput.value = template.text;
+            textInput.style.backgroundColor = template.background;
+            textInput.style.color = template.background === '#ffffff' ? '#000000' : '#ffffff';
+            textInput.style.fontSize = template.fontSize + 'px';
+            textInput.style.textAlign = template.textAlign;
+        }
+        
+        if (colorOption) {
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+            colorOption.classList.add('active');
+        }
+        
+        if (fontSizeSlider) {
+            fontSizeSlider.value = template.fontSize;
+            document.getElementById('font-size-value').textContent = template.fontSize + 'px';
+        }
+        
+        // Update text alignment buttons
+        document.querySelectorAll('.align-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.align === template.textAlign);
+        });
+        
+        // Update character counter
+        const charCounter = document.getElementById('char-count');
+        if (charCounter) {
+            charCounter.textContent = template.text.length;
+        }
+        
+        this.app.showToast(`Applied ${template.name} template!`, 'success');
+        document.querySelector('.story-templates-modal')?.remove();
     }
 }
 
