@@ -1800,7 +1800,19 @@ class SocialMissingUIComponents {
                 <div class="modal-overlay" onclick="socialMissingUI.closeStoryCreation()"></div>
                 <div class="story-creation-container">
                     <div class="story-creation-header">
-                        <h3>Create Story</h3>
+                        <div class="story-header-left">
+                            <h3>Create Story</h3>
+                            <div class="story-privacy-duration">
+                                <button class="story-privacy-btn" onclick="socialMissingUI.openStoryPrivacy()">
+                                    <i class="fas fa-lock"></i>
+                                    <span id="current-privacy">Public</span>
+                                </button>
+                                <button class="story-duration-btn" onclick="socialMissingUI.toggleStoryDuration()">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="current-duration">24h</span>
+                                </button>
+                            </div>
+                        </div>
                         <button class="close-story-creation" onclick="socialMissingUI.closeStoryCreation()">
                             <i class="fas fa-times"></i>
                         </button>
@@ -1809,59 +1821,190 @@ class SocialMissingUIComponents {
                         <div class="story-creation-tabs">
                             <button class="story-tab active" data-tab="camera">
                                 <i class="fas fa-camera"></i>
-                                Camera
+                                <span>Camera</span>
                             </button>
                             <button class="story-tab" data-tab="text">
                                 <i class="fas fa-font"></i>
-                                Text
+                                <span>Text</span>
                             </button>
                             <button class="story-tab" data-tab="upload">
                                 <i class="fas fa-upload"></i>
-                                Upload
+                                <span>Upload</span>
                             </button>
                         </div>
                         <div class="story-creation-body">
+                            <!-- Camera Tab -->
                             <div class="story-content-area active" data-content="camera">
-                                <div class="camera-preview">
-                                    <div class="camera-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Camera preview would appear here</p>
-                                        <button class="start-camera-btn">Start Camera</button>
+                                <div class="camera-preview-container">
+                                    <div class="camera-preview" id="camera-preview">
+                                        <div class="camera-placeholder" id="camera-placeholder">
+                                            <i class="fas fa-camera"></i>
+                                            <p>Camera preview</p>
+                                            <button class="start-camera-btn" onclick="socialMissingUI.startCamera()">
+                                                <i class="fas fa-video"></i>
+                                                Start Camera
+                                            </button>
+                                        </div>
+                                        <video id="camera-stream" class="camera-stream" autoplay muted playsinline style="display: none;"></video>
+                                        <canvas id="camera-canvas" class="camera-canvas" style="display: none;"></canvas>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="story-content-area" data-content="text">
-                                <div class="text-story-creator">
-                                    <textarea placeholder="What's on your mind?" class="story-text-input"></textarea>
-                                    <div class="text-style-options">
-                                        <div class="text-color-picker">
-                                            <div class="color-option active" style="background: #ffffff" data-color="#ffffff"></div>
-                                            <div class="color-option" style="background: #ff6b6b" data-color="#ff6b6b"></div>
-                                            <div class="color-option" style="background: #4ecdc4" data-color="#4ecdc4"></div>
-                                            <div class="color-option" style="background: #45b7d1" data-color="#45b7d1"></div>
-                                            <div class="color-option" style="background: #96ceb4" data-color="#96ceb4"></div>
-                                            <div class="color-option" style="background: #feca57" data-color="#feca57"></div>
+                                    <div class="camera-controls" id="camera-controls" style="display: none;">
+                                        <div class="camera-controls-top">
+                                            <button class="camera-control-btn flash-toggle" onclick="socialMissingUI.toggleFlash()" title="Flash">
+                                                <i class="fas fa-bolt"></i>
+                                            </button>
+                                            <button class="camera-control-btn flip-camera" onclick="socialMissingUI.flipCamera()" title="Switch Camera">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                            <button class="camera-control-btn timer-toggle" onclick="socialMissingUI.toggleTimer()" title="Timer">
+                                                <i class="fas fa-stopwatch"></i>
+                                                <span id="timer-text">0s</span>
+                                            </button>
+                                        </div>
+                                        <div class="camera-capture-area">
+                                            <button class="camera-capture-btn" onclick="socialMissingUI.capturePhoto()">
+                                                <div class="capture-ring"></div>
+                                            </button>
+                                        </div>
+                                        <div class="camera-effects">
+                                            <div class="effects-carousel">
+                                                <button class="effect-btn active" data-effect="none">Normal</button>
+                                                <button class="effect-btn" data-effect="vintage">Vintage</button>
+                                                <button class="effect-btn" data-effect="cool">Cool</button>
+                                                <button class="effect-btn" data-effect="warm">Warm</button>
+                                                <button class="effect-btn" data-effect="bw">B&W</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Text Tab -->
+                            <div class="story-content-area" data-content="text">
+                                <div class="text-story-creator">
+                                    <div class="text-story-preview" id="text-story-preview">
+                                        <textarea placeholder="What's on your mind?" 
+                                                class="story-text-input" 
+                                                id="story-text-input"
+                                                maxlength="280"></textarea>
+                                    </div>
+                                    <div class="text-style-controls">
+                                        <div class="color-picker-section">
+                                            <h4>Background Color</h4>
+                                            <div class="text-color-picker">
+                                                <div class="color-option active" style="background: #ffffff" data-color="#ffffff" title="White"></div>
+                                                <div class="color-option" style="background: #ff6b6b" data-color="#ff6b6b" title="Red"></div>
+                                                <div class="color-option" style="background: #4ecdc4" data-color="#4ecdc4" title="Teal"></div>
+                                                <div class="color-option" style="background: #45b7d1" data-color="#45b7d1" title="Blue"></div>
+                                                <div class="color-option" style="background: #96ceb4" data-color="#96ceb4" title="Green"></div>
+                                                <div class="color-option" style="background: #feca57" data-color="#feca57" title="Yellow"></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-format-section">
+                                            <h4>Text Format</h4>
+                                            <div class="text-format-controls">
+                                                <div class="font-size-control">
+                                                    <label>Font Size</label>
+                                                    <input type="range" id="font-size-slider" min="16" max="48" value="24" 
+                                                           onchange="socialMissingUI.updateFontSize(this.value)">
+                                                    <span id="font-size-value">24px</span>
+                                                </div>
+                                                <div class="text-align-control">
+                                                    <label>Text Alignment</label>
+                                                    <div class="align-buttons">
+                                                        <button class="align-btn active" data-align="left" onclick="socialMissingUI.setTextAlign('left')">
+                                                            <i class="fas fa-align-left"></i>
+                                                        </button>
+                                                        <button class="align-btn" data-align="center" onclick="socialMissingUI.setTextAlign('center')">
+                                                            <i class="fas fa-align-center"></i>
+                                                        </button>
+                                                        <button class="align-btn" data-align="right" onclick="socialMissingUI.setTextAlign('right')">
+                                                            <i class="fas fa-align-right"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="character-counter">
+                                            <span id="char-count">0</span>/280 characters
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Upload Tab -->
                             <div class="story-content-area" data-content="upload">
                                 <div class="upload-area">
-                                    <input type="file" id="story-file-input" accept="image/*,video/*" hidden>
-                                    <div class="upload-placeholder" onclick="document.getElementById('story-file-input').click()">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload photo or video</p>
-                                        <small>JPG, PNG, MP4 up to 10MB</small>
+                                    <input type="file" id="story-file-input" accept="image/jpeg,image/png,video/mp4" hidden onchange="socialMissingUI.handleStoryFileUpload(this.files[0])">
+                                    <div class="upload-placeholder" id="upload-placeholder" onclick="socialMissingUI.triggerFileUpload()">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h4>Upload Photo or Video</h4>
+                                        <p>Drag & drop files here or click to browse</p>
+                                        <div class="upload-specs">
+                                            <span>📷 JPG, PNG</span>
+                                            <span>🎥 MP4 (max 15s)</span>
+                                            <span>📏 Max 10MB</span>
+                                        </div>
+                                        <button class="upload-browse-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            Browse Files
+                                        </button>
                                     </div>
                                     <div class="uploaded-preview" id="uploaded-story-preview"></div>
+                                    <div class="upload-tools" id="upload-tools" style="display: none;">
+                                        <div class="media-edit-controls">
+                                            <button class="edit-btn crop-btn" onclick="socialMissingUI.cropMedia()">
+                                                <i class="fas fa-crop"></i> Crop
+                                            </button>
+                                            <button class="edit-btn trim-btn" onclick="socialMissingUI.trimVideo()" style="display: none;">
+                                                <i class="fas fa-cut"></i> Trim
+                                            </button>
+                                            <button class="edit-btn remove-btn" onclick="socialMissingUI.removeUploadedMedia()">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Universal Story Controls -->
+                        <div class="story-universal-controls">
+                            <div class="story-overlay-tools">
+                                <button class="overlay-tool-btn text-overlay" onclick="socialMissingUI.addTextOverlay()" title="Add Text">
+                                    <i class="fas fa-font"></i>
+                                </button>
+                                <button class="overlay-tool-btn drawing-tool" onclick="socialMissingUI.enableDrawing()" title="Draw">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="overlay-tool-btn sticker-tool" onclick="socialMissingUI.openStickerPicker()" title="Stickers">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                                <button class="overlay-tool-btn music-tool" onclick="socialMissingUI.addMusicOverlay()" title="Add Music">
+                                    <i class="fas fa-music"></i>
+                                </button>
+                            </div>
+                            <div class="story-settings">
+                                <div class="story-replies-setting">
+                                    <label>Who can reply:</label>
+                                    <select id="reply-setting" onchange="socialMissingUI.updateReplySetting()">
+                                        <option value="everyone">Everyone</option>
+                                        <option value="friends">Friends</option>
+                                        <option value="off">Off</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="story-creation-actions">
-                            <button class="story-action-btn cancel-btn" onclick="socialMissingUI.closeStoryCreation()">
+                            <button class="story-action-btn cancel-btn" onclick="socialMissingUI.cancelStoryCreation()">
+                                <i class="fas fa-times"></i>
                                 Cancel
                             </button>
                             <button class="story-action-btn publish-btn" onclick="socialMissingUI.publishStory()">
+                                <i class="fas fa-share"></i>
                                 Share Story
                             </button>
                         </div>
@@ -1871,6 +2014,12 @@ class SocialMissingUIComponents {
         `;
 
         document.body.insertAdjacentHTML('beforeend', storyCreationModalHTML);
+        
+        // Add drag and drop functionality
+        this.setupDragAndDrop();
+        
+        // Initialize drawing tools
+        this.initializeDrawingTools();
     }
 
     setupStoryCreationListeners() {
@@ -2351,6 +2500,621 @@ class SocialMissingUIComponents {
                 this.app.showSection('messages');
             }
         }, 500);
+    }
+
+    // =================================================================================
+    // ENHANCED STORY CREATION FUNCTIONALITY
+    // =================================================================================
+
+    // Camera functionality
+    async startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user' }, 
+                audio: false 
+            });
+            
+            const videoElement = document.getElementById('camera-stream');
+            const placeholder = document.getElementById('camera-placeholder');
+            const controls = document.getElementById('camera-controls');
+            
+            if (videoElement) {
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                if (controls) controls.style.display = 'block';
+                
+                this.cameraStream = stream;
+                this.app.showToast('Camera started!', 'success');
+            }
+        } catch (error) {
+            console.error('Camera access denied:', error);
+            this.showCameraPermissionError();
+        }
+    }
+
+    showCameraPermissionError() {
+        const placeholder = document.getElementById('camera-placeholder');
+        if (placeholder) {
+            placeholder.innerHTML = `
+                <i class="fas fa-camera-slash"></i>
+                <p>Camera access denied</p>
+                <p>Please allow camera permission or upload a photo instead</p>
+                <button class="switch-to-upload-btn" onclick="socialMissingUI.switchToUploadTab()">
+                    <i class="fas fa-upload"></i>
+                    Switch to Upload
+                </button>
+            `;
+        }
+        this.app.showToast('Camera permission denied. Please try uploading a photo instead.', 'warning');
+    }
+
+    switchToUploadTab() {
+        const uploadTab = document.querySelector('[data-tab="upload"]');
+        if (uploadTab) {
+            this.switchStoryTab(uploadTab);
+        }
+    }
+
+    toggleFlash() {
+        // Flash toggle functionality (simulated)
+        const flashBtn = document.querySelector('.flash-toggle');
+        if (flashBtn) {
+            flashBtn.classList.toggle('active');
+            this.app.showToast(flashBtn.classList.contains('active') ? 'Flash enabled' : 'Flash disabled', 'info');
+        }
+    }
+
+    flipCamera() {
+        // Camera flip functionality (simulated)
+        this.app.showToast('Switching camera...', 'info');
+        // In a real implementation, this would switch between front and back cameras
+    }
+
+    toggleTimer() {
+        const timerBtn = document.querySelector('.timer-toggle');
+        const timerText = document.getElementById('timer-text');
+        
+        if (timerBtn && timerText) {
+            const currentTimer = parseInt(timerText.textContent);
+            const nextTimer = currentTimer === 0 ? 3 : currentTimer === 3 ? 10 : 0;
+            timerText.textContent = nextTimer + 's';
+            
+            if (nextTimer > 0) {
+                timerBtn.classList.add('active');
+                this.app.showToast(`Timer set to ${nextTimer} seconds`, 'info');
+            } else {
+                timerBtn.classList.remove('active');
+                this.app.showToast('Timer disabled', 'info');
+            }
+        }
+    }
+
+    capturePhoto() {
+        const timerText = document.getElementById('timer-text');
+        const timer = timerText ? parseInt(timerText.textContent) : 0;
+        
+        if (timer > 0) {
+            this.startCaptureTimer(timer);
+        } else {
+            this.performCapture();
+        }
+    }
+
+    startCaptureTimer(seconds) {
+        let countdown = seconds;
+        const timerOverlay = document.createElement('div');
+        timerOverlay.className = 'capture-timer-overlay';
+        timerOverlay.innerHTML = `<div class="timer-countdown">${countdown}</div>`;
+        
+        document.getElementById('camera-preview').appendChild(timerOverlay);
+        
+        const interval = setInterval(() => {
+            countdown--;
+            timerOverlay.querySelector('.timer-countdown').textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(interval);
+                timerOverlay.remove();
+                this.performCapture();
+            }
+        }, 1000);
+    }
+
+    performCapture() {
+        const videoElement = document.getElementById('camera-stream');
+        const canvas = document.getElementById('camera-canvas');
+        
+        if (videoElement && canvas) {
+            const context = canvas.getContext('2d');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0);
+            
+            // Convert to blob and handle as captured photo
+            canvas.toBlob((blob) => {
+                this.handleCapturedPhoto(blob);
+            }, 'image/jpeg', 0.8);
+        }
+        
+        this.app.showToast('Photo captured!', 'success');
+    }
+
+    handleCapturedPhoto(blob) {
+        // Show captured photo preview and switch to editing mode
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.showCapturedPhotoPreview(e.target.result);
+        };
+        reader.readAsDataURL(blob);
+    }
+
+    showCapturedPhotoPreview(dataUrl) {
+        const preview = document.getElementById('camera-preview');
+        if (preview) {
+            preview.innerHTML = `
+                <div class="captured-photo-preview">
+                    <img src="${dataUrl}" alt="Captured photo" class="captured-image">
+                    <div class="capture-actions">
+                        <button class="retake-btn" onclick="socialMissingUI.retakePhoto()">
+                            <i class="fas fa-redo"></i>
+                            Retake
+                        </button>
+                        <button class="use-photo-btn" onclick="socialMissingUI.usePhoto('${dataUrl}')">
+                            <i class="fas fa-check"></i>
+                            Use Photo
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    retakePhoto() {
+        this.startCamera();
+    }
+
+    usePhoto(dataUrl) {
+        this.app.showToast('Photo ready for story!', 'success');
+        // Store the photo for publishing
+        this.capturedPhoto = dataUrl;
+    }
+
+    // Text story functionality
+    updateFontSize(size) {
+        const textInput = document.getElementById('story-text-input');
+        const sizeValue = document.getElementById('font-size-value');
+        
+        if (textInput) {
+            textInput.style.fontSize = size + 'px';
+        }
+        if (sizeValue) {
+            sizeValue.textContent = size + 'px';
+        }
+    }
+
+    setTextAlign(alignment) {
+        const textInput = document.getElementById('story-text-input');
+        const alignButtons = document.querySelectorAll('.align-btn');
+        
+        if (textInput) {
+            textInput.style.textAlign = alignment;
+        }
+        
+        alignButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.align === alignment);
+        });
+    }
+
+    // Upload functionality
+    triggerFileUpload() {
+        document.getElementById('story-file-input').click();
+    }
+
+    handleStoryFileUpload(file) {
+        if (!file) return;
+
+        // Validate file size
+        if (file.size > 10 * 1024 * 1024) {
+            this.app.showToast('File must be under 10MB', 'error');
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4'];
+        if (!allowedTypes.includes(file.type)) {
+            this.app.showToast('Only JPG, PNG, and MP4 files are allowed', 'error');
+            return;
+        }
+
+        // Validate video duration (simulated)
+        if (file.type === 'video/mp4') {
+            // In a real implementation, we'd check video duration here
+            this.app.showToast('Video uploaded! Max 15 seconds will be used.', 'info');
+        }
+
+        const preview = document.getElementById('uploaded-story-preview');
+        const uploadTools = document.getElementById('upload-tools');
+        const placeholder = document.getElementById('upload-placeholder');
+        
+        if (!preview) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const isVideo = file.type.startsWith('video/');
+            preview.innerHTML = `
+                <div class="story-preview-item">
+                    ${isVideo ? 
+                        `<video src="${e.target.result}" controls class="story-preview-media">
+                            <source src="${e.target.result}" type="${file.type}">
+                            Your browser does not support the video tag.
+                        </video>` :
+                        `<img src="${e.target.result}" alt="Story preview" class="story-preview-media">`
+                    }
+                    <div class="media-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
+                </div>
+            `;
+            
+            if (placeholder) placeholder.style.display = 'none';
+            if (uploadTools) {
+                uploadTools.style.display = 'block';
+                // Show trim button only for videos
+                const trimBtn = uploadTools.querySelector('.trim-btn');
+                if (trimBtn) {
+                    trimBtn.style.display = isVideo ? 'inline-flex' : 'none';
+                }
+            }
+            
+            this.uploadedFile = file;
+            this.app.showToast('File uploaded successfully!', 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    cropMedia() {
+        this.app.showToast('Crop tool opened! (Demo mode)', 'info');
+        // In a real implementation, this would open a crop interface
+    }
+
+    trimVideo() {
+        this.app.showToast('Video trim tool opened! (Demo mode)', 'info');
+        // In a real implementation, this would open a video trimming interface
+    }
+
+    removeUploadedMedia() {
+        const preview = document.getElementById('uploaded-story-preview');
+        const uploadTools = document.getElementById('upload-tools');
+        const placeholder = document.getElementById('upload-placeholder');
+        const fileInput = document.getElementById('story-file-input');
+        
+        if (preview) preview.innerHTML = '';
+        if (uploadTools) uploadTools.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        if (fileInput) fileInput.value = '';
+        
+        this.uploadedFile = null;
+        this.app.showToast('Media removed', 'info');
+    }
+
+    // Universal story controls
+    addTextOverlay() {
+        this.app.showToast('Text overlay tool opened! (Demo mode)', 'info');
+        // In a real implementation, this would add draggable text overlays
+    }
+
+    enableDrawing() {
+        const drawingBtn = document.querySelector('.drawing-tool');
+        if (drawingBtn) {
+            drawingBtn.classList.toggle('active');
+            if (drawingBtn.classList.contains('active')) {
+                this.app.showToast('Drawing mode enabled! Draw on your story', 'info');
+                this.initializeDrawingCanvas();
+            } else {
+                this.app.showToast('Drawing mode disabled', 'info');
+                this.disableDrawingCanvas();
+            }
+        }
+    }
+
+    initializeDrawingCanvas() {
+        // Add drawing canvas overlay (simplified implementation)
+        const activeArea = document.querySelector('.story-content-area.active');
+        if (activeArea && !activeArea.querySelector('.drawing-canvas')) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'drawing-canvas';
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'auto';
+            canvas.style.zIndex = '10';
+            
+            activeArea.style.position = 'relative';
+            activeArea.appendChild(canvas);
+            
+            this.setupDrawingEvents(canvas);
+        }
+    }
+
+    setupDrawingEvents(canvas) {
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+        
+        // Set drawing style
+        ctx.strokeStyle = '#ff6b6b';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+    }
+
+    disableDrawingCanvas() {
+        const canvas = document.querySelector('.drawing-canvas');
+        if (canvas) {
+            canvas.remove();
+        }
+    }
+
+    openStickerPicker() {
+        // Create sticker picker modal
+        const stickerModal = document.createElement('div');
+        stickerModal.className = 'sticker-picker-modal';
+        stickerModal.innerHTML = `
+            <div class="sticker-picker-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="sticker-picker-content">
+                <h4>Choose a Sticker</h4>
+                <div class="sticker-grid">
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('❤️')">❤️</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('😍')">😍</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('🔥')">🔥</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('💯')">💯</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('⭐')">⭐</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('🎉')">🎉</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('✨')">✨</button>
+                    <button class="sticker-item" onclick="socialMissingUI.addSticker('🌟')">🌟</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(stickerModal);
+    }
+
+    addSticker(emoji) {
+        this.app.showToast(`Added ${emoji} sticker!`, 'success');
+        // In a real implementation, this would add a draggable sticker to the story
+        document.querySelector('.sticker-picker-modal')?.remove();
+    }
+
+    addMusicOverlay() {
+        // Create music picker modal
+        const musicModal = document.createElement('div');
+        musicModal.className = 'music-picker-modal';
+        musicModal.innerHTML = `
+            <div class="music-picker-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="music-picker-content">
+                <h4>Add Music to Your Story</h4>
+                <div class="music-search">
+                    <input type="text" placeholder="Search for music..." class="music-search-input">
+                </div>
+                <div class="music-suggestions">
+                    <div class="music-item" onclick="socialMissingUI.selectMusic('Chill Vibes', 'Lo-Fi Beats')">
+                        <div class="music-info">
+                            <span class="song-title">Chill Vibes</span>
+                            <span class="artist-name">Lo-Fi Beats</span>
+                        </div>
+                        <button class="play-preview-btn">▶️</button>
+                    </div>
+                    <div class="music-item" onclick="socialMissingUI.selectMusic('Summer Nights', 'Ambient Sounds')">
+                        <div class="music-info">
+                            <span class="song-title">Summer Nights</span>
+                            <span class="artist-name">Ambient Sounds</span>
+                        </div>
+                        <button class="play-preview-btn">▶️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(musicModal);
+    }
+
+    selectMusic(title, artist) {
+        this.app.showToast(`Added "${title}" by ${artist}`, 'success');
+        this.selectedMusic = { title, artist };
+        document.querySelector('.music-picker-modal')?.remove();
+    }
+
+    updateReplySetting() {
+        const replySetting = document.getElementById('reply-setting');
+        if (replySetting) {
+            this.app.showToast(`Reply setting updated to: ${replySetting.value}`, 'info');
+        }
+    }
+
+    // Story duration toggle
+    toggleStoryDuration() {
+        const durationSpan = document.getElementById('current-duration');
+        if (durationSpan) {
+            const current = durationSpan.textContent;
+            const durations = ['1h', '6h', '24h'];
+            const currentIndex = durations.indexOf(current);
+            const nextIndex = (currentIndex + 1) % durations.length;
+            durationSpan.textContent = durations[nextIndex];
+            
+            this.app.showToast(`Story duration set to ${durations[nextIndex]}`, 'info');
+        }
+    }
+
+    // Enhanced text input handling
+    setupTextInputHandling() {
+        const textInput = document.getElementById('story-text-input');
+        const charCounter = document.getElementById('char-count');
+        
+        if (textInput && charCounter) {
+            textInput.addEventListener('input', () => {
+                const length = textInput.value.length;
+                charCounter.textContent = length;
+                
+                // Change color based on character count
+                if (length > 250) {
+                    charCounter.style.color = 'var(--error)';
+                } else if (length > 200) {
+                    charCounter.style.color = 'var(--warning)';
+                } else {
+                    charCounter.style.color = 'var(--text-secondary)';
+                }
+            });
+        }
+    }
+
+    // Drag and drop functionality
+    setupDragAndDrop() {
+        const uploadArea = document.querySelector('.upload-area');
+        if (!uploadArea) return;
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleStoryFileUpload(files[0]);
+            }
+        });
+    }
+
+    // Initialize drawing tools
+    initializeDrawingTools() {
+        // Setup drawing colors and brush sizes
+        this.drawingSettings = {
+            color: '#ff6b6b',
+            brushSize: 3,
+            tool: 'pen'
+        };
+    }
+
+    // Cancel story creation with confirmation
+    cancelStoryCreation() {
+        const hasContent = this.checkStoryContent();
+        
+        if (hasContent) {
+            if (confirm('Are you sure you want to discard your story? All changes will be lost.')) {
+                this.closeStoryCreation();
+            }
+        } else {
+            this.closeStoryCreation();
+        }
+    }
+
+    checkStoryContent() {
+        const textInput = document.getElementById('story-text-input');
+        const fileInput = document.getElementById('story-file-input');
+        
+        return (textInput && textInput.value.trim()) || 
+               (fileInput && fileInput.files.length > 0) ||
+               this.capturedPhoto;
+    }
+
+    // Enhanced publish story with loading states
+    async publishStory() {
+        const activeTab = document.querySelector('.story-tab.active')?.dataset.tab;
+        let storyContent = null;
+
+        // Validate content
+        if (activeTab === 'text') {
+            const textInput = document.querySelector('.story-text-input');
+            const activeColor = document.querySelector('.color-option.active');
+            
+            if (textInput && textInput.value.trim()) {
+                storyContent = {
+                    type: 'text',
+                    content: textInput.value.trim(),
+                    backgroundColor: activeColor?.dataset.color || '#ffffff',
+                    fontSize: document.getElementById('font-size-slider')?.value || '24',
+                    textAlign: document.querySelector('.align-btn.active')?.dataset.align || 'left'
+                };
+            }
+        } else if (activeTab === 'upload') {
+            const fileInput = document.getElementById('story-file-input');
+            if (fileInput.files.length > 0) {
+                storyContent = {
+                    type: 'media',
+                    file: fileInput.files[0],
+                    mediaType: fileInput.files[0].type.startsWith('video/') ? 'video' : 'image'
+                };
+            }
+        } else if (activeTab === 'camera' && this.capturedPhoto) {
+            storyContent = {
+                type: 'camera',
+                photo: this.capturedPhoto
+            };
+        }
+
+        if (!storyContent) {
+            this.app.showToast('Please add content to your story', 'warning');
+            return;
+        }
+
+        // Show loading state
+        const publishBtn = document.querySelector('.publish-btn');
+        const originalText = publishBtn.innerHTML;
+        publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+        publishBtn.disabled = true;
+
+        try {
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Add selected music and privacy settings to story content
+            if (this.selectedMusic) {
+                storyContent.music = this.selectedMusic;
+            }
+            
+            storyContent.privacy = this.storyPrivacySettings;
+            storyContent.duration = document.getElementById('current-duration')?.textContent || '24h';
+            storyContent.allowReplies = document.getElementById('reply-setting')?.value || 'everyone';
+            
+            this.app.showToast('Story published successfully!', 'success');
+            this.closeStoryCreation();
+            this.addStoryToFeed(storyContent);
+            
+        } catch (error) {
+            console.error('Failed to publish story:', error);
+            this.app.showToast('Failed to publish story. Please try again.', 'error');
+        } finally {
+            // Restore button state
+            if (publishBtn) {
+                publishBtn.innerHTML = originalText;
+                publishBtn.disabled = false;
+            }
+        }
     }
 }
 

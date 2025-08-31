@@ -2283,7 +2283,32 @@ function createNewEvent() {
 }
 
 function createStory() {
-    showToast('Story creation opened', 'info');
+    // Use the comprehensive story creation interface from SocialMissingUIComponents
+    if (window.socialMissingUI && typeof window.socialMissingUI.openStoryCreation === 'function') {
+        window.socialMissingUI.openStoryCreation();
+        showToast('Comprehensive Story Creation opened!', 'success');
+    } else if (typeof SocialMissingUIComponents !== 'undefined' && window.app) {
+        // Initialize SocialMissingUIComponents if not already done
+        console.log('Initializing SocialMissingUIComponents for story creation...');
+        const socialUI = new SocialMissingUIComponents(window.app);
+        window.socialMissingUI = socialUI;
+        socialUI.openStoryCreation();
+        showToast('Comprehensive Story Creation opened!', 'success');
+    } else {
+        // Last fallback - basic toast
+        console.warn('SocialMissingUIComponents not available, using basic fallback');
+        showToast('Story creation feature coming soon!', 'info');
+        
+        // Try to initialize after a brief delay
+        setTimeout(() => {
+            if (typeof SocialMissingUIComponents !== 'undefined' && window.app && !window.socialMissingUI) {
+                console.log('Delayed initialization of SocialMissingUIComponents...');
+                const delayedSocialUI = new SocialMissingUIComponents(window.app);
+                window.socialMissingUI = delayedSocialUI;
+                showToast('Story creation is now ready! Click + Add Story again.', 'info');
+            }
+        }, 1000);
+    }
 }
 
 function viewStory(user) {
@@ -2751,6 +2776,29 @@ function showContentFilterInterface() {
     }
 }
 
+// Create global app instance for UI components
+window.app = {
+    showToast: showToast,
+    currentUser: { 
+        id: 'current-user', 
+        name: 'John Doe', 
+        avatar: 'https://via.placeholder.com/60x60/6c5ce7/ffffff?text=JD' 
+    },
+    getTimeAgo: (timestamp) => {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - timestamp) / 1000);
+        if (diffInSeconds < 60) return 'just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    },
+    formatNumber: (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+    }
+};
+
 // Event listeners and initialization
 document.addEventListener('DOMContentLoaded', () => {
     updateMainNav();
@@ -2758,6 +2806,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize UI components after a short delay to ensure all classes are loaded
     setTimeout(initializeUIComponents, 500);
+    
+    // Dispatch app-ready event for UI components that are waiting
+    setTimeout(() => {
+        const appReadyEvent = new Event('app-ready');
+        document.dispatchEvent(appReadyEvent);
+        console.log('App ready event dispatched');
+    }, 300);
     
     // Initialize Join Event System
     setTimeout(() => {
