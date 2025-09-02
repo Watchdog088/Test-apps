@@ -675,11 +675,11 @@ function populateStories() {
 
     if (storiesList) {
         storiesList.innerHTML = sampleStories.map(story => `
-            <div style="flex-shrink: 0; text-align: center; cursor: pointer;" onclick="${story.type === 'add' ? 'createStory()' : `viewStory('${story.user}')`}" role="button" tabindex="0">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: ${story.type === 'add' ? 'var(--glass)' : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)'}; border: ${story.type === 'story' ? '3px solid var(--primary)' : '2px dashed var(--glass-border)'}; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-bottom: 0.5rem;" aria-label="${story.type === 'add' ? 'Add story' : story.user + ' story'}">
+            <div style="flex-shrink: 0; text-align: center;" role="button" tabindex="0">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: ${story.type === 'add' ? 'var(--glass)' : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)'}; border: ${story.type === 'story' ? '3px solid var(--primary)' : '2px dashed var(--glass-border)'}; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-bottom: 0.5rem; cursor: pointer;" aria-label="${story.type === 'add' ? 'Add story' : story.user + ' story'}" onclick="${story.type === 'add' ? 'createStory()' : `viewStory('${story.user}')`}">
                     ${story.type === 'add' ? '+' : story.avatar}
                 </div>
-                <div style="font-size: 0.8rem; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${story.user}</div>
+                <div class="story-username" style="font-size: 0.8rem; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: var(--text-primary); transition: color 0.2s ease;" onclick="${story.type === 'add' ? '' : `viewStory('${story.user}')`}" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">${story.user}</div>
             </div>
         `).join('');
     }
@@ -2312,7 +2312,451 @@ function createStory() {
 }
 
 function viewStory(user) {
-    showToast(`Viewing ${user}'s story`, 'info');
+    // Generate sample story data for the user
+    const storyData = generateStoryData(user);
+    
+    // Open the story viewer with the data
+    openStoryViewer(storyData);
+}
+
+// Generate sample story data for a user
+function generateStoryData(user) {
+    const storyTypes = ['text', 'image', 'video'];
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
+    const textStories = [
+        'Having an amazing day! ☀️',
+        'Coffee time ☕️',
+        'Working on new projects 💼',
+        'Weekend vibes! 🎉',
+        'Grateful for today 🙏',
+        'New adventure ahead! 🚀'
+    ];
+    
+    const stories = [];
+    const storyCount = Math.floor(Math.random() * 3) + 2; // 2-4 stories per user
+    
+    for (let i = 0; i < storyCount; i++) {
+        const storyType = storyTypes[Math.floor(Math.random() * storyTypes.length)];
+        const baseStory = {
+            id: `${user}_${i}`,
+            user: user,
+            avatar: user === 'Emma Wilson' ? 'EW' : user === 'Mike Johnson' ? 'MJ' : user === 'Sarah Miller' ? 'SM' : user === 'Alex Chen' ? 'AC' : 'U',
+            timestamp: new Date(Date.now() - Math.floor(Math.random() * 3600000 * 24)), // Random time in last 24 hours
+            views: Math.floor(Math.random() * 100) + 10,
+            type: storyType
+        };
+        
+        if (storyType === 'text') {
+            stories.push({
+                ...baseStory,
+                content: textStories[Math.floor(Math.random() * textStories.length)],
+                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                textColor: '#FFFFFF',
+                fontSize: '1.5rem'
+            });
+        } else if (storyType === 'image') {
+            stories.push({
+                ...baseStory,
+                content: '🌟', // Emoji as placeholder for image
+                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                caption: i === 0 ? 'Beautiful sunset today!' : i === 1 ? 'Amazing coffee shop!' : 'Great memories!'
+            });
+        } else if (storyType === 'video') {
+            stories.push({
+                ...baseStory,
+                content: '🎬', // Emoji as placeholder for video
+                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                caption: 'Check out this cool video!',
+                duration: Math.floor(Math.random() * 10) + 5 // 5-15 seconds
+            });
+        }
+    }
+    
+    return {
+        user: user,
+        stories: stories,
+        currentIndex: 0
+    };
+}
+
+// Open the story viewer
+function openStoryViewer(storyData) {
+    // Remove existing story viewer
+    const existingViewer = document.getElementById('storyViewer');
+    if (existingViewer) {
+        existingViewer.remove();
+    }
+    
+    // Create story viewer modal
+    const storyViewer = document.createElement('div');
+    storyViewer.id = 'storyViewer';
+    storyViewer.className = 'story-viewer';
+    storyViewer.innerHTML = `
+        <div class="story-viewer-container">
+            <!-- Story Progress Bar -->
+            <div class="story-progress-container">
+                ${storyData.stories.map((_, index) => `
+                    <div class="story-progress-bar">
+                        <div class="story-progress-fill" data-story-index="${index}"></div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <!-- Story Header -->
+            <div class="story-header">
+                <div class="story-user-info">
+                    <div class="story-user-avatar">${storyData.stories[0].avatar}</div>
+                    <div class="story-user-details">
+                        <div class="story-user-name">${storyData.user}</div>
+                        <div class="story-timestamp"></div>
+                    </div>
+                </div>
+                <div class="story-actions">
+                    <button class="story-action-btn" onclick="pauseStory()" id="pauseBtn">⏸️</button>
+                    <button class="story-action-btn" onclick="closeStoryViewer()">✕</button>
+                </div>
+            </div>
+            
+            <!-- Story Content -->
+            <div class="story-content-container">
+                <div class="story-content" id="storyContent">
+                    <!-- Story content will be populated here -->
+                </div>
+                
+                <!-- Navigation Zones -->
+                <div class="story-nav-left" onclick="previousStory()"></div>
+                <div class="story-nav-right" onclick="nextStory()"></div>
+            </div>
+            
+            <!-- Story Footer -->
+            <div class="story-footer">
+                <div class="story-views">
+                    <span id="storyViews">👁️ 0</span>
+                </div>
+                <div class="story-reply">
+                    <input type="text" placeholder="Reply to story..." onkeypress="handleStoryReply(event)">
+                    <button onclick="sendStoryReply()">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Story Loading -->
+        <div class="story-loading" id="storyLoading">
+            <div class="story-loading-spinner"></div>
+        </div>
+    `;
+    
+    document.body.appendChild(storyViewer);
+    
+    // Initialize story viewer
+    window.currentStoryData = storyData;
+    window.currentStoryIndex = 0;
+    window.storyTimer = null;
+    window.storyPaused = false;
+    
+    // Show the viewer
+    setTimeout(() => {
+        storyViewer.classList.add('active');
+        loadStory(0);
+    }, 50);
+    
+    // Add keyboard support
+    document.addEventListener('keydown', handleStoryKeyPress);
+    
+    showToast(`Opened ${storyData.user}'s story! 📱`, 'success');
+}
+
+// Load a specific story
+function loadStory(index) {
+    if (!window.currentStoryData || !window.currentStoryData.stories[index]) return;
+    
+    const story = window.currentStoryData.stories[index];
+    const storyContent = document.getElementById('storyContent');
+    const storyTimestamp = document.querySelector('.story-timestamp');
+    const storyViews = document.getElementById('storyViews');
+    const storyLoading = document.getElementById('storyLoading');
+    
+    if (!storyContent) return;
+    
+    window.currentStoryIndex = index;
+    
+    // Show loading
+    storyLoading.style.display = 'flex';
+    
+    // Update timestamp
+    if (storyTimestamp) {
+        storyTimestamp.textContent = getTimeAgo(story.timestamp);
+    }
+    
+    // Update views
+    if (storyViews) {
+        storyViews.textContent = `👁️ ${story.views}`;
+    }
+    
+    // Simulate loading delay
+    setTimeout(() => {
+        // Hide loading
+        storyLoading.style.display = 'none';
+        
+        // Clear previous content
+        storyContent.innerHTML = '';
+        storyContent.className = 'story-content';
+        
+        // Set background color
+        storyContent.style.background = story.backgroundColor || '#000';
+        
+        // Populate content based on story type
+        if (story.type === 'text') {
+            storyContent.innerHTML = `
+                <div class="story-text-content">
+                    <div class="story-text" style="color: ${story.textColor}; font-size: ${story.fontSize};">
+                        ${story.content}
+                    </div>
+                </div>
+            `;
+        } else if (story.type === 'image') {
+            storyContent.innerHTML = `
+                <div class="story-media-content">
+                    <div class="story-image-placeholder">
+                        <div class="story-image-icon">${story.content}</div>
+                        <div class="story-image-label">📸 Image Story</div>
+                    </div>
+                    ${story.caption ? `<div class="story-caption">${story.caption}</div>` : ''}
+                </div>
+            `;
+        } else if (story.type === 'video') {
+            storyContent.innerHTML = `
+                <div class="story-media-content">
+                    <div class="story-video-placeholder">
+                        <div class="story-video-icon">${story.content}</div>
+                        <div class="story-video-label">🎥 Video Story</div>
+                        <div class="story-video-duration">${story.duration}s</div>
+                    </div>
+                    ${story.caption ? `<div class="story-caption">${story.caption}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        // Update progress bars
+        updateStoryProgress(index);
+        
+        // Start auto-advance timer
+        startStoryTimer(story.type === 'video' ? (story.duration * 1000) : 5000);
+        
+    }, 800); // Simulate loading time
+}
+
+// Update story progress indicators
+function updateStoryProgress(currentIndex) {
+    const progressFills = document.querySelectorAll('.story-progress-fill');
+    progressFills.forEach((fill, index) => {
+        fill.classList.remove('active', 'completed');
+        if (index < currentIndex) {
+            fill.classList.add('completed');
+        } else if (index === currentIndex) {
+            fill.classList.add('active');
+        }
+    });
+}
+
+// Start story auto-advance timer
+function startStoryTimer(duration = 5000) {
+    clearTimeout(window.storyTimer);
+    
+    if (window.storyPaused) return;
+    
+    const progressFill = document.querySelector('.story-progress-fill.active');
+    if (progressFill) {
+        progressFill.style.animationDuration = `${duration}ms`;
+    }
+    
+    window.storyTimer = setTimeout(() => {
+        if (!window.storyPaused) {
+            nextStory();
+        }
+    }, duration);
+}
+
+// Navigate to next story
+function nextStory() {
+    if (!window.currentStoryData) return;
+    
+    clearTimeout(window.storyTimer);
+    
+    if (window.currentStoryIndex < window.currentStoryData.stories.length - 1) {
+        loadStory(window.currentStoryIndex + 1);
+    } else {
+        // Last story - close viewer or go to next user's stories
+        closeStoryViewer();
+    }
+}
+
+// Navigate to previous story
+function previousStory() {
+    if (!window.currentStoryData) return;
+    
+    clearTimeout(window.storyTimer);
+    
+    if (window.currentStoryIndex > 0) {
+        loadStory(window.currentStoryIndex - 1);
+    }
+}
+
+// Pause/Resume story
+function pauseStory() {
+    const pauseBtn = document.getElementById('pauseBtn');
+    if (!pauseBtn) return;
+    
+    window.storyPaused = !window.storyPaused;
+    
+    if (window.storyPaused) {
+        clearTimeout(window.storyTimer);
+        pauseBtn.textContent = '▶️';
+        pauseBtn.title = 'Resume';
+        
+        // Pause CSS animation
+        const activeProgress = document.querySelector('.story-progress-fill.active');
+        if (activeProgress) {
+            activeProgress.style.animationPlayState = 'paused';
+        }
+    } else {
+        pauseBtn.textContent = '⏸️';
+        pauseBtn.title = 'Pause';
+        
+        // Resume CSS animation
+        const activeProgress = document.querySelector('.story-progress-fill.active');
+        if (activeProgress) {
+            activeProgress.style.animationPlayState = 'running';
+        }
+        
+        // Calculate remaining time and restart timer
+        const story = window.currentStoryData.stories[window.currentStoryIndex];
+        const duration = story.type === 'video' ? (story.duration * 1000) : 5000;
+        startStoryTimer(duration);
+    }
+}
+
+// Handle story reply
+function handleStoryReply(event) {
+    if (event.key === 'Enter') {
+        sendStoryReply();
+    }
+}
+
+function sendStoryReply() {
+    const replyInput = document.querySelector('.story-reply input');
+    if (replyInput && replyInput.value.trim()) {
+        const message = replyInput.value.trim();
+        showToast(`Reply sent: "${message}"`, 'success');
+        replyInput.value = '';
+    }
+}
+
+// Handle keyboard navigation for stories
+function handleStoryKeyPress(event) {
+    if (!document.getElementById('storyViewer')?.classList.contains('active')) return;
+    
+    switch(event.key) {
+        case 'ArrowRight':
+        case ' ':
+            event.preventDefault();
+            nextStory();
+            break;
+        case 'ArrowLeft':
+            event.preventDefault();
+            previousStory();
+            break;
+        case 'Escape':
+            event.preventDefault();
+            closeStoryViewer();
+            break;
+        case 'p':
+        case 'P':
+            event.preventDefault();
+            pauseStory();
+            break;
+    }
+}
+
+// Close story viewer
+function closeStoryViewer() {
+    const storyViewer = document.getElementById('storyViewer');
+    if (storyViewer) {
+        clearTimeout(window.storyTimer);
+        storyViewer.classList.remove('active');
+        
+        setTimeout(() => {
+            storyViewer.remove();
+            // Clean up global variables
+            window.currentStoryData = null;
+            window.currentStoryIndex = 0;
+            window.storyTimer = null;
+            window.storyPaused = false;
+            
+            // Remove keyboard listener
+            document.removeEventListener('keydown', handleStoryKeyPress);
+        }, 300);
+    }
+}
+
+// Utility function to get time ago
+function getTimeAgo(timestamp) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - timestamp) / 1000);
+    
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+}
+
+function handleStoryUserClick(userName, userAvatar, event) {
+    // Prevent event bubbling to story circle
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // Check if enhanced story user dashboard system is available
+    if (window.enhancedStoryUserDashboard) {
+        // Generate mock user data for the enhanced dashboard
+        const mockUserData = {
+            id: userName.toLowerCase().replace(/\s+/g, ''),
+            name: userName,
+            username: '@' + userName.toLowerCase().replace(/\s+/g, ''),
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6c5ce7&color=ffffff`,
+            isVerified: Math.random() > 0.5,
+            isFollowing: Math.random() > 0.5,
+            bio: `${userName} - ConnectHub User`,
+            location: 'New York, NY',
+            website: 'connecthub.app',
+            activityStatus: Math.random() > 0.5 ? 'online' : 'offline',
+            mutualFriendsCount: Math.floor(Math.random() * 20) + 1,
+            posts: Math.floor(Math.random() * 100) + 10,
+            followers: Math.floor(Math.random() * 5000) + 100,
+            following: Math.floor(Math.random() * 1000) + 50,
+            stories: Math.floor(Math.random() * 10) + 1
+        };
+        
+        // Launch the enhanced dashboard
+        window.enhancedStoryUserDashboard.showEnhancedUserDashboard(mockUserData);
+        showToast(`Enhanced User Dashboard for ${userName} opened! 🚀`, 'success');
+    } else {
+        // Fallback if enhanced dashboard not available
+        showToast(`Enhanced dashboard loading for ${userName}...`, 'info');
+        
+        // Try to initialize after a brief delay
+        setTimeout(() => {
+            if (window.enhancedStoryUserDashboard) {
+                handleStoryUserClick(userName, userAvatar, null);
+            } else if (window.storyUserInteraction) {
+                // Fallback to basic story user interaction
+                window.storyUserInteraction.showUserProfile(userName);
+                showToast(`Basic profile for ${userName} opened`, 'info');
+            } else {
+                showToast('Enhanced user dashboard not available. Please refresh the page.', 'error');
+            }
+        }, 500);
+    }
 }
 
 function openChat(userName, avatar) {
