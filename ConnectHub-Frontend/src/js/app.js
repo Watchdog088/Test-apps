@@ -3352,6 +3352,48 @@ window.addEventListener('error', (e) => {
     showToast('Something went wrong. Please try again.', 'error');
 });
 
+// COMPREHENSIVE CONTENT DISCOVERY DASHBOARD - Complete Explore Now replacement
+function discoverContent() {
+    try {
+        showToast('Launching Content Discovery Dashboard...', 'info');
+        
+        // Check if the ContentDiscoveryDashboard instance is available
+        if (window.ContentDiscoveryDashboard && typeof window.ContentDiscoveryDashboard.showDiscoveryDashboard === 'function') {
+            // Use the existing dashboard instance
+            window.ContentDiscoveryDashboard.showDiscoveryDashboard();
+            showToast('Content Discovery Dashboard opened! 🌟', 'success');
+            console.log('Content Discovery Dashboard launched successfully');
+            
+        } else {
+            console.log('ContentDiscoveryDashboard instance not found, checking for class...');
+            
+            // Fallback: Try to wait for the dashboard to initialize
+            let retries = 0;
+            const checkForDashboard = () => {
+                retries++;
+                console.log(`Checking for dashboard... attempt ${retries}`);
+                
+                if (window.ContentDiscoveryDashboard && typeof window.ContentDiscoveryDashboard.showDiscoveryDashboard === 'function') {
+                    window.ContentDiscoveryDashboard.showDiscoveryDashboard();
+                    showToast('Content Discovery Dashboard loaded! 🚀', 'success');
+                    console.log('Content Discovery Dashboard initialized and launched');
+                } else if (retries < 8) {
+                    setTimeout(checkForDashboard, 300);
+                } else {
+                    console.error('Content Discovery Dashboard failed to initialize after multiple attempts');
+                    showToast('Content Discovery Dashboard is not available. Please refresh the page and try again.', 'error');
+                }
+            };
+            
+            // Give it a moment for the DOM to be ready and scripts to load
+            setTimeout(checkForDashboard, 100);
+        }
+    } catch (error) {
+        console.error('Error launching Content Discovery Dashboard:', error);
+        showToast('Error launching Content Discovery Dashboard. Please try again.', 'error');
+    }
+}
+
 // Service worker registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
