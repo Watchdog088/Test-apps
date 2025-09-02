@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet People Dashboard Test</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .success {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .error {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .info {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .feature-card h3 {
+            margin: 0 0 10px 0;
+            color: #ec4899;
+        }
+
+        .feature-card ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .feature-card li {
+            margin: 5px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .keyboard-shortcuts {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .key {
+            background: #ec4899;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🌟 Meet People Dashboard Test</h1>
+        <p>Testing the redesigned Meet People Dashboard for ConnectHub</p>
+
+        <div class="test-buttons">
+            <button class="test-button" onclick="testDashboardLaunch()">
+                <i class="fas fa-rocket"></i>
+                Launch Dashboard
+            </button>
+            <button class="test-button" onclick="testDirectFunction()">
+                <i class="fas fa-cog"></i>
+                Test Direct Function
+            </button>
+            <button class="test-button" onclick="checkIntegration()">
+                <i class="fas fa-check-circle"></i>
+                Check Integration
+            </button>
+        </div>
+
+        <div id="status" class="status info">
+            <h3>🔍 Test Status</h3>
+            <p>Ready to test the Meet People Dashboard. Click any button above to start testing.</p>
+        </div>
+
+        <div class="feature-list">
+            <div class="feature-card">
+                <h3>🎯 Discovery Features</h3>
+                <ul>
+                    <li>Swipeable profile cards</li>
+                    <li>Advanced filtering system</li>
+                    <li>AI-powered matching</li>
+                    <li>Real-time statistics</li>
+                    <li>Interactive profile actions</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>📱 Navigation Views</h3>
+                <ul>
+                    <li>Discover - Main swiping interface</li>
+                    <li>Video Profiles - Video-based discovery</li>
+                    <li>Nearby - Location-based matches</li>
+                    <li>Trending - Popular profiles</li>
+                    <li>My Matches - Connection management</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>✨ Interactive Elements</h3>
+                <ul>
+                    <li>Mouse/touch swipe gestures</li>
+                    <li>Keyboard shortcuts</li>
+                    <li>Real-time data updates</li>
+                    <li>Smooth animations</li>
+                    <li>Responsive design</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎨 Modern Design</h3>
+                <ul>
+                    <li>Glassmorphism effects</li>
+                    <li>Revolutionary dark theme</li>
+                    <li>Gradient backgrounds</li>
+                    <li>Smooth transitions</li>
+                    <li>Mobile-responsive layout</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="keyboard-shortcuts">
+            <h3>⌨️ Keyboard Shortcuts (when dashboard is open)</h3>
+            <div class="shortcut">
+                <span>Close Dashboard</span>
+                <span class="key">ESC</span>
+            </div>
+            <div class="shortcut">
+                <span>Pass Profile</span>
+                <span class="key">←</span>
+            </div>
+            <div class="shortcut">
+                <span>Like Profile</span>
+                <span class="key">→</span>
+            </div>
+            <div class="shortcut">
+                <span>Super Like</span>
+                <span class="key">SPACE</span>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>🔧 Technical Implementation</h3>
+            <p><strong>Class-based Architecture:</strong> MeetPeopleDashboard ES6 class with complete functionality</p>
+            <p><strong>Integration:</strong> Connected to main ConnectHub app with toast notifications</p>
+            <p><strong>Data Management:</strong> Mock data generation with 50+ realistic profiles</p>
+            <p><strong>Responsive Design:</strong> Works on desktop, tablet, and mobile devices</p>
+            <p><strong>Modern CSS:</strong> Advanced styling with backdrop-filter, gradients, and animations</p>
+        </div>
+    </div>
+
+    <script>
+        // Mock app object for testing
+        window.app = {
+            showToast: function(message, type) {
+                const statusDiv = document.getElementById('status');
+                let className = 'status ';
+                let icon = '';
+                
+                switch(type) {
+                    case 'success':
+                        className += 'success';
+                        icon = '✅';
+                        break;
+                    case 'error':
+                        className += 'error';
+                        icon = '❌';
+                        break;
+                    case 'warning':
+                        className += 'error';
+                        icon = '⚠️';
+                        break;
+                    default:
+                        className += 'info';
+                        icon = 'ℹ️';
+                }
+                
+                statusDiv.className = className;
+                statusDiv.innerHTML = `
+                    <h3>${icon} ${type.charAt(0).toUpperCase() + type.slice(1)} Message</h3>
+                    <p><strong>Message:</strong> ${message}</p>
+                    <p><strong>Timestamp:</strong> ${new Date().toLocaleTimeString()}</p>
+                `;
+            }
+        };
+
+        function testDashboardLaunch() {
+            updateStatus('info', 'Testing Dashboard Launch', 'Attempting to launch Meet People Dashboard...');
+            
+            try {
+                if (typeof openMeetPeopleDashboard === 'function') {
+                    openMeetPeopleDashboard();
+                    setTimeout(() => {
+                        updateStatus('success', 'Dashboard Launch Test', 'Dashboard launched successfully! Check if the modal appeared.');
+                    }, 500);
+                } else {
+                    updateStatus('error', 'Function Missing', 'openMeetPeopleDashboard function not found. Trying alternative method...');
+                    
+                    if (window.meetPeopleDashboard) {
+                        window.meetPeopleDashboard.openDashboard();
+                        updateStatus('success', 'Alternative Launch', 'Dashboard launched using direct method!');
+                    } else {
+                        updateStatus('error', 'Dashboard Not Available', 'Meet People Dashboard instance not found.');
+                    }
+                }
+            } catch (error) {
+                updateStatus('error', 'Launch Error', `Error launching dashboard: ${error.message}`);
+            }
+        }
+
+        function testDirectFunction() {
+            updateStatus('info', 'Testing Direct Function', 'Testing direct dashboard functionality...');
+            
+            try {
+                if (window.MeetPeopleDashboard) {
+                    if (!window.meetPeopleDashboard) {
+                        window.meetPeopleDashboard = new MeetPeopleDashboard(window.app);
+                        updateStatus('success', 'Dashboard Created', 'New dashboard instance created successfully!');
+                    }
+                    
+                    window.meetPeopleDashboard.openDashboard();
+                    updateStatus('success', 'Direct Function Test', 'Dashboard opened using direct method!');
+                } else {
+                    updateStatus('error', 'Class Not Available', 'MeetPeopleDashboard class not found. Check if script is loaded.');
+                }
+            } catch (error) {
+                updateStatus('error', 'Direct Function Error', `Error with direct function: ${error.message}`);
+            }
+        }
+
+        function checkIntegration() {
+            updateStatus('info', 'Integration Check', 'Checking dashboard integration status...');
+            
+            const checks = {
+                scriptLoaded: typeof MeetPeopleDashboard !== 'undefined',
+                instanceExists: window.meetPeopleDashboard !== undefined,
+                functionExists: typeof openMeetPeopleDashboard === 'function',
+                appIntegration: window.app !== undefined,
+                toastFunction: typeof window.app.showToast === 'function'
+            };
+
+            let passedChecks = Object.values(checks).filter(Boolean).length;
+            let totalChecks = Object.keys(checks).length;
+
+            let resultHtml = `
+                <h3>🔍 Integration Status: ${passedChecks}/${totalChecks} Checks Passed</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li style="color: ${checks.scriptLoaded ? '#22c55e' : '#ef4444'};">
+                        ${checks.scriptLoaded ? '✅' : '❌'} MeetPeopleDashboard class loaded
+                    </li>
+                    <li style="color: ${checks.instanceExists ? '#22c55e' : '#ef4444'};">
+                        ${checks.instanceExists ? '✅' : '❌'} Dashboard instance exists
+                    </li>
+                    <li style="color: ${checks.functionExists ? '#22c55e' : '#ef4444'};">
+                        ${checks.functionExists ? '✅' : '❌'} openMeetPeopleDashboard function available
+                    </li>
+                    <li style="color: ${checks.appIntegration ? '#22c55e' : '#ef4444'};">
+                        ${checks.appIntegration ? '✅' : '❌'} App integration available
+                    </li>
+                    <li style="color: ${checks.toastFunction ? '#22c55e' : '#ef4444'};">
+                        ${checks.toastFunction ? '✅' : '❌'} Toast notification system
+                    </li>
+                </ul>
+            `;
+
+            if (passedChecks === totalChecks) {
+                resultHtml += '<p style="color: #22c55e; font-weight: 600;">🎉 All checks passed! Dashboard is ready to use.</p>';
+            } else {
+                resultHtml += '<p style="color: #ef4444; font-weight: 600;">⚠️ Some integration issues detected.</p>';
+            }
+
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = passedChecks === totalChecks ? 'status success' : 'status error';
+            statusDiv.innerHTML = resultHtml;
+        }
+
+        function updateStatus(type, title, message) {
+            const statusDiv = document.getElementById('status');
+            const icons = {
+                'info': 'ℹ️',
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️'
+            };
+            
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `
+                <h3>${icons[type]} ${title}</h3>
+                <p>${message}</p>
+                <p><small>Time: ${new Date().toLocaleTimeString()}</small></p>
+            `;
+        }
+
+        // Global function for testing (matches the one in explore section)
+        function openMeetPeopleDashboard() {
+            console.log('openMeetPeopleDashboard called');
+            if (window.meetPeopleDashboard) {
+                window.meetPeopleDashboard.openDashboard();
+            } else {
+                console.error('Meet People Dashboard not initialized');
+                window.app.showToast('Dashboard not initialized', 'error');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('info', 'Test Page Loaded', 'Meet People Dashboard test page ready. Click buttons above to test functionality.');
+            
+            // Auto-run integration check after a brief delay
+            setTimeout(() => {
+                checkIntegration();
+            }, 1000);
+        });
+    </script>
+
+    <!-- Load the dashboard script -->
+    <script src="src/js/meet-people-dashboard.js"></script>
+</body>
+</html>

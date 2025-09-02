@@ -256,6 +256,9 @@ class ContentDiscoveryDashboard {
                         <button class="discovery-tab" data-view="live">
                             <i class="fas fa-broadcast-tower"></i> ${this.t('liveContent')}
                         </button>
+                        <button class="discovery-tab" data-view="friends">
+                            <i class="fas fa-users"></i> Find Friends
+                        </button>
                     </div>
 
                     <!-- Filters Bar -->
@@ -779,6 +782,12 @@ class ContentDiscoveryDashboard {
     handleTabSwitch(tabElement) {
         const view = tabElement.dataset.view;
         
+        // Special handling for Find Friends tab
+        if (view === 'friends') {
+            this.openFindFriends();
+            return;
+        }
+        
         // Update active tab
         document.querySelectorAll('.discovery-tab').forEach(tab => tab.classList.remove('active'));
         tabElement.classList.add('active');
@@ -1076,6 +1085,71 @@ class ContentDiscoveryDashboard {
             this.app.showToast(`Exploring ${recommendation.title}`, 'success');
             // Could switch to trending view and show the recommendation content
         }
+    }
+
+    /**
+     * Open Find Friends interface
+     * Integration with the Find Friends UI Components
+     */
+    openFindFriends() {
+        try {
+            // Check if Find Friends UI is available
+            if (window.findFriendsUI && typeof window.findFriendsUI.openFindFriends === 'function') {
+                // Close the discovery dashboard first
+                this.closeDiscoveryDashboard();
+                
+                // Small delay to ensure smooth transition
+                setTimeout(() => {
+                    window.findFriendsUI.openFindFriends();
+                    this.app.showToast('Find Friends opened! 👥', 'success');
+                }, 300);
+            } else {
+                // Fallback: try to initialize Find Friends UI
+                this.initializeFindFriendsIntegration();
+            }
+        } catch (error) {
+            console.error('Error opening Find Friends:', error);
+            this.app.showToast('Find Friends feature temporarily unavailable', 'error');
+        }
+    }
+
+    /**
+     * Initialize Find Friends integration as fallback
+     */
+    initializeFindFriendsIntegration() {
+        // Check if the Find Friends script is loaded but not initialized
+        if (typeof FindFriendsUIComponents !== 'undefined') {
+            try {
+                window.findFriendsUI = new FindFriendsUIComponents(this.app);
+                setTimeout(() => {
+                    this.openFindFriends();
+                }, 100);
+            } catch (error) {
+                console.error('Failed to initialize Find Friends UI:', error);
+                this.showFindFriendsError();
+            }
+        } else {
+            // Find Friends script not loaded, show error or fallback
+            this.showFindFriendsError();
+        }
+    }
+
+    /**
+     * Show Find Friends error state
+     */
+    showFindFriendsError() {
+        this.app.showToast('Find Friends feature is loading. Please try again in a moment.', 'warning');
+        
+        // Try to load the Find Friends script dynamically
+        const script = document.createElement('script');
+        script.src = 'src/js/find-friends-ui-components.js';
+        script.onload = () => {
+            this.app.showToast('Find Friends loaded! You can now use the feature.', 'success');
+        };
+        script.onerror = () => {
+            this.app.showToast('Failed to load Find Friends feature.', 'error');
+        };
+        document.head.appendChild(script);
     }
 
     // Utility methods

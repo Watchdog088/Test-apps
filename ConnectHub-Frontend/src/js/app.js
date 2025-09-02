@@ -3394,6 +3394,54 @@ function discoverContent() {
     }
 }
 
+// COMPREHENSIVE MEET PEOPLE DASHBOARD - Complete Find Friends replacement
+function openMeetPeopleDashboard() {
+    try {
+        showToast('Launching Meet People Dashboard...', 'info');
+        
+        // Check if the MeetPeopleDashboard instance is available
+        if (window.meetPeopleDashboard && typeof window.meetPeopleDashboard.openDashboard === 'function') {
+            // Use the existing dashboard instance
+            window.meetPeopleDashboard.openDashboard();
+            showToast('Meet People Dashboard opened! 👥', 'success');
+            console.log('Meet People Dashboard launched successfully');
+            
+        } else {
+            console.log('MeetPeopleDashboard instance not found, checking for class...');
+            
+            // Fallback: Try to wait for the dashboard to initialize
+            let retries = 0;
+            const checkForDashboard = () => {
+                retries++;
+                console.log(`Checking for meet people dashboard... attempt ${retries}`);
+                
+                if (window.meetPeopleDashboard && typeof window.meetPeopleDashboard.openDashboard === 'function') {
+                    window.meetPeopleDashboard.openDashboard();
+                    showToast('Meet People Dashboard loaded! 🚀', 'success');
+                    console.log('Meet People Dashboard initialized and launched');
+                } else if (window.MeetPeopleDashboard && typeof window.MeetPeopleDashboard === 'function') {
+                    // Try to create instance if class exists
+                    window.meetPeopleDashboard = new window.MeetPeopleDashboard(window.app);
+                    window.meetPeopleDashboard.openDashboard();
+                    showToast('Meet People Dashboard loaded! 🚀', 'success');
+                    console.log('Meet People Dashboard created and launched');
+                } else if (retries < 8) {
+                    setTimeout(checkForDashboard, 300);
+                } else {
+                    console.error('Meet People Dashboard failed to initialize after multiple attempts');
+                    showToast('Meet People Dashboard is not available. Please refresh the page and try again.', 'error');
+                }
+            };
+            
+            // Give it a moment for the DOM to be ready and scripts to load
+            setTimeout(checkForDashboard, 100);
+        }
+    } catch (error) {
+        console.error('Error launching Meet People Dashboard:', error);
+        showToast('Error launching Meet People Dashboard. Please try again.', 'error');
+    }
+}
+
 // Service worker registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
