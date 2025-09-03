@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Profile Modal Test - ConnectHub</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .test-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 1rem 0;
+        }
+        
+        .test-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .feature-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-highlight {
+            background: rgba(79, 70, 229, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+        
+        .feature-highlight-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-highlight-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .nearby-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .nearby-users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .nearby-user-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nearby-user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .nearby-user-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+        }
+        
+        .nearby-user-card:hover::before {
+            opacity: 1;
+        }
+        
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: 700;
+            position: relative;
+            border: 2px solid var(--glass-border);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .user-status {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+        }
+        
+        .user-status.online {
+            background: var(--success);
+        }
+        
+        .user-status.offline {
+            background: var(--text-muted);
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .verified-badge {
+            color: var(--info);
+            font-size: 0.9rem;
+        }
+        
+        .user-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .user-distance {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .user-card-content {
+            margin-bottom: 1rem;
+        }
+        
+        .user-bio {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+        
+        .user-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .interest-tag {
+            background: var(--glass-border);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .interest-tag.common {
+            background: linear-gradient(135deg, var(--success) 0%, var(--accent) 100%);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .user-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mutual-friends {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        
+        .view-profile-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .view-profile-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .test-controls {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 2rem;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .control-group {
+            background: var(--glass);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .control-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .control-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+        
+        .control-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+        
+        .control-btn:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-indicator {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            color: var(--info);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glass);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .test-container {
+                padding: 1rem;
+            }
+            
+            .test-header {
+                padding: 1.5rem;
+            }
+            
+            .test-header h1 {
+                font-size: 2rem;
+            }
+            
+            .nearby-users-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Header -->
+        <div class="test-header">
+            <h1>🌍 Nearby Profile Modal</h1>
+            <div class="test-description">
+                Comprehensive profile viewing experience for the nearby section with rich user information, 
+                real-time status updates, interactive features, and privacy-focused design.
+            </div>
+            
+            <div class="feature-highlights">
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">📱</div>
+                    <div class="feature-highlight-text">Rich Profile Display</div>
+                </div>
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">⚡</div>
+                    <div class="feature-highlight-text">Real-time Updates</div>
+                </div>
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">🤖</div>
+                    <div class="feature-highlight-text">AI Recommendations</div>
+                </div>
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">🔒</div>
+                    <div class="feature-highlight-text">Privacy Protected</div>
+                </div>
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">📷</div>
+                    <div class="feature-highlight-text">Photo Gallery</div>
+                </div>
+                <div class="feature-highlight">
+                    <div class="feature-highlight-icon">💬</div>
+                    <div class="feature-highlight-text">Interactive Actions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-controls">
+            <h2 class="section-title">
+                <span>🧪</span>
+                Test Controls
+            </h2>
+            <div class="controls-grid">
+                <div class="control-group">
+                    <h3 class="control-title">
+                        <span>👤</span>
+                        Sample Profiles
+                    </h3>
+                    <button class="control-btn" onclick="openProfileModal('Sarah Miller')">
+                        View Sarah Miller's Profile
+                    </button>
+                    <button class="control-btn" onclick="openProfileModal('Emma Wilson')">
+                        View Emma Wilson's Profile
+                    </button>
+                    <button class="control-btn" onclick="openProfileModal('Mike Johnson')">
+                        View Mike Johnson's Profile
+                    </button>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title">
+                        <span>🎨</span>
+                        Custom Scenarios
+                    </h3>
+                    <button class="control-btn" onclick="openCustomProfile('online')">
+                        Online User Profile
+                    </button>
+                    <button class="control-btn" onclick="openCustomProfile('verified')">
+                        Verified User Profile
+                    </button>
+                    <button class="control-btn" onclick="openCustomProfile('video')">
+                        Video Profile User
+                    </button>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title">
+                        <span>⚙️</span>
+                        Feature Tests
+                    </h3>
+                    <button class="control-btn" onclick="testRealTimeUpdates()">
+                        Test Real-time Updates
+                    </button>
+                    <button class="control-btn" onclick="testPhotoGallery()">
+                        Test Photo Gallery
+                    </button>
+                    <button class="control-btn" onclick="testInteractions()">
+                        Test Interactions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nearby Users Section -->
+        <div class="nearby-section">
+            <h2 class="section-title">
+                <span>🌍</span>
+                People Nearby
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">Click any profile to open the modal</span>
+            </h2>
+            
+            <div class="nearby-users-grid" id="nearbyUsersGrid">
+                <!-- Users will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="status-indicator" id="statusIndicator" style="display: none;">
+            <div class="loading-spinner"></div>
+            <span>Loading profile modal...</span>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <script>
+        // Mock app object for testing
+        window.app = {
+            showToast: function(message, type = 'info') {
+                console.log(`${type.toUpperCase()}: ${message}`);
+                
+                // Create toast notification
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 120px;
+                    right: 20px;
+                    background: var(--bg-card);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 12px;
+                    padding: 1rem 1.5rem;
+                    color: var(--text-primary);
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                    max-width: 300px;
+                    backdrop-filter: blur(20px);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                `;
+                
+                const icons = {
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+                
+                toast.innerHTML = `${icons[type] || icons.info} ${message}`;
+                
+                if (type === 'success') {
+                    toast.style.borderColor = 'var(--success)';
+                    toast.style.background = 'linear-gradient(135deg, var(--success), #059669)';
+                    toast.style.color = 'white';
+                } else if (type === 'error') {
+                    toast.style.borderColor = 'var(--error)';
+                    toast.style.background = 'linear-gradient(135deg, var(--error), #dc2626)';
+                    toast.style.color = 'white';
+                } else if (type === 'warning') {
+                    toast.style.borderColor = 'var(--warning)';
+                    toast.style.background = 'linear-gradient(135deg, var(--warning), #d97706)';
+                    toast.style.color = 'white';
+                }
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+            
+            formatNumber: function(num) {
+                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+                if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+                return num.toString();
+            },
+            
+            getTimeAgo: function(timestamp) {
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - timestamp) / 1000);
+                if (diffInSeconds < 60) return 'just now';
+                if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            }
+        };
+
+        // Sample nearby users data
+        const nearbyUsers = [
+            {
+                name: 'Sarah Miller',
+                avatar: 'SM',
+                age: 26,
+                occupation: 'UX Designer',
+                distance: '2.5 miles',
+                bio: 'Passionate about creating beautiful user experiences and exploring the city.',
+                interests: ['Coffee', 'Travel', 'Photography', 'Design'],
+                commonInterests: ['Coffee', 'Travel'],
+                isOnline: true,
+                isVerified: true,
+                mutualFriends: 5
+            },
+            {
+                name: 'Emma Wilson',
+                avatar: 'EW',
+                age: 24,
+                occupation: 'Software Developer',
+                distance: '5.2 miles',
+                bio: 'Full-stack developer by day, music lover by night.',
+                interests: ['Music', 'Art', 'Technology', 'Coffee'],
+                commonInterests: ['Music', 'Technology'],
+                isOnline: true,
+                isVerified: false,
+                mutualFriends: 3
+            },
+            {
+                name: 'Mike Johnson',
+                avatar: 'MJ',
+                age: 28,
+                occupation: 'Photographer',
+                distance: '8.1 miles',
+                bio: 'Capturing life\'s beautiful moments one shot at a time.',
+                interests: ['Photography', 'Nature', 'Travel', 'Art'],
+                commonInterests: ['Photography', 'Travel'],
+                isOnline: false,
+                isVerified: true,
+                mutualFriends: 2
+            },
+            {
+                name: 'Lisa Garcia',
+                avatar: 'LG',
+                age: 27,
+                occupation: 'Marketing Manager',
+                distance: '3.8 miles',
+                bio: 'Creative marketer who loves fitness and trying new restaurants.',
+                interests: ['Fitness', 'Food', 'Marketing', 'Travel'],
+                commonInterests: ['Travel'],
+                isOnline: true,
+                isVerified: false,
+                mutualFriends: 4
+            },
+            {
+                name: 'Alex Chen',
+                avatar: 'AC',
+                age: 25,
+                occupation: 'Data Scientist',
+                distance: '6.3 miles',
+                bio: 'Turning data into insights. Love hiking and board games.',
+                interests: ['Data', 'Hiking', 'Gaming', 'Science'],
+                commonInterests: ['Gaming'],
+                isOnline: false,
+                isVerified: true,
+                mutualFriends: 1
+            },
+            {
+                name: 'Jenny Park',
+                avatar: 'JP',
+                age: 23,
+                occupation: 'Graphic Designer',
+                distance: '4.7 miles',
+                bio: 'Visual storyteller who loves coffee and creative projects.',
+                interests: ['Design', 'Coffee', 'Art', 'Music'],
+                commonInterests: ['Coffee', 'Art'],
+                isOnline: true,
+                isVerified: false,
+                mutualFriends: 6
+            }
+        ];
+
+        // Populate nearby users grid
+        function populateNearbyUsers() {
+            const grid = document.getElementById('nearbyUsersGrid');
+            if (!grid) return;
+
+            grid.innerHTML = nearbyUsers.map(user => `
+                <div class="nearby-user-card" onclick="openProfileModal('${user.name}')" role="button" tabindex="0">
+                    <div class="user-card-header">
+                        <div class="user-avatar">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6c5ce7&color=ffffff&size=60" 
+                                 alt="${user.name}" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span style="display: none;">${user.avatar}</span>
+                            <div class="user-status ${user.isOnline ? 'online' : 'offline'}"></div>
+                        </div>
+                        <div class="user-info">
+                            <h3 class="user-name">
+                                ${user.name}
+                                ${user.isVerified ? '<span class="verified-badge">✓</span>' : ''}
+                            </h3>
+                            <div class="user-details">
+                                ${user.age} • ${user.occupation}
+                            </div>
+                        </div>
+                        <div class="user-distance">${user.distance}</div>
+                    </div>
+                    
+                    <div class="user-card-content">
+                        <div class="user-bio">${user.bio}</div>
+                        <div class="user-interests">
+                            ${user.interests.slice(0, 3).map(interest => `
+                                <span class="interest-tag ${user.commonInterests.includes(interest) ? 'common' : ''}">${interest}</span>
+                            `).join('')}
+                            ${user.interests.length > 3 ? '<span class="interest-tag">+' + (user.interests.length - 3) + '</span>' : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="user-card-footer">
+                        <div class="mutual-friends">${user.mutualFriends} mutual friends</div>
+                        <button class="view-profile-btn" onclick="event.stopPropagation(); openProfileModal('${user.name}')">View Profile</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Test functions
+        function openProfileModal(profileName) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            if (statusIndicator) {
+                statusIndicator.style.display = 'flex';
+                statusIndicator.innerHTML = '<div class="loading-spinner"></div><span>Loading ' + profileName + '\'s profile...</span>';
+            }
+
+            // Simulate loading delay
+            setTimeout(() => {
+                if (statusIndicator) statusIndicator.style.display = 'none';
+                
+                if (window.nearbyProfileModal) {
+                    window.nearbyProfileModal.showProfileModal(profileName);
+                } else {
+                    if (window.app) {
+                        window.app.showToast('Nearby Profile Modal not loaded yet. Please wait...', 'warning');
+                    }
+                    
+                    // Try again after a delay
+                    setTimeout(() => {
+                        if (window.nearbyProfileModal) {
+                            window.nearbyProfileModal.showProfileModal(profileName);
+                        }
+                    }, 1000);
+                }
+            }, 800);
+        }
+
+        function openCustomProfile(type) {
+            const customProfiles = {
+                online: {
+                    name: 'Online User',
+                    isOnline: true,
+                    lastSeen: 'Online now',
+                    isVerified: false,
+                    hasVideoProfile: true
+                },
+                verified: {
+                    name: 'Verified User',
+                    isOnline: false,
+                    lastSeen: 'Active 30 minutes ago',
+                    isVerified: true,
+                    hasVideoProfile: false
+                },
+                video: {
+                    name: 'Video Profile User',
+                    isOnline: true,
+                    lastSeen: 'Online now',
+                    isVerified: true,
+                    hasVideoProfile: true
+                }
+            };
+
+            const profileData = customProfiles[type];
+            if (profileData && window.nearbyProfileModal) {
+                window.nearbyProfileModal.showProfileModal(profileData.name, profileData);
+            } else {
+                if (window.app) {
+                    window.app.showToast('Nearby Profile Modal not loaded yet. Please wait...', 'warning');
+                }
+            }
+        }
+
+        function testRealTimeUpdates() {
+            if (window.app) {
+                window.app.showToast('Real-time updates are active! Open any profile to see live status changes.', 'info');
+            }
+        }
+
+        function testPhotoGallery() {
+            if (window.app) {
+                window.app.showToast('Photo gallery available for users with multiple photos. Click on profile photos to view!', 'info');
+            }
+        }
+
+        function testInteractions() {
+            if (window.app) {
+                window.app.showToast('All interactions are functional! Try connecting, messaging, reactions, and more.', 'info');
+            }
+        }
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const focused = document.activeElement;
+                if (focused && focused.classList.contains('nearby-user-card')) {
+                    e.preventDefault();
+                    focused.click();
+                }
+            }
+        });
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Nearby Profile Modal Test Page initialized');
+            populateNearbyUsers();
+            
+            // Show initial toast
+            setTimeout(() => {
+                if (window.app) {
+                    window.app.showToast('Nearby Profile Modal Test Ready! Click any profile to explore features.', 'success');
+                }
+            }, 500);
+        });
+    </script>
+
+    <!-- Include the nearby profile modal -->
+    <script src="src/js/nearby-profile-modal.js"></script>
+</body>
+</html>

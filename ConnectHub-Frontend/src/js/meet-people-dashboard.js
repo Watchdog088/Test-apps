@@ -1094,7 +1094,58 @@ class MeetPeopleDashboard {
 
     viewProfile(profileId) {
         console.log('Viewing profile:', profileId);
-        this.app.showToast('Opening profile...', 'info');
+        
+        // Find the profile data
+        const profile = this.profiles.find(p => p.id === profileId);
+        if (!profile) {
+            console.error('Profile not found:', profileId);
+            this.app.showToast('Profile not found', 'error');
+            return;
+        }
+
+        // Initialize nearby profile modal if not available
+        if (!window.nearbyProfileModal) {
+            console.log('NearbyProfileModal not found, checking for availability...');
+            if (window.NearbyProfileModal) {
+                window.nearbyProfileModal = new window.NearbyProfileModal(this.app);
+                console.log('NearbyProfileModal initialized');
+            } else {
+                console.error('NearbyProfileModal class not found');
+                this.app.showToast('Profile modal not available', 'error');
+                return;
+            }
+        }
+
+        // Convert meet people profile to nearby profile format
+        const nearbyProfile = {
+            id: profile.id,
+            name: profile.name,
+            age: profile.age,
+            bio: profile.bio,
+            location: profile.location,
+            distance: profile.distance,
+            interests: profile.interests,
+            photos: profile.photos || 5,
+            verified: profile.verified,
+            online: profile.online,
+            lastSeen: profile.lastSeen,
+            hasVideo: profile.hasVideo,
+            matchPercentage: profile.matchPercentage,
+            mutualFriends: Math.floor(Math.random() * 10) + 1,
+            profession: 'Professional', // Default profession
+            mutualConnections: Math.floor(Math.random() * 5) + 1,
+            socialScore: profile.connectionScore || 500,
+            recentActivity: profile.lastSeen
+        };
+
+        // Open the comprehensive nearby profile modal
+        try {
+            this.app.showToast(`Opening ${profile.name}'s profile`, 'info');
+            window.nearbyProfileModal.showProfileModal(nearbyProfile.name, nearbyProfile);
+        } catch (error) {
+            console.error('Error opening nearby profile modal:', error);
+            this.app.showToast('Error opening profile modal', 'error');
+        }
     }
 
     sendMessage(profileId) {
