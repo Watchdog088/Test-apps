@@ -3355,32 +3355,34 @@ window.addEventListener('error', (e) => {
 // COMPREHENSIVE CONTENT DISCOVERY DASHBOARD - Complete Explore Now replacement
 function discoverContent() {
     try {
-        showToast('Launching Content Discovery Dashboard...', 'info');
+        showToast('Launching New Content Discovery Dashboard...', 'info');
         
-        // Check if the ContentDiscoveryDashboard instance is available
-        if (window.ContentDiscoveryDashboard && typeof window.ContentDiscoveryDashboard.showDiscoveryDashboard === 'function') {
-            // Use the existing dashboard instance
-            window.ContentDiscoveryDashboard.showDiscoveryDashboard();
+        // Check if the NewContentDiscoveryDashboard class is available
+        if (window.NewContentDiscoveryDashboard) {
+            // Create a new instance of the redesigned dashboard
+            const newDiscoveryDashboard = new window.NewContentDiscoveryDashboard(window.app);
+            newDiscoveryDashboard.showDiscoveryDashboard();
             showToast('Content Discovery Dashboard opened! 🌟', 'success');
-            console.log('Content Discovery Dashboard launched successfully');
+            console.log('New Content Discovery Dashboard launched successfully');
             
         } else {
-            console.log('ContentDiscoveryDashboard instance not found, checking for class...');
+            console.log('NewContentDiscoveryDashboard class not found, checking for availability...');
             
-            // Fallback: Try to wait for the dashboard to initialize
+            // Fallback: Try to wait for the dashboard class to load
             let retries = 0;
             const checkForDashboard = () => {
                 retries++;
-                console.log(`Checking for dashboard... attempt ${retries}`);
+                console.log(`Checking for new dashboard class... attempt ${retries}`);
                 
-                if (window.ContentDiscoveryDashboard && typeof window.ContentDiscoveryDashboard.showDiscoveryDashboard === 'function') {
-                    window.ContentDiscoveryDashboard.showDiscoveryDashboard();
+                if (window.NewContentDiscoveryDashboard) {
+                    const newDiscoveryDashboard = new window.NewContentDiscoveryDashboard(window.app);
+                    newDiscoveryDashboard.showDiscoveryDashboard();
                     showToast('Content Discovery Dashboard loaded! 🚀', 'success');
-                    console.log('Content Discovery Dashboard initialized and launched');
+                    console.log('New Content Discovery Dashboard initialized and launched');
                 } else if (retries < 8) {
                     setTimeout(checkForDashboard, 300);
                 } else {
-                    console.error('Content Discovery Dashboard failed to initialize after multiple attempts');
+                    console.error('New Content Discovery Dashboard failed to load after multiple attempts');
                     showToast('Content Discovery Dashboard is not available. Please refresh the page and try again.', 'error');
                 }
             };
@@ -3389,7 +3391,7 @@ function discoverContent() {
             setTimeout(checkForDashboard, 100);
         }
     } catch (error) {
-        console.error('Error launching Content Discovery Dashboard:', error);
+        console.error('Error launching New Content Discovery Dashboard:', error);
         showToast('Error launching Content Discovery Dashboard. Please try again.', 'error');
     }
 }
