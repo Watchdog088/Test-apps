@@ -1104,7 +1104,36 @@ class MeetPeopleDashboard {
 
     playVideo(profileId) {
         console.log('Playing video for:', profileId);
-        this.app.showToast('Playing video...', 'info');
+        
+        // Find the profile data
+        const profile = this.profiles.find(p => p.id === profileId);
+        if (!profile) {
+            console.error('Profile not found:', profileId);
+            this.app.showToast('Profile not found', 'error');
+            return;
+        }
+
+        // Initialize video details dashboard if not available
+        if (!window.videoDetailsDashboard) {
+            console.log('VideoDetailsDashboard not found, initializing...');
+            if (window.VideoDetailsDashboard) {
+                window.videoDetailsDashboard = new window.VideoDetailsDashboard(this.app);
+                console.log('VideoDetailsDashboard initialized');
+            } else {
+                console.error('VideoDetailsDashboard class not found');
+                this.app.showToast('Video dashboard not available', 'error');
+                return;
+            }
+        }
+
+        // Open the video details dashboard with profile data
+        try {
+            this.app.showToast(`Opening ${profile.name}'s video profile`, 'info');
+            window.videoDetailsDashboard.openWithProfile(profile);
+        } catch (error) {
+            console.error('Error opening video dashboard:', error);
+            this.app.showToast('Error opening video dashboard', 'error');
+        }
     }
 
     openChat(profileId) {
