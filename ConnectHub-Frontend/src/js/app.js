@@ -2834,6 +2834,168 @@ function performSearch(query) {
     }
 }
 
+// Function to render the complete Search Posts Dashboard HTML structure
+function renderSearchPostsDashboard() {
+    const searchScreen = document.getElementById('socialSearch');
+    if (!searchScreen) return;
+    
+    // Replace the search screen content with the complete dashboard
+    searchScreen.innerHTML = `
+        <div class="search-posts-dashboard">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>🔍 Search Posts</h1>
+                    <p>Search through millions of posts with advanced filtering</p>
+                </div>
+                <div class="search-posts-input-container">
+                    <input type="text" id="global-search-main" placeholder="What are you looking for?" class="search-posts-input">
+                    <button class="search-posts-submit-btn" onclick="performPostSearch()">🔍</button>
+                </div>
+            </div>
+
+            <div class="search-tabs">
+                <div class="search-tab active" id="posts-search-tab">
+                    📝 Posts <span class="results-count" id="posts-results-count" style="display: none;">0</span>
+                </div>
+            </div>
+
+            <div class="search-tab-content active" id="posts-search-content">
+                <!-- Filters Section -->
+                <div class="posts-filters">
+                    <div class="filters-header">
+                        <h3>🎯 Filters</h3>
+                        <div class="filter-actions">
+                            <button class="btn btn-secondary btn-small" id="apply-posts-filters">Apply</button>
+                            <button class="btn btn-secondary btn-small" id="clear-posts-filters">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <h4>Content Types</h4>
+                            <div class="filter-checkboxes">
+                                <label><input type="checkbox" value="text" checked> 📝 Text</label>
+                                <label><input type="checkbox" value="image" checked> 📷 Images</label>
+                                <label><input type="checkbox" value="video" checked> 🎥 Videos</label>
+                                <label><input type="checkbox" value="link" checked> 🔗 Links</label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4>Date Range</h4>
+                            <input type="date" id="posts-date-from" placeholder="From">
+                            <input type="date" id="posts-date-to" placeholder="To">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4>Hashtags</h4>
+                            <input type="text" id="posts-hashtags-filter" placeholder="#hashtag1, #hashtag2">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4>Author</h4>
+                            <input type="text" id="posts-author-filter" placeholder="Author name or @username">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <h4>Minimum Engagement</h4>
+                            <input type="number" id="posts-min-likes" placeholder="Min likes" min="0">
+                            <input type="number" id="posts-min-comments" placeholder="Min comments" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sort and View Options -->
+                <div class="posts-sort-options">
+                    <div class="sort-controls">
+                        <select id="posts-sort-select">
+                            <option value="relevance">📊 Relevance</option>
+                            <option value="recent">🕒 Most Recent</option>
+                            <option value="popular">🔥 Most Popular</option>
+                            <option value="likes">❤️ Most Liked</option>
+                            <option value="comments">💬 Most Commented</option>
+                            <option value="shares">🔄 Most Shared</option>
+                        </select>
+                    </div>
+                    
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" data-view="list">📋 List</button>
+                        <button class="view-toggle-btn" data-view="grid">⚏ Grid</button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="posts-empty-state" id="posts-empty-state">
+                    <div class="empty-state-content">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Search Posts</h3>
+                        <p>Enter a search term above to find posts from across the ConnectHub community</p>
+                        <div class="trending-section">
+                            <h4>🔥 Trending Topics</h4>
+                            <div class="trending-tags">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Container -->
+                <div class="posts-results-container" id="posts-results-container" style="display: none;">
+                    <div class="posts-list-view active" id="posts-list-view">
+                        <!-- List view results will be populated here -->
+                    </div>
+                    
+                    <div class="posts-grid-view" id="posts-grid-view">
+                        <!-- Grid view results will be populated here -->
+                    </div>
+                    
+                    <div class="posts-load-more-container" id="posts-load-more-container">
+                        <button class="btn btn-secondary" id="posts-load-more">
+                            <i class="fas fa-chevron-down"></i> Load More Posts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function searchCategory(category) {
+    if (!isLoggedIn) {
+        showToast('Please sign in to use search features', 'warning');
+        return;
+    }
+    
+    switch(category) {
+        case 'posts':
+            try {
+                if (typeof SearchPostsDashboard !== 'undefined') {
+                    // First render the dashboard HTML structure
+                    renderSearchPostsDashboard();
+                    
+                    // Then create the instance and activate
+                    const searchPostsDashboard = new SearchPostsDashboard(window.app);
+                    searchPostsDashboard.activatePostsTab();
+                    showToast('Search Posts Dashboard opened! 🔍', 'success');
+                } else {
+                    throw new Error('SearchPostsDashboard class not loaded');
+                }
+            } catch (error) {
+                console.error('Error opening search posts:', error);
+                showToast('Search Posts Dashboard not available. Please refresh the page.', 'error');
+            }
+            break;
+        case 'groups':
+            showToast('Searching for groups...', 'info');
+            break;
+        case 'events':
+            showToast('Searching for events...', 'info');
+            break;
+        default:
+            showToast(`Searching for ${category}...`, 'info');
+    }
+}
+
 function buyNow(itemId) {
     showToast('Redirecting to checkout...', 'info');
 }

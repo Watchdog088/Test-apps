@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub - Search Posts Dashboard Test</title>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/search-posts-dashboard.css">
+    
+    <style>
+        /* Additional test-specific styles */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .test-header {
+            background: var(--bg-card);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .test-header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .test-header p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Grid view for posts */
+        #posts-grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Ensure proper display toggles */
+        .results-view {
+            display: none;
+        }
+        
+        .results-view.active {
+            display: block;
+        }
+        
+        #posts-grid-view.active {
+            display: grid;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>🔍 Search Posts Dashboard Test</h1>
+        <p>Comprehensive testing interface for the search posts functionality</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Search Interface Mock -->
+        <div class="search-container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+            <!-- Global Search Bar -->
+            <div class="enhanced-search-bar" style="margin-bottom: 2rem;">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input-main" id="global-search-main" placeholder="Search for posts..." autocomplete="off">
+                    <button class="search-voice-btn" id="voice-search-btn" title="Voice Search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Tabs -->
+            <div class="search-tabs" style="margin-bottom: 2rem;">
+                <button class="search-tab" data-tab="global" id="global-search-tab">
+                    <i class="fas fa-globe"></i>
+                    <span>All Results</span>
+                    <span class="results-count" id="global-results-count">0</span>
+                </button>
+                <button class="search-tab active" data-tab="posts" id="posts-search-tab">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Posts</span>
+                    <span class="results-count" id="posts-results-count">0</span>
+                </button>
+                <button class="search-tab" data-tab="people" id="people-search-tab">
+                    <i class="fas fa-users"></i>
+                    <span>People</span>
+                    <span class="results-count" id="people-results-count">0</span>
+                </button>
+            </div>
+
+            <!-- Posts Search Content -->
+            <div class="search-tab-content active" id="posts-search-content">
+                <div class="posts-search-interface">
+                    <!-- Posts Search Header -->
+                    <div class="posts-search-header">
+                        <h3><i class="fas fa-newspaper"></i> Search Posts</h3>
+                        <p>Find posts, stories, and content across ConnectHub</p>
+                    </div>
+
+                    <!-- Posts Filters -->
+                    <div class="posts-filters">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Content Type</label>
+                                <div class="content-type-filters">
+                                    <label class="checkbox-filter">
+                                        <input type="checkbox" value="text" checked> Text Posts
+                                    </label>
+                                    <label class="checkbox-filter">
+                                        <input type="checkbox" value="image" checked> Photos
+                                    </label>
+                                    <label class="checkbox-filter">
+                                        <input type="checkbox" value="video" checked> Videos
+                                    </label>
+                                    <label class="checkbox-filter">
+                                        <input type="checkbox" value="link" checked> Links
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label>Date Range</label>
+                                <div class="date-range-filters">
+                                    <input type="date" id="posts-date-from" placeholder="From">
+                                    <input type="date" id="posts-date-to" placeholder="To">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Hashtags</label>
+                                <input type="text" placeholder="Enter hashtags separated by commas" id="posts-hashtags-filter">
+                            </div>
+
+                            <div class="filter-group">
+                                <label>Author</label>
+                                <input type="text" placeholder="Search by username or name" id="posts-author-filter">
+                            </div>
+                        </div>
+
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Engagement</label>
+                                <div class="engagement-filters">
+                                    <div class="range-filter">
+                                        <label>Min likes:</label>
+                                        <input type="number" placeholder="0" id="posts-min-likes">
+                                    </div>
+                                    <div class="range-filter">
+                                        <label>Min comments:</label>
+                                        <input type="number" placeholder="0" id="posts-min-comments">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button class="apply-filters-btn" id="apply-posts-filters">
+                                <i class="fas fa-filter"></i>
+                                Apply Filters
+                            </button>
+                            <button class="clear-filters-btn" id="clear-posts-filters">
+                                <i class="fas fa-times"></i>
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Posts Sort Options -->
+                    <div class="posts-sort-options">
+                        <div class="sort-controls">
+                            <span>Sort by:</span>
+                            <select id="posts-sort-select">
+                                <option value="relevance">Most Relevant</option>
+                                <option value="recent">Most Recent</option>
+                                <option value="popular">Most Popular</option>
+                                <option value="likes">Most Liked</option>
+                                <option value="comments">Most Commented</option>
+                                <option value="shares">Most Shared</option>
+                            </select>
+                        </div>
+
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" data-view="list" title="List View">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="view-toggle-btn" data-view="grid" title="Grid View">
+                                <i class="fas fa-th"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Posts Results -->
+                    <div class="posts-results-container" id="posts-results-container">
+                        <div class="results-view list-view active" id="posts-list-view">
+                            <!-- List view posts will be loaded here -->
+                        </div>
+                        <div class="results-view grid-view" id="posts-grid-view">
+                            <!-- Grid view posts will be loaded here -->
+                        </div>
+
+                        <!-- Load More Button -->
+                        <div class="load-more-container" id="posts-load-more-container" style="display: none;">
+                            <button class="load-more-btn" id="posts-load-more">
+                                <i class="fas fa-chevron-down"></i>
+                                Load More Posts
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Posts Search Empty State -->
+                    <div class="posts-empty-state" id="posts-empty-state">
+                        <div class="empty-state-content">
+                            <i class="fas fa-file-alt"></i>
+                            <h3>Discover Amazing Content</h3>
+                            <p>Search for posts, photos, videos, and stories from the ConnectHub community</p>
+                            <div class="trending-topics">
+                                <h4>Trending topics:</h4>
+                                <div class="trending-tags">
+                                    <span class="trending-tag">#photography</span>
+                                    <span class="trending-tag">#travel</span>
+                                    <span class="trending-tag">#food</span>
+                                    <span class="trending-tag">#art</span>
+                                    <span class="trending-tag">#music</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Controls -->
+    <div style="position: fixed; bottom: 20px; right: 20px; background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); z-index: 1000;">
+        <h4 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 0.9rem;">🧪 Test Controls</h4>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <button onclick="testSearch()" class="btn btn-primary btn-small">
+                Test Search
+            </button>
+            <button onclick="testFilters()" class="btn btn-secondary btn-small">
+                Test Filters
+            </button>
+            <button onclick="clearResults()" class="btn btn-secondary btn-small">
+                Clear Results
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000;"></div>
+
+    <!-- Mock App Object -->
+    <script>
+        // Mock app object for testing
+        window.connectHub = {
+            showToast: function(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                
+                const container = document.getElementById('toast-container') || document.body;
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+        };
+
+        // Test functions
+        function testSearch() {
+            const searchInput = document.getElementById('global-search-main');
+            searchInput.value = 'photography';
+            
+            if (window.searchPostsDashboard) {
+                window.searchPostsDashboard.searchPosts('photography');
+            } else {
+                window.connectHub.showToast('Search Posts Dashboard not loaded yet', 'warning');
+            }
+        }
+
+        function testFilters() {
+            // Set some filter values
+            document.getElementById('posts-hashtags-filter').value = 'photography, art';
+            document.getElementById('posts-min-likes').value = '10';
+            
+            if (window.searchPostsDashboard) {
+                window.searchPostsDashboard.applyFilters();
+            } else {
+                window.connectHub.showToast('Search Posts Dashboard not loaded yet', 'warning');
+            }
+        }
+
+        function clearResults() {
+            if (window.searchPostsDashboard) {
+                window.searchPostsDashboard.searchResults = [];
+                window.searchPostsDashboard.showEmptyState();
+                window.searchPostsDashboard.updateResultsCount();
+                window.connectHub.showToast('Results cleared', 'info');
+            }
+        }
+
+        // Manual tab activation for testing
+        document.getElementById('posts-search-tab').addEventListener('click', () => {
+            // Activate posts tab
+            document.querySelectorAll('.search-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.id === 'posts-search-tab');
+            });
+
+            if (window.searchPostsDashboard) {
+                window.searchPostsDashboard.activatePostsTab();
+            }
+        });
+
+        // Search input enter key
+        document.getElementById('global-search-main').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value;
+                if (window.searchPostsDashboard && query) {
+                    window.searchPostsDashboard.searchPosts(query);
+                }
+            }
+        });
+
+        // Show welcome message
+        setTimeout(() => {
+            window.connectHub.showToast('Search Posts Dashboard Test loaded! Try searching for "photography"', 'success');
+        }, 1000);
+    </script>
+
+    <!-- Main Scripts -->
+    <script src="src/js/search-posts-dashboard.js"></script>
+
+    <script>
+        // Initialize dashboard after page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for the dashboard to initialize
+            setTimeout(() => {
+                if (window.searchPostsDashboard) {
+                    console.log('Search Posts Dashboard initialized successfully');
+                    window.connectHub.showToast('Dashboard ready! Use test controls or search directly.', 'info');
+                } else {
+                    console.log('Waiting for Search Posts Dashboard to initialize...');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
