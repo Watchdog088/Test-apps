@@ -743,7 +743,7 @@ function populateMatches() {
     
     if (matchesList) {
         matchesList.innerHTML = sampleMatches.map(match => `
-            <div class="card" style="text-align: center;" role="listitem">
+            <div class="card match-profile-trigger" style="text-align: center; cursor: pointer;" role="listitem" data-match-name="${match.name}" data-match-age="${match.age}" data-match-distance="${match.distance}" data-match-compatibility="${match.match}" data-match-interests="${match.interests.join(',')}" data-match-bio="${match.bio}" data-match-avatar="${match.avatar}">
                 <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" aria-label="Profile photo">${match.avatar}</div>
                 <h3>${match.name}</h3>
                 <p style="color: var(--text-secondary);">${match.match}% Match</p>
@@ -751,7 +751,7 @@ function populateMatches() {
                 <div style="display: flex; gap: 0.5rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap;">
                     ${match.interests.slice(0, 3).map(interest => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.7rem;">${interest}</span>`).join('')}
                 </div>
-                <button class="btn btn-primary" onclick="startDatingChat('${match.name}', '${match.avatar}')">💬 Message</button>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); startDatingChat('${match.name}', '${match.avatar}')">💬 Message</button>
             </div>
         `).join('');
     }

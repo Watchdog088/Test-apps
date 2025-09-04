@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Profile Modal - ConnectHub Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/match-profile-modal.css">
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .match-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+        }
+        
+        .match-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .match-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--glass-border);
+        }
+        
+        .match-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .match-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .match-compatibility {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .compatibility-score {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .match-badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .match-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .verified-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #8b4513;
+        }
+        
+        .demo-instructions {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-instructions h3 {
+            color: var(--info);
+            margin-bottom: 1rem;
+        }
+        
+        .demo-instructions p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+        
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Demo Header -->
+        <div class="demo-header">
+            <h1 class="demo-title">Match Profile Modal</h1>
+            <p class="demo-subtitle">Interactive dating profile dashboard with comprehensive features</p>
+        </div>
+        
+        <!-- Demo Instructions -->
+        <div class="demo-instructions">
+            <h3><i class="fas fa-info-circle"></i> How to Test</h3>
+            <p>Click on any match card below to open their detailed profile modal. Each modal includes photo galleries, compatibility analysis, AI conversation starters, and comprehensive action buttons.</p>
+        </div>
+        
+        <!-- Sample Matches Grid -->
+        <div class="matches-grid">
+            <!-- Match 1: Sarah Miller -->
+            <div class="match-card match-profile-trigger" data-match='{"id":"match_001","name":"Sarah Miller","age":28,"location":"Brooklyn, NY","distance":"2.5 miles away","bio":"Adventure seeker, coffee enthusiast, and weekend warrior. Love exploring new places and trying different cuisines. Always up for a good conversation over wine!","relationshipGoals":"Long-term relationship","dateInterests":"Coffee dates, hiking, live music","photos":["https://images.unsplash.com/photo-1494790108755-2616b612b302?w=400&h=600&fit=crop&crop=face","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=600&fit=crop"],"interests":["Photography","Travel","Coffee","Hiking","Music","Art","Cooking"],"sharedInterests":["Photography","Coffee","Music"],"occupation":"Marketing Manager","education":"NYU - Business Administration","height":"5\'6\"","drinking":"Socially","smoking":"Never","languages":["English","Spanish","French"],"verified":true,"premium":false,"photoVerified":true,"compatibilityScore":89,"onlineStatus":"online","lastSeen":"2024-01-15T20:30:00Z","memberSince":"March 2023","responseRate":87,"avgResponseTime":"2 hours","profileViews":1247,"profileRating":4.8,"compatibilityFactors":[{"name":"Personality Match","icon":"fa-user","score":92,"description":"Both extroverted with similar communication styles"},{"name":"Shared Values","icon":"fa-heart","score":88,"description":"Strong alignment on relationship goals and life priorities"},{"name":"Lifestyle Compatibility","icon":"fa-home","score":85,"description":"Similar work-life balance and social preferences"},{"name":"Interest Overlap","icon":"fa-star","score":91,"description":"Many shared hobbies and activities"}],"sharedValues":[{"name":"Adventure","icon":"🏔️","description":"Both love exploring new places and trying new experiences"},{"name":"Career Growth","icon":"📈","description":"Ambitious and supportive of professional development"},{"name":"Family","icon":"👨‍👩‍👧‍👦","description":"Value close family relationships and future family goals"}],"mutualFriends":[{"name":"Jessica Chen","avatar":"👩🏻","relation":"Mutual friend from NYU"},{"name":"Mike Rodriguez","avatar":"👨🏽","relation":"Colleague connection"}],"commonGroups":[{"name":"Brooklyn Food Enthusiasts","icon":"🍕","description":"Local foodie community","memberCount":2847}],"recentActivity":[{"icon":"fa-camera","text":"Added new photos","time":"2 days ago"},{"icon":"fa-heart","text":"Updated interests","time":"1 week ago"},{"icon":"fa-map-marker-alt","text":"Added current location","time":"2 weeks ago"}]}'>
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b302?w=120&h=120&fit=crop&crop=face" alt="Sarah Miller" class="match-photo">
+                <div class="match-name">Sarah, 28</div>
+                <div class="match-info">📍 Brooklyn, NY • 2.5 miles</div>
+                <div class="match-compatibility">
+                    <i class="fas fa-heart" style="color: var(--primary);"></i>
+                    <span class="compatibility-score">89% Match</span>
+                </div>
+                <div class="match-badges">
+                    <span class="match-badge verified-badge">✓ Verified</span>
+                    <span class="match-badge">📸 Photo Verified</span>
+                </div>
+            </div>
+            
+            <!-- Match 2: Emily Chen -->
+            <div class="match-card match-profile-trigger" data-match='{"id":"match_002","name":"Emily Chen","age":26,"location":"Manhattan, NY","distance":"4.2 miles away","bio":"Tech enthusiast and yoga instructor. Passionate about sustainable living and mindful eating. Love weekend farmers markets and exploring new neighborhoods.","relationshipGoals":"Serious dating","dateInterests":"Brunch, art galleries, yoga classes","photos":["https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop&crop=face","https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop"],"interests":["Yoga","Technology","Art","Cooking","Sustainability","Meditation","Reading"],"sharedInterests":["Art","Cooking","Reading"],"occupation":"Software Engineer","education":"Columbia University - Computer Science","height":"5\'4\"","drinking":"Occasionally","smoking":"Never","languages":["English","Mandarin","Japanese"],"verified":true,"premium":true,"photoVerified":true,"compatibilityScore":94,"onlineStatus":"online","lastSeen":"2024-01-15T19:45:00Z","memberSince":"August 2023","responseRate":92,"avgResponseTime":"45 minutes","profileViews":2156,"profileRating":4.9,"compatibilityFactors":[{"name":"Personality Match","icon":"fa-user","score":96,"description":"Both introverted with deep communication styles"},{"name":"Shared Values","icon":"fa-heart","score":94,"description":"Strong alignment on lifestyle and personal growth"},{"name":"Lifestyle Compatibility","icon":"fa-home","score":90,"description":"Both value mindfulness and sustainable living"},{"name":"Interest Overlap","icon":"fa-star","score":96,"description":"Many shared interests in wellness and creativity"}],"sharedValues":[{"name":"Mindfulness","icon":"🧘","description":"Both practice meditation and value mental wellness"},{"name":"Sustainability","icon":"🌱","description":"Committed to environmentally conscious living"},{"name":"Growth","icon":"📚","description":"Continuous learning and personal development"}],"mutualFriends":[{"name":"David Park","avatar":"👨🏻","relation":"College friend from Columbia"},{"name":"Lisa Wang","avatar":"👩🏻","relation":"Tech industry connection"}],"commonGroups":[{"name":"NYC Tech Professionals","icon":"💻","description":"Professional networking group","memberCount":4521},{"name":"Manhattan Yoga Community","icon":"🧘","description":"Local wellness group","memberCount":1893}],"recentActivity":[{"icon":"fa-user-edit","text":"Updated profile bio","time":"1 day ago"},{"icon":"fa-star","text":"Added new interests","time":"3 days ago"},{"icon":"fa-calendar","text":"Updated availability","time":"5 days ago"}]}'>
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face" alt="Emily Chen" class="match-photo">
+                <div class="match-name">Emily, 26</div>
+                <div class="match-info">📍 Manhattan, NY • 4.2 miles</div>
+                <div class="match-compatibility">
+                    <i class="fas fa-heart" style="color: var(--primary);"></i>
+                    <span class="compatibility-score">94% Match</span>
+                </div>
+                <div class="match-badges">
+                    <span class="match-badge verified-badge">✓ Verified</span>
+                    <span class="match-badge premium-badge">👑 Premium</span>
+                </div>
+            </div>
+            
+            <!-- Match 3: Jessica Torres -->
+            <div class="match-card match-profile-trigger" data-match='{"id":"match_003","name":"Jessica Torres","age":31,"location":"Queens, NY","distance":"6.8 miles away","bio":"Creative director by day, salsa dancer by night. Love live music, good food, and great conversations. Looking for someone who appreciates both spontaneity and deep connections.","relationshipGoals":"Long-term relationship","dateInterests":"Dancing, concerts, food tours","photos":["https://images.unsplash.com/photo-1504832593100-bb17b0966435?w=400&h=600&fit=crop&crop=face","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop"],"interests":["Dancing","Music","Art","Food","Travel","Photography","Design"],"sharedInterests":["Music","Art","Photography"],"occupation":"Creative Director","education":"Parsons School of Design - Graphic Design","height":"5\'7\"","drinking":"Socially","smoking":"Never","languages":["English","Spanish","Portuguese"],"verified":true,"premium":false,"photoVerified":true,"compatibilityScore":86,"onlineStatus":"away","lastSeen":"2024-01-15T18:20:00Z","memberSince":"January 2023","responseRate":78,"avgResponseTime":"3 hours","profileViews":967,"profileRating":4.7,"compatibilityFactors":[{"name":"Personality Match","icon":"fa-user","score":84,"description":"Both creative and expressive personalities"},{"name":"Shared Values","icon":"fa-heart","score":89,"description":"Similar appreciation for arts and culture"},{"name":"Lifestyle Compatibility","icon":"fa-home","score":82,"description":"Both enjoy active social lives"},{"name":"Interest Overlap","icon":"fa-star","score":88,"description":"Strong overlap in creative interests"}],"sharedValues":[{"name":"Creativity","icon":"🎨","description":"Both value artistic expression and creative pursuits"},{"name":"Culture","icon":"🎭","description":"Appreciation for diverse cultural experiences"},{"name":"Authenticity","icon":"💫","description":"Value genuine connections and being true to oneself"}],"mutualFriends":[{"name":"Carlos Martinez","avatar":"👨🏽","relation":"Dance class connection"}],"commonGroups":[{"name":"NYC Creative Professionals","icon":"🎨","description":"Creative industry networking","memberCount":3247}],"recentActivity":[{"icon":"fa-music","text":"Added favorite songs","time":"4 days ago"},{"icon":"fa-camera","text":"Updated photo gallery","time":"1 week ago"},{"icon":"fa-globe","text":"Updated location","time":"2 weeks ago"}]}'>
+                <img src="https://images.unsplash.com/photo-1504832593100-bb17b0966435?w=120&h=120&fit=crop&crop=face" alt="Jessica Torres" class="match-photo">
+                <div class="match-name">Jessica, 31</div>
+                <div class="match-info">📍 Queens, NY • 6.8 miles</div>
+                <div class="match-compatibility">
+                    <i class="fas fa-heart" style="color: var(--primary);"></i>
+                    <span class="compatibility-score">86% Match</span>
+                </div>
+                <div class="match-badges">
+                    <span class="match-badge verified-badge">✓ Verified</span>
+                    <span class="match-badge">🎨 Creative</span>
+                </div>
+            </div>
+            
+            <!-- Match 4: Amanda Rivera -->
+            <div class="match-card match-profile-trigger" data-match='{"id":"match_004","name":"Amanda Rivera","age":29,"location":"Brooklyn, NY","distance":"3.1 miles away","bio":"Fitness enthusiast and nutritionist. Passionate about helping others achieve their wellness goals. Love outdoor adventures, healthy cooking, and weekend beach trips.","relationshipGoals":"Serious dating","dateInterests":"Hiking, fitness classes, healthy restaurants","photos":["https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop&crop=face","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop","https://images.unsplash.com/photo-1506629905607-4b32b4fb7d04?w=400&h=600&fit=crop"],"interests":["Fitness","Nutrition","Hiking","Cooking","Beach","Wellness","Nature"],"sharedInterests":["Fitness","Hiking","Cooking"],"occupation":"Nutritionist","education":"NYU - Nutrition Science","height":"5\'8\"","drinking":"Rarely","smoking":"Never","languages":["English","Spanish"],"verified":false,"premium":false,"photoVerified":true,"compatibilityScore":91,"onlineStatus":"offline","lastSeen":"2024-01-15T16:30:00Z","memberSince":"June 2023","responseRate":85,"avgResponseTime":"1 hour","profileViews":832,"profileRating":4.6,"compatibilityFactors":[{"name":"Personality Match","icon":"fa-user","score":93,"description":"Both health-conscious and motivated"},{"name":"Shared Values","icon":"fa-heart","score":91,"description":"Strong focus on wellness and personal growth"},{"name":"Lifestyle Compatibility","icon":"fa-home","score":89,"description":"Both enjoy active, healthy lifestyles"},{"name":"Interest Overlap","icon":"fa-star","score":91,"description":"Many shared fitness and wellness interests"}],"sharedValues":[{"name":"Health","icon":"💪","description":"Both prioritize physical and mental wellness"},{"name":"Nature","icon":"🌿","description":"Love for outdoor activities and natural environments"},{"name":"Balance","icon":"⚖️","description":"Value work-life balance and mindful living"}],"mutualFriends":[],"commonGroups":[{"name":"Brooklyn Fitness Community","icon":"🏃","description":"Local fitness enthusiasts","memberCount":1567}],"recentActivity":[{"icon":"fa-dumbbell","text":"Completed a fitness challenge","time":"3 days ago"},{"icon":"fa-leaf","text":"Posted healthy recipe","time":"1 week ago"},{"icon":"fa-mountain","text":"Shared hiking photos","time":"2 weeks ago"}]}'>
+                <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=120&h=120&fit=crop&crop=face" alt="Amanda Rivera" class="match-photo">
+                <div class="match-name">Amanda, 29</div>
+                <div class="match-info">📍 Brooklyn, NY • 3.1 miles</div>
+                <div class="match-compatibility">
+                    <i class="fas fa-heart" style="color: var(--primary);"></i>
+                    <span class="compatibility-score">91% Match</span>
+                </div>
+                <div class="match-badges">
+                    <span class="match-badge">💪 Fitness</span>
+                    <span class="match-badge">🌱 Wellness</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features Overview -->
+        <div class="features-list">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <h4 class="feature-title">Interactive Photo Gallery</h4>
+                <p class="feature-description">Swipeable photo gallery with zoom functionality and thumbnail navigation.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h4 class="feature-title">Compatibility Analysis</h4>
+                <p class="feature-description">Detailed compatibility breakdown with visual progress indicators and insights.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h4 class="feature-title">AI Conversation Starters</h4>
+                <p class="feature-description">Personalized icebreakers generated based on profile information and shared interests.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h4 class="feature-title">Social Proof</h4>
+                <p class="feature-description">Mutual friends, shared groups, and profile activity statistics for trust building.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h4 class="feature-title">Mobile Responsive</h4>
+                <p class="feature-description">Fully responsive design that works seamlessly across all devices and screen sizes.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4 class="feature-title">Safety Features</h4>
+                <p class="feature-description">Built-in safety tools including reporting, blocking, and verification indicators.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript -->
+    <script src="src/js/match-profile-modal.js"></script>
+    <script>
+        // Additional demo functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Match Profile Modal Demo loaded successfully');
+            
+            // Add some demo interactivity
+            const matchCards = document.querySelectorAll('.match-card');
+            matchCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+        
+        // Demo function to show modal programmatically
+        function showDemoModal() {
+            if (window.matchProfileModal) {
+                matchProfileModal.showMatchProfile();
+            }
+        }
+    </script>
+</body>
+</html>
