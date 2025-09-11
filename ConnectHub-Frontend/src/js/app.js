@@ -2970,12 +2970,9 @@ function searchCategory(category) {
         case 'posts':
             try {
                 if (typeof SearchPostsDashboard !== 'undefined') {
-                    // First render the dashboard HTML structure
-                    renderSearchPostsDashboard();
-                    
-                    // Then create the instance and activate
+                    // Create the dashboard instance - it will handle its own HTML rendering
                     const searchPostsDashboard = new SearchPostsDashboard(window.app);
-                    searchPostsDashboard.activatePostsTab();
+                    // The dashboard is automatically initialized in the constructor
                     showToast('Search Posts Dashboard opened! 🔍', 'success');
                 } else {
                     throw new Error('SearchPostsDashboard class not loaded');
