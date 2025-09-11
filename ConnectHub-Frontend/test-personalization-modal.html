@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Personalization Modal</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        body {
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h1>Test Personalization Modal</h1>
+        <p>This is a test page to verify the personalization modal works correctly.</p>
+        
+        <div style="margin: 2rem 0;">
+            <button class="btn btn-primary" onclick="testOpenModal()" style="margin-right: 1rem;">Test Modal Function</button>
+            <button class="btn btn-secondary" onclick="checkFunction()" style="margin-right: 1rem;">Check Function</button>
+            <button class="btn btn-secondary" onclick="openPersonalizationDashboard()">Direct Call</button>
+        </div>
+        
+        <div id="debug-output" style="background: var(--glass); padding: 1rem; border-radius: 12px; margin-top: 2rem; font-family: monospace; font-size: 0.9rem;"></div>
+    </div>
+
+    <script src="src/js/interest-personalization-dashboard.js"></script>
+    <script>
+        function testOpenModal() {
+            const debugOutput = document.getElementById('debug-output');
+            
+            try {
+                debugOutput.innerHTML = '<div style="color: var(--primary);">Testing modal function...</div>';
+                
+                // Check if function exists
+                if (typeof openPersonalizationDashboard === 'function') {
+                    debugOutput.innerHTML += '<div style="color: var(--success);">✅ Function exists</div>';
+                    
+                    // Try to call it
+                    openPersonalizationDashboard();
+                    debugOutput.innerHTML += '<div style="color: var(--success);">✅ Function called successfully</div>';
+                    
+                } else {
+                    debugOutput.innerHTML += '<div style="color: var(--error);">❌ Function not found</div>';
+                    debugOutput.innerHTML += '<div>Available functions: ' + Object.getOwnPropertyNames(window).filter(name => name.includes('open')).join(', ') + '</div>';
+                }
+                
+            } catch (error) {
+                debugOutput.innerHTML += '<div style="color: var(--error);">❌ Error: ' + error.message + '</div>';
+                console.error('Modal test error:', error);
+            }
+        }
+        
+        function checkFunction() {
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.innerHTML = '<div>Function check:</div>';
+            
+            debugOutput.innerHTML += '<div>typeof openPersonalizationDashboard: ' + typeof openPersonalizationDashboard + '</div>';
+            debugOutput.innerHTML += '<div>window.openPersonalizationDashboard: ' + typeof window.openPersonalizationDashboard + '</div>';
+            debugOutput.innerHTML += '<div>Script loaded: ' + (typeof interestCategories !== 'undefined' ? 'Yes' : 'No') + '</div>';
+        }
+        
+        // Add event listener for when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - checking function availability');
+            console.log('openPersonalizationDashboard:', typeof openPersonalizationDashboard);
+            console.log('window.openPersonalizationDashboard:', typeof window.openPersonalizationDashboard);
+        });
+    </script>
+</body>
+</html>

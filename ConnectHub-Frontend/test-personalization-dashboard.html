@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interest Personalization Dashboard - Test</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .test-header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .test-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .test-section h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .test-section p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .test-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li:before {
+            content: "✅";
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .demo-info {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .demo-info h3 {
+            color: #22c55e;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-info ul {
+            color: rgba(255, 255, 255, 0.9);
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🎯 Interest Personalization Dashboard</h1>
+            <p>Comprehensive testing interface for ConnectHub's personalization features</p>
+        </div>
+        
+        <div class="test-section">
+            <h2>📋 Dashboard Features</h2>
+            <p>The Interest Personalization Dashboard includes all the features specified in the requirements:</p>
+            <ul class="feature-list">
+                <li>Multi-category Interest Selection with 12 comprehensive categories</li>
+                <li>Search & Filter functionality for interests</li>
+                <li>Content Type Preferences (images, videos, text, polls, livestreams)</li>
+                <li>AI Recommendation Controls with adjustable strength</li>
+                <li>Privacy & Visibility Settings</li>
+                <li>Cross-Platform Integration options</li>
+                <li>4-step wizard interface with progress tracking</li>
+                <li>Real-time preference saving to localStorage</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h2>🚀 Test Dashboard Functionality</h2>
+            <p>Click the button below to test the complete Interest Personalization Dashboard:</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="openPersonalizationDashboard()">
+                    🎯 Open Personalization Dashboard
+                </button>
+                <button class="test-btn" onclick="testDataPersistence()">
+                    💾 Test Data Persistence
+                </button>
+                <button class="test-btn" onclick="showSamplePreferences()">
+                    👀 View Sample Preferences
+                </button>
+                <button class="test-btn" onclick="resetAllData()">
+                    🔄 Reset All Data
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-info">
+            <h3>🎉 Testing Instructions</h3>
+            <ul>
+                <li><strong>Step 1:</strong> Click "Open Personalization Dashboard" to launch the full interface</li>
+                <li><strong>Step 2:</strong> Navigate through all 4 steps: Interests → Content → AI → Privacy</li>
+                <li><strong>Step 3:</strong> Select 5-15 interests from the various categories</li>
+                <li><strong>Step 4:</strong> Configure content preferences, AI settings, and privacy options</li>
+                <li><strong>Step 5:</strong> Save your preferences and see them persist across sessions</li>
+            </ul>
+        </div>
+        
+        <div id="test-results" class="test-section" style="display: none;">
+            <h2>📊 Test Results</h2>
+            <pre id="test-output"></pre>
+        </div>
+    </div>
+
+    <!-- Include the Interest Personalization Dashboard Script -->
+    <script src="src/js/interest-personalization-dashboard.js"></script>
+    
+    <!-- Test Functions -->
+    <script>
+        // Initialize dashboard for testing
+        let testDashboard;
+        
+        // Mock app object for testing
+        window.app = {
+            showToast: function(message, type) {
+                alert(`${type.toUpperCase()}: ${message}`);
+            },
+            refreshContentFeed: function() {
+                console.log('Content feed would be refreshed with new preferences');
+            }
+        };
+        
+        // Test functions
+        function testDataPersistence() {
+            const interests = JSON.parse(localStorage.getItem('connecthub_selected_interests') || '[]');
+            const preferences = JSON.parse(localStorage.getItem('connecthub_user_preferences') || '{}');
+            
+            const results = {
+                savedInterests: interests,
+                savedPreferences: preferences,
+                dataExists: interests.length > 0 || Object.keys(preferences).length > 0
+            };
+            
+            showTestResults('Data Persistence Test', results);
+        }
+        
+        function showSamplePreferences() {
+            const sampleData = {
+                interests: [
+                    'Software Development', 'AI & Machine Learning', 'Photography', 
+                    'Travel', 'Music Production', 'Fitness', 'Cooking'
+                ],
+                contentPreferences: {
+                    contentTypes: ['images', 'videos', 'text'],
+                    engagementLevel: 'high-engagement',
+                    timeSensitivity: 'trending',
+                    sourceTypes: ['friends', 'creators']
+                },
+                aiSettings: {
+                    recommendationStrength: 75,
+                    discoveryBalance: 50,
+                    learnFromLikes: true,
+                    syncWithDating: true
+                },
+                privacySettings: {
+                    visibility: 'friends',
+                    dataUsage: 'limited',
+                    targetedAds: false
+                }
+            };
+            
+            showTestResults('Sample Preferences Structure', sampleData);
+        }
+        
+        function resetAllData() {
+            localStorage.removeItem('connecthub_selected_interests');
+            localStorage.removeItem('connecthub_user_preferences');
+            alert('✅ All personalization data has been reset!');
+        }
+        
+        function showTestResults(title, data) {
+            const resultsDiv = document.getElementById('test-results');
+            const output = document.getElementById('test-output');
+            
+            resultsDiv.style.display = 'block';
+            output.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`;
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Interest Personalization Dashboard Test Environment Ready');
+            
+            // Make sure the dashboard functions are available
+            if (typeof openPersonalizationDashboard === 'function') {
+                console.log('✅ Dashboard functions loaded successfully');
+            } else {
+                console.error('❌ Dashboard functions not loaded');
+            }
+        });
+        
+        // Test the complete integration
+        function runCompleteTest() {
+            console.log('Running complete integration test...');
+            
+            // Test 1: Check if functions exist
+            const functionsExist = {
+                openPersonalizationDashboard: typeof openPersonalizationDashboard === 'function',
+                closePersonalizationDashboard: typeof closePersonalizationDashboard === 'function'
+            };
+            
+            // Test 2: Check localStorage availability
+            const storageTest = {
+                canWrite: (() => {
+                    try {
+                        localStorage.setItem('test', 'test');
+                        localStorage.removeItem('test');
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                })()
+            };
+            
+            // Test 3: Check CSS integration
+            const stylesLoaded = document.getElementById('personalization-styles') !== null;
+            
+            const results = {
+                functions: functionsExist,
+                storage: storageTest,
+                stylesWillLoad: 'Styles load dynamically when dashboard opens',
+                integrationReady: functionsExist.openPersonalizationDashboard && storageTest.canWrite
+            };
+            
+            showTestResults('Complete Integration Test', results);
+        }
+    </script>
