@@ -98,6 +98,7 @@ const sampleMarketplaceItems = [
     { id: 6, title: 'Cookbook', price: 25, condition: 'Good', seller: 'BookWorm', image: '📚', category: 'books', description: 'Delicious recipes from around the world' }
 ];
 
+
 // Category and screen mappings
 const categoryScreens = {
     social: ['home', 'messages', 'profile', 'groups', 'events', 'stories', 'explore', 'search', 'settings'],
@@ -602,28 +603,572 @@ function populateSearchDefaults() {
     }
 }
 
+// Enhanced Groups Data Structure
+const sampleGroups = [
+    {
+        id: 1,
+        name: 'Tech Innovators Hub',
+        description: 'A community for developers, designers, and tech enthusiasts to share ideas and collaborate on projects.',
+        members: 2847,
+        category: 'Technology',
+        type: 'public',
+        activityLevel: 'very-active',
+        location: 'Global/Online',
+        tags: ['Programming', 'AI', 'Startups', 'Innovation'],
+        recentActivity: '2 minutes ago',
+        image: '💻',
+        isJoined: false,
+        privacy: 'public'
+    },
+    {
+        id: 2,
+        name: 'Photography Masters',
+        description: 'Share your best shots, get feedback, and learn from professional photographers.',
+        members: 1523,
+        category: 'Creative',
+        type: 'public',
+        activityLevel: 'active',
+        location: 'Worldwide',
+        tags: ['Photography', 'Art', 'Portfolio', 'Learning'],
+        recentActivity: '15 minutes ago',
+        image: '📸',
+        isJoined: true,
+        privacy: 'public'
+    },
+    {
+        id: 3,
+        name: 'Fitness & Wellness',
+        description: 'Motivation, workout tips, and healthy lifestyle discussions for fitness enthusiasts.',
+        members: 3241,
+        category: 'Health & Fitness',
+        type: 'public',
+        activityLevel: 'very-active',
+        location: 'Local & Online',
+        tags: ['Fitness', 'Nutrition', 'Motivation', 'Health'],
+        recentActivity: '5 minutes ago',
+        image: '💪',
+        isJoined: false,
+        privacy: 'public'
+    },
+    {
+        id: 4,
+        name: 'Book Club Elite',
+        description: 'Monthly book discussions, author meetups, and literary analysis for serious readers.',
+        members: 892,
+        category: 'Education',
+        type: 'private',
+        activityLevel: 'moderate',
+        location: 'New York City',
+        tags: ['Books', 'Literature', 'Discussion', 'Reading'],
+        recentActivity: '1 hour ago',
+        image: '📚',
+        isJoined: false,
+        privacy: 'private'
+    },
+    {
+        id: 5,
+        name: 'Startup Founders Network',
+        description: 'Connect with fellow entrepreneurs, share experiences, and find potential co-founders.',
+        members: 1876,
+        category: 'Business',
+        type: 'private',
+        activityLevel: 'active',
+        location: 'San Francisco Bay Area',
+        tags: ['Entrepreneurship', 'Networking', 'Business', 'Funding'],
+        recentActivity: '30 minutes ago',
+        image: '🚀',
+        isJoined: false,
+        privacy: 'private'
+    },
+    {
+        id: 6,
+        name: 'Gaming Legends',
+        description: 'Competitive gaming, tournament announcements, and strategy discussions.',
+        members: 4532,
+        category: 'Gaming',
+        type: 'public',
+        activityLevel: 'very-active',
+        location: 'Global',
+        tags: ['Gaming', 'Esports', 'Tournaments', 'Strategy'],
+        recentActivity: '1 minute ago',
+        image: '🎮',
+        isJoined: true,
+        privacy: 'public'
+    },
+    {
+        id: 7,
+        name: 'Cooking Enthusiasts',
+        description: 'Share recipes, cooking tips, and culinary adventures with food lovers.',
+        members: 2156,
+        category: 'Food & Cooking',
+        type: 'public',
+        activityLevel: 'active',
+        location: 'Worldwide',
+        tags: ['Cooking', 'Recipes', 'Food', 'Culinary'],
+        recentActivity: '20 minutes ago',
+        image: '👨‍🍳',
+        isJoined: false,
+        privacy: 'public'
+    },
+    {
+        id: 8,
+        name: 'Travel Adventurers',
+        description: 'Share travel experiences, destination recommendations, and find travel buddies.',
+        members: 3689,
+        category: 'Travel',
+        type: 'public',
+        activityLevel: 'active',
+        location: 'Global',
+        tags: ['Travel', 'Adventure', 'Destinations', 'Culture'],
+        recentActivity: '45 minutes ago',
+        image: '✈️',
+        isJoined: false,
+        privacy: 'public'
+    },
+    {
+        id: 9,
+        name: 'Music Production Lab',
+        description: 'Collaborate on tracks, share production techniques, and discover new talent.',
+        members: 1434,
+        category: 'Music',
+        type: 'public',
+        activityLevel: 'moderate',
+        location: 'Los Angeles',
+        tags: ['Music', 'Production', 'Collaboration', 'Audio'],
+        recentActivity: '2 hours ago',
+        image: '🎵',
+        isJoined: false,
+        privacy: 'public'
+    },
+    {
+        id: 10,
+        name: 'Digital Marketing Pros',
+        description: 'Latest trends, strategies, and tools for digital marketing professionals.',
+        members: 2987,
+        category: 'Marketing',
+        type: 'private',
+        activityLevel: 'active',
+        location: 'Remote',
+        tags: ['Marketing', 'Digital', 'Strategy', 'Analytics'],
+        recentActivity: '10 minutes ago',
+        image: '📊',
+        isJoined: false,
+        privacy: 'private'
+    }
+];
+
+// Groups Dashboard State Management
+let groupsSearchState = {
+    filteredGroups: [...sampleGroups],
+    searchQuery: '',
+    selectedCategory: 'all',
+    selectedType: 'all',
+    selectedActivity: 'all',
+    sortBy: 'members'
+};
+
 function populateGroups() {
     const groupsList = document.getElementById('groupsList');
-    const sampleGroups = [
-        { name: 'Tech Enthusiasts', members: 1234, description: 'Discuss latest tech trends and innovations' },
-        { name: 'Photography Club', members: 567, description: 'Share your best shots and photography tips' },
-        { name: 'Book Lovers', members: 890, description: 'Discover new books and share reading experiences' },
-        { name: 'Startup Community', members: 445, description: 'Connect with entrepreneurs and startup founders' },
-        { name: 'Music Producers', members: 322, description: 'Collaborate and share music production techniques' },
-        { name: 'Travel Adventurers', members: 756, description: 'Share travel stories and destination recommendations' }
-    ];
 
     if (groupsList) {
-        groupsList.innerHTML = sampleGroups.map(group => `
+        // Add Create Group button at the top
+        const createGroupButton = `
+            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; text-align: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.3);" onclick="showGroupCreationWizard()" role="button" tabindex="0">
+                <div style="font-size: 4rem; margin-bottom: 1rem;" role="img" aria-label="Create Group">➕</div>
+                <h3 style="color: white; margin-bottom: 1rem;">Create New Group</h3>
+                <p style="color: rgba(255,255,255,0.9); margin: 1rem 0; font-size: 0.9rem;">Start your own community with our professional group creation tools</p>
+                <div class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); margin-top: 1rem;">
+                    <i class="fas fa-users-plus"></i> Create Group
+                </div>
+            </div>
+        `;
+
+        groupsList.innerHTML = createGroupButton + sampleGroups.map(group => `
             <div class="card" role="listitem">
-                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group">👥</div>
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group">${group.image}</div>
                 <h3>${group.name}</h3>
                 <p style="color: var(--text-secondary); margin: 1rem 0;">${group.description}</p>
-                <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">${group.members.toLocaleString()} members</div>
-                <button class="btn btn-primary" onclick="joinGroup('${group.name}')">Join Group</button>
+                <div style="display: flex; justify-content: space-between; margin: 1rem 0;">
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">${group.members.toLocaleString()} members</span>
+                    <span style="color: var(--primary); font-size: 0.9rem;">${group.category}</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    ${group.tags.slice(0, 2).map(tag => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem;">${tag}</span>`).join('')}
+                </div>
+                <button class="btn ${group.isJoined ? 'btn-secondary' : 'btn-primary'}" onclick="${group.isJoined ? `leaveGroup(${group.id})` : `joinGroup(${group.id})`}">
+                    ${group.isJoined ? '✓ Joined' : (group.privacy === 'private' ? '🔑 Request to Join' : '+ Join Group')}
+                </button>
             </div>
         `).join('');
     }
+}
+
+// Main Groups Search Dashboard Function
+function showGroupsSearchDashboard() {
+    const searchResults = document.getElementById('searchResults');
+    const searchDefault = document.getElementById('searchDefault');
+    
+    if (searchDefault) searchDefault.style.display = 'none';
+    if (searchResults) {
+        searchResults.style.display = 'block';
+        searchResults.innerHTML = createGroupsSearchDashboard();
+        
+        // Initialize dashboard functionality
+        initializeGroupsSearch();
+        displayGroupsResults();
+    }
+}
+
+// Create Groups Search Dashboard HTML
+function createGroupsSearchDashboard() {
+    return `
+        <div id="groupsSearchDashboard">
+            <!-- Header Section -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="margin-bottom: 0.5rem;">🔍 Find Groups</h2>
+                    <p style="color: var(--text-secondary); margin: 0;">Discover communities that match your interests</p>
+                </div>
+                <button class="btn btn-primary" onclick="showCreateGroupModal()">
+                    + Create Group
+                </button>
+            </div>
+
+            <!-- Search and Filters Section -->
+            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem;">
+                <!-- Search Input -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="groupSearchInput" class="sr-only">Search groups</label>
+                    <input 
+                        type="text" 
+                        id="groupSearchInput" 
+                        placeholder="Search groups by name, description, or tags..." 
+                        style="width: 100%; padding: 1rem 1.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 25px; color: var(--text-primary); font-size: 1rem;" 
+                        onkeyup="handleGroupsSearch(this.value)"
+                    >
+                </div>
+
+                <!-- Filter Controls -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <!-- Category Filter -->
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Category</label>
+                        <select id="categoryFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
+                            <option value="all">All Categories</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Creative">Creative</option>
+                            <option value="Health & Fitness">Health & Fitness</option>
+                            <option value="Education">Education</option>
+                            <option value="Business">Business</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Food & Cooking">Food & Cooking</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Music">Music</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                    </div>
+
+                    <!-- Type Filter -->
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Privacy</label>
+                        <select id="typeFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
+                            <option value="all">All Groups</option>
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                    </div>
+
+                    <!-- Activity Filter -->
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Activity Level</label>
+                        <select id="activityFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
+                            <option value="all">All Activity Levels</option>
+                            <option value="very-active">Very Active</option>
+                            <option value="active">Active</option>
+                            <option value="moderate">Moderate</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Sort By</label>
+                        <select id="sortFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsSort()">
+                            <option value="members">Most Members</option>
+                            <option value="activity">Most Active</option>
+                            <option value="name">Alphabetical</option>
+                            <option value="recent">Recently Active</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quick Filter Buttons -->
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-small quick-filter active" data-filter="all" onclick="applyQuickFilter('all')">All Groups</button>
+                    <button class="btn btn-secondary btn-small quick-filter" data-filter="trending" onclick="applyQuickFilter('trending')">Trending</button>
+                    <button class="btn btn-secondary btn-small quick-filter" data-filter="local" onclick="applyQuickFilter('local')">Local</button>
+                    <button class="btn btn-secondary btn-small quick-filter" data-filter="new" onclick="applyQuickFilter('new')">New Groups</button>
+                    <button class="btn btn-secondary btn-small quick-filter" data-filter="recommended" onclick="applyQuickFilter('recommended')">Recommended</button>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div id="resultsCount" style="color: var(--text-secondary);">
+                    Showing ${sampleGroups.length} groups
+                </div>
+                <button class="btn btn-secondary btn-small" onclick="toggleGroupsView()" id="viewToggle">
+                    📋 List View
+                </button>
+            </div>
+
+            <!-- Groups Results Container -->
+            <div id="groupsResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+                <!-- Groups will be populated here -->
+            </div>
+
+            <!-- Load More Button -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="loadMoreGroups()" id="loadMoreBtn">
+                    Load More Groups
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize Groups Search Functionality
+function initializeGroupsSearch() {
+    // Reset search state
+    groupsSearchState = {
+        filteredGroups: [...sampleGroups],
+        searchQuery: '',
+        selectedCategory: 'all',
+        selectedType: 'all',
+        selectedActivity: 'all',
+        sortBy: 'members'
+    };
+}
+
+// Handle Groups Search Input
+function handleGroupsSearch(query) {
+    groupsSearchState.searchQuery = query.toLowerCase();
+    filterAndDisplayGroups();
+}
+
+// Handle Groups Filter Changes
+function handleGroupsFilter() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const activityFilter = document.getElementById('activityFilter');
+    
+    if (categoryFilter) groupsSearchState.selectedCategory = categoryFilter.value;
+    if (typeFilter) groupsSearchState.selectedType = typeFilter.value;
+    if (activityFilter) groupsSearchState.selectedActivity = activityFilter.value;
+    
+    filterAndDisplayGroups();
+}
+
+// Handle Groups Sort Changes
+function handleGroupsSort() {
+    const sortFilter = document.getElementById('sortFilter');
+    if (sortFilter) {
+        groupsSearchState.sortBy = sortFilter.value;
+        filterAndDisplayGroups();
+    }
+}
+
+// Apply Quick Filters
+function applyQuickFilter(filterType) {
+    // Update active state
+    document.querySelectorAll('.quick-filter').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-filter="${filterType}"]`).classList.add('active');
+    
+    let filteredGroups = [...sampleGroups];
+    
+    switch(filterType) {
+        case 'trending':
+            filteredGroups = sampleGroups.filter(group => 
+                group.activityLevel === 'very-active' && group.members > 2000
+            );
+            break;
+        case 'local':
+            filteredGroups = sampleGroups.filter(group => 
+                group.location !== 'Global' && group.location !== 'Worldwide'
+            );
+            break;
+        case 'new':
+            filteredGroups = sampleGroups.filter(group => group.members < 1000);
+            break;
+        case 'recommended':
+            filteredGroups = sampleGroups.filter(group => 
+                ['Technology', 'Gaming', 'Creative'].includes(group.category)
+            );
+            break;
+        default:
+            filteredGroups = [...sampleGroups];
+    }
+    
+    groupsSearchState.filteredGroups = filteredGroups;
+    displayGroupsResults();
+}
+
+// Filter and Display Groups
+function filterAndDisplayGroups() {
+    let filteredGroups = [...sampleGroups];
+    
+    // Apply search filter
+    if (groupsSearchState.searchQuery) {
+        filteredGroups = filteredGroups.filter(group => 
+            group.name.toLowerCase().includes(groupsSearchState.searchQuery) ||
+            group.description.toLowerCase().includes(groupsSearchState.searchQuery) ||
+            group.tags.some(tag => tag.toLowerCase().includes(groupsSearchState.searchQuery)) ||
+            group.category.toLowerCase().includes(groupsSearchState.searchQuery)
+        );
+    }
+    
+    // Apply category filter
+    if (groupsSearchState.selectedCategory !== 'all') {
+        filteredGroups = filteredGroups.filter(group => 
+            group.category === groupsSearchState.selectedCategory
+        );
+    }
+    
+    // Apply type filter
+    if (groupsSearchState.selectedType !== 'all') {
+        filteredGroups = filteredGroups.filter(group => 
+            group.privacy === groupsSearchState.selectedType
+        );
+    }
+    
+    // Apply activity filter
+    if (groupsSearchState.selectedActivity !== 'all') {
+        filteredGroups = filteredGroups.filter(group => 
+            group.activityLevel === groupsSearchState.selectedActivity
+        );
+    }
+    
+    // Apply sorting
+    filteredGroups.sort((a, b) => {
+        switch(groupsSearchState.sortBy) {
+            case 'members':
+                return b.members - a.members;
+            case 'activity':
+                const activityOrder = { 'very-active': 3, 'active': 2, 'moderate': 1 };
+                return activityOrder[b.activityLevel] - activityOrder[a.activityLevel];
+            case 'name':
+                return a.name.localeCompare(b.name);
+            case 'recent':
+                return new Date(b.recentActivity) - new Date(a.recentActivity);
+            default:
+                return 0;
+        }
+    });
+    
+    groupsSearchState.filteredGroups = filteredGroups;
+    displayGroupsResults();
+}
+
+// Display Groups Results
+function displayGroupsResults() {
+    const groupsResults = document.getElementById('groupsResults');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    if (!groupsResults) return;
+    
+    // Update results count
+    if (resultsCount) {
+        resultsCount.textContent = `Showing ${groupsSearchState.filteredGroups.length} groups`;
+    }
+    
+    if (groupsSearchState.filteredGroups.length === 0) {
+        groupsResults.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                <h3>No groups found</h3>
+                <p>Try adjusting your search criteria or create a new group!</p>
+                <button class="btn btn-primary" onclick="showCreateGroupModal()" style="margin-top: 1rem;">
+                    Create New Group
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Generate group cards
+    groupsResults.innerHTML = groupsSearchState.filteredGroups.map(group => createGroupCard(group)).join('');
+}
+
+// Create Individual Group Card
+function createGroupCard(group) {
+    const activityColors = {
+        'very-active': 'var(--success)',
+        'active': 'var(--warning)',
+        'moderate': 'var(--text-secondary)'
+    };
+    
+    const activityLabels = {
+        'very-active': 'Very Active',
+        'active': 'Active',
+        'moderate': 'Moderate'
+    };
+    
+    return `
+        <div class="card group-card" style="position: relative; cursor: pointer; transition: all 0.3s ease;" onclick="viewGroupDetails(${group.id})">
+            <!-- Privacy Badge -->
+            <div style="position: absolute; top: 1rem; right: 1rem; background: ${group.privacy === 'private' ? 'var(--warning)' : 'var(--success)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                ${group.privacy === 'private' ? '🔒 Private' : '🌐 Public'}
+            </div>
+            
+            <!-- Group Image/Icon -->
+            <div style="font-size: 4rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group icon">
+                ${group.image}
+            </div>
+            
+            <!-- Group Info -->
+            <h3 style="margin-bottom: 0.5rem; line-height: 1.3;">${group.name}</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                ${group.description}
+            </p>
+            
+            <!-- Group Stats -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--glass); border-radius: 12px;">
+                <div style="text-align: center;">
+                    <div style="font-weight: 600; color: var(--primary);">${group.members.toLocaleString()}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Members</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-weight: 600; color: ${activityColors[group.activityLevel]};">●</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">${activityLabels[group.activityLevel]}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-weight: 600; color: var(--accent);">${group.category}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Category</div>
+                </div>
+            </div>
+            
+            <!-- Tags -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                ${group.tags.slice(0, 3).map(tag => `
+                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+                        ${tag}
+                    </span>
+                `).join('')}
+                ${group.tags.length > 3 ? `<span style="color: var(--text-muted); font-size: 0.8rem;">+${group.tags.length - 3} more</span>` : ''}
+            </div>
+            
+            <!-- Recent Activity -->
+            <div style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.8rem;">
+                📍 ${group.location} • Last active ${group.recentActivity}
+            </div>
+            
+            <!-- Action Button -->
+            <button class="btn ${group.isJoined ? 'btn-secondary' : 'btn-primary'}" 
+                    onclick="event.stopPropagation(); ${group.isJoined ? `leaveGroup(${group.id})` : `joinGroup(${group.id})`}" 
+                    style="width: 100%;">
+                ${group.isJoined ? '✓ Joined' : (group.privacy === 'private' ? '🔑 Request to Join' : '+ Join Group')}
+            </button>
+        </div>
+    `;
 }
 
 function populateEvents() {
@@ -2971,7 +3516,7 @@ function searchCategory(category) {
             searchPosts();
             break;
         case 'groups':
-            showToast('Searching for groups...', 'info');
+            showGroupsSearchDashboard();
             break;
         case 'events':
             showToast('Searching for events...', 'info');
@@ -3639,6 +4184,71 @@ function openMeetPeopleDashboard() {
         console.error('Error launching Meet People Dashboard:', error);
         showToast('Error launching Meet People Dashboard. Please try again.', 'error');
     }
+}
+
+// Enhanced Group Action Functions for Groups Search Dashboard
+function joinGroup(groupId) {
+    const group = sampleGroups.find(g => g.id === groupId);
+    if (group) {
+        if (group.privacy === 'private') {
+            showToast(`Join request sent to ${group.name}`, 'info');
+        } else {
+            group.isJoined = true;
+            group.members += 1;
+            showToast(`Successfully joined ${group.name}!`, 'success');
+            displayGroupsResults(); // Refresh display
+        }
+    }
+}
+
+function leaveGroup(groupId) {
+    const group = sampleGroups.find(g => g.id === groupId);
+    if (group) {
+        group.isJoined = false;
+        group.members -= 1;
+        showToast(`Left ${group.name}`, 'info');
+        displayGroupsResults(); // Refresh display
+    }
+}
+
+function viewGroupDetails(groupId) {
+    const group = sampleGroups.find(g => g.id === groupId);
+    if (group) {
+        showToast(`Opening ${group.name} details...`, 'info');
+        // Here you would typically open a detailed group view
+    }
+}
+
+function showCreateGroupModal() {
+    showToast('Opening group creation form...', 'info');
+    // This would open a modal for creating a new group
+    showGroupCreationWizard();
+}
+
+function toggleGroupsView() {
+    const viewToggle = document.getElementById('viewToggle');
+    const groupsResults = document.getElementById('groupsResults');
+    
+    if (!viewToggle || !groupsResults) return;
+    
+    const isGridView = viewToggle.textContent.includes('List');
+    
+    if (isGridView) {
+        // Switch to list view
+        groupsResults.style.gridTemplateColumns = '1fr';
+        viewToggle.innerHTML = '📋 Grid View';
+        showToast('Switched to list view', 'info');
+    } else {
+        // Switch to grid view
+        groupsResults.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
+        viewToggle.innerHTML = '📋 List View';
+        showToast('Switched to grid view', 'info');
+    }
+}
+
+function loadMoreGroups() {
+    showToast('Loading more groups...', 'info');
+    // This would typically load additional groups from a server
 }
 
 // Service worker registration for PWA
