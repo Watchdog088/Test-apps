@@ -2968,19 +2968,7 @@ function searchCategory(category) {
     
     switch(category) {
         case 'posts':
-            try {
-                if (typeof SearchPostsDashboard !== 'undefined') {
-                    // Create the dashboard instance - it will handle its own HTML rendering
-                    const searchPostsDashboard = new SearchPostsDashboard(window.app);
-                    // The dashboard is automatically initialized in the constructor
-                    showToast('Search Posts Dashboard opened! 🔍', 'success');
-                } else {
-                    throw new Error('SearchPostsDashboard class not loaded');
-                }
-            } catch (error) {
-                console.error('Error opening search posts:', error);
-                showToast('Search Posts Dashboard not available. Please refresh the page.', 'error');
-            }
+            searchPosts();
             break;
         case 'groups':
             showToast('Searching for groups...', 'info');
@@ -2990,6 +2978,56 @@ function searchCategory(category) {
             break;
         default:
             showToast(`Searching for ${category}...`, 'info');
+    }
+}
+
+// Dedicated searchPosts function for launching the Search Posts Dashboard
+function searchPosts(initialQuery = '') {
+    if (!isLoggedIn) {
+        showToast('Please sign in to access search features', 'warning');
+        return;
+    }
+    
+    try {
+        showLoading();
+        
+        // Check if SearchPostsDashboard class is available
+        if (typeof SearchPostsDashboard !== 'undefined') {
+            // Create the dashboard instance
+            const searchPostsDashboard = new SearchPostsDashboard(window.app);
+            
+            // Open the dashboard with optional initial query
+            if (initialQuery) {
+                searchPostsDashboard.openDashboard(initialQuery);
+            } else {
+                searchPostsDashboard.openDashboard();
+            }
+            
+            hideLoading();
+            showToast('Search Posts Dashboard opened! 🔍', 'success');
+            console.log('Search Posts Dashboard launched successfully');
+            
+        } else {
+            throw new Error('SearchPostsDashboard class not loaded');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error launching Search Posts Dashboard:', error);
+        showToast('Failed to open Search Posts Dashboard. Please refresh the page and try again.', 'error');
+        
+        // Retry mechanism - try to initialize after a brief delay
+        setTimeout(() => {
+            if (typeof SearchPostsDashboard !== 'undefined') {
+                try {
+                    const fallbackDashboard = new SearchPostsDashboard(window.app);
+                    fallbackDashboard.openDashboard(initialQuery);
+                    showToast('Search Posts Dashboard loaded successfully! 🔍', 'success');
+                } catch (retryError) {
+                    console.error('Retry failed:', retryError);
+                    showToast('Search Posts Dashboard is still unavailable. Please refresh the page.', 'error');
+                }
+            }
+        }, 1000);
     }
 }
 
