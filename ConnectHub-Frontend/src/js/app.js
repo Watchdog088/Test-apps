@@ -4251,15 +4251,636 @@ function loadMoreGroups() {
     // This would typically load additional groups from a server
 }
 
-// Service worker registration for PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
-            });
+// Events Finder Functionality
+const sampleEvents = [
+    {
+        id: 1,
+        title: "Tech Innovators Meetup 2024",
+        description: "Join fellow tech enthusiasts for an evening of networking, presentations on cutting-edge technologies, and discussions about the future of innovation.",
+        date: "2024-12-15",
+        time: "18:00",
+        location: "Downtown Convention Center",
+        address: "123 Tech Street, Downtown",
+        distance: "2.3 miles",
+        category: "tech",
+        type: "in-person",
+        price: "Free",
+        attendees: 234,
+        maxAttendees: 300,
+        organizer: "Tech Community Hub",
+        image: "💻",
+        tags: ["Networking", "Innovation", "Tech"],
+        featured: true
+    },
+    {
+        id: 2,
+        title: "Jazz Under the Stars",
+        description: "Experience smooth jazz performances by local artists in a beautiful outdoor setting. Bring a blanket and enjoy music under the night sky.",
+        date: "2024-12-16",
+        time: "19:30",
+        location: "Central Park Amphitheater",
+        address: "456 Park Avenue",
+        distance: "1.8 miles",
+        category: "music",
+        type: "in-person",
+        price: "$25",
+        attendees: 156,
+        maxAttendees: 200,
+        organizer: "City Arts Council",
+        image: "🎷",
+        tags: ["Jazz", "Outdoor", "Live Music"]
+    },
+    {
+        id: 3,
+        title: "Digital Marketing Workshop",
+        description: "Learn the latest digital marketing strategies from industry experts. Covers social media, SEO, content marketing, and analytics.",
+        date: "2024-12-17",
+        time: "14:00",
+        location: "Online",
+        address: "Virtual Event",
+        distance: "Online",
+        category: "business",
+        type: "online",
+        price: "$49",
+        attendees: 89,
+        maxAttendees: 150,
+        organizer: "Marketing Pros Academy",
+        image: "📊",
+        tags: ["Marketing", "Workshop", "Online"]
+    },
+    {
+        id: 4,
+        title: "Community Art Exhibition",
+        description: "Showcasing local artists' work with interactive installations, live painting demonstrations, and an art marketplace.",
+        date: "2024-12-18",
+        time: "10:00",
+        location: "Modern Art Gallery",
+        address: "789 Arts District",
+        distance: "3.1 miles",
+        category: "art",
+        type: "in-person",
+        price: "Free",
+        attendees: 78,
+        maxAttendees: 120,
+        organizer: "Local Artists Collective",
+        image: "🎨",
+        tags: ["Art", "Exhibition", "Community"]
+    },
+    {
+        id: 5,
+        title: "Startup Pitch Competition",
+        description: "Watch innovative startups pitch their ideas to a panel of investors. Network with entrepreneurs and industry leaders.",
+        date: "2024-12-19",
+        time: "17:00",
+        location: "Innovation Hub",
+        address: "321 Business Plaza",
+        distance: "4.2 miles",
+        category: "business",
+        type: "hybrid",
+        price: "$15",
+        attendees: 145,
+        maxAttendees: 180,
+        organizer: "Entrepreneur Network",
+        image: "🚀",
+        tags: ["Startup", "Pitching", "Investment"]
+    },
+    {
+        id: 6,
+        title: "Food Truck Festival",
+        description: "Taste amazing food from 20+ local food trucks. Live music, family activities, and craft beer garden included.",
+        date: "2024-12-20",
+        time: "11:00",
+        location: "Riverside Park",
+        address: "555 River Road",
+        distance: "2.9 miles",
+        category: "food",
+        type: "in-person",
+        price: "Free Entry",
+        attendees: 567,
+        maxAttendees: 800,
+        organizer: "City Events",
+        image: "🍔",
+        tags: ["Food", "Festival", "Family"]
+    },
+    {
+        id: 7,
+        title: "Basketball Tournament",
+        description: "Amateur basketball tournament open to all skill levels. Prizes for winners and fun for everyone.",
+        date: "2024-12-21",
+        time: "09:00",
+        location: "Sports Complex",
+        address: "888 Athletic Drive",
+        distance: "3.7 miles",
+        category: "sports",
+        type: "in-person",
+        price: "$20",
+        attendees: 64,
+        maxAttendees: 100,
+        organizer: "Local Sports League",
+        image: "🏀",
+        tags: ["Basketball", "Tournament", "Sports"]
+    },
+    {
+        id: 8,
+        title: "Coding Bootcamp: React Fundamentals",
+        description: "Intensive one-day workshop covering React basics, components, state management, and building your first React app.",
+        date: "2024-12-22",
+        time: "09:00",
+        location: "Tech Learning Center",
+        address: "999 Code Street",
+        distance: "1.5 miles",
+        category: "education",
+        type: "in-person",
+        price: "$75",
+        attendees: 32,
+        maxAttendees: 40,
+        organizer: "Code Academy",
+        image: "⚛️",
+        tags: ["React", "Coding", "Bootcamp"]
+    },
+    {
+        id: 9,
+        title: "Community Volunteer Day",
+        description: "Join us for a day of giving back to the community. Multiple volunteer opportunities available.",
+        date: "2024-12-23",
+        time: "08:00",
+        location: "Community Center",
+        address: "111 Helper Lane",
+        distance: "2.1 miles",
+        category: "social",
+        type: "in-person",
+        price: "Free",
+        attendees: 123,
+        maxAttendees: 200,
+        organizer: "Volunteer Network",
+        image: "🤝",
+        tags: ["Volunteer", "Community", "Service"]
+    },
+    {
+        id: 10,
+        title: "Photography Masterclass",
+        description: "Advanced photography techniques with professional photographer. Includes hands-on practice and portfolio review.",
+        date: "2024-12-24",
+        time: "13:00",
+        location: "Photo Studio",
+        address: "222 Lens Avenue",
+        distance: "3.8 miles",
+        category: "education",
+        type: "in-person",
+        price: "$85",
+        attendees: 18,
+        maxAttendees: 25,
+        organizer: "Pro Photo Academy",
+        image: "📸",
+        tags: ["Photography", "Masterclass", "Professional"]
+    },
+    {
+        id: 11,
+        title: "Virtual Reality Gaming Tournament",
+        description: "Experience the future of gaming with VR tournaments, demos of latest VR games, and prizes for top players.",
+        date: "2024-12-25",
+        time: "15:00",
+        location: "Gaming Lounge",
+        address: "333 Virtual Street",
+        distance: "4.5 miles",
+        category: "tech",
+        type: "in-person",
+        price: "$30",
+        attendees: 76,
+        maxAttendees: 100,
+        organizer: "VR Gaming Club",
+        image: "🥽",
+        tags: ["VR", "Gaming", "Tournament"]
+    },
+    {
+        id: 12,
+        title: "Wellness & Meditation Workshop",
+        description: "Learn mindfulness techniques, guided meditation, and wellness practices for daily life stress management.",
+        date: "2024-12-26",
+        time: "10:00",
+        location: "Wellness Center",
+        address: "444 Peace Boulevard",
+        distance: "2.7 miles",
+        category: "social",
+        type: "hybrid",
+        price: "$35",
+        attendees: 45,
+        maxAttendees: 60,
+        organizer: "Mindful Living",
+        image: "🧘",
+        tags: ["Wellness", "Meditation", "Mindfulness"]
+    }
+];
+
+let filteredEvents = [...sampleEvents];
+let currentFilters = {
+    search: '',
+    date: 'today',
+    category: 'all',
+    price: 'all',
+    type: 'all',
+    location: '',
+    distance: 25
+};
+
+// Open Events Finder Modal
+function openEventsFinderModal() {
+    const modal = document.getElementById('eventsFinderModal');
+    if (modal) {
+        modal.classList.add('active');
+        populateEventsGrid();
+        
+        // Set current date as default for date inputs
+        const today = new Date().toISOString().split('T')[0];
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        if (startDate) startDate.value = today;
+        if (endDate) endDate.value = today;
+    }
+}
+
+// Close Events Finder Modal
+function closeEventsFinderModal() {
+    const modal = document.getElementById('eventsFinderModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// Populate Events Grid
+function populateEventsGrid() {
+    const grid = document.getElementById('eventsGrid');
+    const countElement = document.getElementById('eventsCount');
+    
+    if (!grid) return;
+    
+    // Update count
+    if (countElement) {
+        countElement.textContent = `${filteredEvents.length} events found`;
+    }
+
+    // Generate event cards
+    grid.innerHTML = filteredEvents.map(event => `
+        <div class="event-card" onclick="openEventDetail(${event.id})" role="button" tabindex="0">
+            <div class="event-image">
+                ${event.image}
+                ${event.featured ? '<div class="event-badge">Featured</div>' : ''}
+                ${event.price === 'Free' || event.price === 'Free Entry' ? '<div class="event-badge" style="left: 0.75rem; right: auto; background: var(--success);">Free</div>' : ''}
+            </div>
+            <div class="event-content">
+                <div class="event-title">${event.title}</div>
+                <div class="event-meta">
+                    <div>📅 ${formatEventDate(event.date)} at ${event.time}</div>
+                    <div>📍 ${event.location} (${event.distance})</div>
+                    <div>👥 ${event.attendees}/${event.maxAttendees} attending</div>
+                    <div>💰 ${event.price}</div>
+                </div>
+                <div class="event-description">${event.description}</div>
+                <div class="event-tags">
+                    ${event.tags.map(tag => `<span class="event-tag">${tag}</span>`).join('')}
+                </div>
+                <div class="event-actions">
+                    <div class="event-attendees">${event.attendees} attending</div>
+                    <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); joinEvent(${event.id})" aria-label="Join event">Join Event</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Format event date
+function formatEventDate(dateString) {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+        return 'Tomorrow';
+    } else {
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+}
+
+// Search Events
+function searchEvents(query) {
+    currentFilters.search = query.toLowerCase();
+    applyFilters();
+}
+
+// Filter by Date
+function filterByDate(element, dateFilter) {
+    // Update UI
+    document.querySelectorAll('.filter-section .filter-chip').forEach(chip => {
+        if (chip.parentElement.previousElementSibling.textContent.includes('When')) {
+            chip.classList.remove('active');
+        }
     });
+    element.classList.add('active');
+    
+    currentFilters.date = dateFilter;
+    applyFilters();
+}
+
+// Filter by Category
+function filterByCategory(element, category) {
+    // Update UI
+    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    currentFilters.category = category;
+    applyFilters();
+}
+
+// Filter by Price
+function filterByPrice(element, priceFilter) {
+    // Update UI
+    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    currentFilters.price = priceFilter;
+    applyFilters();
+}
+
+// Filter by Type
+function filterByType(element, type) {
+    // Update UI
+    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    currentFilters.type = type;
+    applyFilters();
+}
+
+// Apply all filters
+function applyFilters() {
+    filteredEvents = sampleEvents.filter(event => {
+        // Search filter
+        if (currentFilters.search && !event.title.toLowerCase().includes(currentFilters.search) && 
+            !event.description.toLowerCase().includes(currentFilters.search) &&
+            !event.tags.some(tag => tag.toLowerCase().includes(currentFilters.search))) {
+            return false;
+        }
+        
+        // Category filter
+        if (currentFilters.category !== 'all' && event.category !== currentFilters.category) {
+            return false;
+        }
+        
+        // Price filter
+        if (currentFilters.price === 'free' && !event.price.toLowerCase().includes('free')) {
+            return false;
+        }
+        if (currentFilters.price === 'paid' && event.price.toLowerCase().includes('free')) {
+            return false;
+        }
+        
+        // Type filter
+        if (currentFilters.type !== 'all' && event.type !== currentFilters.type) {
+            return false;
+        }
+        
+        // Date filter (simplified)
+        const eventDate = new Date(event.date);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        switch (currentFilters.date) {
+            case 'today':
+                if (eventDate.toDateString() !== today.toDateString()) return false;
+                break;
+            case 'tomorrow':
+                if (eventDate.toDateString() !== tomorrow.toDateString()) return false;
+                break;
+            case 'week':
+                const weekFromNow = new Date(today);
+                weekFromNow.setDate(today.getDate() + 7);
+                if (eventDate < today || eventDate > weekFromNow) return false;
+                break;
+            case 'weekend':
+                const day = eventDate.getDay();
+                if (day !== 0 && day !== 6) return false;
+                break;
+            case 'month':
+                if (eventDate.getMonth() !== today.getMonth() || 
+                    eventDate.getFullYear() !== today.getFullYear()) return false;
+                break;
+        }
+        
+        return true;
+    });
+    
+    populateEventsGrid();
+}
+
+// Update distance filter
+function updateDistance(value) {
+    const element = document.getElementById('distanceValue');
+    if (element) element.textContent = `${value} miles`;
+    currentFilters.distance = parseInt(value);
+}
+
+// Use current location
+function useCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const locationInput = document.getElementById('locationInput');
+                if (locationInput) locationInput.value = 'Current Location';
+                showToast('Location updated to current position', 'success');
+            },
+            (error) => {
+                showToast('Unable to get location. Please enter manually.', 'warning');
+            }
+        );
+    } else {
+        showToast('Geolocation not supported by this browser', 'warning');
+    }
+}
+
+// Reset all filters
+function resetAllFilters() {
+    currentFilters = {
+        search: '',
+        date: 'today',
+        category: 'all',
+        price: 'all',
+        type: 'all',
+        location: '',
+        distance: 25
+    };
+    
+    // Reset UI
+    const searchInput = document.getElementById('eventsSearchInput');
+    const locationInput = document.getElementById('locationInput');
+    const distanceValue = document.getElementById('distanceValue');
+    const distanceSlider = document.querySelector('input[type="range"]');
+    
+    if (searchInput) searchInput.value = '';
+    if (locationInput) locationInput.value = '';
+    if (distanceValue) distanceValue.textContent = '25 miles';
+    if (distanceSlider) distanceSlider.value = 25;
+    
+    // Reset filter chips
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    
+    // Set default active filters
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        if (chip.textContent.includes('Today') || 
+            chip.textContent.includes('All')) {
+            chip.classList.add('active');
+        }
+    });
+    
+    filteredEvents = [...sampleEvents];
+    populateEventsGrid();
+    showToast('All filters reset', 'info');
+}
+
+// Toggle view
+function toggleView(element, view) {
+    // Update UI
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    const mapView = document.getElementById('eventsMapView');
+    const gridView = document.getElementById('eventsGrid');
+    
+    if (view === 'map') {
+        if (mapView) mapView.classList.add('active');
+        if (gridView) gridView.style.display = 'none';
+    } else {
+        if (mapView) mapView.classList.remove('active');
+        if (gridView) gridView.style.display = 'grid';
+    }
+}
+
+// Load more events
+function loadMoreEvents() {
+    showToast('Loading more events...', 'info');
+    // In a real app, this would load more events from the API
+}
+
+// Open Event Detail Modal
+function openEventDetail(eventId) {
+    const event = sampleEvents.find(e => e.id === eventId);
+    if (!event) return;
+    
+    const modal = document.getElementById('eventDetailModal');
+    const imageEl = document.getElementById('eventDetailImage');
+    const bodyEl = document.getElementById('eventDetailBody');
+    
+    // Update image
+    if (imageEl) {
+        imageEl.innerHTML = `
+            ${event.image}
+            <button style="position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 40px; height: 40px;" onclick="closeEventDetailModal()" aria-label="Close event details">✕</button>
+        `;
+    }
+    
+    // Update body with detailed event information
+    if (bodyEl) {
+        bodyEl.innerHTML = `
+            <div class="event-detail-title">${event.title}</div>
+            
+            <div class="event-detail-meta">
+                <div class="event-detail-meta-item">
+                    <span>📅</span>
+                    <div>
+                        <strong>Date & Time</strong><br>
+                        ${formatEventDate(event.date)} at ${event.time}
+                    </div>
+                </div>
+                <div class="event-detail-meta-item">
+                    <span>📍</span>
+                    <div>
+                        <strong>Location</strong><br>
+                        ${event.location}<br>
+                        <small>${event.address}</small>
+                    </div>
+                </div>
+                <div class="event-detail-meta-item">
+                    <span>💰</span>
+                    <div>
+                        <strong>Price</strong><br>
+                        ${event.price}
+                    </div>
+                </div>
+                <div class="event-detail-meta-item">
+                    <span>👥</span>
+                    <div>
+                        <strong>Attendees</strong><br>
+                        ${event.attendees}/${event.maxAttendees}
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin: 2rem 0;">
+                <h3>About This Event</h3>
+                <p style="line-height: 1.6; color: var(--text-secondary);">${event.description}</p>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="joinEvent(${event.id}); closeEventDetailModal();" style="flex: 1; min-width: 200px;">Join Event</button>
+                <button class="btn btn-secondary" onclick="shareEvent(${event.id})" style="flex: 1; min-width: 200px;">Share Event</button>
+            </div>
+        `;
+    }
+    
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+// Close Event Detail Modal
+function closeEventDetailModal() {
+    const modal = document.getElementById('eventDetailModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// Share Event
+function shareEvent(eventId) {
+    const event = sampleEvents.find(e => e.id === eventId);
+    if (event) {
+        showToast(`Shared "${event.title}" with your network!`, 'success');
+    }
+}
+
+// Join Event - Enhanced function
+function joinEvent(eventId) {
+    const event = sampleEvents.find(e => e.id === eventId);
+    if (event) {
+        event.attendees++;
+        showToast(`Successfully joined "${event.title}"!`, 'success');
+        populateEventsGrid(); // Refresh to show updated attendee count
+    }
+}
+
+// Open Personalization Dashboard
+function openPersonalizationDashboard() {
+    if (window.interestPersonalizationDashboard) {
+        window.interestPersonalizationDashboard.showPersonalizationModal();
+        showToast('Interest Personalization Dashboard opened! 🎯', 'success');
+    } else {
+        showToast('Interest Personalization Dashboard not available', 'warning');
+    }
 }

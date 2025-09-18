@@ -520,7 +520,7 @@
                                 <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Events">📅</div>
                                 <h3>Events</h3>
                                 <p style="color: var(--text-secondary); margin: 1rem 0;">Discover events near you</p>
-                                <button class="btn btn-secondary">Find Events</button>
+                                <button class="btn btn-secondary" onclick="openEventsFinderModal()">Find Events</button>
                             </div>
                         </div>
                     </div>
@@ -1486,6 +1486,150 @@
         </div>
     </div>
 
+    <!-- Events Finder Modal -->
+    <div class="events-finder-modal" id="eventsFinderModal" role="dialog" aria-labelledby="eventsFinderTitle" aria-modal="true">
+        <div class="events-finder-content">
+            <!-- Header -->
+            <div class="events-finder-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="eventsFinderTitle" style="margin: 0;">📅 Discover Events</h2>
+                        <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">Find amazing events happening near you</p>
+                    </div>
+                    <button style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem;" onclick="closeEventsFinderModal()" aria-label="Close events finder">✕</button>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="events-search-bar">
+                    <input type="text" class="events-search-input" id="eventsSearchInput" placeholder="Search events by name, category, or location..." onkeyup="searchEvents(this.value)">
+                    <button class="events-search-button" onclick="searchEvents(document.getElementById('eventsSearchInput').value)" aria-label="Search events">🔍</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="events-finder-body">
+                <!-- Filters Sidebar -->
+                <div class="events-filters">
+                    <!-- Location Filter -->
+                    <div class="filter-section">
+                        <h4>📍 Location</h4>
+                        <div class="form-group">
+                            <input type="text" class="form-input" placeholder="Enter location" id="locationInput" style="margin-bottom: 1rem;">
+                            <button class="btn btn-secondary btn-small" onclick="useCurrentLocation()" style="width: 100%;">📍 Use Current Location</button>
+                        </div>
+                        <div class="filter-group">
+                            <label style="display: block; margin-bottom: 0.5rem;">Distance: <span id="distanceValue">25 miles</span></label>
+                            <input type="range" class="distance-slider" min="1" max="100" value="25" oninput="updateDistance(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Date Filter -->
+                    <div class="filter-section">
+                        <h4>📅 When</h4>
+                        <div class="filter-chips">
+                            <div class="filter-chip active" onclick="filterByDate(this, 'today')">Today</div>
+                            <div class="filter-chip" onclick="filterByDate(this, 'tomorrow')">Tomorrow</div>
+                            <div class="filter-chip" onclick="filterByDate(this, 'week')">This Week</div>
+                            <div class="filter-chip" onclick="filterByDate(this, 'weekend')">Weekend</div>
+                            <div class="filter-chip" onclick="filterByDate(this, 'month')">This Month</div>
+                        </div>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem;">Custom Date Range</label>
+                            <input type="date" class="form-input" style="margin-bottom: 0.5rem;" id="startDate">
+                            <input type="date" class="form-input" id="endDate">
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="filter-section">
+                        <h4>🏷️ Categories</h4>
+                        <div class="filter-chips">
+                            <div class="filter-chip active" onclick="filterByCategory(this, 'all')">All</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'music')">🎵 Music</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'business')">💼 Business</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'sports')">⚽ Sports</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'food')">🍽️ Food</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'art')">🎨 Art</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'tech')">💻 Tech</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'social')">👥 Social</div>
+                            <div class="filter-chip" onclick="filterByCategory(this, 'education')">📚 Education</div>
+                        </div>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="filter-section">
+                        <h4>💰 Price</h4>
+                        <div class="filter-chips">
+                            <div class="filter-chip active" onclick="filterByPrice(this, 'all')">All</div>
+                            <div class="filter-chip" onclick="filterByPrice(this, 'free')">Free</div>
+                            <div class="filter-chip" onclick="filterByPrice(this, 'paid')">Paid</div>
+                        </div>
+                        <div class="price-range" style="margin-top: 1rem;">
+                            <input type="number" class="price-input" placeholder="Min" id="minPrice">
+                            <span>-</span>
+                            <input type="number" class="price-input" placeholder="Max" id="maxPrice">
+                        </div>
+                    </div>
+
+                    <!-- Event Type Filter -->
+                    <div class="filter-section">
+                        <h4>📋 Event Type</h4>
+                        <div class="filter-chips">
+                            <div class="filter-chip active" onclick="filterByType(this, 'all')">All</div>
+                            <div class="filter-chip" onclick="filterByType(this, 'online')">💻 Online</div>
+                            <div class="filter-chip" onclick="filterByType(this, 'in-person')">🏢 In-Person</div>
+                            <div class="filter-chip" onclick="filterByType(this, 'hybrid')">🔄 Hybrid</div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Filters -->
+                    <button class="btn btn-secondary" onclick="resetAllFilters()" style="width: 100%; margin-top: 1rem;">🔄 Reset Filters</button>
+                </div>
+
+                <!-- Results Area -->
+                <div class="events-results">
+                    <!-- View Toggle -->
+                    <div class="view-toggle">
+                        <div class="view-toggle-btn active" data-view="grid" onclick="toggleView(this, 'grid')">📋 Grid View</div>
+                        <div class="view-toggle-btn" data-view="map" onclick="toggleView(this, 'map')">🗺️ Map View</div>
+                        <div style="margin-left: auto; color: var(--text-secondary);">
+                            <span id="eventsCount">12 events found</span>
+                        </div>
+                    </div>
+
+                    <!-- Map View -->
+                    <div class="events-map-view" id="eventsMapView">
+                        🗺️ Interactive Map View<br>
+                        <small style="font-size: 1rem; margin-top: 0.5rem;">Events plotted by location</small>
+                    </div>
+
+                    <!-- Events Grid -->
+                    <div class="events-grid" id="eventsGrid">
+                        <!-- Events will be populated here -->
+                    </div>
+
+                    <!-- Load More -->
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="loadMoreEvents()">Load More Events</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div class="event-detail-modal" id="eventDetailModal" role="dialog" aria-labelledby="eventDetailTitle" aria-modal="true">
+        <div class="event-detail-content">
+            <div class="event-detail-header" id="eventDetailImage">
+                🎉
+                <button style="position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 40px; height: 40px;" onclick="closeEventDetailModal()" aria-label="Close event details">✕</button>
+            </div>
+            <div class="event-detail-body" id="eventDetailBody">
+                <!-- Event details will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10001;">
         <div style="text-align: center; color: white;">
@@ -1528,5 +1672,6 @@
     <script src="src/js/match-profile-modal.js"></script>
     <script src="src/js/search-posts-dashboard.js"></script>
     <script src="src/js/interest-personalization-dashboard.js"></script>
+    <script src="src/js/events-finder.js"></script>
 </body>
 </html>
