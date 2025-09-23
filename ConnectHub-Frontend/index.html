@@ -577,7 +577,7 @@
                     <div class="card" style="margin-top: 2rem;">
                         <h3>Account Management</h3>
                         <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                            <button class="btn btn-secondary">Change Password</button>
+                            <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Password</button>
                             <button class="btn btn-secondary">Download Data</button>
                             <button class="btn btn-error">Delete Account</button>
                         </div>
@@ -1673,5 +1673,91 @@
     <script src="src/js/search-posts-dashboard.js"></script>
     <script src="src/js/interest-personalization-dashboard.js"></script>
     <script src="src/js/events-finder.js"></script>
+    <script src="src/js/change-password.js"></script>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal" role="dialog" aria-labelledby="changePasswordTitle" aria-modal="true">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 id="changePasswordTitle">Change Password</h2>
+                <button style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer;" onclick="closeChangePasswordModal()" aria-label="Close">×</button>
+            </div>
+
+            <form id="changePasswordForm" novalidate>
+                <!-- Current Password -->
+                <div class="form-group">
+                    <label class="form-label" for="currentPassword">Current Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="currentPassword" class="form-input" placeholder="Enter your current password" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')" aria-label="Toggle password visibility">👁️</button>
+                    </div>
+                    <div class="error-message" id="currentPasswordError"></div>
+                </div>
+
+                <!-- New Password -->
+                <div class="form-group">
+                    <label class="form-label" for="newPassword">New Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="newPassword" class="form-input" placeholder="Enter your new password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')" aria-label="Toggle password visibility">👁️</button>
+                    </div>
+                    
+                    <!-- Password Strength Indicator -->
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText">Password strength</div>
+                    </div>
+
+                    <!-- Password Requirements -->
+                    <div class="password-requirements">
+                        <div class="requirement" id="req-length">
+                            <div class="requirement-icon">✓</div>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="requirement" id="req-uppercase">
+                            <div class="requirement-icon">✓</div>
+                            <span>One uppercase letter</span>
+                        </div>
+                        <div class="requirement" id="req-lowercase">
+                            <div class="requirement-icon">✓</div>
+                            <span>One lowercase letter</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <div class="requirement-icon">✓</div>
+                            <span>One number</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <div class="requirement-icon">✓</div>
+                            <span>One special character</span>
+                        </div>
+                    </div>
+                    
+                    <div class="error-message" id="newPasswordError"></div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your new password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')" aria-label="Toggle password visibility">👁️</button>
+                    </div>
+                    <div class="error-message" id="confirmPasswordError"></div>
+                    <div class="success-message" id="confirmPasswordSuccess">Passwords match</div>
+                </div>
+
+                <!-- Form Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn" disabled>
+                        <span id="btnText">Change Password</span>
+                        <span id="btnLoader" class="loading" style="display: none;"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
