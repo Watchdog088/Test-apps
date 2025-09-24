@@ -1677,51 +1677,247 @@
     <script src="src/js/data-export.js"></script>
 
     <!-- Data Export Modal -->
-    <div class="modal" id="dataExportModal" role="dialog" aria-labelledby="dataExportTitle" aria-modal="true">
+    <div class="modal" id="dataExportModal" role="dialog" aria-labelledby="exportTitle" aria-modal="true">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2 id="dataExportTitle">Download Your Data</h2>
-                <button style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer;" onclick="closeDataExportModal()" aria-label="Close">×</button>
+                <h2 id="exportTitle">📥 Download Your Data</h2>
+                <button style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer;" onclick="closeDataExportModal()" aria-label="Close export">✕</button>
             </div>
 
-            <form id="dataExportForm" novalidate>
-                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select the data you'd like to export:</p>
+            <!-- Initial Selection Phase -->
+            <div id="selectionPhase">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select the data you want to download. Your privacy is important to us - we'll only export the data you choose.</p>
                 
-                <div class="form-group">
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="exportData" value="profile"> Profile Information
+                <div class="checkbox-group">
+                    <label class="checkbox-item" for="profileData">
+                        <input type="checkbox" id="profileData" checked>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">👤 Profile Information</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Basic profile data, settings, and preferences</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~2.5 MB</div>
+                        </div>
                     </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="exportData" value="posts"> Posts & Comments
+
+                    <label class="checkbox-item" for="postsData">
+                        <input type="checkbox" id="postsData" checked>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">📝 Posts & Content</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">All your posts, comments, likes, and shared content</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~156 posts • ~45 MB</div>
+                        </div>
                     </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="exportData" value="media"> Photos & Videos
+
+                    <label class="checkbox-item" for="mediaData">
+                        <input type="checkbox" id="mediaData">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">📸 Photos & Videos</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">All uploaded photos, videos, and media files</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~1,234 files • ~2.3 GB</div>
+                        </div>
                     </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="exportData" value="messages"> Messages
+
+                    <label class="checkbox-item" for="messagesData">
+                        <input type="checkbox" id="messagesData" checked>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">💬 Messages & Chats</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Direct messages, group chats, and conversation history</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~2,567 messages • ~12 MB</div>
+                        </div>
                     </label>
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="exportData" value="connections"> Friends & Connections
+
+                    <label class="checkbox-item" for="connectionsData">
+                        <input type="checkbox" id="connectionsData" checked>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🔗 Connections & Network</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Friends, followers, groups, and dating matches</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~1,247 connections • ~5 MB</div>
+                        </div>
+                    </label>
+
+                    <label class="checkbox-item" for="analyticsData">
+                        <input type="checkbox" id="analyticsData">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">📊 Analytics & Insights</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Engagement metrics, view counts, and performance data</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">~3 months data • ~8 MB</div>
+                        </div>
                     </label>
                 </div>
 
-                <!-- Progress Bar -->
-                <div style="margin: 2rem 0; display: none;" id="exportProgress">
-                    <div style="height: 4px; background: var(--glass); border-radius: 2px; overflow: hidden;">
-                        <div style="height: 100%; width: 0%; background: var(--primary); transition: width 0.3s ease;"></div>
+                <div class="data-summary">
+                    <h4 style="margin-bottom: 1rem;">📋 Export Summary</h4>
+                    <div class="summary-item">
+                        <span>Selected data types:</span>
+                        <span id="selectedCount">4</span>
                     </div>
-                    <div style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary);" id="exportProgressText"></div>
+                    <div class="summary-item">
+                        <span>Estimated size:</span>
+                        <span id="estimatedSize">~64.5 MB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Format:</span>
+                        <span>JSON + ZIP archive</span>
+                    </div>
+                    <div class="summary-item" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                        <span style="font-weight: 600;">Total estimated time:</span>
+                        <span id="estimatedTime">~3-5 minutes</span>
+                    </div>
                 </div>
 
-                <!-- Form Actions -->
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin: 1rem 0;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="color: var(--accent); font-size: 1.2rem;">🔒</span>
+                        <span style="font-weight: 600;">Privacy & Security</span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                        <li>Your data is encrypted during export</li>
+                        <li>No third parties have access to your download</li>
+                        <li>Files are automatically deleted after 7 days</li>
+                        <li>You can cancel the export at any time</li>
+                    </ul>
+                </div>
+
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeDataExportModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="exportBtn" disabled>
-                        <span id="exportBtnText">Download Data</span>
-                        <span id="exportBtnLoader" class="loading" style="display: none;"></span>
+                    <button class="btn btn-secondary" onclick="closeDataExportModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="startExport()" id="startExportBtn">🚀 Start Export</button>
+                </div>
+            </div>
+
+            <!-- Processing Phase -->
+            <div id="processingPhase" style="display: none;">
+                <div class="download-info">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                    <h3>Preparing Your Data</h3>
+                    <p style="margin: 0.5rem 0;">Please don't close this window while we prepare your export</p>
+                </div>
+
+                <div class="export-steps" id="exportSteps">
+                    <div class="step" id="step1">
+                        <div class="step-number">1</div>
+                        <div>
+                            <div style="font-weight: 600;">Validating Data Selection</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Checking selected data types and permissions</div>
+                        </div>
+                        <div class="status-indicator" id="status1">
+                            <div class="status-dot status-pending"></div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step2">
+                        <div class="step-number">2</div>
+                        <div>
+                            <div style="font-weight: 600;">Collecting Data</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Gathering your selected information from our servers</div>
+                        </div>
+                        <div class="status-indicator" id="status2">
+                            <div class="status-dot status-pending"></div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step3">
+                        <div class="step-number">3</div>
+                        <div>
+                            <div style="font-weight: 600;">Processing & Formatting</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Converting data to readable JSON format</div>
+                        </div>
+                        <div class="status-indicator" id="status3">
+                            <div class="status-dot status-pending"></div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step4">
+                        <div class="step-number">4</div>
+                        <div>
+                            <div style="font-weight: 600;">Creating Archive</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Compressing files and applying encryption</div>
+                        </div>
+                        <div class="status-indicator" id="status4">
+                            <div class="status-dot status-pending"></div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step5">
+                        <div class="step-number">5</div>
+                        <div>
+                            <div style="font-weight: 600;">Finalizing Export</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Preparing download link and cleanup</div>
+                        </div>
+                        <div class="status-indicator" id="status5">
+                            <div class="status-dot status-pending"></div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="exportProgress"></div>
+                </div>
+
+                <div style="text-align: center; margin: 1rem 0;">
+                    <div id="progressText">Initializing export...</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;" id="progressDetail">This may take a few minutes</div>
+                </div>
+
+                <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                    <button class="btn btn-error" onclick="cancelExport()">⏹️ Cancel Export</button>
+                </div>
+            </div>
+
+            <!-- Completion Phase -->
+            <div id="completionPhase" style="display: none;">
+                <div class="download-info">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+                    <h3>Export Complete!</h3>
+                    <p style="margin: 0.5rem 0;">Your data is ready for download</p>
+                </div>
+
+                <div style="background: var(--glass); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                    <h4>📦 Export Details</h4>
+                    <div class="summary-item">
+                        <span>File name:</span>
+                        <span style="font-family: monospace;">connecthub_export_2024.zip</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>File size:</span>
+                        <span id="finalFileSize">64.3 MB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Generated:</span>
+                        <span id="generationTime">December 24, 2024 at 2:45 PM</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Expires:</span>
+                        <span style="color: var(--warning);">December 31, 2024 at 2:45 PM</span>
+                    </div>
+                </div>
+
+                <div style="background: var(--success); background-opacity: 0.1; border: 1px solid var(--success); border-radius: 12px; padding: 1rem; margin: 1rem 0; color: white;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">✅</span>
+                        <span style="font-weight: 600;">What's Included</span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem;" id="includedData">
+                        <li>Profile information and account settings</li>
+                        <li>156 posts with metadata and engagement data</li>
+                        <li>2,567 messages and conversation threads</li>
+                        <li>1,247 connections and relationship data</li>
+                    </ul>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="downloadFile()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                        💾 Download Now
                     </button>
                 </div>
-            </form>
+
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button class="btn btn-secondary" onclick="closeDataExportModal()">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
