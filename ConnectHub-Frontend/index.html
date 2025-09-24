@@ -577,9 +577,9 @@
                     <div class="card" style="margin-top: 2rem;">
                         <h3>Account Management</h3>
                         <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                            <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Password</button>
-                            <button class="btn btn-secondary">Download Data</button>
-                            <button class="btn btn-error">Delete Account</button>
+            <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Password</button>
+            <button class="btn btn-secondary" onclick="openDataExportModal()">Download Data</button>
+            <button class="btn btn-error">Delete Account</button>
                         </div>
                     </div>
                 </div>
@@ -1674,6 +1674,56 @@
     <script src="src/js/interest-personalization-dashboard.js"></script>
     <script src="src/js/events-finder.js"></script>
     <script src="src/js/change-password.js"></script>
+    <script src="src/js/data-export.js"></script>
+
+    <!-- Data Export Modal -->
+    <div class="modal" id="dataExportModal" role="dialog" aria-labelledby="dataExportTitle" aria-modal="true">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 id="dataExportTitle">Download Your Data</h2>
+                <button style="background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer;" onclick="closeDataExportModal()" aria-label="Close">×</button>
+            </div>
+
+            <form id="dataExportForm" novalidate>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select the data you'd like to export:</p>
+                
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="exportData" value="profile"> Profile Information
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="exportData" value="posts"> Posts & Comments
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="exportData" value="media"> Photos & Videos
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="exportData" value="messages"> Messages
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="exportData" value="connections"> Friends & Connections
+                    </label>
+                </div>
+
+                <!-- Progress Bar -->
+                <div style="margin: 2rem 0; display: none;" id="exportProgress">
+                    <div style="height: 4px; background: var(--glass); border-radius: 2px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: var(--primary); transition: width 0.3s ease;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary);" id="exportProgressText"></div>
+                </div>
+
+                <!-- Form Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeDataExportModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="exportBtn" disabled>
+                        <span id="exportBtnText">Download Data</span>
+                        <span id="exportBtnLoader" class="loading" style="display: none;"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Change Password Modal -->
     <div class="modal" id="changePasswordModal" role="dialog" aria-labelledby="changePasswordTitle" aria-modal="true">
