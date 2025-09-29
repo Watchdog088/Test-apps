@@ -20,4867 +20,691 @@ let eventsUIComponents = null;
 let advancedSearchResultsUI = null;
 let searchDiscoveryStreamingComponents = null;
 
-// Sample data arrays
-const samplePosts = [
-    {
-        id: 1,
-        user: 'ConnectHub AI',
-        avatar: 'AI',
-        time: '2 hours ago',
-        content: 'Welcome to ConnectHub! 🚀 Your all-in-one social platform with AI-powered matching, live streaming, and smart content curation. Ready to connect? #ConnectHub #Social',
-        likes: 124,
-        comments: 23,
-        shares: 12,
-        image: true
-    },
-    {
-        id: 2,
-        user: 'Emma Wilson',
-        avatar: 'EW',
-        time: '4 hours ago',
-        content: 'Just had an amazing coffee at the new café downtown! ☕ The atmosphere is perfect for remote work. Anyone want to join me tomorrow?',
-        likes: 45,
-        comments: 8,
-        shares: 3
-    },
-    {
-        id: 3,
-        user: 'Tech News',
-        avatar: 'TN',
-        time: '6 hours ago',
-        content: 'Breaking: New AI breakthrough in natural language processing! This could revolutionize how we interact with technology. What do you think? 🤖',
-        likes: 234,
-        comments: 67,
-        shares: 89
-    },
-    {
-        id: 4,
-        user: 'Mike Johnson',
-        avatar: 'MJ',
-        time: '8 hours ago',
-        content: 'Beautiful sunset from my hiking trip today! Nature never fails to amaze me. 🌅 #nature #hiking #photography',
-        likes: 156,
-        comments: 23,
-        shares: 15
-    }
-];
-
-const sampleUsers = [
-    { name: 'Emma Wilson', avatar: 'EW', status: 'online', mutualFriends: 2, profession: 'Software Developer' },
-    { name: 'Mike Johnson', avatar: 'MJ', status: 'offline', mutualFriends: 5, profession: 'Photographer' },
-    { name: 'Sarah Miller', avatar: 'SM', status: 'online', mutualFriends: 3, profession: 'Designer' },
-    { name: 'Alex Chen', avatar: 'AC', status: 'away', mutualFriends: 1, profession: 'Data Scientist' },
-    { name: 'Lisa Garcia', avatar: 'LG', status: 'online', mutualFriends: 4, profession: 'Marketing Manager' },
-    { name: 'David Brown', avatar: 'DB', status: 'offline', mutualFriends: 2, profession: 'Engineer' }
-];
-
-const sampleTracks = [
-    { title: 'Digital Dreams', artist: 'ElectroWave', album: 'Future Sounds' },
-    { title: 'Neon Nights', artist: 'SynthMaster', album: 'City Lights' },
-    { title: 'Code Symphony', artist: 'TechBeats', album: 'Binary Rhythms' },
-    { title: 'Virtual Reality', artist: 'CyberTunes', album: 'Digital Age' },
-    { title: 'AI Love Song', artist: 'RoboRomance', album: 'Machine Hearts' }
-];
-
-const sampleMatches = [
-    { name: 'Sarah Miller', avatar: 'SM', age: 26, distance: '2 miles', match: 95, interests: ['Coffee', 'Travel', 'Photography'], bio: 'Love exploring new places and trying different cuisines!' },
-    { name: 'Emma Wilson', avatar: 'EW', age: 24, distance: '5 miles', match: 89, interests: ['Music', 'Art', 'Hiking'], bio: 'Artist by day, music lover by night 🎨🎵' },
-    { name: 'Lisa Garcia', avatar: 'LG', age: 28, distance: '3 miles', match: 92, interests: ['Fitness', 'Cooking', 'Books'], bio: 'Fitness enthusiast and book worm. Balance is key!' },
-    { name: 'Anna Kim', avatar: 'AK', age: 25, distance: '4 miles', match: 87, interests: ['Tech', 'Gaming', 'Movies'], bio: 'Software developer who loves sci-fi and gaming 🎮' }
-];
-
-const sampleMarketplaceItems = [
-    { id: 1, title: 'iPhone 15 Pro', price: 899, condition: 'Like new', seller: 'TechStore', image: '📱', category: 'electronics', description: 'Latest iPhone in excellent condition' },
-    { id: 2, title: 'MacBook Air M2', price: 1299, condition: 'Excellent', seller: 'AppleDeals', image: '💻', category: 'electronics', description: 'Powerful laptop for work and creativity' },
-    { id: 3, title: 'Gaming Chair', price: 299, condition: 'Good', seller: 'FurnitureHub', image: '🪑', category: 'home', description: 'Comfortable ergonomic gaming chair' },
-    { id: 4, title: 'Sneakers', price: 150, condition: 'New', seller: 'ShoeLover', image: '👟', category: 'fashion', description: 'Limited edition designer sneakers' },
-    { id: 5, title: 'Camera Lens', price: 450, condition: 'Excellent', seller: 'PhotoPro', image: '📷', category: 'electronics', description: 'Professional 50mm lens' },
-    { id: 6, title: 'Cookbook', price: 25, condition: 'Good', seller: 'BookWorm', image: '📚', category: 'books', description: 'Delicious recipes from around the world' }
-];
-
-
-// Category and screen mappings
-const categoryScreens = {
-    social: ['home', 'messages', 'profile', 'groups', 'events', 'stories', 'explore', 'search', 'settings'],
-    dating: ['swipe', 'matches', 'preferences', 'chat'],
-    media: ['music', 'live', 'video', 'ar'],
-    extra: ['games', 'marketplace', 'business', 'wallet', 'analytics', 'help']
+// Delete Account Modal State Management
+let deleteAccountState = {
+    currentStep: 1,
+    dataExported: false,
+    confirmationChecked: false,
+    passwordEntered: false,
+    deletionInProgress: false,
+    deletionProgress: 0,
+    deletionStep: '',
+    deletionComplete: false
 };
 
-const subNavItems = {
-    social: [
-        { id: 'home', label: '🏠 Home', icon: '🏠' },
-        { id: 'messages', label: '💬 Messages', icon: '💬' },
-        { id: 'profile', label: '👤 Profile', icon: '👤' },
-        { id: 'groups', label: '👥 Groups', icon: '👥' },
-        { id: 'events', label: '📅 Events', icon: '📅' },
-        { id: 'stories', label: '📱 Stories', icon: '📱' },
-        { id: 'explore', label: '🌟 Explore', icon: '🌟' },
-        { id: 'search', label: '🔍 Search', icon: '🔍' },
-        { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
-    ],
-    dating: [
-        { id: 'swipe', label: '💕 Discover', icon: '💕' },
-        { id: 'matches', label: '💬 Matches', icon: '💬' },
-        { id: 'preferences', label: '⚙️ Preferences', icon: '⚙️' },
-        { id: 'chat', label: '💭 Dating Chat', icon: '💭' }
-    ],
-    media: [
-        { id: 'music', label: '🎵 Music', icon: '🎵' },
-        { id: 'live', label: '📺 Live Stream', icon: '📺' },
-        { id: 'video', label: '📹 Video Calls', icon: '📹' },
-        { id: 'ar', label: '🥽 AR/VR', icon: '🥽' }
-    ],
-    extra: [
-        { id: 'games', label: '🎮 Games', icon: '🎮' },
-        { id: 'marketplace', label: '🛒 Shop', icon: '🛒' },
-        { id: 'business', label: '💼 Business', icon: '💼' },
-        { id: 'wallet', label: '💰 Wallet', icon: '💰' },
-        { id: 'analytics', label: '📊 Analytics', icon: '📊' },
-        { id: 'help', label: '❓ Help', icon: '❓' }
-    ]
-};
+// Delete Account Modal Functionality
+function openDeleteAccountModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'deleteAccountModal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-labelledby', 'deleteAccountTitle');
+    modal.setAttribute('aria-modal', 'true');
+    
+    modal.innerHTML = `
+        <div class="delete-modal-content">
+            <div class="delete-modal-header">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <h2 id="deleteAccountTitle">Delete Account</h2>
+                <p style="margin-top: 0.5rem; opacity: 0.9;">This action cannot be undone</p>
+            </div>
+            
+            <div class="delete-modal-body" id="deleteModalBody">
+                <!-- Step 1: Warning and Information -->
+                <div id="deleteStep1" class="delete-step">
+                    <div class="warning-section">
+                        <h3 style="color: var(--error); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            🚨 Permanent Account Deletion
+                        </h3>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            <strong>Warning:</strong> Deleting your account is permanent and irreversible. Once deleted, you will not be able to recover your account or any of your data.
+                        </p>
+                        <ul style="list-style: none; padding: 0; margin: 1rem 0;">
+                            <li style="margin: 0.5rem 0; color: var(--error);">• Your profile will be completely removed</li>
+                            <li style="margin: 0.5rem 0; color: var(--error);">• All matches and conversations will be deleted</li>
+                            <li style="margin: 0.5rem 0; color: var(--error);">• Your friends will no longer be able to find you</li>
+                            <li style="margin: 0.5rem 0; color: var(--error);">• This action cannot be reversed</li>
+                        </ul>
+                    </div>
 
-// Utility functions
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+                    <h4 style="margin: 2rem 0 1rem;">The following data will be permanently deleted:</h4>
+                    
+                    <div class="data-list">
+                        <div class="data-item">
+                            <div class="data-icon">👤</div>
+                            <div>
+                                <div style="font-weight: 600;">Profile Information</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Name, bio, photos, preferences, and personal details</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">💬</div>
+                            <div>
+                                <div style="font-weight: 600;">Messages & Conversations</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">All chat history, matches, and communications</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">🎵</div>
+                            <div>
+                                <div style="font-weight: 600;">Media Content</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Uploaded photos, videos, music playlists, and shared content</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">👥</div>
+                            <div>
+                                <div style="font-weight: 600;">Social Connections</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Friends, followers, groups, and event participations</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">🎮</div>
+                            <div>
+                                <div style="font-weight: 600;">Gaming & Activity Data</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Game progress, scores, achievements, and activity history</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">💰</div>
+                            <div>
+                                <div style="font-weight: 600;">Wallet & Transactions</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Coin balance, transaction history, and purchase records</div>
+                            </div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-icon">📊</div>
+                            <div>
+                                <div style="font-weight: 600;">Analytics & Business Data</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Performance metrics, business insights, and usage statistics</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="export-section">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">💾</div>
+                        <h4 style="color: var(--success); margin-bottom: 1rem;">Recommended: Download Your Data</h4>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            Before deleting your account, we strongly recommend downloading a copy of your data. 
+                            This includes your posts, messages, photos, and other personal information.
+                        </p>
+                        <button class="btn btn-primary" onclick="downloadUserData()" style="background: var(--success);">
+                            📥 Download My Data
+                        </button>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                            Data export may take a few minutes to prepare
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="closeDeleteModal()" style="margin-right: 1rem;">
+                            Cancel
+                        </button>
+                        <button class="btn btn-error" onclick="proceedToConfirmation()">
+                            Continue with Deletion
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Confirmation and Password Verification -->
+                <div id="deleteStep2" class="delete-step" style="display: none;">
+                    <div class="step-indicator">
+                        <div class="step completed"></div>
+                        <div class="step active"></div>
+                        <div class="step"></div>
+                    </div>
+
+                    <h3 style="margin-bottom: 1.5rem; text-align: center;">Final Confirmation Required</h3>
+                    
+                    <div class="confirmation-section">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="deleteConfirmation" required>
+                            <label for="deleteConfirmation" style="line-height: 1.5; flex: 1;">
+                                <strong>I understand that this action is permanent and irreversible.</strong>
+                                I confirm that I want to permanently delete my ConnectHub account and all associated data. 
+                                I acknowledge that this cannot be undone and I will lose access to all my content, 
+                                connections, and account features forever.
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label" for="deletePassword">
+                                <strong>Enter your password to confirm:</strong>
+                            </label>
+                            <input 
+                                type="password" 
+                                id="deletePassword" 
+                                class="form-input" 
+                                placeholder="Enter your current password" 
+                                required 
+                                autocomplete="current-password"
+                                style="border-color: var(--error);"
+                            >
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;">
+                                Password verification is required for security
+                            </div>
+                        </div>
+
+                        <div id="deleteError" style="display: none; color: var(--error); background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="backToWarning()" style="margin-right: 1rem;">
+                            ← Back
+                        </button>
+                        <button class="btn btn-error" onclick="confirmAccountDeletion()" id="finalDeleteBtn" disabled>
+                            🗑️ Delete My Account Forever
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Deletion Progress -->
+                <div id="deleteStep3" class="delete-step" style="display: none;">
+                    <div class="step-indicator">
+                        <div class="step completed"></div>
+                        <div class="step completed"></div>
+                        <div class="step active"></div>
+                    </div>
+
+                    <div class="delete-progress">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🗑️</div>
+                        <h3>Deleting Your Account...</h3>
+                        <p style="color: var(--text-secondary); margin: 1rem 0;">
+                            Please wait while we permanently remove your account and data.
+                        </p>
+                        
+                        <div class="delete-progress-bar">
+                            <div class="delete-progress-fill" id="deleteProgressFill"></div>
+                        </div>
+                        
+                        <div id="deleteProgressText" style="margin-top: 1rem; color: var(--text-secondary);">
+                            Initializing deletion process...
+                        </div>
+
+                        <div style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted);">
+                            This process may take up to 30 seconds to complete.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    
-    toast.innerHTML = `${icons[type]} ${message}`;
-    document.body.appendChild(toast);
-    
+    document.body.appendChild(modal);
     setTimeout(() => {
-        toast.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => toast.remove(), 300);
+        modal.classList.add('active');
+        const firstFocusable = modal.querySelector('button, input');
+        if (firstFocusable) firstFocusable.focus();
+    }, 50);
+}
+
+// Download user data
+function downloadUserData() {
+    showToast('Preparing your data export...', 'info');
+    showLoading();
+    
+    // Simulate data export process
+    setTimeout(() => {
+        hideLoading();
+        deleteAccountState.dataExported = true;
+        showToast('Data export completed! Download started.', 'success');
+        
+        // Create a mock download
+        const link = document.createElement('a');
+        link.href = 'data:text/plain;charset=utf-8,ConnectHub Data Export\nProfile, Messages, Media, and more...';
+        link.download = 'connecthub-data-export.txt';
+        link.click();
     }, 3000);
 }
 
-function showLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'flex';
-}
-
-function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-function handleKeyPress(event, callback) {
-    if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        callback();
+// Close delete account modal with enhanced cancel flow
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteAccountModal');
+    if (modal) {
+        // Show cancel confirmation with alternatives
+        showCancelConfirmation();
     }
 }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
-}
-
-// Navigation functions
-function updateMainNav() {
-    const mainNav = document.getElementById('mainNav');
-    if (!mainNav) return;
-    
-    if (!isLoggedIn) {
-        mainNav.innerHTML = '';
-        return;
-    }
-
-    const navItems = [
-        { id: 'home', label: '🏠 Home', action: 'goHome()' },
-        { id: 'search', label: '🔍 Search', action: "switchToScreen('social', 'search')" }
-    ];
-
-    const categoryTabs = `
-        <div class="category-nav">
-            <div class="category-tab ${currentCategory === 'social' ? 'active' : ''}" data-category="social" onclick="switchCategory('social')" role="button" tabindex="0">
-                📱 Social
-            </div>
-            <div class="category-tab ${currentCategory === 'dating' ? 'active' : ''}" data-category="dating" onclick="switchCategory('dating')" role="button" tabindex="0">
-                💕 Dating
-            </div>
-            <div class="category-tab ${currentCategory === 'media' ? 'active' : ''}" data-category="media" onclick="switchCategory('media')" role="button" tabindex="0">
-                🎵 Media
-            </div>
-            <div class="category-tab ${currentCategory === 'extra' ? 'active' : ''}" data-category="extra" onclick="switchCategory('extra')" role="button" tabindex="0">
-                🎮 Extra
-            </div>
-        </div>
-    `;
-
-    const notificationBtn = `
-        <div class="nav-item" onclick="toggleNotifications()" role="button" tabindex="0" aria-label="Notifications">
-            🔔 Notifications
-            ${notificationCount > 0 ? '<div class="notification-dot"></div>' : ''}
-        </div>
-    `;
-
-    mainNav.innerHTML = navItems.map(item => 
-        `<div class="nav-item" onclick="${item.action}" role="button" tabindex="0">${item.label}</div>`
-    ).join('') + categoryTabs + notificationBtn;
-}
-
-function updateSubNav() {
-    const subNavContainer = document.getElementById('subNavContainer');
-    if (!subNavContainer) return;
-
-    if (!isLoggedIn || !currentCategory) {
-        subNavContainer.style.display = 'none';
-        return;
-    }
-
-    subNavContainer.style.display = 'block';
-    const subNav = document.getElementById('subNav');
-    if (!subNav) return;
-    
-    const items = subNavItems[currentCategory] || [];
-    
-    subNav.innerHTML = items.map(item => `
-        <div class="sub-nav-item ${item.id === currentScreen ? 'active' : ''}" 
-             onclick="switchToScreen('${currentCategory}', '${item.id}')" role="button" tabindex="0">
-            ${item.label}
-        </div>
-    `).join('');
-}
-
-function goHome() {
-    if (isLoggedIn) {
-        const categorySelection = document.getElementById('categorySelection');
-        if (categorySelection) {
-            categorySelection.classList.add('active');
-            document.querySelectorAll('.category-section').forEach(section => {
-                if (section.id !== 'categorySelection') {
-                    section.classList.remove('active');
-                }
-            });
-        }
-        currentCategory = null;
-        updateMainNav();
-        updateSubNav();
-    } else {
-        location.reload();
-    }
-}
-
-function selectCategory(category) {
-    if (!isLoggedIn) {
-        showToast('Please sign in to access this feature', 'warning');
-        return;
-    }
-    switchCategory(category);
-}
-
-function switchCategory(category) {
-    if (!isLoggedIn) {
-        showToast('Please sign in to access this feature', 'warning');
-        return;
-    }
-
-    currentCategory = category;
-    currentScreen = categoryScreens[category][0];
-
-    // Hide all category sections
-    document.querySelectorAll('.category-section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // Show selected category
-    const categorySection = document.getElementById(`${category}Category`);
-    if (categorySection) {
-        categorySection.classList.add('active');
-        loadCategoryContent(category);
-    }
-    
-    updateMainNav();
-    updateSubNav();
-}
-
-function switchToScreen(category, screen) {
-    if (!isLoggedIn) {
-        showToast('Please sign in first', 'warning');
-        return;
-    }
-
-    if (category !== currentCategory) {
-        switchCategory(category);
-        return;
-    }
-
-    currentScreen = screen;
-    loadScreenContent(category, screen);
-    updateSubNav();
-}
-
-// Content loading functions
-function loadCategoryContent(category) {
-    const categoryElement = document.getElementById(`${category}Category`);
-    if (categoryElement) {
-        categoryElement.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-        
-        const defaultScreen = document.getElementById(`${category}${categoryScreens[category][0].charAt(0).toUpperCase() + categoryScreens[category][0].slice(1)}`);
-        if (defaultScreen) {
-            defaultScreen.classList.add('active');
-        }
-    }
-
-    switch(category) {
-        case 'social':
-            populateSocialHome();
-            break;
-        case 'dating':
-            loadDatingCard();
-            break;
-        case 'media':
-            initializeMusic();
-            break;
-        case 'extra':
-            break;
-    }
-}
-
-function loadScreenContent(category, screen) {
-    const categoryElement = document.getElementById(`${category}Category`);
-    if (categoryElement) {
-        categoryElement.querySelectorAll('.screen').forEach(s => {
-            s.classList.remove('active');
-        });
-        
-        const targetScreen = document.getElementById(`${category}${screen.charAt(0).toUpperCase() + screen.slice(1)}`);
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-            initializeScreenContent(category, screen);
-        }
-    }
-}
-
-function initializeScreenContent(category, screen) {
-    const screenKey = `${category}-${screen}`;
-    
-    switch(screenKey) {
-        case 'social-home':
-            populateSocialHome();
-            break;
-        case 'social-messages':
-            populateConversations();
-            break;
-        case 'social-profile':
-            populateProfileScreen();
-            break;
-        case 'social-search':
-            populateSearchDefaults();
-            break;
-        case 'social-groups':
-            populateGroups();
-            break;
-        case 'social-events':
-            populateEvents();
-            break;
-        case 'social-stories':
-            populateStories();
-            break;
-        case 'dating-swipe':
-            loadDatingCard();
-            break;
-        case 'dating-matches':
-            populateMatches();
-            break;
-        case 'dating-chat':
-            populateDatingChat();
-            break;
-        case 'dating-preferences':
-            populateDatingPreferences();
-            break;
-        case 'media-music':
-            initializeMusic();
-            break;
-        case 'media-video':
-            populateVideoCallData();
-            break;
-        case 'extra-marketplace':
-            populateMarketplace();
-            break;
-        case 'extra-wallet':
-            populateWalletTransactions();
-            break;
-    }
-}
-
-// Social Media Functions
-function populateSocialHome() {
-    const postsContainer = document.getElementById('postsContainer');
-    const suggestedFriends = document.getElementById('suggestedFriends');
-    const activeUsers = document.getElementById('activeUsers');
-
-    if (postsContainer) {
-        postsContainer.innerHTML = samplePosts.map(post => `
-            <article style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; transition: all 0.3s ease;">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${post.avatar}</div>
-                    <div>
-                        <h4>${post.user}</h4>
-                        <div style="color: var(--text-muted); font-size: 0.9rem;">${post.time}</div>
+// Show cancel confirmation with support options
+function showCancelConfirmation() {
+    const cancelModal = document.createElement('div');
+    cancelModal.className = 'modal active';
+    cancelModal.id = 'cancelDeleteModal';
+    cancelModal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💭</div>
+                <h2 style="color: var(--primary); margin-bottom: 1rem;">We're Here to Help</h2>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 2rem;">
+                    Before you go, we want to make sure you have all the support you need. 
+                    Sometimes account issues can be resolved without deletion.
+                </p>
+                
+                <div style="display: grid; gap: 1rem; margin: 2rem 0;">
+                    <button class="btn btn-primary" onclick="contactSupport(); closeCancelModal();">
+                        💬 Talk to Support
+                    </button>
+                    <button class="btn btn-secondary" onclick="showAccountOptions(); closeCancelModal();">
+                        ⚙️ Account Settings
+                    </button>
+                    <button class="btn btn-secondary" onclick="showPrivacyOptions(); closeCancelModal();">
+                        🔒 Privacy Controls
+                    </button>
+                    <button class="btn btn-secondary" onclick="suggestBreak(); closeCancelModal();">
+                        ⏸️ Take a Break Instead
+                    </button>
+                </div>
+                
+                <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Still want to delete your account?
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <button class="btn btn-secondary" onclick="closeCancelModal()">Stay on ConnectHub</button>
+                        <button class="btn btn-error" onclick="closeCancelModal(); setTimeout(openDeleteAccountModal, 300);">Continue Deletion</button>
                     </div>
                 </div>
-                <div style="margin-bottom: 1rem; line-height: 1.6;">${post.content}</div>
-                ${post.image ? `<div style="width: 100%; height: 300px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; cursor: pointer;" role="img" aria-label="Post image">🌟</div>` : ''}
-                <div style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-                    <button class="btn btn-secondary btn-small" onclick="toggleLike(this, ${post.id})" aria-label="Like post">❤️ <span>${post.likes}</span></button>
-                    <button class="btn btn-secondary btn-small" onclick="showComments(${post.id})" aria-label="View comments">💬 <span>${post.comments}</span></button>
-                    <button class="btn btn-secondary btn-small" onclick="sharePost(${post.id})" aria-label="Share post">🔄 <span>${post.shares}</span></button>
-                    <button class="btn btn-secondary btn-small" onclick="sharePost(${post.id})">📤 Share</button>
-                </div>
-            </article>
-        `).join('');
-    }
-
-    if (suggestedFriends) {
-        suggestedFriends.innerHTML = sampleUsers.slice(0, 3).map(user => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${user.avatar}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; font-size: 0.9rem;">${user.name}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.8rem;">${user.mutualFriends} mutual friends</div>
-                </div>
-                <button class="btn btn-primary btn-small" onclick="addFriend('${user.name}')">Add</button>
             </div>
-        `).join('');
-    }
-
-    if (activeUsers) {
-        activeUsers.innerHTML = sampleUsers.filter(user => user.status === 'online').map(user => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0;">
-                <div style="position: relative;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.8rem;" aria-label="User avatar">${user.avatar}</div>
-                    <div style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg-card);" aria-label="Online status"></div>
-                </div>
-                <div style="font-size: 0.9rem;">${user.name}</div>
-            </div>
-        `).join('');
-    }
+        </div>
+    `;
+    
+    document.body.appendChild(cancelModal);
+    
+    // Close original modal
+    const deleteModal = document.getElementById('deleteAccountModal');
+    if (deleteModal) deleteModal.classList.remove('active');
 }
 
-function populateConversations() {
-    const conversationsList = document.getElementById('conversationsList');
-    const sampleConversations = [
-        { user: 'Sarah Miller', avatar: 'SM', lastMessage: 'Hey! How was your day? 😊', time: '2m', unread: true },
-        { user: 'Emma Wilson', avatar: 'EW', lastMessage: 'Thanks for the coffee recommendation!', time: '1h', unread: false },
-        { user: 'Mike Johnson', avatar: 'MJ', lastMessage: 'Are we still on for tomorrow?', time: '3h', unread: false },
-        { user: 'Alex Chen', avatar: 'AC', lastMessage: 'Check out this cool project!', time: '1d', unread: false }
-    ];
-    
-    if (conversationsList) {
-        conversationsList.innerHTML = sampleConversations.map(conv => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s ease; ${conv.unread ? 'background: var(--glass);' : ''}" onclick="openChat('${conv.user}', '${conv.avatar}')" role="button" tabindex="0">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${conv.avatar}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${conv.user}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${conv.lastMessage}</div>
-                </div>
-                <div style="color: var(--text-muted); font-size: 0.8rem;">${conv.time}</div>
-                ${conv.unread ? '<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;" aria-label="Unread message"></div>' : ''}
-            </div>
-        `).join('');
+// Close cancel modal
+function closeCancelModal() {
+    const modal = document.getElementById('cancelDeleteModal');
+    if (modal) {
+        modal.remove();
     }
+    
+    // Also close delete modal
+    const deleteModal = document.getElementById('deleteAccountModal');
+    if (deleteModal) {
+        deleteModal.classList.remove('active');
+    }
+    resetDeleteAccountModal();
 }
 
-function populateProfileScreen() {
-    const profileContainer = document.getElementById('socialProfile');
+// Enhanced proceed to confirmation with cooling-off period
+function proceedToConfirmation() {
+    // Check if user exported data
+    if (!deleteAccountState.dataExported) {
+        showDataExportReminder();
+        return;
+    }
     
-    if (profileContainer) {
-        profileContainer.innerHTML = `
-            <div style="background: var(--bg-card); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+    // Show cooling-off period warning
+    showCoolingOffWarning();
+}
+
+// Show data export reminder
+function showDataExportReminder() {
+    const reminderModal = document.createElement('div');
+    reminderModal.className = 'modal active';
+    reminderModal.id = 'dataReminderModal';
+    reminderModal.innerHTML = `
+        <div class="modal-content" style="max-width: 550px;">
+            <div style="padding: 2rem;">
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;">JD</div>
-                    <h2>John Doe</h2>
-                    <p style="color: var(--text-secondary);">Software Developer • ConnectHub Member</p>
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📥</div>
+                    <h2 style="color: var(--warning);">Don't Lose Your Memories</h2>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem;">🎨 Profile Tools (10 interfaces)</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button class="btn btn-primary btn-small" onclick="showAdvancedProfileEditor()">✏️ Advanced Profile Editor</button>
-                            <button class="btn btn-primary btn-small" onclick="showPhotoEditor()">📷 Photo Editor & Filters</button>
-                            <button class="btn btn-primary btn-small" onclick="showPrivacyControlPanel()">🔒 Privacy Control Panel</button>
-                            <button class="btn btn-primary btn-small" onclick="showAchievementsGallery()">🏆 Achievements Gallery</button>
-                            <button class="btn btn-primary btn-small" onclick="showConnectionsManager()">👥 Connections Manager</button>
-                        </div>
-                    </div>
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 style="color: var(--warning); margin-bottom: 1rem;">⚠️ Important Reminder</h3>
+                    <p style="line-height: 1.6; margin-bottom: 1rem;">
+                        You haven't downloaded your data yet. Once your account is deleted, you'll permanently lose:
+                    </p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">📸 All your photos and videos</li>
+                        <li style="margin: 0.5rem 0;">💬 Conversations and messages</li>
+                        <li style="margin: 0.5rem 0;">👥 Your connections and matches</li>
+                        <li style="margin: 0.5rem 0;">📊 Your activity and achievements</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center;">
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Take 3 minutes to save your memories. It's free and might be important to you later.
+                    </p>
                     
-                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem;">🔍 Search Tools (5 interfaces)</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button class="btn btn-secondary btn-small" onclick="showAdvancedSearchFilters()">🎯 Advanced Search Filters</button>
-                            <button class="btn btn-secondary btn-small" onclick="showSearchResultsCustomizer()">⚙️ Search Results Customizer</button>
-                            <button class="btn btn-secondary btn-small" onclick="showSavedSearchesManager()">💾 Saved Searches Manager</button>
-                            <button class="btn btn-secondary btn-small" onclick="showSearchHistoryViewer()">📜 Search History Viewer</button>
-                            <button class="btn btn-secondary btn-small" onclick="showRealTimeSearchSuggestions()">⚡ Real-time Search Suggestions</button>
-                        </div>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="downloadUserData(); closeDataReminder();">
+                            📥 Download My Data First
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeDataReminder();">
+                            ← Go Back
+                        </button>
+                        <button class="btn" style="background: rgba(239, 68, 68, 0.8); color: white;" onclick="proceedWithoutData();">
+                            Continue Without Data
+                        </button>
                     </div>
-                    
-                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem;">👥 Groups Tools (7 interfaces)</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button class="btn btn-success btn-small" onclick="showGroupCreationWizard()">🔧 Group Creation Wizard</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupMembersManager()">👥 Group Members Manager</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupDiscussionBoard()">💬 Group Discussion Board</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupEventsCalendar()">📅 Group Events Calendar</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupSettingsPanel()">⚙️ Group Settings Panel</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupAnalyticsDashboard()">📊 Group Analytics Dashboard</button>
-                            <button class="btn btn-success btn-small" onclick="showGroupResourceLibrary()">📚 Group Resource Library</button>
-                        </div>
-                    </div>
-                    
-                    <div style="background: var(--glass); padding: 1.5rem; border-radius: 12px;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem;">📅 Events Tools (5 interfaces)</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button class="btn btn-warning btn-small" onclick="showEventCreationForm()">🔧 Event Creation Form</button>
-                            <button class="btn btn-warning btn-small" onclick="showEventDetailsView()">📝 Event Details View</button>
-                            <button class="btn btn-warning btn-small" onclick="showEventCheckIn()">✅ Event Check-in System</button>
-                            <button class="btn btn-warning btn-small" onclick="showEventPhotoGallery()">📸 Event Photo Gallery</button>
-                            <button class="btn btn-warning btn-small" onclick="showEventFeedbackForm()">📝 Event Feedback Form</button>
-                        </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(reminderModal);
+}
+
+// Close data reminder modal
+function closeDataReminder() {
+    const modal = document.getElementById('dataReminderModal');
+    if (modal) modal.remove();
+}
+
+// Proceed without downloading data
+function proceedWithoutData() {
+    closeDataReminder();
+    
+    const finalWarning = confirm(
+        "FINAL WARNING: You are about to permanently delete your account WITHOUT saving your data.\n\n" +
+        "This means you will lose:\n" +
+        "• All photos, videos, and media\n" +
+        "• All messages and conversations\n" +
+        "• All connections and matches\n" +
+        "• All posts and memories\n\n" +
+        "Are you absolutely certain you want to continue without downloading your data?"
+    );
+    
+    if (finalWarning) {
+        showCoolingOffWarning();
+    }
+}
+
+// Show cooling-off period warning
+function showCoolingOffWarning() {
+    const coolingModal = document.createElement('div');
+    coolingModal.className = 'modal active';
+    coolingModal.id = 'coolingOffModal';
+    coolingModal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="padding: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                <h2 style="color: var(--error); margin-bottom: 1rem;">Take a Moment</h2>
+                
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <p style="line-height: 1.6; margin-bottom: 1rem;">
+                        Account deletion is permanent and cannot be undone. We recommend waiting 24 hours before making this decision.
+                    </p>
+                    <p style="font-weight: 600; color: var(--error);">
+                        Are you sure this is the right choice for you right now?
+                    </p>
+                </div>
+                
+                <div style="margin: 1.5rem 0;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Common reasons people reconsider:
+                    </p>
+                    <div style="display: grid; gap: 0.5rem; margin-top: 1rem; text-align: left;">
+                        <div style="font-size: 0.9rem;">• Made connections they'd miss</div>
+                        <div style="font-size: 0.9rem;">• Have valuable memories saved</div>
+                        <div style="font-size: 0.9rem;">• Temporary frustration that passes</div>
+                        <div style="font-size: 0.9rem;">• Privacy concerns that can be fixed</div>
                     </div>
                 </div>
                 
-                <div style="background: var(--primary); color: white; padding: 1.5rem; border-radius: 12px; text-align: center;">
-                    <h3 style="margin-bottom: 1rem;">🎉 47 Advanced UI Interfaces Available!</h3>
-                    <p>Click any button above to explore the detailed, interactive user interfaces. Each interface includes advanced features like photo editing, privacy controls, real-time search, group management, event planning, and much more!</p>
-                    <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">✨ Photo Editing</span>
-                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">🔒 Privacy Controls</span>
-                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">📊 Analytics</span>
-                        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">⚡ Real-time Features</span>
-                    </div>
+                <div id="coolingTimer" style="background: var(--glass); border-radius: 8px; padding: 1rem; margin: 1.5rem 0;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Cooling-off Period</div>
+                    <div id="timerDisplay" style="font-size: 1.5rem; color: var(--primary);">0:30</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Please wait 30 seconds before continuing</div>
                 </div>
-            </div>
-        `;
-    }
-}
-
-function populateSearchDefaults() {
-    const trendingTopics = document.getElementById('trendingTopics');
-    const suggestedPeople = document.getElementById('suggestedPeople');
-
-    if (trendingTopics) {
-        trendingTopics.innerHTML = `
-            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer; margin-bottom: 1rem;" onclick="searchTrending('ConnectHub')" role="button" tabindex="0">
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">#ConnectHub</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">24.5K posts</div>
-            </div>
-            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer; margin-bottom: 1rem;" onclick="searchTrending('AITech')" role="button" tabindex="0">
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">#AITech</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">15.2K posts</div>
-            </div>
-            <div style="padding: 1rem; background: var(--glass); border-radius: 12px; cursor: pointer;" onclick="searchTrending('SocialMedia')" role="button" tabindex="0">
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">#SocialMedia</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">12.1K posts</div>
-            </div>
-        `;
-    }
-
-    if (suggestedPeople) {
-        suggestedPeople.innerHTML = sampleUsers.slice(0, 3).map(user => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--glass); border-radius: 12px; margin-bottom: 1rem;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${user.avatar}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; font-size: 0.9rem;">${user.name}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.8rem;">${user.profession}</div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="closeCoolingModal()">
+                        💙 Keep My Account
+                    </button>
+                    <button class="btn btn-error" id="proceedAfterCooling" disabled onclick="proceedAfterCoolingOff()">
+                        🗑️ Still Delete Account
+                    </button>
                 </div>
-                <button class="btn btn-primary btn-small" onclick="followUser('${user.name}')">Follow</button>
-            </div>
-        `).join('');
-    }
-}
-
-// Enhanced Groups Data Structure
-const sampleGroups = [
-    {
-        id: 1,
-        name: 'Tech Innovators Hub',
-        description: 'A community for developers, designers, and tech enthusiasts to share ideas and collaborate on projects.',
-        members: 2847,
-        category: 'Technology',
-        type: 'public',
-        activityLevel: 'very-active',
-        location: 'Global/Online',
-        tags: ['Programming', 'AI', 'Startups', 'Innovation'],
-        recentActivity: '2 minutes ago',
-        image: '💻',
-        isJoined: false,
-        privacy: 'public'
-    },
-    {
-        id: 2,
-        name: 'Photography Masters',
-        description: 'Share your best shots, get feedback, and learn from professional photographers.',
-        members: 1523,
-        category: 'Creative',
-        type: 'public',
-        activityLevel: 'active',
-        location: 'Worldwide',
-        tags: ['Photography', 'Art', 'Portfolio', 'Learning'],
-        recentActivity: '15 minutes ago',
-        image: '📸',
-        isJoined: true,
-        privacy: 'public'
-    },
-    {
-        id: 3,
-        name: 'Fitness & Wellness',
-        description: 'Motivation, workout tips, and healthy lifestyle discussions for fitness enthusiasts.',
-        members: 3241,
-        category: 'Health & Fitness',
-        type: 'public',
-        activityLevel: 'very-active',
-        location: 'Local & Online',
-        tags: ['Fitness', 'Nutrition', 'Motivation', 'Health'],
-        recentActivity: '5 minutes ago',
-        image: '💪',
-        isJoined: false,
-        privacy: 'public'
-    },
-    {
-        id: 4,
-        name: 'Book Club Elite',
-        description: 'Monthly book discussions, author meetups, and literary analysis for serious readers.',
-        members: 892,
-        category: 'Education',
-        type: 'private',
-        activityLevel: 'moderate',
-        location: 'New York City',
-        tags: ['Books', 'Literature', 'Discussion', 'Reading'],
-        recentActivity: '1 hour ago',
-        image: '📚',
-        isJoined: false,
-        privacy: 'private'
-    },
-    {
-        id: 5,
-        name: 'Startup Founders Network',
-        description: 'Connect with fellow entrepreneurs, share experiences, and find potential co-founders.',
-        members: 1876,
-        category: 'Business',
-        type: 'private',
-        activityLevel: 'active',
-        location: 'San Francisco Bay Area',
-        tags: ['Entrepreneurship', 'Networking', 'Business', 'Funding'],
-        recentActivity: '30 minutes ago',
-        image: '🚀',
-        isJoined: false,
-        privacy: 'private'
-    },
-    {
-        id: 6,
-        name: 'Gaming Legends',
-        description: 'Competitive gaming, tournament announcements, and strategy discussions.',
-        members: 4532,
-        category: 'Gaming',
-        type: 'public',
-        activityLevel: 'very-active',
-        location: 'Global',
-        tags: ['Gaming', 'Esports', 'Tournaments', 'Strategy'],
-        recentActivity: '1 minute ago',
-        image: '🎮',
-        isJoined: true,
-        privacy: 'public'
-    },
-    {
-        id: 7,
-        name: 'Cooking Enthusiasts',
-        description: 'Share recipes, cooking tips, and culinary adventures with food lovers.',
-        members: 2156,
-        category: 'Food & Cooking',
-        type: 'public',
-        activityLevel: 'active',
-        location: 'Worldwide',
-        tags: ['Cooking', 'Recipes', 'Food', 'Culinary'],
-        recentActivity: '20 minutes ago',
-        image: '👨‍🍳',
-        isJoined: false,
-        privacy: 'public'
-    },
-    {
-        id: 8,
-        name: 'Travel Adventurers',
-        description: 'Share travel experiences, destination recommendations, and find travel buddies.',
-        members: 3689,
-        category: 'Travel',
-        type: 'public',
-        activityLevel: 'active',
-        location: 'Global',
-        tags: ['Travel', 'Adventure', 'Destinations', 'Culture'],
-        recentActivity: '45 minutes ago',
-        image: '✈️',
-        isJoined: false,
-        privacy: 'public'
-    },
-    {
-        id: 9,
-        name: 'Music Production Lab',
-        description: 'Collaborate on tracks, share production techniques, and discover new talent.',
-        members: 1434,
-        category: 'Music',
-        type: 'public',
-        activityLevel: 'moderate',
-        location: 'Los Angeles',
-        tags: ['Music', 'Production', 'Collaboration', 'Audio'],
-        recentActivity: '2 hours ago',
-        image: '🎵',
-        isJoined: false,
-        privacy: 'public'
-    },
-    {
-        id: 10,
-        name: 'Digital Marketing Pros',
-        description: 'Latest trends, strategies, and tools for digital marketing professionals.',
-        members: 2987,
-        category: 'Marketing',
-        type: 'private',
-        activityLevel: 'active',
-        location: 'Remote',
-        tags: ['Marketing', 'Digital', 'Strategy', 'Analytics'],
-        recentActivity: '10 minutes ago',
-        image: '📊',
-        isJoined: false,
-        privacy: 'private'
-    }
-];
-
-// Groups Dashboard State Management
-let groupsSearchState = {
-    filteredGroups: [...sampleGroups],
-    searchQuery: '',
-    selectedCategory: 'all',
-    selectedType: 'all',
-    selectedActivity: 'all',
-    sortBy: 'members'
-};
-
-function populateGroups() {
-    const groupsList = document.getElementById('groupsList');
-
-    if (groupsList) {
-        // Add Create Group button at the top
-        const createGroupButton = `
-            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; text-align: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.3);" onclick="showGroupCreationWizard()" role="button" tabindex="0">
-                <div style="font-size: 4rem; margin-bottom: 1rem;" role="img" aria-label="Create Group">➕</div>
-                <h3 style="color: white; margin-bottom: 1rem;">Create New Group</h3>
-                <p style="color: rgba(255,255,255,0.9); margin: 1rem 0; font-size: 0.9rem;">Start your own community with our professional group creation tools</p>
-                <div class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); margin-top: 1rem;">
-                    <i class="fas fa-users-plus"></i> Create Group
-                </div>
-            </div>
-        `;
-
-        groupsList.innerHTML = createGroupButton + sampleGroups.map(group => `
-            <div class="card" role="listitem">
-                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group">${group.image}</div>
-                <h3>${group.name}</h3>
-                <p style="color: var(--text-secondary); margin: 1rem 0;">${group.description}</p>
-                <div style="display: flex; justify-content: space-between; margin: 1rem 0;">
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">${group.members.toLocaleString()} members</span>
-                    <span style="color: var(--primary); font-size: 0.9rem;">${group.category}</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                    ${group.tags.slice(0, 2).map(tag => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem;">${tag}</span>`).join('')}
-                </div>
-                <button class="btn ${group.isJoined ? 'btn-secondary' : 'btn-primary'}" onclick="${group.isJoined ? `leaveGroup(${group.id})` : `joinGroup(${group.id})`}">
-                    ${group.isJoined ? '✓ Joined' : (group.privacy === 'private' ? '🔑 Request to Join' : '+ Join Group')}
-                </button>
-            </div>
-        `).join('');
-    }
-}
-
-// Main Groups Search Dashboard Function
-function showGroupsSearchDashboard() {
-    const searchResults = document.getElementById('searchResults');
-    const searchDefault = document.getElementById('searchDefault');
-    
-    if (searchDefault) searchDefault.style.display = 'none';
-    if (searchResults) {
-        searchResults.style.display = 'block';
-        searchResults.innerHTML = createGroupsSearchDashboard();
-        
-        // Initialize dashboard functionality
-        initializeGroupsSearch();
-        displayGroupsResults();
-    }
-}
-
-// Create Groups Search Dashboard HTML
-function createGroupsSearchDashboard() {
-    return `
-        <div id="groupsSearchDashboard">
-            <!-- Header Section -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div>
-                    <h2 style="margin-bottom: 0.5rem;">🔍 Find Groups</h2>
-                    <p style="color: var(--text-secondary); margin: 0;">Discover communities that match your interests</p>
-                </div>
-                <button class="btn btn-primary" onclick="showCreateGroupModal()">
-                    + Create Group
-                </button>
-            </div>
-
-            <!-- Search and Filters Section -->
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem;">
-                <!-- Search Input -->
-                <div style="margin-bottom: 1.5rem;">
-                    <label for="groupSearchInput" class="sr-only">Search groups</label>
-                    <input 
-                        type="text" 
-                        id="groupSearchInput" 
-                        placeholder="Search groups by name, description, or tags..." 
-                        style="width: 100%; padding: 1rem 1.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 25px; color: var(--text-primary); font-size: 1rem;" 
-                        onkeyup="handleGroupsSearch(this.value)"
-                    >
-                </div>
-
-                <!-- Filter Controls -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                    <!-- Category Filter -->
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Category</label>
-                        <select id="categoryFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
-                            <option value="all">All Categories</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Creative">Creative</option>
-                            <option value="Health & Fitness">Health & Fitness</option>
-                            <option value="Education">Education</option>
-                            <option value="Business">Business</option>
-                            <option value="Gaming">Gaming</option>
-                            <option value="Food & Cooking">Food & Cooking</option>
-                            <option value="Travel">Travel</option>
-                            <option value="Music">Music</option>
-                            <option value="Marketing">Marketing</option>
-                        </select>
-                    </div>
-
-                    <!-- Type Filter -->
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Privacy</label>
-                        <select id="typeFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
-                            <option value="all">All Groups</option>
-                            <option value="public">Public</option>
-                            <option value="private">Private</option>
-                        </select>
-                    </div>
-
-                    <!-- Activity Filter -->
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Activity Level</label>
-                        <select id="activityFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsFilter()">
-                            <option value="all">All Activity Levels</option>
-                            <option value="very-active">Very Active</option>
-                            <option value="active">Active</option>
-                            <option value="moderate">Moderate</option>
-                        </select>
-                    </div>
-
-                    <!-- Sort Options -->
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Sort By</label>
-                        <select id="sortFilter" style="width: 100%; padding: 0.5rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);" onchange="handleGroupsSort()">
-                            <option value="members">Most Members</option>
-                            <option value="activity">Most Active</option>
-                            <option value="name">Alphabetical</option>
-                            <option value="recent">Recently Active</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Quick Filter Buttons -->
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-secondary btn-small quick-filter active" data-filter="all" onclick="applyQuickFilter('all')">All Groups</button>
-                    <button class="btn btn-secondary btn-small quick-filter" data-filter="trending" onclick="applyQuickFilter('trending')">Trending</button>
-                    <button class="btn btn-secondary btn-small quick-filter" data-filter="local" onclick="applyQuickFilter('local')">Local</button>
-                    <button class="btn btn-secondary btn-small quick-filter" data-filter="new" onclick="applyQuickFilter('new')">New Groups</button>
-                    <button class="btn btn-secondary btn-small quick-filter" data-filter="recommended" onclick="applyQuickFilter('recommended')">Recommended</button>
-                </div>
-            </div>
-
-            <!-- Results Summary -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div id="resultsCount" style="color: var(--text-secondary);">
-                    Showing ${sampleGroups.length} groups
-                </div>
-                <button class="btn btn-secondary btn-small" onclick="toggleGroupsView()" id="viewToggle">
-                    📋 List View
-                </button>
-            </div>
-
-            <!-- Groups Results Container -->
-            <div id="groupsResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
-                <!-- Groups will be populated here -->
-            </div>
-
-            <!-- Load More Button -->
-            <div style="text-align: center; margin-top: 2rem;">
-                <button class="btn btn-secondary" onclick="loadMoreGroups()" id="loadMoreBtn">
-                    Load More Groups
-                </button>
             </div>
         </div>
     `;
+    
+    document.body.appendChild(coolingModal);
+    startCoolingTimer();
 }
 
-// Initialize Groups Search Functionality
-function initializeGroupsSearch() {
-    // Reset search state
-    groupsSearchState = {
-        filteredGroups: [...sampleGroups],
-        searchQuery: '',
-        selectedCategory: 'all',
-        selectedType: 'all',
-        selectedActivity: 'all',
-        sortBy: 'members'
-    };
-}
-
-// Handle Groups Search Input
-function handleGroupsSearch(query) {
-    groupsSearchState.searchQuery = query.toLowerCase();
-    filterAndDisplayGroups();
-}
-
-// Handle Groups Filter Changes
-function handleGroupsFilter() {
-    const categoryFilter = document.getElementById('categoryFilter');
-    const typeFilter = document.getElementById('typeFilter');
-    const activityFilter = document.getElementById('activityFilter');
+// Start cooling-off timer
+function startCoolingTimer() {
+    let timeLeft = 30;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const proceedBtn = document.getElementById('proceedAfterCooling');
     
-    if (categoryFilter) groupsSearchState.selectedCategory = categoryFilter.value;
-    if (typeFilter) groupsSearchState.selectedType = typeFilter.value;
-    if (activityFilter) groupsSearchState.selectedActivity = activityFilter.value;
-    
-    filterAndDisplayGroups();
-}
-
-// Handle Groups Sort Changes
-function handleGroupsSort() {
-    const sortFilter = document.getElementById('sortFilter');
-    if (sortFilter) {
-        groupsSearchState.sortBy = sortFilter.value;
-        filterAndDisplayGroups();
-    }
-}
-
-// Apply Quick Filters
-function applyQuickFilter(filterType) {
-    // Update active state
-    document.querySelectorAll('.quick-filter').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-filter="${filterType}"]`).classList.add('active');
-    
-    let filteredGroups = [...sampleGroups];
-    
-    switch(filterType) {
-        case 'trending':
-            filteredGroups = sampleGroups.filter(group => 
-                group.activityLevel === 'very-active' && group.members > 2000
-            );
-            break;
-        case 'local':
-            filteredGroups = sampleGroups.filter(group => 
-                group.location !== 'Global' && group.location !== 'Worldwide'
-            );
-            break;
-        case 'new':
-            filteredGroups = sampleGroups.filter(group => group.members < 1000);
-            break;
-        case 'recommended':
-            filteredGroups = sampleGroups.filter(group => 
-                ['Technology', 'Gaming', 'Creative'].includes(group.category)
-            );
-            break;
-        default:
-            filteredGroups = [...sampleGroups];
-    }
-    
-    groupsSearchState.filteredGroups = filteredGroups;
-    displayGroupsResults();
-}
-
-// Filter and Display Groups
-function filterAndDisplayGroups() {
-    let filteredGroups = [...sampleGroups];
-    
-    // Apply search filter
-    if (groupsSearchState.searchQuery) {
-        filteredGroups = filteredGroups.filter(group => 
-            group.name.toLowerCase().includes(groupsSearchState.searchQuery) ||
-            group.description.toLowerCase().includes(groupsSearchState.searchQuery) ||
-            group.tags.some(tag => tag.toLowerCase().includes(groupsSearchState.searchQuery)) ||
-            group.category.toLowerCase().includes(groupsSearchState.searchQuery)
-        );
-    }
-    
-    // Apply category filter
-    if (groupsSearchState.selectedCategory !== 'all') {
-        filteredGroups = filteredGroups.filter(group => 
-            group.category === groupsSearchState.selectedCategory
-        );
-    }
-    
-    // Apply type filter
-    if (groupsSearchState.selectedType !== 'all') {
-        filteredGroups = filteredGroups.filter(group => 
-            group.privacy === groupsSearchState.selectedType
-        );
-    }
-    
-    // Apply activity filter
-    if (groupsSearchState.selectedActivity !== 'all') {
-        filteredGroups = filteredGroups.filter(group => 
-            group.activityLevel === groupsSearchState.selectedActivity
-        );
-    }
-    
-    // Apply sorting
-    filteredGroups.sort((a, b) => {
-        switch(groupsSearchState.sortBy) {
-            case 'members':
-                return b.members - a.members;
-            case 'activity':
-                const activityOrder = { 'very-active': 3, 'active': 2, 'moderate': 1 };
-                return activityOrder[b.activityLevel] - activityOrder[a.activityLevel];
-            case 'name':
-                return a.name.localeCompare(b.name);
-            case 'recent':
-                return new Date(b.recentActivity) - new Date(a.recentActivity);
-            default:
-                return 0;
-        }
-    });
-    
-    groupsSearchState.filteredGroups = filteredGroups;
-    displayGroupsResults();
-}
-
-// Display Groups Results
-function displayGroupsResults() {
-    const groupsResults = document.getElementById('groupsResults');
-    const resultsCount = document.getElementById('resultsCount');
-    
-    if (!groupsResults) return;
-    
-    // Update results count
-    if (resultsCount) {
-        resultsCount.textContent = `Showing ${groupsSearchState.filteredGroups.length} groups`;
-    }
-    
-    if (groupsSearchState.filteredGroups.length === 0) {
-        groupsResults.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-                <h3>No groups found</h3>
-                <p>Try adjusting your search criteria or create a new group!</p>
-                <button class="btn btn-primary" onclick="showCreateGroupModal()" style="margin-top: 1rem;">
-                    Create New Group
-                </button>
-            </div>
-        `;
-        return;
-    }
-    
-    // Generate group cards
-    groupsResults.innerHTML = groupsSearchState.filteredGroups.map(group => createGroupCard(group)).join('');
-}
-
-// Create Individual Group Card
-function createGroupCard(group) {
-    const activityColors = {
-        'very-active': 'var(--success)',
-        'active': 'var(--warning)',
-        'moderate': 'var(--text-secondary)'
-    };
-    
-    const activityLabels = {
-        'very-active': 'Very Active',
-        'active': 'Active',
-        'moderate': 'Moderate'
-    };
-    
-    return `
-        <div class="card group-card" style="position: relative; cursor: pointer; transition: all 0.3s ease;" onclick="viewGroupDetails(${group.id})">
-            <!-- Privacy Badge -->
-            <div style="position: absolute; top: 1rem; right: 1rem; background: ${group.privacy === 'private' ? 'var(--warning)' : 'var(--success)'}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
-                ${group.privacy === 'private' ? '🔒 Private' : '🌐 Public'}
-            </div>
-            
-            <!-- Group Image/Icon -->
-            <div style="font-size: 4rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Group icon">
-                ${group.image}
-            </div>
-            
-            <!-- Group Info -->
-            <h3 style="margin-bottom: 0.5rem; line-height: 1.3;">${group.name}</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                ${group.description}
-            </p>
-            
-            <!-- Group Stats -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--glass); border-radius: 12px;">
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: var(--primary);">${group.members.toLocaleString()}</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Members</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: ${activityColors[group.activityLevel]};">●</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">${activityLabels[group.activityLevel]}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: var(--accent);">${group.category}</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Category</div>
-                </div>
-            </div>
-            
-            <!-- Tags -->
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                ${group.tags.slice(0, 3).map(tag => `
-                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem; color: var(--text-secondary);">
-                        ${tag}
-                    </span>
-                `).join('')}
-                ${group.tags.length > 3 ? `<span style="color: var(--text-muted); font-size: 0.8rem;">+${group.tags.length - 3} more</span>` : ''}
-            </div>
-            
-            <!-- Recent Activity -->
-            <div style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.8rem;">
-                📍 ${group.location} • Last active ${group.recentActivity}
-            </div>
-            
-            <!-- Action Button -->
-            <button class="btn ${group.isJoined ? 'btn-secondary' : 'btn-primary'}" 
-                    onclick="event.stopPropagation(); ${group.isJoined ? `leaveGroup(${group.id})` : `joinGroup(${group.id})`}" 
-                    style="width: 100%;">
-                ${group.isJoined ? '✓ Joined' : (group.privacy === 'private' ? '🔑 Request to Join' : '+ Join Group')}
-            </button>
-        </div>
-    `;
-}
-
-function populateEvents() {
-    const eventsList = document.getElementById('eventsList');
-    const sampleEvents = [
-        { name: 'Tech Meetup 2024', date: 'Dec 15, 2024', location: 'Downtown Convention Center', attendees: 234 },
-        { name: 'Photography Workshop', date: 'Dec 20, 2024', location: 'Art Studio', attendees: 45 },
-        { name: 'Book Club Meeting', date: 'Dec 25, 2024', location: 'Central Library', attendees: 23 },
-        { name: 'Startup Pitch Night', date: 'Dec 28, 2024', location: 'Innovation Hub', attendees: 156 },
-        { name: 'Music Festival', date: 'Jan 5, 2025', location: 'City Park', attendees: 1200 },
-        { name: 'Hiking Adventure', date: 'Jan 10, 2025', location: 'Mountain Trail', attendees: 67 }
-    ];
-
-    if (eventsList) {
-        // Add Create Event button at the top
-        const createEventButton = `
-            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; text-align: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.3);" onclick="showEventCreationForm()" role="button" tabindex="0">
-                <div style="font-size: 4rem; margin-bottom: 1rem;" role="img" aria-label="Create Event">➕</div>
-                <h3 style="color: white; margin-bottom: 1rem;">Create New Event</h3>
-                <p style="color: rgba(255,255,255,0.9); margin: 1rem 0; font-size: 0.9rem;">Start planning your next amazing event with our professional event creation tools</p>
-                <div class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); margin-top: 1rem;">
-                    <i class="fas fa-calendar-plus"></i> Create Event
-                </div>
-            </div>
-        `;
-
-        eventsList.innerHTML = createEventButton + sampleEvents.map(event => `
-            <div class="card" role="listitem">
-                <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;" role="img" aria-label="Event">📅</div>
-                <h3>${event.name}</h3>
-                <p style="color: var(--text-secondary); margin: 0.5rem 0;">${event.date}</p>
-                <p style="color: var(--text-muted); margin: 1rem 0;">${event.location}</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">${event.attendees} attending</p>
-                <button class="btn btn-primary" onclick="joinEvent('${event.name}')">Join Event</button>
-            </div>
-        `).join('');
-    }
-}
-
-function populateStories() {
-    const storiesList = document.getElementById('storiesList');
-    const sampleStories = [
-        { user: 'Your Story', avatar: 'JD', type: 'add' },
-        { user: 'Emma Wilson', avatar: 'EW', type: 'story' },
-        { user: 'Mike Johnson', avatar: 'MJ', type: 'story' },
-        { user: 'Sarah Miller', avatar: 'SM', type: 'story' },
-        { user: 'Alex Chen', avatar: 'AC', type: 'story' }
-    ];
-
-    if (storiesList) {
-        storiesList.innerHTML = sampleStories.map(story => `
-            <div style="flex-shrink: 0; text-align: center;" role="button" tabindex="0">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: ${story.type === 'add' ? 'var(--glass)' : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)'}; border: ${story.type === 'story' ? '3px solid var(--primary)' : '2px dashed var(--glass-border)'}; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-bottom: 0.5rem; cursor: pointer;" aria-label="${story.type === 'add' ? 'Add story' : story.user + ' story'}" onclick="${story.type === 'add' ? 'createStory()' : `viewStory('${story.user}')`}">
-                    ${story.type === 'add' ? '+' : story.avatar}
-                </div>
-                <div class="story-username" style="font-size: 0.8rem; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: var(--text-primary); transition: color 0.2s ease;" onclick="${story.type === 'add' ? '' : `viewStory('${story.user}')`}" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">${story.user}</div>
-            </div>
-        `).join('');
-    }
-}
-
-// Dating Functions
-function loadDatingCard() {
-    const cardContent = document.getElementById('datingCardContent');
-    if (!cardContent) return;
-    
-    const currentMatch = sampleMatches[Math.floor(Math.random() * sampleMatches.length)];
-    
-    cardContent.innerHTML = `
-        <div style="width: 100%; height: 70%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: white;" role="img" aria-label="Profile photo">💕</div>
-        <div style="padding: 1.5rem;">
-            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">${currentMatch.name}, ${currentMatch.age}</div>
-            <div style="color: var(--text-secondary); margin-bottom: 1rem;">📍 ${currentMatch.distance} away • ${currentMatch.match}% match</div>
-            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">"${currentMatch.bio}"</div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                ${currentMatch.interests.map(interest => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">${interest}</span>`).join('')}
-            </div>
-        </div>
-    `;
-
-    // Add comprehensive dating UI test buttons
-    addDatingTestButtons();
-}
-
-function addDatingTestButtons() {
-    const datingSwipe = document.getElementById('datingSwipe');
-    if (!datingSwipe || document.getElementById('datingTestButtons')) return;
-
-    const testButtonsContainer = document.createElement('div');
-    testButtonsContainer.id = 'datingTestButtons';
-    testButtonsContainer.style.cssText = 'margin-top: 2rem; padding: 1.5rem; background: var(--glass); border-radius: 12px;';
-    testButtonsContainer.innerHTML = `
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">💕 Advanced Dating Features (3 Missing UIs)</h3>
-        <p style="margin-bottom: 1rem; color: var(--text-secondary);">Test the comprehensive dating UI interfaces that were missing:</p>
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <button class="btn btn-primary btn-small" onclick="showDatingProfileSetupWizard()">
-                🔧 Dating Profile Setup Wizard
-            </button>
-            <button class="btn btn-primary btn-small" onclick="showSuperLikeBoostFeatures()">
-                ⭐ Super Like/Boost Features
-            </button>
-            <button class="btn btn-primary btn-small" onclick="showDateSchedulingInterface()">
-                📅 Date Scheduling Interface
-            </button>
-        </div>
-        <div style="margin-top: 1rem; padding: 1rem; background: var(--primary); color: white; border-radius: 8px; text-align: center;">
-            <strong>✅ All 3 Critical Dating UIs Implemented!</strong>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Complete profile setup, premium features, and advanced date scheduling</p>
-        </div>
-    `;
-
-    datingSwipe.appendChild(testButtonsContainer);
-}
-
-function populateMatches() {
-    const matchesList = document.getElementById('matchesList');
-    
-    if (matchesList) {
-        matchesList.innerHTML = sampleMatches.map(match => `
-            <div class="card match-profile-trigger" style="text-align: center; cursor: pointer;" role="listitem" data-match-name="${match.name}" data-match-age="${match.age}" data-match-distance="${match.distance}" data-match-compatibility="${match.match}" data-match-interests="${match.interests.join(',')}" data-match-bio="${match.bio}" data-match-avatar="${match.avatar}">
-                <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" aria-label="Profile photo">${match.avatar}</div>
-                <h3>${match.name}</h3>
-                <p style="color: var(--text-secondary);">${match.match}% Match</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0.5rem 0;">${match.distance} away</p>
-                <div style="display: flex; gap: 0.5rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap;">
-                    ${match.interests.slice(0, 3).map(interest => `<span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.7rem;">${interest}</span>`).join('')}
-                </div>
-                <button class="btn btn-primary" onclick="event.stopPropagation(); startDatingChat('${match.name}', '${match.avatar}')">💬 Message</button>
-            </div>
-        `).join('');
-    }
-}
-
-function populateDatingChat() {
-    const chatList = document.getElementById('datingChatList');
-    
-    if (chatList) {
-        chatList.innerHTML = sampleMatches.map(match => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s ease;" onclick="openDatingChat('${match.name}', '${match.avatar}')" role="button" tabindex="0">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="Profile photo">${match.avatar}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${match.name}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${match.match}% match</div>
-                </div>
-            </div>
-        `).join('');
-    }
-}
-
-function populateDatingPreferences() {
-    const interestTags = document.getElementById('interestTags');
-    const datingInterests = ['Travel', 'Music', 'Sports', 'Art', 'Technology', 'Food', 'Movies', 'Books', 'Fitness', 'Photography', 'Gaming', 'Dancing', 'Hiking', 'Cooking', 'Fashion', 'Science'];
-    
-    if (interestTags) {
-        interestTags.innerHTML = datingInterests.map(interest => `
-            <span class="btn btn-secondary btn-small interest-tag" onclick="toggleInterest(this)" role="button" tabindex="0" aria-pressed="false">${interest}</span>
-        `).join('');
-    }
-}
-
-function swipeCard(direction) {
-    const card = document.getElementById('datingCard');
-    if (!card) return;
-    
-    const isLike = direction === 'right';
-    
-    card.style.transform = `translateX(${direction === 'right' ? '100%' : '-100%'}) rotate(${direction === 'right' ? '15deg' : '-15deg'})`;
-    card.style.opacity = '0';
-    
-    setTimeout(() => {
-        if (isLike) {
-            showToast("It's a match! 💕", 'success');
-        } else {
-            showToast('Maybe next time...', 'info');
+    const timer = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        if (timerDisplay) {
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
         
-        card.style.transform = 'translateX(0) rotate(0)';
-        card.style.opacity = '1';
-        loadDatingCard();
-    }, 300);
-}
-
-function startDatingChat(name, avatar) {
-    switchToScreen('dating', 'chat');
-    setTimeout(() => openDatingChat(name, avatar), 100);
-}
-
-function openDatingChat(name, avatar) {
-    const chatArea = document.getElementById('datingChatArea');
-    if (chatArea) {
-        chatArea.innerHTML = `
-            <div style="padding: 1rem 1.5rem; background: var(--bg-card); border-bottom: 1px solid var(--glass-border);">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="Profile photo">${avatar}</div>
-                    <div>
-                        <h3>${name}</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">It's a match! 💕</p>
-                    </div>
-                </div>
-            </div>
-            <div style="flex: 1; padding: 1rem; background: var(--bg-secondary); overflow-y: auto;">
-                <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;" role="img" aria-label="Heart">💕</div>
-                    <p>You and ${name} liked each other!</p>
-                    <p style="margin-top: 0.5rem;">Start a conversation below</p>
-                </div>
-            </div>
-            <div style="padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--glass-border);">
-                <div style="display: flex; gap: 1rem;">
-                    <input type="text" id="datingMessageInput" placeholder="Say something nice..." style="flex: 1; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary);">
-                    <button class="btn btn-primary" onclick="sendDatingMessage('${name}')" aria-label="Send message">💕</button>
-                </div>
-            </div>
-        `;
-    }
-}
-
-function updateAgeRange(value) {
-    const element = document.getElementById('ageRangeValue');
-    if (element) element.textContent = `18-${value}`;
-}
-
-function updateDistance(value) {
-    const element = document.getElementById('distanceValue');
-    if (element) element.textContent = `${value} miles`;
-}
-
-function toggleInterest(element) {
-    element.classList.toggle('active');
-    const isPressed = element.classList.contains('active');
-    element.setAttribute('aria-pressed', isPressed);
-    
-    if (isPressed) {
-        element.style.background = 'var(--primary)';
-        element.style.color = 'white';
-    } else {
-        element.style.background = '';
-        element.style.color = '';
-    }
-}
-
-// Media Functions
-function initializeMusic() {
-    updateNowPlaying();
-}
-
-function updateNowPlaying() {
-    const track = sampleTracks[currentTrackIndex];
-    const currentTrackEl = document.getElementById('currentTrack');
-    const artistNameEl = document.getElementById('artistName');
-    
-    if (currentTrackEl) currentTrackEl.textContent = track.title;
-    if (artistNameEl) artistNameEl.textContent = `${track.artist} - ${track.album}`;
-}
-
-function togglePlayPause() {
-    isPlaying = !isPlaying;
-    const btn = document.getElementById('playButton');
-    if (btn) {
-        btn.textContent = isPlaying ? '⏸️' : '▶️';
-        btn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
-    }
-    
-    if (isPlaying) {
-        showToast('Now playing: ' + sampleTracks[currentTrackIndex].title, 'info');
-        startProgressAnimation();
-    } else {
-        showToast('Music paused', 'info');
-    }
-}
-
-function startProgressAnimation() {
-    if (!isPlaying) return;
-    
-    const progressFill = document.getElementById('progressFill');
-    if (!progressFill) return;
-    
-    let width = parseInt(progressFill.style.width) || 0;
-    
-    const interval = setInterval(() => {
-        if (!isPlaying || width >= 100) {
-            clearInterval(interval);
-            if (width >= 100) {
-                nextTrack();
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            if (proceedBtn) {
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                proceedBtn.style.cursor = 'pointer';
             }
-            return;
-        }
-        width += 1;
-        progressFill.style.width = width + '%';
-    }, 200);
-}
-
-function nextTrack() {
-    currentTrackIndex = (currentTrackIndex + 1) % sampleTracks.length;
-    updateNowPlaying();
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '0%';
-    if (isPlaying) {
-        startProgressAnimation();
-    }
-    showToast('Next track: ' + sampleTracks[currentTrackIndex].title, 'info');
-}
-
-function previousTrack() {
-    currentTrackIndex = currentTrackIndex === 0 ? sampleTracks.length - 1 : currentTrackIndex - 1;
-    updateNowPlaying();
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '0%';
-    if (isPlaying) {
-        startProgressAnimation();
-    }
-    showToast('Previous track: ' + sampleTracks[currentTrackIndex].title, 'info');
-}
-
-function toggleShuffle() {
-    isShuffleEnabled = !isShuffleEnabled;
-    const btn = document.getElementById('shuffleButton');
-    if (btn) {
-        btn.style.background = isShuffleEnabled ? 'var(--primary)' : '';
-        btn.style.color = isShuffleEnabled ? 'white' : '';
-    }
-    showToast(isShuffleEnabled ? 'Shuffle enabled' : 'Shuffle disabled', 'info');
-}
-
-function toggleRepeat() {
-    isRepeatEnabled = !isRepeatEnabled;
-    const btn = document.getElementById('repeatButton');
-    if (btn) {
-        btn.style.background = isRepeatEnabled ? 'var(--primary)' : '';
-        btn.style.color = isRepeatEnabled ? 'white' : '';
-    }
-    showToast(isRepeatEnabled ? 'Repeat enabled' : 'Repeat disabled', 'info');
-}
-
-function seekTrack(event) {
-    const progressBar = event.currentTarget;
-    const rect = progressBar.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    const percentage = (clickX / rect.width) * 100;
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) {
-        progressFill.style.width = percentage + '%';
-    }
-    
-    showToast(`Seeked to ${Math.round(percentage)}%`, 'info');
-}
-
-function shareTrack() {
-    const track = sampleTracks[currentTrackIndex];
-    showToast(`Shared: ${track.title} by ${track.artist}`, 'success');
-}
-
-function openMusicLibrary() {
-    if (window.musicLibraryUI) {
-        window.musicLibraryUI.showMusicLibrary();
-        showToast('Enhanced Music Library opened!', 'success');
-    } else {
-        showToast('Music Library not available', 'error');
-    }
-}
-
-function startLiveSession() {
-    // Launch the comprehensive stream session dashboard
-    if (window.streamSessionDashboard) {
-        window.streamSessionDashboard.showSetupModal();
-        showToast('Stream setup opened!', 'success');
-    } else {
-        showToast('Stream dashboard loading...', 'info');
-        // Fallback: try to access streaming manager
-        setTimeout(() => {
-            if (window.streamingManager) {
-                window.streamingManager.startSession();
-            } else {
-                showToast('Stream dashboard not available. Please refresh the page.', 'error');
+            if (timerDisplay) {
+                timerDisplay.textContent = 'Ready';
+                timerDisplay.parentElement.style.background = 'rgba(239, 68, 68, 0.1)';
             }
-        }, 500);
-    }
-}
-
-function discoverMusic() {
-    // Launch the comprehensive music discovery interface
-    if (window.musicLibraryUI) {
-        window.musicLibraryUI.activeInterface = 'discovery';
-        window.musicLibraryUI.activeTab = 'trending'; // Start with trending as specified
-        window.musicLibraryUI.showMusicLibrary();
-        showToast('Music Discovery opened! 🎵', 'success');
-    } else {
-        showToast('Loading music discovery interface...', 'info');
-        // Fallback: try to initialize the music library after a brief delay
-        setTimeout(() => {
-            if (window.musicLibraryUI) {
-                window.musicLibraryUI.activeInterface = 'discovery';
-                window.musicLibraryUI.activeTab = 'trending';
-                window.musicLibraryUI.showMusicLibrary();
-                showToast('Music Discovery loaded! 🎵', 'success');
-            } else {
-                showToast('Music Discovery interface not available. Please refresh the page.', 'error');
-            }
-        }, 500);
-    }
-}
-
-function toggleMic() {
-    const btn = document.getElementById('micButton');
-    if (btn) {
-        const isMuted = btn.textContent.includes('🎤');
-        btn.innerHTML = isMuted ? '🔇 Muted' : '🎤 Mic';
-        btn.className = isMuted ? 'btn btn-error btn-small' : 'btn btn-secondary btn-small';
-    }
-    showToast(btn && btn.textContent.includes('Muted') ? 'Microphone muted' : 'Microphone enabled', 'info');
-}
-
-function toggleCamera() {
-    const btn = document.getElementById('cameraButton');
-    if (btn) {
-        const isOff = btn.textContent.includes('📷');
-        btn.innerHTML = isOff ? '📹 Off' : '📷 Camera';
-        btn.className = isOff ? 'btn btn-error btn-small' : 'btn btn-secondary btn-small';
-    }
-    showToast(btn && btn.textContent.includes('Off') ? 'Camera disabled' : 'Camera enabled', 'info');
-}
-
-function toggleStream() {
-    isStreamLive = !isStreamLive;
-    const btn = document.getElementById('streamButton');
-    const viewerCountEl = document.getElementById('viewerCount');
-    
-    if (btn) {
-        btn.innerHTML = isStreamLive ? '⏹️ Stop' : '🔴 Go Live';
-    }
-    
-    if (isStreamLive) {
-        viewerCount = 1;
-        streamDuration = 0;
-        startStreamTimer();
-        showToast('Stream started! You\'re now live!', 'success');
-    } else {
-        viewerCount = 0;
-        showToast('Stream ended', 'info');
-    }
-    
-    if (viewerCountEl) viewerCountEl.textContent = `${viewerCount} viewers`;
-}
-
-function startStreamTimer() {
-    const interval = setInterval(() => {
-        if (!isStreamLive) {
-            clearInterval(interval);
-            return;
         }
         
-        streamDuration++;
-        const minutes = Math.floor(streamDuration / 60);
-        const seconds = streamDuration % 60;
-        const durationEl = document.getElementById('streamDuration');
-        if (durationEl) {
-            durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-        
-        // Simulate viewers joining
-        if (Math.random() < 0.1) {
-            viewerCount++;
-            const viewerCountEl = document.getElementById('viewerCount');
-            if (viewerCountEl) viewerCountEl.textContent = `${viewerCount} viewers`;
-        }
+        timeLeft--;
     }, 1000);
 }
 
-function sendChatMessage(event) {
-    if (event && event.key !== 'Enter') return;
+// Close cooling-off modal
+function closeCoolingModal() {
+    const modal = document.getElementById('coolingOffModal');
+    if (modal) modal.remove();
     
-    const input = document.getElementById('chatInput');
-    if (!input) return;
+    showToast('Account deletion cancelled. We\'re glad you\'re staying!', 'success');
+}
+
+// Proceed after cooling-off period
+function proceedAfterCoolingOff() {
+    const modal = document.getElementById('coolingOffModal');
+    if (modal) modal.remove();
     
-    const message = input.value.trim();
+    // Now actually proceed to step 2
+    deleteAccountState.currentStep = 2;
+    showDeleteStep(2);
     
-    if (message) {
-        const chatMessages = document.getElementById('liveChatMessages');
-        if (chatMessages) {
-            chatMessages.innerHTML += `
-                <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--glass-border); border-radius: 8px;">
-                    <strong>You:</strong> ${message}
-                </div>
-            `;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        input.value = '';
-        showToast('Message sent to live chat', 'success');
-    }
-}
-
-function populateVideoCallData() {
-    const recentCalls = document.getElementById('recentCalls');
-    const scheduledCalls = document.getElementById('scheduledCalls');
-    
-    if (recentCalls) {
-        recentCalls.innerHTML = `
-            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
-                Emma Wilson - 2 min ago
-            </div>
-            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
-                Mike Johnson - 1 hour ago
-            </div>
-            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
-                Sarah Miller - 3 hours ago
-            </div>
-        `;
-    }
-    
-    if (scheduledCalls) {
-        scheduledCalls.innerHTML = `
-            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
-                Team Meeting - 3:00 PM
-            </div>
-            <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--glass); border-radius: 8px; cursor: pointer;">
-                Client Call - Tomorrow 10:00 AM
-            </div>
-        `;
-    }
-}
-
-function startVideoCall() {
-    showToast('Starting video call...', 'info');
-}
-
-function scheduleCall() {
-    showToast('Opening call scheduler...', 'info');
-}
-
-function viewCallHistory() {
-    showToast('Viewing call history...', 'info');
-}
-
-function addContact() {
-    showToast('Opening contact manager...', 'info');
-}
-
-function launchARExperience(type) {
-    showToast(`Launching ${type.replace('-', ' ')} experience...`, 'info');
-}
-
-// Extra Functions
-function populateMarketplace() {
-    const marketplaceItems = document.getElementById('marketplaceItems');
-    
-    if (marketplaceItems) {
-        marketplaceItems.innerHTML = sampleMarketplaceItems.map(item => `
-            <div class="card" role="listitem">
-                <div style="height: 200px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" role="img" aria-label="Product image">${item.image}</div>
-                <h3>${item.title}</h3>
-                <p style="color: var(--text-secondary);">${item.condition}</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Sold by ${item.seller}</p>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0;">${item.description}</p>
-                <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 1rem 0;">$${item.price}</p>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary btn-small" onclick="buyNow(${item.id})">Buy Now</button>
-                    <button class="btn btn-secondary btn-small" onclick="addToCart(${item.id})">Add to Cart</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // Initialize category filters
+    // Set up event listeners for step 2
     setTimeout(() => {
-        document.querySelectorAll('.category-filter').forEach(filter => {
-            filter.addEventListener('click', () => {
-                document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
-                filter.classList.add('active');
-                filterMarketplace(filter.getAttribute('data-category'));
+        const checkbox = document.getElementById('deleteConfirmation');
+        const password = document.getElementById('deletePassword');
+        
+        if (checkbox) {
+            checkbox.addEventListener('change', validateConfirmationInputs);
+        }
+        
+        if (password) {
+            password.addEventListener('input', validateConfirmationInputs);
+            password.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !document.getElementById('finalDeleteBtn').disabled) {
+                    confirmAccountDeletion();
+                }
             });
-        });
+        }
     }, 100);
 }
 
-function filterMarketplace(category) {
-    const items = category === 'all' ? sampleMarketplaceItems : sampleMarketplaceItems.filter(item => item.category === category);
-    const marketplaceItems = document.getElementById('marketplaceItems');
+// Go back to warning step
+function backToWarning() {
+    deleteAccountState.currentStep = 1;
+    showDeleteStep(1);
+}
+
+// Show specific delete step
+function showDeleteStep(step) {
+    document.querySelectorAll('.delete-step').forEach((stepEl, index) => {
+        stepEl.style.display = index === (step - 1) ? 'block' : 'none';
+    });
     
-    if (marketplaceItems) {
-        marketplaceItems.innerHTML = items.map(item => `
-            <div class="card" role="listitem">
-                <div style="height: 200px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white;" role="img" aria-label="Product image">${item.image}</div>
-                <h3>${item.title}</h3>
-                <p style="color: var(--text-secondary);">${item.condition}</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Sold by ${item.seller}</p>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0;">${item.description}</p>
-                <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 1rem 0;">$${item.price}</p>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary btn-small" onclick="buyNow(${item.id})">Buy Now</button>
-                    <button class="btn btn-secondary btn-small" onclick="addToCart(${item.id})">Add to Cart</button>
-                </div>
-            </div>
-        `).join('');
+    if (step === 3) {
+        document.querySelector('.delete-progress').style.display = 'block';
+        startDeletionProcess();
     }
 }
 
-function populateWalletTransactions() {
-    const transactionHistory = document.getElementById('transactionHistory');
-    const sampleTransactions = [
-        { type: 'received', amount: 100, from: 'Daily Check-in', time: '2 hours ago' },
-        { type: 'sent', amount: 50, to: 'Emma Wilson', time: '1 day ago' },
-        { type: 'received', amount: 200, from: 'Friend Referral', time: '2 days ago' },
-        { type: 'sent', amount: 75, to: 'Mike Johnson', time: '3 days ago' },
-        { type: 'received', amount: 150, from: 'Game Tournament', time: '5 days ago' }
-    ];
-
-    if (transactionHistory) {
-        transactionHistory.innerHTML = sampleTransactions.map(tx => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
-                <div>
-                    <div style="font-weight: 600; color: ${tx.type === 'received' ? 'var(--success)' : 'var(--error)'};">
-                        ${tx.type === 'received' ? '+' : '-'}${tx.amount} coins
-                    </div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
-                        ${tx.type === 'received' ? 'From: ' + tx.from : 'To: ' + tx.to}
-                    </div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem;">${tx.time}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-}
-
-// Game Functions
-function playGame(gameType) {
-    const gameModal = document.getElementById('gameModal');
-    const gameTitle = document.getElementById('gameTitle');
-    const gameArea = document.getElementById('gameArea');
+// Validate confirmation inputs
+function validateConfirmationInputs() {
+    const checkbox = document.getElementById('deleteConfirmation');
+    const password = document.getElementById('deletePassword');
+    const deleteBtn = document.getElementById('finalDeleteBtn');
     
-    if (gameTitle) gameTitle.textContent = gameType.charAt(0).toUpperCase() + gameType.slice(1);
-    
-    switch(gameType) {
-        case 'tictactoe':
-            initializeTicTacToe(gameArea);
-            break;
-        case 'memory':
-            initializeMemoryGame(gameArea);
-            break;
-        case 'quiz':
-            initializeQuiz(gameArea);
-            break;
-        case 'puzzle':
-            initializePuzzleGame(gameArea);
-            break;
-        case 'cards':
-            initializeCardGame(gameArea);
-            break;
-        case 'strategy':
-            initializeStrategyGame(gameArea);
-            break;
-        default:
-            if (gameArea) {
-                gameArea.innerHTML = `<div style="text-align: center; padding: 2rem;">
-                    <h3>Coming Soon!</h3>
-                    <p>This game is under development. Stay tuned!</p>
-                </div>`;
-            }
-    }
-    
-    if (gameModal) gameModal.classList.add('active');
-}
-
-function initializeTicTacToe(gameArea) {
-    gameStates.tictactoe = {
-        board: Array(9).fill(''),
-        currentPlayer: 'X',
-        gameOver: false
-    };
-
-    if (gameArea) {
-        gameArea.innerHTML = `
-            <div style="text-align: center; margin-bottom: 1rem;">
-                <div id="gameStatus">Player X's turn</div>
-            </div>
-            <div class="game-board tic-tac-toe">
-                ${Array(9).fill().map((_, i) => `
-                    <div class="game-cell" onclick="makeMove(${i})" id="cell-${i}" role="button" tabindex="0" aria-label="Cell ${i + 1}"></div>
-                `).join('')}
-            </div>
-            <div style="text-align: center; margin-top: 1rem;">
-                <button class="btn btn-secondary" onclick="resetTicTacToe()">Reset Game</button>
-            </div>
-        `;
-    }
-}
-
-function makeMove(cellIndex) {
-    const game = gameStates.tictactoe;
-    if (!game || game.board[cellIndex] !== '' || game.gameOver) return;
-    
-    game.board[cellIndex] = game.currentPlayer;
-    const cell = document.getElementById(`cell-${cellIndex}`);
-    if (cell) {
-        cell.textContent = game.currentPlayer;
-        cell.setAttribute('aria-label', `Cell ${cellIndex + 1}, ${game.currentPlayer}`);
-    }
-    
-    if (checkWinTicTacToe()) {
-        const status = document.getElementById('gameStatus');
-        if (status) status.textContent = `Player ${game.currentPlayer} wins!`;
-        game.gameOver = true;
-        showToast(`Player ${game.currentPlayer} wins!`, 'success');
-    } else if (game.board.every(cell => cell !== '')) {
-        const status = document.getElementById('gameStatus');
-        if (status) status.textContent = "It's a tie!";
-        game.gameOver = true;
-        showToast("It's a tie!", 'info');
-    } else {
-        game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
-        const status = document.getElementById('gameStatus');
-        if (status) status.textContent = `Player ${game.currentPlayer}'s turn`;
-    }
-}
-
-function checkWinTicTacToe() {
-    const game = gameStates.tictactoe;
-    if (!game) return false;
-    
-    const winPatterns = [
-        [0,1,2], [3,4,5], [6,7,8], // rows
-        [0,3,6], [1,4,7], [2,5,8], // columns
-        [0,4,8], [2,4,6] // diagonals
-    ];
-    
-    return winPatterns.some(pattern => 
-        pattern.every(index => game.board[index] === game.currentPlayer)
-    );
-}
-
-function resetTicTacToe() {
-    gameStates.tictactoe = {
-        board: Array(9).fill(''),
-        currentPlayer: 'X',
-        gameOver: false
-    };
-    
-    for (let i = 0; i < 9; i++) {
-        const cell = document.getElementById(`cell-${i}`);
-        if (cell) {
-            cell.textContent = '';
-            cell.setAttribute('aria-label', `Cell ${i + 1}`);
-        }
-    }
-    const status = document.getElementById('gameStatus');
-    if (status) status.textContent = "Player X's turn";
-}
-
-function initializeMemoryGame(gameArea) {
-    const symbols = ['🌟', '🎵', '🎮', '💎', '🚀', '🌈', '⚡', '🔥'];
-    const cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
-    
-    gameStates.memory = {
-        cards: cards,
-        flipped: [],
-        matched: [],
-        moves: 0
-    };
-
-    if (gameArea) {
-        gameArea.innerHTML = `
-            <div style="text-align: center; margin-bottom: 1rem;">
-                <div>Moves: <span id="moveCount">0</span></div>
-            </div>
-            <div class="game-board memory-game">
-                ${cards.map((symbol, i) => `
-                    <div class="memory-card" onclick="flipCard(${i})" id="memory-${i}" role="button" tabindex="0" aria-label="Memory card ${i + 1}">?</div>
-                `).join('')}
-            </div>
-            <div style="text-align: center; margin-top: 1rem;">
-                <button class="btn btn-secondary" onclick="resetMemoryGame()">Reset Game</button>
-            </div>
-        `;
-    }
-}
-
-function flipCard(index) {
-    const game = gameStates.memory;
-    if (!game || game.flipped.length >= 2 || game.flipped.includes(index) || game.matched.includes(index)) return;
-    
-    game.flipped.push(index);
-    const card = document.getElementById(`memory-${index}`);
-    if (card) {
-        card.textContent = game.cards[index];
-        card.classList.add('flipped');
-        card.setAttribute('aria-label', `Memory card ${index + 1}, ${game.cards[index]}`);
-    }
-    
-    if (game.flipped.length === 2) {
-        game.moves++;
-        const moveCount = document.getElementById('moveCount');
-        if (moveCount) moveCount.textContent = game.moves;
+    if (checkbox && password && deleteBtn) {
+        const isValid = checkbox.checked && password.value.length > 0;
+        deleteBtn.disabled = !isValid;
         
-        setTimeout(() => {
-            const [first, second] = game.flipped;
-            if (game.cards[first] === game.cards[second]) {
-                game.matched.push(first, second);
-                const firstCard = document.getElementById(`memory-${first}`);
-                const secondCard = document.getElementById(`memory-${second}`);
-                if (firstCard) firstCard.classList.add('matched');
-                if (secondCard) secondCard.classList.add('matched');
-                
-                if (game.matched.length === game.cards.length) {
-                    showToast(`Congratulations! You won in ${game.moves} moves!`, 'success');
-                }
-            } else {
-                const firstCard = document.getElementById(`memory-${first}`);
-                const secondCard = document.getElementById(`memory-${second}`);
-                if (firstCard) {
-                    firstCard.textContent = '?';
-                    firstCard.classList.remove('flipped');
-                    firstCard.setAttribute('aria-label', `Memory card ${first + 1}`);
-                }
-                if (secondCard) {
-                    secondCard.textContent = '?';
-                    secondCard.classList.remove('flipped');
-                    secondCard.setAttribute('aria-label', `Memory card ${second + 1}`);
-                }
-            }
-            game.flipped = [];
-        }, 1000);
+        deleteAccountState.confirmationChecked = checkbox.checked;
+        deleteAccountState.passwordEntered = password.value.length > 0;
     }
 }
 
-function resetMemoryGame() {
-    const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
-    if (gameArea) initializeMemoryGame(gameArea);
+// Show delete error
+function showDeleteError(message) {
+    const errorDiv = document.getElementById('deleteError');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
-function initializeQuiz(gameArea) {
-    const questions = [
-        { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correct: 2 },
-        { question: "Which planet is closest to the sun?", options: ["Venus", "Mercury", "Earth", "Mars"], correct: 1 },
-        { question: "What is 2 + 2?", options: ["3", "4", "5", "6"], correct: 1 },
-        { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correct: 2 },
-        { question: "What is the largest ocean?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correct: 3 }
+// Confirm account deletion
+function confirmAccountDeletion() {
+    const password = document.getElementById('deletePassword');
+    const errorDiv = document.getElementById('deleteError');
+    
+    if (!password || !password.value) {
+        showDeleteError('Please enter your password to continue.');
+        return;
+    }
+    
+    // Simulate password verification
+    if (password.value.length < 6) { // Mock validation
+        showDeleteError('Incorrect password. Please try again.');
+        password.classList.add('shake');
+        setTimeout(() => password.classList.remove('shake'), 500);
+        return;
+    }
+    
+    // Hide any previous errors
+    if (errorDiv) errorDiv.style.display = 'none';
+    
+    // Proceed to deletion
+    deleteAccountState.currentStep = 3;
+    showDeleteStep(3);
+}
+
+// Start deletion process
+function startDeletionProcess() {
+    const progressFill = document.getElementById('deleteProgressFill');
+    const progressText = document.getElementById('deleteProgressText');
+    
+    const deletionSteps = [
+        { progress: 10, text: 'Verifying account credentials...' },
+        { progress: 25, text: 'Removing profile information...' },
+        { progress: 40, text: 'Deleting messages and conversations...' },
+        { progress: 55, text: 'Removing media content...' },
+        { progress: 70, text: 'Clearing social connections...' },
+        { progress: 85, text: 'Removing wallet and transaction data...' },
+        { progress: 95, text: 'Finalizing account deletion...' },
+        { progress: 100, text: 'Account deletion completed.' }
     ];
-
-    gameStates.quiz = { questions: questions, currentQuestion: 0, score: 0 };
-    showQuizQuestion(gameArea);
-}
-
-function showQuizQuestion(gameArea) {
-    const game = gameStates.quiz;
-    if (!game || !gameArea) return;
     
-    const question = game.questions[game.currentQuestion];
-
-    gameArea.innerHTML = `
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div style="color: var(--text-secondary);">Question ${game.currentQuestion + 1} of ${game.questions.length}</div>
-            <div style="color: var(--primary); font-weight: 600;">Score: ${game.score}</div>
-        </div>
-        <div style="background: var(--glass); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1.5rem;">${question.question}</h3>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                ${question.options.map((option, i) => `
-                    <button class="btn btn-secondary" onclick="answerQuestion(${i})" style="text-align: left; justify-content: flex-start;">
-                        ${String.fromCharCode(65 + i)}. ${option}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-function answerQuestion(selectedIndex) {
-    const game = gameStates.quiz;
-    if (!game) return;
+    let currentStepIndex = 0;
     
-    const question = game.questions[game.currentQuestion];
-    const isCorrect = selectedIndex === question.correct;
-    
-    if (isCorrect) {
-        game.score++;
-        showToast('Correct!', 'success');
-    } else {
-        showToast(`Wrong! The correct answer was ${question.options[question.correct]}`, 'error');
-    }
-    
-    game.currentQuestion++;
-    
-    setTimeout(() => {
-        if (game.currentQuestion < game.questions.length) {
-            const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
-            if (gameArea) showQuizQuestion(gameArea);
+    const processStep = () => {
+        if (currentStepIndex < deletionSteps.length) {
+            const step = deletionSteps[currentStepIndex];
+            
+            if (progressFill) progressFill.style.width = step.progress + '%';
+            if (progressText) progressText.textContent = step.text;
+            
+            currentStepIndex++;
+            
+            // Simulate variable processing time for each step
+            const delay = currentStepIndex === deletionSteps.length ? 1500 : 2000 + Math.random() * 2000;
+            setTimeout(processStep, delay);
         } else {
-            const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
-            if (gameArea) {
-                gameArea.innerHTML = `
-                    <div style="text-align: center;">
-                        <h2>Quiz Complete!</h2>
-                        <div style="font-size: 2rem; color: var(--primary); margin: 1rem 0;">${game.score}/${game.questions.length}</div>
-                        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-                            ${game.score === game.questions.length ? 'Perfect score! 🎉' : 
-                              game.score >= game.questions.length / 2 ? 'Well done! 👏' : 'Better luck next time! 💪'}
-                        </p>
-                        <button class="btn btn-primary" onclick="resetQuiz()">Play Again</button>
-                    </div>
-                `;
-            }
+            completeDeletion();
         }
+    };
+    
+    processStep();
+}
+
+// Complete deletion process
+function completeDeletion() {
+    setTimeout(() => {
+        hideLoading();
+        closeDeleteModal();
+        
+        // Show final confirmation
+        showToast('Account deleted successfully. You will be redirected shortly.', 'success');
+        
+        // Simulate logout and redirect
+        setTimeout(() => {
+            // In a real app, this would log out the user and redirect to homepage
+            isLoggedIn = false;
+            currentCategory = null;
+            currentScreen = 'home';
+            
+            // Hide all sections and show auth screen
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('authScreen').classList.add('active');
+            
+            updateMainNav();
+            updateSubNav();
+            
+            showToast('Your account has been permanently deleted. Thank you for using ConnectHub.', 'info');
+        }, 2000);
     }, 1500);
 }
 
-function resetQuiz() {
-    const gameArea = document.querySelector('#gameModal .modal-content #gameArea');
-    if (gameArea) initializeQuiz(gameArea);
-}
-
-function initializePuzzleGame(gameArea) {
-    if (gameArea) {
-        gameArea.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <h3>🧩 Puzzle Games</h3>
-                <p style="color: var(--text-secondary); margin: 1rem 0;">Slide the tiles to solve the puzzle!</p>
-                <div style="display: grid; grid-template-columns: repeat(3, 80px); gap: 2px; justify-content: center; margin: 2rem 0;">
-                    ${Array(8).fill().map((_, i) => `
-                        <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer;" onclick="movePuzzleTile(${i})">${i + 1}</div>
-                    `).join('')}
-                    <div style="width: 80px; height: 80px; background: var(--glass); border-radius: 8px;"></div>
-                </div>
-                <button class="btn btn-secondary" onclick="shufflePuzzle()">Shuffle</button>
-            </div>
-        `;
-    }
-}
-
-function initializeCardGame(gameArea) {
-    if (gameArea) {
-        gameArea.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <h3>🃏 Card Games</h3>
-                <p style="color: var(--text-secondary); margin: 1rem 0;">Classic Solitaire</p>
-                <div style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;">
-                    ${Array(4).fill().map((_, i) => `
-                        <div style="width: 60px; height: 80px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">🂠</div>
-                    `).join('')}
-                </div>
-                <button class="btn btn-primary" onclick="dealCards()">Deal Cards</button>
-            </div>
-        `;
-    }
-}
-
-function initializeStrategyGame(gameArea) {
-    if (gameArea) {
-        gameArea.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <h3>♟️ Strategy Games</h3>
-                <p style="color: var(--text-secondary); margin: 1rem 0;">Coming soon: Chess, Checkers, and more!</p>
-                <div style="display: grid; grid-template-columns: repeat(8, 40px); gap: 1px; justify-content: center; margin: 2rem 0;">
-                    ${Array(64).fill().map((_, i) => `
-                        <div style="width: 40px; height: 40px; background: ${(Math.floor(i / 8) + i) % 2 === 0 ? 'var(--glass)' : 'var(--glass-border)'}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                            ${i < 16 || i > 47 ? (i < 16 ? '♟' : '♙') : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Chess board preview - Full game coming soon!</p>
-            </div>
-        `;
-    }
-}
-
-// Interactive Functions
-function toggleNotifications() {
-    const panel = document.getElementById('notificationPanel');
-    if (panel) {
-        panel.classList.toggle('active');
-        if (panel.classList.contains('active')) {
-            notificationCount = 0;
-            updateMainNav();
-        }
-    }
-}
-
-function openCreatePost(type = 'text') {
-    const modal = document.getElementById('createPostModal');
-    if (modal) modal.classList.add('active');
-    if (type !== 'text') {
-        showToast(`Creating ${type} post...`, 'info');
-    }
-}
-
-function publishPost() {
-    const content = document.getElementById('postContent');
-    if (content && content.value.trim()) {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            showToast('Post published successfully!', 'success');
-            closeModal('createPostModal');
-            content.value = '';
-        }, 1000);
-    } else {
-        showToast('Please enter some content', 'warning');
-    }
-}
-
-function toggleLike(btn, postId) {
-    const countSpan = btn.querySelector('span');
-    if (countSpan) {
-        const count = parseInt(countSpan.textContent);
-        const isLiked = btn.classList.contains('liked');
-        
-        if (isLiked) {
-            btn.classList.remove('liked');
-            countSpan.textContent = count - 1;
-            showToast('Unliked', 'info');
-        } else {
-            btn.classList.add('liked');
-            countSpan.textContent = count + 1;
-            showToast('Liked! ❤️', 'success');
-        }
-    }
-}
-
-function showComments(postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Post not found', 'error');
-        return;
-    }
-    
-    // Generate sample comments for the post
-    const sampleComments = generateCommentsForPost(postId, post);
-    
-    // Create and show comments modal
-    showCommentsModal(post, sampleComments);
-}
-
-function generateCommentsForPost(postId, post) {
-    const commentTemplates = [
-        { user: 'Sarah Miller', avatar: 'SM', text: 'Love this post! 😍 Thanks for sharing!', time: '2m ago', likes: 12, replies: [] },
-        { user: 'Mike Johnson', avatar: 'MJ', text: 'This is exactly what I needed to hear today. Appreciate it!', time: '15m ago', likes: 8, replies: [
-            { user: 'Emma Wilson', avatar: 'EW', text: '@Mike Johnson Same here! 💯', time: '10m ago', likes: 3 }
-        ]},
-        { user: 'Alex Chen', avatar: 'AC', text: 'Great insights! Have you considered the environmental impact as well?', time: '1h ago', likes: 15, replies: [] },
-        { user: 'Lisa Garcia', avatar: 'LG', text: 'Amazing work! Keep it up 👏', time: '2h ago', likes: 6, replies: [] }
-    ];
-
-    // Return appropriate comments based on post content
-    return commentTemplates.slice(0, Math.min(post.comments, commentTemplates.length));
-}
-
-function showCommentsModal(post, comments) {
-    // Remove existing comments modal
-    const existingModal = document.getElementById('commentsModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'commentsModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 700px; max-height: 80vh; display: flex; flex-direction: column;">
-            <!-- Header -->
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
-                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                    💬 Comments 
-                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">${comments.length}</span>
-                </h2>
-                <button onclick="closeModal('commentsModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;" aria-label="Close comments">×</button>
-            </div>
-
-            <!-- Original Post Preview -->
-            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: var(--glass);">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${post.avatar}</div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.9rem;">${post.user}</div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">${post.time}</div>
-                    </div>
-                </div>
-                <div style="font-size: 0.9rem; line-height: 1.4; color: var(--text-secondary);">
-                    ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}
-                </div>
-            </div>
-
-            <!-- Comments Section -->
-            <div style="flex: 1; overflow-y: auto; padding: 0;">
-                <!-- Comments Header with Sort Options -->
-                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: between; background: var(--bg-secondary);">
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="comment-sort-btn active" data-sort="recent" onclick="sortComments('recent', ${post.id})" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">Most Recent</button>
-                        <button class="comment-sort-btn" data-sort="popular" onclick="sortComments('popular', ${post.id})" style="padding: 0.5rem 1rem; background: var(--glass); border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer; color: var(--text-primary);">Most Popular</button>
-                        <button class="comment-sort-btn" data-sort="oldest" onclick="sortComments('oldest', ${post.id})" style="padding: 0.5rem 1rem; background: var(--glass); border: none; border-radius: 20px; font-size: 0.8rem; cursor: pointer; color: var(--text-primary);">Oldest First</button>
-                    </div>
-                </div>
-
-                <!-- Comments List -->
-                <div id="commentsList" style="padding: 1rem 1.5rem;">
-                    ${comments.length === 0 ? 
-                        `<div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
-                            <h3 style="margin-bottom: 0.5rem;">No comments yet</h3>
-                            <p>Be the first to share your thoughts!</p>
-                        </div>` 
-                        : 
-                        comments.map(comment => renderComment(comment, post.id)).join('')
-                    }
-                </div>
-            </div>
-
-            <!-- Add Comment Section -->
-            <div style="padding: 1.5rem; border-top: 1px solid var(--glass-border); background: var(--bg-card);">
-                <div style="display: flex; gap: 1rem; align-items: flex-start;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">JD</div>
-                    <div style="flex: 1;">
-                        <textarea id="commentInput" placeholder="Write a comment..." style="width: 100%; min-height: 60px; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-family: inherit; resize: vertical; font-size: 0.9rem;" onkeydown="handleCommentKeyPress(event, ${post.id})"></textarea>
-                        <div style="display: flex; justify-content: between; align-items: center; margin-top: 0.75rem;">
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="insertEmoji('😀')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">😀</button>
-                                <button onclick="insertEmoji('❤️')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">❤️</button>
-                                <button onclick="insertEmoji('👏')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">👏</button>
-                                <button onclick="insertEmoji('🔥')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">🔥</button>
-                                <button onclick="insertEmoji('💯')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem;">💯</button>
-                            </div>
-                            <button onclick="postComment(${post.id})" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Post Comment</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.classList.add('active');
-    
-    // Focus on comment input after a brief delay
-    setTimeout(() => {
-        const input = document.getElementById('commentInput');
-        if (input) input.focus();
-    }, 100);
-}
-
-function renderComment(comment, postId) {
-    return `
-        <div class="comment-item" style="margin-bottom: 1.5rem;" data-comment-likes="${comment.likes}">
-            <div style="display: flex; gap: 1rem; align-items: flex-start;">
-                <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${comment.avatar}</div>
-                <div style="flex: 1;">
-                    <div style="background: var(--glass); border-radius: 12px; padding: 0.75rem 1rem;">
-                        <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem;">${comment.user}</div>
-                        <div style="line-height: 1.4; font-size: 0.9rem;">${comment.text}</div>
-                    </div>
-                    
-                    <!-- Comment Actions -->
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; font-size: 0.8rem;">
-                        <span style="color: var(--text-muted);">${comment.time}</span>
-                        <button onclick="likeComment(this, '${comment.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass)'" onmouseout="this.style.background='none'">
-                            <span>❤️</span>
-                            <span>${comment.likes}</span>
-                        </button>
-                        <button onclick="replyToComment('${comment.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='none'; this.style.color='var(--text-secondary)'">Reply</button>
-                        <button onclick="reportComment('${comment.user}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.color='var(--error)'" onmouseout="this.style.color='var(--text-muted)'">Report</button>
-                    </div>
-
-                    <!-- Replies Section -->
-                    ${comment.replies && comment.replies.length > 0 ? `
-                        <div style="margin-top: 1rem; margin-left: 1rem; border-left: 2px solid var(--glass-border); padding-left: 1rem;">
-                            ${comment.replies.map(reply => `
-                                <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.8rem;">${reply.avatar}</div>
-                                    <div style="flex: 1;">
-                                        <div style="background: var(--glass); border-radius: 10px; padding: 0.5rem 0.75rem;">
-                                            <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">${reply.user}</div>
-                                            <div style="font-size: 0.8rem; line-height: 1.3;">${reply.text}</div>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem; font-size: 0.75rem;">
-                                            <span style="color: var(--text-muted);">${reply.time}</span>
-                                            <button onclick="likeComment(this, '${reply.user}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                                                <span>❤️</span>
-                                                <span>${reply.likes}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function sortComments(sortType, postId) {
-    // Update active sort button
-    document.querySelectorAll('.comment-sort-btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.style.background = 'var(--glass)';
-        btn.style.color = 'var(--text-primary)';
-    });
-    
-    const activeBtn = document.querySelector(`[data-sort="${sortType}"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.style.background = 'var(--primary)';
-        activeBtn.style.color = 'white';
-    }
-    
-    const commentsList = document.getElementById('commentsList');
-    const comments = Array.from(commentsList.querySelectorAll('.comment-item'));
-    
-    comments.sort((a, b) => {
-        switch(sortType) {
-            case 'popular':
-                return parseInt(b.dataset.commentLikes) - parseInt(a.dataset.commentLikes);
-            case 'oldest':
-                return 0; // Keep original order for oldest
-            case 'recent':
-            default:
-                return 0; // Keep original order for most recent
-        }
-    });
-    
-    // Clear and re-append sorted comments
-    commentsList.innerHTML = '';
-    comments.forEach(comment => commentsList.appendChild(comment));
-    
-    showToast(`Comments sorted by ${sortType}`, 'info');
-}
-
-function handleCommentKeyPress(event, postId) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        postComment(postId);
-    }
-}
-
-function insertEmoji(emoji) {
-    const input = document.getElementById('commentInput');
-    if (input) {
-        const cursorPos = input.selectionStart;
-        const textBefore = input.value.substring(0, cursorPos);
-        const textAfter = input.value.substring(input.selectionEnd);
-        input.value = textBefore + emoji + textAfter;
-        input.selectionStart = input.selectionEnd = cursorPos + emoji.length;
-        input.focus();
-    }
-}
-
-function postComment(postId) {
-    const input = document.getElementById('commentInput');
-    if (!input) return;
-    
-    const commentText = input.value.trim();
-    if (!commentText) {
-        showToast('Please enter a comment', 'warning');
-        return;
-    }
-    
-    // Create new comment element
-    const newComment = {
-        user: 'John Doe',
-        avatar: 'JD',
-        text: commentText,
-        time: 'just now',
-        likes: 0,
-        replies: []
+// Reset modal to initial state
+function resetDeleteAccountModal() {
+    deleteAccountState = {
+        currentStep: 1,
+        dataExported: false,
+        confirmationChecked: false,
+        passwordEntered: false,
+        deletionInProgress: false,
+        deletionProgress: 0,
+        deletionStep: '',
+        deletionComplete: false
     };
     
-    // Add comment to the list
-    const commentsList = document.getElementById('commentsList');
-    if (commentsList) {
-        const commentElement = document.createElement('div');
-        commentElement.innerHTML = renderComment(newComment, postId);
-        commentsList.insertBefore(commentElement, commentsList.firstChild);
-    }
-    
-    // Update comment count in the original post
-    const post = samplePosts.find(p => p.id === postId);
-    if (post) {
-        post.comments += 1;
-        // Update the comment count in the header
-        const commentCountSpan = document.querySelector('#commentsModal h2 span');
-        if (commentCountSpan) {
-            commentCountSpan.textContent = post.comments;
-        }
-    }
-    
-    // Clear input and show success message
-    input.value = '';
-    showToast('Comment posted successfully! 💬', 'success');
-    
-    // Scroll to top to show new comment
-    const commentsSection = commentsList.closest('[style*="overflow-y: auto"]');
-    if (commentsSection) {
-        commentsSection.scrollTop = 0;
-    }
-}
-
-function likeComment(button, userName) {
-    const likeCount = button.querySelector('span:last-child');
-    const currentLikes = parseInt(likeCount.textContent);
-    const isLiked = button.classList.contains('liked');
-    
-    if (isLiked) {
-        likeCount.textContent = currentLikes - 1;
-        button.classList.remove('liked');
-        button.style.color = 'var(--text-secondary)';
-        showToast('Comment unliked', 'info');
-    } else {
-        likeCount.textContent = currentLikes + 1;
-        button.classList.add('liked');
-        button.style.color = 'var(--error)';
-        showToast(`Liked ${userName}'s comment! ❤️`, 'success');
-    }
-}
-
-function replyToComment(userName) {
-    const input = document.getElementById('commentInput');
-    if (input) {
-        input.value = `@${userName} `;
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-        showToast(`Replying to ${userName}`, 'info');
-    }
-}
-
-function reportComment(userName) {
-    showToast(`Comment by ${userName} reported to moderators`, 'warning');
-}
-
-function sharePost(postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Post not found', 'error');
-        return;
-    }
-    
-    // Show comprehensive share modal
-    showShareModal(post);
-}
-
-function showShareModal(post) {
-    // Remove existing share modal
-    const existingModal = document.getElementById('shareModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'shareModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
-            <!-- Header -->
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
-                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                    📤 Share Post
-                    <span style="background: var(--glass); padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">by ${post.user}</span>
-                </h2>
-                <button onclick="closeModal('shareModal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;" aria-label="Close share modal">×</button>
-            </div>
-
-            <!-- Post Preview -->
-            <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: var(--glass);">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;">${post.avatar}</div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.9rem;">${post.user}</div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">${post.time}</div>
-                    </div>
-                </div>
-                <div style="font-size: 0.9rem; line-height: 1.4; color: var(--text-secondary);">
-                    ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}
-                </div>
-            </div>
-
-            <!-- Share Options -->
-            <div style="flex: 1; overflow-y: auto; padding: 1.5rem;">
-                <!-- Quick Share Options -->
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">📱 Share to Social Platforms</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <button onclick="shareToExternal('facebook', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">📘</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Facebook</span>
-                    </button>
-                    <button onclick="shareToExternal('twitter', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">🐦</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Twitter</span>
-                    </button>
-                    <button onclick="shareToExternal('instagram', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">📷</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Instagram</span>
-                    </button>
-                    <button onclick="shareToExternal('linkedin', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">💼</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">LinkedIn</span>
-                    </button>
-                </div>
-
-                <!-- ConnectHub Internal Sharing -->
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🏠 Share on ConnectHub</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <button onclick="shareToConnectHub('story', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <div style="font-size: 1.5rem;">📱</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Story</span>
-                    </button>
-                    <button onclick="shareToConnectHub('friends', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <div style="font-size: 1.5rem;">👥</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Friends</span>
-                    </button>
-                    <button onclick="shareToConnectHub('groups', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: linear-gradient(135deg, var(--success) 0%, var(--accent) 20%); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: white;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <div style="font-size: 1.5rem;">🔗</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Share to Groups</span>
-                    </button>
-                </div>
-
-                <!-- Direct Communication -->
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">💬 Send Directly</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <button onclick="shareViaMethod('email', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">📧</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Email</span>
-                    </button>
-                    <button onclick="shareViaMethod('sms', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">💬</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Text Message</span>
-                    </button>
-                    <button onclick="shareViaMethod('whatsapp', ${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">💚</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">WhatsApp</span>
-                    </button>
-                    <button onclick="copyPostLink(${post.id})" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--glass); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        <div style="font-size: 1.5rem;">🔗</div>
-                        <span style="font-size: 0.8rem; font-weight: 500;">Copy Link</span>
-                    </button>
-                </div>
-
-                <!-- Add Custom Message -->
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">✏️ Add Your Message</h3>
-                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-                    <textarea id="shareMessage" placeholder="Add a personal message to your share (optional)..." style="width: 100%; min-height: 80px; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; font-size: 0.9rem;"></textarea>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">
-                            💡 Tip: Add context to help your audience understand why you're sharing
-                        </div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;" id="shareCharCount">
-                            <span id="shareCharCountNumber">0</span>/280
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Privacy Settings -->
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-primary);">🔒 Privacy Settings</h3>
-                <div style="background: var(--glass); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="radio" name="sharePrivacy" value="public" checked style="margin: 0;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: var(--text-primary);">🌍 Public</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Anyone can see this shared post</div>
-                            </div>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="radio" name="sharePrivacy" value="friends" style="margin: 0;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: var(--text-primary);">👥 Friends Only</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only your friends can see this share</div>
-                            </div>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                            <input type="radio" name="sharePrivacy" value="private" style="margin: 0;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500; color: var(--text-primary);">🔒 Private</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Only you can see this in your saved posts</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <button onclick="quickShare(${post.id})" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <span>🚀</span>
-                        Quick Share
-                    </button>
-                    <button onclick="closeModal('shareModal')" style="background: var(--glass); color: var(--text-primary); border: none; padding: 0.75rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='var(--glass)'">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.classList.add('active');
-    
-    // Setup character counter for share message
-    setTimeout(() => {
-        const shareInput = document.getElementById('shareMessage');
-        if (shareInput) {
-            shareInput.addEventListener('input', updateShareCharCount);
-        }
-    }, 100);
-}
-
-function updateShareCharCount() {
-    const input = document.getElementById('shareMessage');
-    const counter = document.getElementById('shareCharCountNumber');
-    if (input && counter) {
-        counter.textContent = input.value.length;
-        const charCount = document.getElementById('shareCharCount');
-        if (input.value.length > 280) {
-            charCount.style.color = 'var(--error)';
-        } else if (input.value.length > 240) {
-            charCount.style.color = 'var(--warning)';
-        } else {
-            charCount.style.color = 'var(--text-muted)';
-        }
-    }
-}
-
-function shareToExternal(platform, postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) return;
-    
-    const shareMessage = document.getElementById('shareMessage')?.value || '';
-    const postUrl = `https://connecthub.app/posts/${postId}`;
-    
-    switch(platform) {
-        case 'facebook':
-            showToast(`Sharing to Facebook... 📘`, 'info');
-            break;
-        case 'twitter':
-            showToast(`Sharing to Twitter... 🐦`, 'info');
-            break;
-        case 'instagram':
-            showToast(`Sharing to Instagram Stories... 📷`, 'info');
-            break;
-        case 'linkedin':
-            showToast(`Sharing to LinkedIn... 💼`, 'info');
-            break;
-    }
-    
-    // Update share count
-    post.shares += 1;
-    setTimeout(() => closeModal('shareModal'), 1000);
-}
-
-function shareToConnectHub(type, postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) return;
-    
-    const shareMessage = document.getElementById('shareMessage')?.value || '';
-    
-    switch(type) {
-        case 'story':
-            showToast(`Shared to your Story! 📱`, 'success');
-            break;
-        case 'friends':
-            showToast(`Shared with friends! 👥`, 'success');
-            break;
-        case 'groups':
-            showToast(`Shared to groups! 🔗`, 'success');
-            break;
-    }
-    
-    // Update share count
-    post.shares += 1;
-    setTimeout(() => closeModal('shareModal'), 1000);
-}
-
-function shareViaMethod(method, postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) return;
-    
-    const shareMessage = document.getElementById('shareMessage')?.value || '';
-    const postUrl = `https://connecthub.app/posts/${postId}`;
-    
-    switch(method) {
-        case 'email':
-            showToast(`Opening email client... 📧`, 'info');
-            break;
-        case 'sms':
-            showToast(`Opening SMS app... 💬`, 'info');
-            break;
-        case 'whatsapp':
-            showToast(`Opening WhatsApp... 💚`, 'info');
-            break;
-    }
-    
-    // Update share count
-    post.shares += 1;
-    setTimeout(() => closeModal('shareModal'), 1000);
-}
-
-function copyPostLink(postId) {
-    const postUrl = `https://connecthub.app/posts/${postId}`;
-    
-    // Create temporary text area to copy text
-    const textArea = document.createElement('textarea');
-    textArea.value = postUrl;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    
-    showToast('Post link copied to clipboard! 🔗', 'success');
-    
-    // Update share count
-    const post = samplePosts.find(p => p.id === postId);
-    if (post) {
-        post.shares += 1;
-    }
-    
-    setTimeout(() => closeModal('shareModal'), 1000);
-}
-
-function quickShare(postId) {
-    const post = samplePosts.find(p => p.id === postId);
-    if (!post) return;
-    
-    const shareMessage = document.getElementById('shareMessage')?.value || '';
-    const privacy = document.querySelector('input[name="sharePrivacy"]:checked')?.value || 'public';
-    
-    showToast(`Post shared ${privacy === 'public' ? 'publicly' : privacy === 'friends' ? 'with friends' : 'privately'}! 🚀`, 'success');
-    
-    // Update share count
-    post.shares += 1;
-    setTimeout(() => closeModal('shareModal'), 1000);
-}
-
-function addFriend(name) {
-    showToast(`Friend request sent to ${name}`, 'success');
-}
-
-function followUser(name) {
-    showToast(`Now following ${name}`, 'success');
-}
-
-function joinGroup(name) {
-    if (window.joinGroupSystem) {
-        window.joinGroupSystem.handleJoinGroup(name);
-    } else {
-        showToast(`Joined ${name}`, 'success');
-    }
-}
-
-function joinEvent(name) {
-    // Use the comprehensive join event system
-    if (window.joinEventSystem) {
-        window.joinEventSystem.joinEvent(name);
-    } else {
-        // Fallback if system not loaded
-        showToast(`Registered for ${name}`, 'success');
-    }
-}
-
-function createNewEvent() {
-    // Ensure both Create Event buttons work the same way
-    showEventCreationForm();
-}
-
-function createStory() {
-    // Use the comprehensive story creation interface from SocialMissingUIComponents
-    if (window.socialMissingUI && typeof window.socialMissingUI.openStoryCreation === 'function') {
-        window.socialMissingUI.openStoryCreation();
-        showToast('Comprehensive Story Creation opened!', 'success');
-    } else if (typeof SocialMissingUIComponents !== 'undefined' && window.app) {
-        // Initialize SocialMissingUIComponents if not already done
-        console.log('Initializing SocialMissingUIComponents for story creation...');
-        const socialUI = new SocialMissingUIComponents(window.app);
-        window.socialMissingUI = socialUI;
-        socialUI.openStoryCreation();
-        showToast('Comprehensive Story Creation opened!', 'success');
-    } else {
-        // Last fallback - basic toast
-        console.warn('SocialMissingUIComponents not available, using basic fallback');
-        showToast('Story creation feature coming soon!', 'info');
-        
-        // Try to initialize after a brief delay
-        setTimeout(() => {
-            if (typeof SocialMissingUIComponents !== 'undefined' && window.app && !window.socialMissingUI) {
-                console.log('Delayed initialization of SocialMissingUIComponents...');
-                const delayedSocialUI = new SocialMissingUIComponents(window.app);
-                window.socialMissingUI = delayedSocialUI;
-                showToast('Story creation is now ready! Click + Add Story again.', 'info');
-            }
-        }, 1000);
-    }
-}
-
-function viewStory(user) {
-    // Generate sample story data for the user
-    const storyData = generateStoryData(user);
-    
-    // Open the story viewer with the data
-    openStoryViewer(storyData);
-}
-
-// Generate sample story data for a user
-function generateStoryData(user) {
-    const storyTypes = ['text', 'image', 'video'];
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
-    const textStories = [
-        'Having an amazing day! ☀️',
-        'Coffee time ☕️',
-        'Working on new projects 💼',
-        'Weekend vibes! 🎉',
-        'Grateful for today 🙏',
-        'New adventure ahead! 🚀'
-    ];
-    
-    const stories = [];
-    const storyCount = Math.floor(Math.random() * 3) + 2; // 2-4 stories per user
-    
-    for (let i = 0; i < storyCount; i++) {
-        const storyType = storyTypes[Math.floor(Math.random() * storyTypes.length)];
-        const baseStory = {
-            id: `${user}_${i}`,
-            user: user,
-            avatar: user === 'Emma Wilson' ? 'EW' : user === 'Mike Johnson' ? 'MJ' : user === 'Sarah Miller' ? 'SM' : user === 'Alex Chen' ? 'AC' : 'U',
-            timestamp: new Date(Date.now() - Math.floor(Math.random() * 3600000 * 24)), // Random time in last 24 hours
-            views: Math.floor(Math.random() * 100) + 10,
-            type: storyType
-        };
-        
-        if (storyType === 'text') {
-            stories.push({
-                ...baseStory,
-                content: textStories[Math.floor(Math.random() * textStories.length)],
-                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                textColor: '#FFFFFF',
-                fontSize: '1.5rem'
-            });
-        } else if (storyType === 'image') {
-            stories.push({
-                ...baseStory,
-                content: '🌟', // Emoji as placeholder for image
-                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                caption: i === 0 ? 'Beautiful sunset today!' : i === 1 ? 'Amazing coffee shop!' : 'Great memories!'
-            });
-        } else if (storyType === 'video') {
-            stories.push({
-                ...baseStory,
-                content: '🎬', // Emoji as placeholder for video
-                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                caption: 'Check out this cool video!',
-                duration: Math.floor(Math.random() * 10) + 5 // 5-15 seconds
-            });
-        }
-    }
-    
-    return {
-        user: user,
-        stories: stories,
-        currentIndex: 0
-    };
-}
-
-// Open the story viewer
-function openStoryViewer(storyData) {
-    // Remove existing story viewer
-    const existingViewer = document.getElementById('storyViewer');
-    if (existingViewer) {
-        existingViewer.remove();
-    }
-    
-    // Create story viewer modal
-    const storyViewer = document.createElement('div');
-    storyViewer.id = 'storyViewer';
-    storyViewer.className = 'story-viewer';
-    storyViewer.innerHTML = `
-        <div class="story-viewer-container">
-            <!-- Story Progress Bar -->
-            <div class="story-progress-container">
-                ${storyData.stories.map((_, index) => `
-                    <div class="story-progress-bar">
-                        <div class="story-progress-fill" data-story-index="${index}"></div>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <!-- Story Header -->
-            <div class="story-header">
-                <div class="story-user-info">
-                    <div class="story-user-avatar">${storyData.stories[0].avatar}</div>
-                    <div class="story-user-details">
-                        <div class="story-user-name">${storyData.user}</div>
-                        <div class="story-timestamp"></div>
-                    </div>
-                </div>
-                <div class="story-actions">
-                    <button class="story-action-btn" onclick="pauseStory()" id="pauseBtn">⏸️</button>
-                    <button class="story-action-btn" onclick="closeStoryViewer()">✕</button>
-                </div>
-            </div>
-            
-            <!-- Story Content -->
-            <div class="story-content-container">
-                <div class="story-content" id="storyContent">
-                    <!-- Story content will be populated here -->
-                </div>
-                
-                <!-- Navigation Zones -->
-                <div class="story-nav-left" onclick="previousStory()"></div>
-                <div class="story-nav-right" onclick="nextStory()"></div>
-            </div>
-            
-            <!-- Story Footer -->
-            <div class="story-footer">
-                <div class="story-views">
-                    <span id="storyViews">👁️ 0</span>
-                </div>
-                <div class="story-reply">
-                    <input type="text" placeholder="Reply to story..." onkeypress="handleStoryReply(event)">
-                    <button onclick="sendStoryReply()">➤</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Story Loading -->
-        <div class="story-loading" id="storyLoading">
-            <div class="story-loading-spinner"></div>
-        </div>
-    `;
-    
-    document.body.appendChild(storyViewer);
-    
-    // Initialize story viewer
-    window.currentStoryData = storyData;
-    window.currentStoryIndex = 0;
-    window.storyTimer = null;
-    window.storyPaused = false;
-    
-    // Show the viewer
-    setTimeout(() => {
-        storyViewer.classList.add('active');
-        loadStory(0);
-    }, 50);
-    
-    // Add keyboard support
-    document.addEventListener('keydown', handleStoryKeyPress);
-    
-    showToast(`Opened ${storyData.user}'s story! 📱`, 'success');
-}
-
-// Load a specific story
-function loadStory(index) {
-    if (!window.currentStoryData || !window.currentStoryData.stories[index]) return;
-    
-    const story = window.currentStoryData.stories[index];
-    const storyContent = document.getElementById('storyContent');
-    const storyTimestamp = document.querySelector('.story-timestamp');
-    const storyViews = document.getElementById('storyViews');
-    const storyLoading = document.getElementById('storyLoading');
-    
-    if (!storyContent) return;
-    
-    window.currentStoryIndex = index;
-    
-    // Show loading
-    storyLoading.style.display = 'flex';
-    
-    // Update timestamp
-    if (storyTimestamp) {
-        storyTimestamp.textContent = getTimeAgo(story.timestamp);
-    }
-    
-    // Update views
-    if (storyViews) {
-        storyViews.textContent = `👁️ ${story.views}`;
-    }
-    
-    // Simulate loading delay
-    setTimeout(() => {
-        // Hide loading
-        storyLoading.style.display = 'none';
-        
-        // Clear previous content
-        storyContent.innerHTML = '';
-        storyContent.className = 'story-content';
-        
-        // Set background color
-        storyContent.style.background = story.backgroundColor || '#000';
-        
-        // Populate content based on story type
-        if (story.type === 'text') {
-            storyContent.innerHTML = `
-                <div class="story-text-content">
-                    <div class="story-text" style="color: ${story.textColor}; font-size: ${story.fontSize};">
-                        ${story.content}
-                    </div>
-                </div>
-            `;
-        } else if (story.type === 'image') {
-            storyContent.innerHTML = `
-                <div class="story-media-content">
-                    <div class="story-image-placeholder">
-                        <div class="story-image-icon">${story.content}</div>
-                        <div class="story-image-label">📸 Image Story</div>
-                    </div>
-                    ${story.caption ? `<div class="story-caption">${story.caption}</div>` : ''}
-                </div>
-            `;
-        } else if (story.type === 'video') {
-            storyContent.innerHTML = `
-                <div class="story-media-content">
-                    <div class="story-video-placeholder">
-                        <div class="story-video-icon">${story.content}</div>
-                        <div class="story-video-label">🎥 Video Story</div>
-                        <div class="story-video-duration">${story.duration}s</div>
-                    </div>
-                    ${story.caption ? `<div class="story-caption">${story.caption}</div>` : ''}
-                </div>
-            `;
-        }
-        
-        // Update progress bars
-        updateStoryProgress(index);
-        
-        // Start auto-advance timer
-        startStoryTimer(story.type === 'video' ? (story.duration * 1000) : 5000);
-        
-    }, 800); // Simulate loading time
-}
-
-// Update story progress indicators
-function updateStoryProgress(currentIndex) {
-    const progressFills = document.querySelectorAll('.story-progress-fill');
-    progressFills.forEach((fill, index) => {
-        fill.classList.remove('active', 'completed');
-        if (index < currentIndex) {
-            fill.classList.add('completed');
-        } else if (index === currentIndex) {
-            fill.classList.add('active');
-        }
-    });
-}
-
-// Start story auto-advance timer
-function startStoryTimer(duration = 5000) {
-    clearTimeout(window.storyTimer);
-    
-    if (window.storyPaused) return;
-    
-    const progressFill = document.querySelector('.story-progress-fill.active');
-    if (progressFill) {
-        progressFill.style.animationDuration = `${duration}ms`;
-    }
-    
-    window.storyTimer = setTimeout(() => {
-        if (!window.storyPaused) {
-            nextStory();
-        }
-    }, duration);
-}
-
-// Navigate to next story
-function nextStory() {
-    if (!window.currentStoryData) return;
-    
-    clearTimeout(window.storyTimer);
-    
-    if (window.currentStoryIndex < window.currentStoryData.stories.length - 1) {
-        loadStory(window.currentStoryIndex + 1);
-    } else {
-        // Last story - close viewer or go to next user's stories
-        closeStoryViewer();
-    }
-}
-
-// Navigate to previous story
-function previousStory() {
-    if (!window.currentStoryData) return;
-    
-    clearTimeout(window.storyTimer);
-    
-    if (window.currentStoryIndex > 0) {
-        loadStory(window.currentStoryIndex - 1);
-    }
-}
-
-// Pause/Resume story
-function pauseStory() {
-    const pauseBtn = document.getElementById('pauseBtn');
-    if (!pauseBtn) return;
-    
-    window.storyPaused = !window.storyPaused;
-    
-    if (window.storyPaused) {
-        clearTimeout(window.storyTimer);
-        pauseBtn.textContent = '▶️';
-        pauseBtn.title = 'Resume';
-        
-        // Pause CSS animation
-        const activeProgress = document.querySelector('.story-progress-fill.active');
-        if (activeProgress) {
-            activeProgress.style.animationPlayState = 'paused';
-        }
-    } else {
-        pauseBtn.textContent = '⏸️';
-        pauseBtn.title = 'Pause';
-        
-        // Resume CSS animation
-        const activeProgress = document.querySelector('.story-progress-fill.active');
-        if (activeProgress) {
-            activeProgress.style.animationPlayState = 'running';
-        }
-        
-        // Calculate remaining time and restart timer
-        const story = window.currentStoryData.stories[window.currentStoryIndex];
-        const duration = story.type === 'video' ? (story.duration * 1000) : 5000;
-        startStoryTimer(duration);
-    }
-}
-
-// Handle story reply
-function handleStoryReply(event) {
-    if (event.key === 'Enter') {
-        sendStoryReply();
-    }
-}
-
-function sendStoryReply() {
-    const replyInput = document.querySelector('.story-reply input');
-    if (replyInput && replyInput.value.trim()) {
-        const message = replyInput.value.trim();
-        showToast(`Reply sent: "${message}"`, 'success');
-        replyInput.value = '';
-    }
-}
-
-// Handle keyboard navigation for stories
-function handleStoryKeyPress(event) {
-    if (!document.getElementById('storyViewer')?.classList.contains('active')) return;
-    
-    switch(event.key) {
-        case 'ArrowRight':
-        case ' ':
-            event.preventDefault();
-            nextStory();
-            break;
-        case 'ArrowLeft':
-            event.preventDefault();
-            previousStory();
-            break;
-        case 'Escape':
-            event.preventDefault();
-            closeStoryViewer();
-            break;
-        case 'p':
-        case 'P':
-            event.preventDefault();
-            pauseStory();
-            break;
-    }
-}
-
-// Close story viewer
-function closeStoryViewer() {
-    const storyViewer = document.getElementById('storyViewer');
-    if (storyViewer) {
-        clearTimeout(window.storyTimer);
-        storyViewer.classList.remove('active');
-        
-        setTimeout(() => {
-            storyViewer.remove();
-            // Clean up global variables
-            window.currentStoryData = null;
-            window.currentStoryIndex = 0;
-            window.storyTimer = null;
-            window.storyPaused = false;
-            
-            // Remove keyboard listener
-            document.removeEventListener('keydown', handleStoryKeyPress);
-        }, 300);
-    }
-}
-
-// Utility function to get time ago
-function getTimeAgo(timestamp) {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - timestamp) / 1000);
-    
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-}
-
-function handleStoryUserClick(userName, userAvatar, event) {
-    // Prevent event bubbling to story circle
-    if (event) {
-        event.stopPropagation();
-    }
-    
-    // Check if enhanced story user dashboard system is available
-    if (window.enhancedStoryUserDashboard) {
-        // Generate mock user data for the enhanced dashboard
-        const mockUserData = {
-            id: userName.toLowerCase().replace(/\s+/g, ''),
-            name: userName,
-            username: '@' + userName.toLowerCase().replace(/\s+/g, ''),
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6c5ce7&color=ffffff`,
-            isVerified: Math.random() > 0.5,
-            isFollowing: Math.random() > 0.5,
-            bio: `${userName} - ConnectHub User`,
-            location: 'New York, NY',
-            website: 'connecthub.app',
-            activityStatus: Math.random() > 0.5 ? 'online' : 'offline',
-            mutualFriendsCount: Math.floor(Math.random() * 20) + 1,
-            posts: Math.floor(Math.random() * 100) + 10,
-            followers: Math.floor(Math.random() * 5000) + 100,
-            following: Math.floor(Math.random() * 1000) + 50,
-            stories: Math.floor(Math.random() * 10) + 1
-        };
-        
-        // Launch the enhanced dashboard
-        window.enhancedStoryUserDashboard.showEnhancedUserDashboard(mockUserData);
-        showToast(`Enhanced User Dashboard for ${userName} opened! 🚀`, 'success');
-    } else {
-        // Fallback if enhanced dashboard not available
-        showToast(`Enhanced dashboard loading for ${userName}...`, 'info');
-        
-        // Try to initialize after a brief delay
-        setTimeout(() => {
-            if (window.enhancedStoryUserDashboard) {
-                handleStoryUserClick(userName, userAvatar, null);
-            } else if (window.storyUserInteraction) {
-                // Fallback to basic story user interaction
-                window.storyUserInteraction.showUserProfile(userName);
-                showToast(`Basic profile for ${userName} opened`, 'info');
-            } else {
-                showToast('Enhanced user dashboard not available. Please refresh the page.', 'error');
-            }
-        }, 500);
-    }
-}
-
-function openChat(userName, avatar) {
-    const chatArea = document.getElementById('chatArea');
-    if (chatArea) {
-        chatArea.innerHTML = `
-            <div style="padding: 1rem 1.5rem; background: var(--bg-card); border-bottom: 1px solid var(--glass-border);">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" aria-label="User avatar">${avatar}</div>
-                    <div>
-                        <h3>${userName}</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Online now</p>
-                    </div>
-                </div>
-            </div>
-            <div style="flex: 1; padding: 1rem; background: var(--bg-secondary); overflow-y: auto;" id="messagesArea">
-                <div class="chat-message">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="User avatar">${avatar}</div>
-                    <div class="chat-bubble">Hey! How are you doing?</div>
-                </div>
-                <div class="chat-message own">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="Your avatar">JD</div>
-                    <div class="chat-bubble">I'm great! How about you?</div>
-                </div>
-            </div>
-            <div style="padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--glass-border);">
-                <div style="display: flex; gap: 1rem;">
-                    <input type="text" id="messageInput" placeholder="Type a message..." style="flex: 1; padding: 0.75rem; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary);" onkeypress="sendMessage(event, '${userName}')">
-                    <button class="btn btn-primary" onclick="sendMessage(null, '${userName}')" aria-label="Send message">📤</button>
-                </div>
-            </div>
-        `;
-    }
-}
-
-function sendMessage(event, userName) {
-    if (event && event.key !== 'Enter') return;
-    
-    const input = document.getElementById('messageInput');
-    if (!input) return;
-    
-    const message = input.value.trim();
-    
-    if (message) {
-        const messagesArea = document.getElementById('messagesArea');
-        if (messagesArea) {
-            messagesArea.innerHTML += `
-                <div class="chat-message own">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 0.9rem;" aria-label="Your avatar">JD</div>
-                    <div class="chat-bubble">${message}</div>
-                </div>
-            `;
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        }
-        input.value = '';
-        showToast(`Message sent to ${userName}`, 'success');
-    }
-}
-
-function sendDatingMessage(name) {
-    const input = document.getElementById('datingMessageInput');
-    if (input && input.value.trim()) {
-        showToast(`Message sent to ${name}`, 'success');
-        input.value = '';
-    }
-}
-
-function searchTrending(hashtag) {
-    showToast(`Searching for #${hashtag}...`, 'info');
-}
-
-function performSearch(query) {
-    if (query && query.trim()) {
-        showToast(`Searching for "${query}"...`, 'info');
-    }
-}
-
-// Function to render the complete Search Posts Dashboard HTML structure
-function renderSearchPostsDashboard() {
-    const searchScreen = document.getElementById('socialSearch');
-    if (!searchScreen) return;
-    
-    // Replace the search screen content with the complete dashboard
-    searchScreen.innerHTML = `
-        <div class="search-posts-dashboard">
-            <div class="dashboard-header">
-                <div class="dashboard-title">
-                    <h1>🔍 Search Posts</h1>
-                    <p>Search through millions of posts with advanced filtering</p>
-                </div>
-                <div class="search-posts-input-container">
-                    <input type="text" id="global-search-main" placeholder="What are you looking for?" class="search-posts-input">
-                    <button class="search-posts-submit-btn" onclick="performPostSearch()">🔍</button>
-                </div>
-            </div>
-
-            <div class="search-tabs">
-                <div class="search-tab active" id="posts-search-tab">
-                    📝 Posts <span class="results-count" id="posts-results-count" style="display: none;">0</span>
-                </div>
-            </div>
-
-            <div class="search-tab-content active" id="posts-search-content">
-                <!-- Filters Section -->
-                <div class="posts-filters">
-                    <div class="filters-header">
-                        <h3>🎯 Filters</h3>
-                        <div class="filter-actions">
-                            <button class="btn btn-secondary btn-small" id="apply-posts-filters">Apply</button>
-                            <button class="btn btn-secondary btn-small" id="clear-posts-filters">Clear</button>
-                        </div>
-                    </div>
-                    
-                    <div class="filters-grid">
-                        <div class="filter-group">
-                            <h4>Content Types</h4>
-                            <div class="filter-checkboxes">
-                                <label><input type="checkbox" value="text" checked> 📝 Text</label>
-                                <label><input type="checkbox" value="image" checked> 📷 Images</label>
-                                <label><input type="checkbox" value="video" checked> 🎥 Videos</label>
-                                <label><input type="checkbox" value="link" checked> 🔗 Links</label>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <h4>Date Range</h4>
-                            <input type="date" id="posts-date-from" placeholder="From">
-                            <input type="date" id="posts-date-to" placeholder="To">
-                        </div>
-                        
-                        <div class="filter-group">
-                            <h4>Hashtags</h4>
-                            <input type="text" id="posts-hashtags-filter" placeholder="#hashtag1, #hashtag2">
-                        </div>
-                        
-                        <div class="filter-group">
-                            <h4>Author</h4>
-                            <input type="text" id="posts-author-filter" placeholder="Author name or @username">
-                        </div>
-                        
-                        <div class="filter-group">
-                            <h4>Minimum Engagement</h4>
-                            <input type="number" id="posts-min-likes" placeholder="Min likes" min="0">
-                            <input type="number" id="posts-min-comments" placeholder="Min comments" min="0">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sort and View Options -->
-                <div class="posts-sort-options">
-                    <div class="sort-controls">
-                        <select id="posts-sort-select">
-                            <option value="relevance">📊 Relevance</option>
-                            <option value="recent">🕒 Most Recent</option>
-                            <option value="popular">🔥 Most Popular</option>
-                            <option value="likes">❤️ Most Liked</option>
-                            <option value="comments">💬 Most Commented</option>
-                            <option value="shares">🔄 Most Shared</option>
-                        </select>
-                    </div>
-                    
-                    <div class="view-toggle">
-                        <button class="view-toggle-btn active" data-view="list">📋 List</button>
-                        <button class="view-toggle-btn" data-view="grid">⚏ Grid</button>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div class="posts-empty-state" id="posts-empty-state">
-                    <div class="empty-state-content">
-                        <div class="empty-state-icon">🔍</div>
-                        <h3>Search Posts</h3>
-                        <p>Enter a search term above to find posts from across the ConnectHub community</p>
-                        <div class="trending-section">
-                            <h4>🔥 Trending Topics</h4>
-                            <div class="trending-tags">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Results Container -->
-                <div class="posts-results-container" id="posts-results-container" style="display: none;">
-                    <div class="posts-list-view active" id="posts-list-view">
-                        <!-- List view results will be populated here -->
-                    </div>
-                    
-                    <div class="posts-grid-view" id="posts-grid-view">
-                        <!-- Grid view results will be populated here -->
-                    </div>
-                    
-                    <div class="posts-load-more-container" id="posts-load-more-container">
-                        <button class="btn btn-secondary" id="posts-load-more">
-                            <i class="fas fa-chevron-down"></i> Load More Posts
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function searchCategory(category) {
-    if (!isLoggedIn) {
-        showToast('Please sign in to use search features', 'warning');
-        return;
-    }
-    
-    switch(category) {
-        case 'posts':
-            searchPosts();
-            break;
-        case 'groups':
-            showGroupsSearchDashboard();
-            break;
-        case 'events':
-            showToast('Searching for events...', 'info');
-            break;
-        default:
-            showToast(`Searching for ${category}...`, 'info');
-    }
-}
-
-// Dedicated searchPosts function for launching the Search Posts Dashboard
-function searchPosts(initialQuery = '') {
-    if (!isLoggedIn) {
-        showToast('Please sign in to access search features', 'warning');
-        return;
-    }
-    
-    try {
-        showLoading();
-        
-        // Check if SearchPostsDashboard class is available
-        if (typeof SearchPostsDashboard !== 'undefined') {
-            // Create the dashboard instance
-            const searchPostsDashboard = new SearchPostsDashboard(window.app);
-            
-            // Open the dashboard with optional initial query
-            if (initialQuery) {
-                searchPostsDashboard.openDashboard(initialQuery);
-            } else {
-                searchPostsDashboard.openDashboard();
-            }
-            
-            hideLoading();
-            showToast('Search Posts Dashboard opened! 🔍', 'success');
-            console.log('Search Posts Dashboard launched successfully');
-            
-        } else {
-            throw new Error('SearchPostsDashboard class not loaded');
-        }
-    } catch (error) {
-        hideLoading();
-        console.error('Error launching Search Posts Dashboard:', error);
-        showToast('Failed to open Search Posts Dashboard. Please refresh the page and try again.', 'error');
-        
-        // Retry mechanism - try to initialize after a brief delay
-        setTimeout(() => {
-            if (typeof SearchPostsDashboard !== 'undefined') {
-                try {
-                    const fallbackDashboard = new SearchPostsDashboard(window.app);
-                    fallbackDashboard.openDashboard(initialQuery);
-                    showToast('Search Posts Dashboard loaded successfully! 🔍', 'success');
-                } catch (retryError) {
-                    console.error('Retry failed:', retryError);
-                    showToast('Search Posts Dashboard is still unavailable. Please refresh the page.', 'error');
-                }
-            }
-        }, 1000);
-    }
-}
-
-function buyNow(itemId) {
-    showToast('Redirecting to checkout...', 'info');
-}
-
-function addToCart(itemId) {
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        cartCount.textContent = parseInt(cartCount.textContent) + 1;
-    }
-    showToast('Added to cart!', 'success');
-}
-
-function movePuzzleTile(index) {
-    showToast(`Moving tile ${index + 1}`, 'info');
-}
-
-function shufflePuzzle() {
-    showToast('Puzzle shuffled!', 'info');
-}
-
-function dealCards() {
-    showToast('Cards dealt!', 'info');
-}
-
-// Authentication Functions
-function socialLogin(provider) {
-    showLoading();
-    showToast(`Signing in with ${provider}...`, 'info');
-    setTimeout(() => {
-        hideLoading();
-        isLoggedIn = true;
-        document.getElementById('authScreen').classList.remove('active');
-        document.getElementById('categorySelection').classList.add('active');
-        showToast('Welcome to ConnectHub!', 'success');
-        updateMainNav();
-        updateSubNav();
-    }, 2000);
-}
-
-function forgotPassword() {
-    showToast('Password reset link sent to your email', 'info');
-}
-
-// Initialize UI component instances when needed
-function initializeUIComponents() {
-    if (!profileUIComponents && window.ProfileUIComponents) {
-        profileUIComponents = new ProfileUIComponents();
-    }
-    if (!searchUIComponents && window.SearchMissingUIComponents) {
-        searchUIComponents = new SearchMissingUIComponents();
-    }
-    if (!groupsUIComponents && window.GroupsMissingUIComponents) {
-        groupsUIComponents = new GroupsMissingUIComponents();
-    }
-    if (!eventsUIComponents && window.EventsMissingUIComponents) {
-        eventsUIComponents = new EventsMissingUIComponents();
-    }
-    if (!advancedSearchResultsUI && window.AdvancedSearchResultsUI) {
-        advancedSearchResultsUI = new AdvancedSearchResultsUI({
-            showToast: showToast
-        });
-    }
-    if (!searchDiscoveryStreamingComponents && window.SearchDiscoveryStreamingComponents) {
-        searchDiscoveryStreamingComponents = new SearchDiscoveryStreamingComponents();
-    }
-}
-
-// Enhanced UI interface functions for Profile Screen
-function showAdvancedProfileEditor() {
-    initializeUIComponents();
-    if (profileUIComponents) {
-        profileUIComponents.showAdvancedProfileEditor();
-        showToast('Advanced Profile Editor opened!', 'success');
-    }
-}
-
-function showPhotoEditor() {
-    initializeUIComponents();
-    if (profileUIComponents) {
-        profileUIComponents.showPhotoEditor();
-        showToast('Photo Editor opened!', 'success');
-    }
-}
-
-function showPrivacyControlPanel() {
-    initializeUIComponents();
-    if (profileUIComponents) {
-        profileUIComponents.showPrivacyControlPanel();
-        showToast('Privacy Control Panel opened!', 'success');
-    }
-}
-
-function showAchievementsGallery() {
-    initializeUIComponents();
-    if (profileUIComponents) {
-        profileUIComponents.showAchievementsGallery();
-        showToast('Achievements Gallery opened!', 'success');
-    }
-}
-
-function showConnectionsManager() {
-    initializeUIComponents();
-    if (profileUIComponents) {
-        profileUIComponents.showConnectionsManager();
-        showToast('Connections Manager opened!', 'success');
-    }
-}
-
-// Enhanced UI interface functions for Search Screen
-function showAdvancedSearchFilters() {
-    initializeUIComponents();
-    if (searchUIComponents) {
-        searchUIComponents.showAdvancedSearchFilters();
-        showToast('Advanced Search Filters opened!', 'success');
-    }
-}
-
-function showSearchResultsCustomizer() {
-    initializeUIComponents();
-    if (searchUIComponents) {
-        searchUIComponents.showSearchResultsCustomizer();
-        showToast('Search Results Customizer opened!', 'success');
-    }
-}
-
-function showSavedSearchesManager() {
-    initializeUIComponents();
-    if (searchUIComponents) {
-        searchUIComponents.showSavedSearchesManager();
-        showToast('Saved Searches Manager opened!', 'success');
-    }
-}
-
-function showSearchHistoryViewer() {
-    initializeUIComponents();
-    if (searchUIComponents) {
-        searchUIComponents.showSearchHistoryViewer();
-        showToast('Search History Viewer opened!', 'success');
-    }
-}
-
-function showRealTimeSearchSuggestions() {
-    initializeUIComponents();
-    if (searchUIComponents) {
-        searchUIComponents.showRealTimeSearchSuggestions();
-        showToast('Real-time Search Suggestions opened!', 'success');
-    }
-}
-
-// NEW: Advanced Search Results UI function - The 1 Missing Search & Discovery Interface
-function showAdvancedSearchResults(query = 'photography', results = {}) {
-    initializeUIComponents();
-    if (advancedSearchResultsUI) {
-        advancedSearchResultsUI.showAdvancedSearchResults(query, results);
-        showToast('Advanced Search Results opened!', 'success');
-    } else {
-        showToast('Advanced Search Results UI not available', 'warning');
-    }
-}
-
-// NEW: Search & Discovery Streaming UI interface functions - The 3 Missing Search & Discovery Streaming Interfaces
-function showLiveStreamSearch() {
-    initializeUIComponents();
-    if (searchDiscoveryStreamingComponents) {
-        searchDiscoveryStreamingComponents.showLiveStreamSearch();
-        showToast('Live Stream Search & Discovery opened!', 'success');
-    } else {
-        showToast('Live Stream Search UI not available', 'warning');
-    }
-}
-
-function showContentRecommendations() {
-    initializeUIComponents();
-    if (searchDiscoveryStreamingComponents) {
-        searchDiscoveryStreamingComponents.showContentRecommendations();
-        showToast('Content Recommendation Engine opened!', 'success');
-    } else {
-        showToast('Content Recommendations UI not available', 'warning');
-    }
-}
-
-function showTrendingAnalytics() {
-    initializeUIComponents();
-    if (searchDiscoveryStreamingComponents) {
-        searchDiscoveryStreamingComponents.showTrendingAnalytics();
-        showToast('Trending Streams Analytics opened!', 'success');
-    } else {
-        showToast('Trending Analytics UI not available', 'warning');
-    }
-}
-
-// Global function for Create Group button in HTML
-function createGroup() {
-    showGroupCreationWizard();
-}
-
-// Enhanced UI interface functions for Groups Screen
-function showGroupCreationWizard() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupCreationWizard();
-        showToast('Group Creation Wizard opened!', 'success');
-    } else {
-        // Fallback: Initialize GroupsMissingUIComponents directly
-        if (typeof GroupsMissingUIComponents !== 'undefined') {
-            const fallbackGroupsUI = new GroupsMissingUIComponents({
-                showToast: showToast
-            });
-            fallbackGroupsUI.showGroupCreationWizard();
-            showToast('Group Creation Wizard opened!', 'success');
-        } else {
-            showToast('Group Creation Wizard is loading...', 'info');
-            // Try again after a short delay
-            setTimeout(() => {
-                if (typeof GroupsMissingUIComponents !== 'undefined') {
-                    const delayedGroupsUI = new GroupsMissingUIComponents({
-                        showToast: showToast
-                    });
-                    delayedGroupsUI.showGroupCreationWizard();
-                    showToast('Group Creation Wizard loaded!', 'success');
-                } else {
-                    showToast('Group Creation Wizard not available. Please refresh the page.', 'error');
-                }
-            }, 500);
-        }
-    }
-}
-
-function showGroupMembersManager() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupMembersManager();
-        showToast('Group Members Manager opened!', 'success');
-    }
-}
-
-function showGroupDiscussionBoard() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupDiscussionBoard();
-        showToast('Group Discussion Board opened!', 'success');
-    }
-}
-
-function showGroupEventsCalendar() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupEventsCalendar();
-        showToast('Group Events Calendar opened!', 'success');
-    }
-}
-
-function showGroupSettingsPanel() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupSettingsPanel();
-        showToast('Group Settings Panel opened!', 'success');
-    }
-}
-
-function showGroupAnalyticsDashboard() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupAnalyticsDashboard();
-        showToast('Group Analytics Dashboard opened!', 'success');
-    }
-}
-
-function showGroupResourceLibrary() {
-    initializeUIComponents();
-    if (groupsUIComponents) {
-        groupsUIComponents.showGroupResourceLibrary();
-        showToast('Group Resource Library opened!', 'success');
-    }
-}
-
-// Enhanced UI interface functions for Events Screen
-function showEventCreationForm() {
-    try {
-        initializeUIComponents();
-        if (eventsUIComponents) {
-            eventsUIComponents.showEventCreationForm();
-            showToast('Event Creation Form opened!', 'success');
-        } else {
-            // Fallback: Create EventsMissingUIComponents directly
-            if (typeof EventsMissingUIComponents !== 'undefined') {
-                const fallbackEventsUI = new EventsMissingUIComponents({
-                    showToast: showToast
-                });
-                fallbackEventsUI.showEventCreationForm();
-                showToast('Event Creation Form opened!', 'success');
-            } else {
-                showToast('Event Creation Form is loading...', 'info');
-                // Try again after a short delay to ensure the class is loaded
-                setTimeout(() => {
-                    try {
-                        if (typeof EventsMissingUIComponents !== 'undefined') {
-                            const delayedEventsUI = new EventsMissingUIComponents({
-                                showToast: showToast
-                            });
-                            delayedEventsUI.showEventCreationForm();
-                            showToast('Event Creation Form loaded!', 'success');
-                        } else {
-                            showToast('Event Creation Form not available. Please refresh the page.', 'error');
-                        }
-                    } catch (delayError) {
-                        console.error('Delayed Event Creation Form error:', delayError);
-                        showToast('Unable to load Event Creation Form. Please try refreshing the page.', 'error');
-                    }
-                }, 500);
-            }
-        }
-    } catch (error) {
-        console.error('Error opening Event Creation Form:', error);
-        showToast('Unable to open Event Creation Form. Please try again or refresh the page.', 'error');
-    }
-}
-
-function showEventDetailsView() {
-    initializeUIComponents();
-    if (eventsUIComponents) {
-        eventsUIComponents.showEventDetailsView();
-        showToast('Event Details View opened!', 'success');
-    }
-}
-
-function showEventCheckIn() {
-    initializeUIComponents();
-    if (eventsUIComponents) {
-        eventsUIComponents.showEventCheckIn();
-        showToast('Event Check-in opened!', 'success');
-    }
-}
-
-function showEventPhotoGallery() {
-    initializeUIComponents();
-    if (eventsUIComponents) {
-        eventsUIComponents.showEventPhotoGallery();
-        showToast('Event Photo Gallery opened!', 'success');
-    }
-}
-
-function showEventFeedbackForm() {
-    initializeUIComponents();
-    if (eventsUIComponents) {
-        eventsUIComponents.showEventFeedbackForm();
-        showToast('Event Feedback Form opened!', 'success');
-    }
-}
-
-// Privacy & Security UI interface functions
-function showContentReportInterface(contentId, contentType, contentPreview) {
-    if (window.privacySecurityUI) {
-        window.privacySecurityUI.showContentReportInterface(contentId, contentType, contentPreview);
-        showToast('Content Reporting Interface opened!', 'success');
-    }
-}
-
-function showBlockMuteInterface(userId, username) {
-    if (window.privacySecurityUI) {
-        window.privacySecurityUI.showBlockMuteInterface(userId, username);
-        showToast('Block/Mute User Interface opened!', 'success');
-    }
-}
-
-function showPrivacyPolicyInterface() {
-    if (window.privacySecurityUI) {
-        window.privacySecurityUI.showPrivacyPolicyInterface();
-        showToast('Privacy Policy & Terms Interface opened!', 'success');
-    }
-}
-
-function showDataExportInterface() {
-    if (window.privacySecurityUI) {
-        window.privacySecurityUI.showDataExportInterface();
-        showToast('Data Export Interface opened!', 'success');
-    }
-}
-
-function showContentFilterInterface() {
-    if (window.privacySecurityUI) {
-        window.privacySecurityUI.showContentFilterInterface();
-        showToast('Content Filter Settings opened!', 'success');
-    }
-}
-
-// Create global app instance for UI components
-window.app = {
-    showToast: showToast,
-    currentUser: { 
-        id: 'current-user', 
-        name: 'John Doe', 
-        avatar: 'https://via.placeholder.com/60x60/6c5ce7/ffffff?text=JD' 
-    },
-    getTimeAgo: (timestamp) => {
-        const now = new Date();
-        const diffInSeconds = Math.floor((now - timestamp) / 1000);
-        if (diffInSeconds < 60) return 'just now';
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-        return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    },
-    formatNumber: (num) => {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num.toString();
-    }
-};
-
-// Event listeners and initialization
-document.addEventListener('DOMContentLoaded', () => {
-    updateMainNav();
-    updateSubNav();
-    
-    // Initialize UI components after a short delay to ensure all classes are loaded
-    setTimeout(initializeUIComponents, 500);
-    
-    // Dispatch app-ready event for UI components that are waiting
-    setTimeout(() => {
-        const appReadyEvent = new Event('app-ready');
-        document.dispatchEvent(appReadyEvent);
-        console.log('App ready event dispatched');
-    }, 300);
-    
-    // Initialize Join Event System
-    setTimeout(() => {
-        if (window.JoinEventSystem && !window.joinEventSystem) {
-            window.joinEventSystem = new window.JoinEventSystem(window.app || { showToast });
-            console.log('Join Event System initialized');
-        }
-    }, 600);
-
-    // Auth tab switching
-    const authTabs = document.querySelectorAll('.auth-tab');
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const mode = tab.getAttribute('data-mode');
-            const isLogin = mode === 'login';
-            
-            authTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            const nameGroup = document.getElementById('nameGroup');
-            const confirmGroup = document.getElementById('confirmGroup');
-            const authButtonText = document.getElementById('authButtonText');
-            
-            if (nameGroup) nameGroup.style.display = isLogin ? 'none' : 'block';
-            if (confirmGroup) confirmGroup.style.display = isLogin ? 'none' : 'block';
-            if (authButtonText) authButtonText.textContent = isLogin ? 'Sign In' : 'Register';
-        });
-    });
-
-    // Auth form submission
-    const authForm = document.getElementById('authForm');
-    if (authForm) {
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                isLoggedIn = true;
-                document.getElementById('authScreen').classList.remove('active');
-                document.getElementById('categorySelection').classList.add('active');
-                showToast('Welcome to ConnectHub!', 'success');
-                updateMainNav();
-                updateSubNav();
-            }, 1500);
-        });
-    }
-
-    // Close modals on background click
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
-        });
-    });
-
-    // Close notification panel when clicking outside
-    document.addEventListener('click', (e) => {
-        const notificationPanel = document.getElementById('notificationPanel');
-        if (notificationPanel && !e.target.closest('.notification-panel') && !e.target.closest('[onclick*="toggleNotifications"]')) {
-            notificationPanel.classList.remove('active');
-        }
-    });
-
-    // Keyboard navigation support
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            // Close any open modals
-            document.querySelectorAll('.modal.active').forEach(modal => {
-                modal.classList.remove('active');
-            });
-            
-            // Close notification panel
-            const notificationPanel = document.getElementById('notificationPanel');
-            if (notificationPanel) {
-                notificationPanel.classList.remove('active');
-            }
-        }
-    });
-
-    // Show welcome toast after delay
-    setTimeout(() => {
-        if (!isLoggedIn) {
-            showToast('Welcome to ConnectHub! Sign in to explore all features.', 'info');
-        }
-    }, 2000);
-});
-
-// Error handling
-window.addEventListener('error', (e) => {
-    console.error('App error:', e.error);
-    showToast('Something went wrong. Please try again.', 'error');
-});
-
-// COMPREHENSIVE CONTENT DISCOVERY DASHBOARD - Complete Explore Now replacement
-function discoverContent() {
-    try {
-        showToast('Launching New Content Discovery Dashboard...', 'info');
-        
-        // Check if the NewContentDiscoveryDashboard class is available
-        if (window.NewContentDiscoveryDashboard) {
-            // Create a new instance of the redesigned dashboard
-            const newDiscoveryDashboard = new window.NewContentDiscoveryDashboard(window.app);
-            newDiscoveryDashboard.showDiscoveryDashboard();
-            showToast('Content Discovery Dashboard opened! 🌟', 'success');
-            console.log('New Content Discovery Dashboard launched successfully');
-            
-        } else {
-            console.log('NewContentDiscoveryDashboard class not found, checking for availability...');
-            
-            // Fallback: Try to wait for the dashboard class to load
-            let retries = 0;
-            const checkForDashboard = () => {
-                retries++;
-                console.log(`Checking for new dashboard class... attempt ${retries}`);
-                
-                if (window.NewContentDiscoveryDashboard) {
-                    const newDiscoveryDashboard = new window.NewContentDiscoveryDashboard(window.app);
-                    newDiscoveryDashboard.showDiscoveryDashboard();
-                    showToast('Content Discovery Dashboard loaded! 🚀', 'success');
-                    console.log('New Content Discovery Dashboard initialized and launched');
-                } else if (retries < 8) {
-                    setTimeout(checkForDashboard, 300);
-                } else {
-                    console.error('New Content Discovery Dashboard failed to load after multiple attempts');
-                    showToast('Content Discovery Dashboard is not available. Please refresh the page and try again.', 'error');
-                }
-            };
-            
-            // Give it a moment for the DOM to be ready and scripts to load
-            setTimeout(checkForDashboard, 100);
-        }
-    } catch (error) {
-        console.error('Error launching New Content Discovery Dashboard:', error);
-        showToast('Error launching Content Discovery Dashboard. Please try again.', 'error');
-    }
-}
-
-// COMPREHENSIVE MEET PEOPLE DASHBOARD - Complete Find Friends replacement
-function openMeetPeopleDashboard() {
-    try {
-        showToast('Launching Meet People Dashboard...', 'info');
-        
-        // Check if the MeetPeopleDashboard instance is available
-        if (window.meetPeopleDashboard && typeof window.meetPeopleDashboard.openDashboard === 'function') {
-            // Use the existing dashboard instance
-            window.meetPeopleDashboard.openDashboard();
-            showToast('Meet People Dashboard opened! 👥', 'success');
-            console.log('Meet People Dashboard launched successfully');
-            
-        } else {
-            console.log('MeetPeopleDashboard instance not found, checking for class...');
-            
-            // Fallback: Try to wait for the dashboard to initialize
-            let retries = 0;
-            const checkForDashboard = () => {
-                retries++;
-                console.log(`Checking for meet people dashboard... attempt ${retries}`);
-                
-                if (window.meetPeopleDashboard && typeof window.meetPeopleDashboard.openDashboard === 'function') {
-                    window.meetPeopleDashboard.openDashboard();
-                    showToast('Meet People Dashboard loaded! 🚀', 'success');
-                    console.log('Meet People Dashboard initialized and launched');
-                } else if (window.MeetPeopleDashboard && typeof window.MeetPeopleDashboard === 'function') {
-                    // Try to create instance if class exists
-                    window.meetPeopleDashboard = new window.MeetPeopleDashboard(window.app);
-                    window.meetPeopleDashboard.openDashboard();
-                    showToast('Meet People Dashboard loaded! 🚀', 'success');
-                    console.log('Meet People Dashboard created and launched');
-                } else if (retries < 8) {
-                    setTimeout(checkForDashboard, 300);
-                } else {
-                    console.error('Meet People Dashboard failed to initialize after multiple attempts');
-                    showToast('Meet People Dashboard is not available. Please refresh the page and try again.', 'error');
-                }
-            };
-            
-            // Give it a moment for the DOM to be ready and scripts to load
-            setTimeout(checkForDashboard, 100);
-        }
-    } catch (error) {
-        console.error('Error launching Meet People Dashboard:', error);
-        showToast('Error launching Meet People Dashboard. Please try again.', 'error');
-    }
-}
-
-// Enhanced Group Action Functions for Groups Search Dashboard
-function joinGroup(groupId) {
-    const group = sampleGroups.find(g => g.id === groupId);
-    if (group) {
-        if (group.privacy === 'private') {
-            showToast(`Join request sent to ${group.name}`, 'info');
-        } else {
-            group.isJoined = true;
-            group.members += 1;
-            showToast(`Successfully joined ${group.name}!`, 'success');
-            displayGroupsResults(); // Refresh display
-        }
-    }
-}
-
-function leaveGroup(groupId) {
-    const group = sampleGroups.find(g => g.id === groupId);
-    if (group) {
-        group.isJoined = false;
-        group.members -= 1;
-        showToast(`Left ${group.name}`, 'info');
-        displayGroupsResults(); // Refresh display
-    }
-}
-
-function viewGroupDetails(groupId) {
-    const group = sampleGroups.find(g => g.id === groupId);
-    if (group) {
-        showToast(`Opening ${group.name} details...`, 'info');
-        // Here you would typically open a detailed group view
-    }
-}
-
-function showCreateGroupModal() {
-    showToast('Opening group creation form...', 'info');
-    // This would open a modal for creating a new group
-    showGroupCreationWizard();
-}
-
-function toggleGroupsView() {
-    const viewToggle = document.getElementById('viewToggle');
-    const groupsResults = document.getElementById('groupsResults');
-    
-    if (!viewToggle || !groupsResults) return;
-    
-    const isGridView = viewToggle.textContent.includes('List');
-    
-    if (isGridView) {
-        // Switch to list view
-        groupsResults.style.gridTemplateColumns = '1fr';
-        viewToggle.innerHTML = '📋 Grid View';
-        showToast('Switched to list view', 'info');
-    } else {
-        // Switch to grid view
-        groupsResults.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
-        viewToggle.innerHTML = '📋 List View';
-        showToast('Switched to grid view', 'info');
-    }
-}
-
-function loadMoreGroups() {
-    showToast('Loading more groups...', 'info');
-    // This would typically load additional groups from a server
-}
-
-// Events Finder Functionality
-const sampleEvents = [
-    {
-        id: 1,
-        title: "Tech Innovators Meetup 2024",
-        description: "Join fellow tech enthusiasts for an evening of networking, presentations on cutting-edge technologies, and discussions about the future of innovation.",
-        date: "2024-12-15",
-        time: "18:00",
-        location: "Downtown Convention Center",
-        address: "123 Tech Street, Downtown",
-        distance: "2.3 miles",
-        category: "tech",
-        type: "in-person",
-        price: "Free",
-        attendees: 234,
-        maxAttendees: 300,
-        organizer: "Tech Community Hub",
-        image: "💻",
-        tags: ["Networking", "Innovation", "Tech"],
-        featured: true
-    },
-    {
-        id: 2,
-        title: "Jazz Under the Stars",
-        description: "Experience smooth jazz performances by local artists in a beautiful outdoor setting. Bring a blanket and enjoy music under the night sky.",
-        date: "2024-12-16",
-        time: "19:30",
-        location: "Central Park Amphitheater",
-        address: "456 Park Avenue",
-        distance: "1.8 miles",
-        category: "music",
-        type: "in-person",
-        price: "$25",
-        attendees: 156,
-        maxAttendees: 200,
-        organizer: "City Arts Council",
-        image: "🎷",
-        tags: ["Jazz", "Outdoor", "Live Music"]
-    },
-    {
-        id: 3,
-        title: "Digital Marketing Workshop",
-        description: "Learn the latest digital marketing strategies from industry experts. Covers social media, SEO, content marketing, and analytics.",
-        date: "2024-12-17",
-        time: "14:00",
-        location: "Online",
-        address: "Virtual Event",
-        distance: "Online",
-        category: "business",
-        type: "online",
-        price: "$49",
-        attendees: 89,
-        maxAttendees: 150,
-        organizer: "Marketing Pros Academy",
-        image: "📊",
-        tags: ["Marketing", "Workshop", "Online"]
-    },
-    {
-        id: 4,
-        title: "Community Art Exhibition",
-        description: "Showcasing local artists' work with interactive installations, live painting demonstrations, and an art marketplace.",
-        date: "2024-12-18",
-        time: "10:00",
-        location: "Modern Art Gallery",
-        address: "789 Arts District",
-        distance: "3.1 miles",
-        category: "art",
-        type: "in-person",
-        price: "Free",
-        attendees: 78,
-        maxAttendees: 120,
-        organizer: "Local Artists Collective",
-        image: "🎨",
-        tags: ["Art", "Exhibition", "Community"]
-    },
-    {
-        id: 5,
-        title: "Startup Pitch Competition",
-        description: "Watch innovative startups pitch their ideas to a panel of investors. Network with entrepreneurs and industry leaders.",
-        date: "2024-12-19",
-        time: "17:00",
-        location: "Innovation Hub",
-        address: "321 Business Plaza",
-        distance: "4.2 miles",
-        category: "business",
-        type: "hybrid",
-        price: "$15",
-        attendees: 145,
-        maxAttendees: 180,
-        organizer: "Entrepreneur Network",
-        image: "🚀",
-        tags: ["Startup", "Pitching", "Investment"]
-    },
-    {
-        id: 6,
-        title: "Food Truck Festival",
-        description: "Taste amazing food from 20+ local food trucks. Live music, family activities, and craft beer garden included.",
-        date: "2024-12-20",
-        time: "11:00",
-        location: "Riverside Park",
-        address: "555 River Road",
-        distance: "2.9 miles",
-        category: "food",
-        type: "in-person",
-        price: "Free Entry",
-        attendees: 567,
-        maxAttendees: 800,
-        organizer: "City Events",
-        image: "🍔",
-        tags: ["Food", "Festival", "Family"]
-    },
-    {
-        id: 7,
-        title: "Basketball Tournament",
-        description: "Amateur basketball tournament open to all skill levels. Prizes for winners and fun for everyone.",
-        date: "2024-12-21",
-        time: "09:00",
-        location: "Sports Complex",
-        address: "888 Athletic Drive",
-        distance: "3.7 miles",
-        category: "sports",
-        type: "in-person",
-        price: "$20",
-        attendees: 64,
-        maxAttendees: 100,
-        organizer: "Local Sports League",
-        image: "🏀",
-        tags: ["Basketball", "Tournament", "Sports"]
-    },
-    {
-        id: 8,
-        title: "Coding Bootcamp: React Fundamentals",
-        description: "Intensive one-day workshop covering React basics, components, state management, and building your first React app.",
-        date: "2024-12-22",
-        time: "09:00",
-        location: "Tech Learning Center",
-        address: "999 Code Street",
-        distance: "1.5 miles",
-        category: "education",
-        type: "in-person",
-        price: "$75",
-        attendees: 32,
-        maxAttendees: 40,
-        organizer: "Code Academy",
-        image: "⚛️",
-        tags: ["React", "Coding", "Bootcamp"]
-    },
-    {
-        id: 9,
-        title: "Community Volunteer Day",
-        description: "Join us for a day of giving back to the community. Multiple volunteer opportunities available.",
-        date: "2024-12-23",
-        time: "08:00",
-        location: "Community Center",
-        address: "111 Helper Lane",
-        distance: "2.1 miles",
-        category: "social",
-        type: "in-person",
-        price: "Free",
-        attendees: 123,
-        maxAttendees: 200,
-        organizer: "Volunteer Network",
-        image: "🤝",
-        tags: ["Volunteer", "Community", "Service"]
-    },
-    {
-        id: 10,
-        title: "Photography Masterclass",
-        description: "Advanced photography techniques with professional photographer. Includes hands-on practice and portfolio review.",
-        date: "2024-12-24",
-        time: "13:00",
-        location: "Photo Studio",
-        address: "222 Lens Avenue",
-        distance: "3.8 miles",
-        category: "education",
-        type: "in-person",
-        price: "$85",
-        attendees: 18,
-        maxAttendees: 25,
-        organizer: "Pro Photo Academy",
-        image: "📸",
-        tags: ["Photography", "Masterclass", "Professional"]
-    },
-    {
-        id: 11,
-        title: "Virtual Reality Gaming Tournament",
-        description: "Experience the future of gaming with VR tournaments, demos of latest VR games, and prizes for top players.",
-        date: "2024-12-25",
-        time: "15:00",
-        location: "Gaming Lounge",
-        address: "333 Virtual Street",
-        distance: "4.5 miles",
-        category: "tech",
-        type: "in-person",
-        price: "$30",
-        attendees: 76,
-        maxAttendees: 100,
-        organizer: "VR Gaming Club",
-        image: "🥽",
-        tags: ["VR", "Gaming", "Tournament"]
-    },
-    {
-        id: 12,
-        title: "Wellness & Meditation Workshop",
-        description: "Learn mindfulness techniques, guided meditation, and wellness practices for daily life stress management.",
-        date: "2024-12-26",
-        time: "10:00",
-        location: "Wellness Center",
-        address: "444 Peace Boulevard",
-        distance: "2.7 miles",
-        category: "social",
-        type: "hybrid",
-        price: "$35",
-        attendees: 45,
-        maxAttendees: 60,
-        organizer: "Mindful Living",
-        image: "🧘",
-        tags: ["Wellness", "Meditation", "Mindfulness"]
-    }
-];
-
-let filteredEvents = [...sampleEvents];
-let currentFilters = {
-    search: '',
-    date: 'today',
-    category: 'all',
-    price: 'all',
-    type: 'all',
-    location: '',
-    distance: 25
-};
-
-// Open Events Finder Modal
-function openEventsFinderModal() {
-    const modal = document.getElementById('eventsFinderModal');
-    if (modal) {
-        modal.classList.add('active');
-        populateEventsGrid();
-        
-        // Set current date as default for date inputs
-        const today = new Date().toISOString().split('T')[0];
-        const startDate = document.getElementById('startDate');
-        const endDate = document.getElementById('endDate');
-        if (startDate) startDate.value = today;
-        if (endDate) endDate.value = today;
-    }
-}
-
-// Close Events Finder Modal
-function closeEventsFinderModal() {
-    const modal = document.getElementById('eventsFinderModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-}
-
-// Populate Events Grid
-function populateEventsGrid() {
-    const grid = document.getElementById('eventsGrid');
-    const countElement = document.getElementById('eventsCount');
-    
-    if (!grid) return;
-    
-    // Update count
-    if (countElement) {
-        countElement.textContent = `${filteredEvents.length} events found`;
-    }
-
-    // Generate event cards
-    grid.innerHTML = filteredEvents.map(event => `
-        <div class="event-card" onclick="openEventDetail(${event.id})" role="button" tabindex="0">
-            <div class="event-image">
-                ${event.image}
-                ${event.featured ? '<div class="event-badge">Featured</div>' : ''}
-                ${event.price === 'Free' || event.price === 'Free Entry' ? '<div class="event-badge" style="left: 0.75rem; right: auto; background: var(--success);">Free</div>' : ''}
-            </div>
-            <div class="event-content">
-                <div class="event-title">${event.title}</div>
-                <div class="event-meta">
-                    <div>📅 ${formatEventDate(event.date)} at ${event.time}</div>
-                    <div>📍 ${event.location} (${event.distance})</div>
-                    <div>👥 ${event.attendees}/${event.maxAttendees} attending</div>
-                    <div>💰 ${event.price}</div>
-                </div>
-                <div class="event-description">${event.description}</div>
-                <div class="event-tags">
-                    ${event.tags.map(tag => `<span class="event-tag">${tag}</span>`).join('')}
-                </div>
-                <div class="event-actions">
-                    <div class="event-attendees">${event.attendees} attending</div>
-                    <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); joinEvent(${event.id})" aria-label="Join event">Join Event</button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Format event date
-function formatEventDate(dateString) {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-        return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-        return 'Tomorrow';
-    } else {
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    }
-}
-
-// Search Events
-function searchEvents(query) {
-    currentFilters.search = query.toLowerCase();
-    applyFilters();
-}
-
-// Filter by Date
-function filterByDate(element, dateFilter) {
-    // Update UI
-    document.querySelectorAll('.filter-section .filter-chip').forEach(chip => {
-        if (chip.parentElement.previousElementSibling.textContent.includes('When')) {
-            chip.classList.remove('active');
-        }
-    });
-    element.classList.add('active');
-    
-    currentFilters.date = dateFilter;
-    applyFilters();
-}
-
-// Filter by Category
-function filterByCategory(element, category) {
-    // Update UI
-    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.classList.remove('active');
-    });
-    element.classList.add('active');
-    
-    currentFilters.category = category;
-    applyFilters();
-}
-
-// Filter by Price
-function filterByPrice(element, priceFilter) {
-    // Update UI
-    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.classList.remove('active');
-    });
-    element.classList.add('active');
-    
-    currentFilters.price = priceFilter;
-    applyFilters();
-}
-
-// Filter by Type
-function filterByType(element, type) {
-    // Update UI
-    element.parentElement.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.classList.remove('active');
-    });
-    element.classList.add('active');
-    
-    currentFilters.type = type;
-    applyFilters();
-}
-
-// Apply all filters
-function applyFilters() {
-    filteredEvents = sampleEvents.filter(event => {
-        // Search filter
-        if (currentFilters.search && !event.title.toLowerCase().includes(currentFilters.search) && 
-            !event.description.toLowerCase().includes(currentFilters.search) &&
-            !event.tags.some(tag => tag.toLowerCase().includes(currentFilters.search))) {
-            return false;
-        }
-        
-        // Category filter
-        if (currentFilters.category !== 'all' && event.category !== currentFilters.category) {
-            return false;
-        }
-        
-        // Price filter
-        if (currentFilters.price === 'free' && !event.price.toLowerCase().includes('free')) {
-            return false;
-        }
-        if (currentFilters.price === 'paid' && event.price.toLowerCase().includes('free')) {
-            return false;
-        }
-        
-        // Type filter
-        if (currentFilters.type !== 'all' && event.type !== currentFilters.type) {
-            return false;
-        }
-        
-        // Date filter (simplified)
-        const eventDate = new Date(event.date);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        switch (currentFilters.date) {
-            case 'today':
-                if (eventDate.toDateString() !== today.toDateString()) return false;
-                break;
-            case 'tomorrow':
-                if (eventDate.toDateString() !== tomorrow.toDateString()) return false;
-                break;
-            case 'week':
-                const weekFromNow = new Date(today);
-                weekFromNow.setDate(today.getDate() + 7);
-                if (eventDate < today || eventDate > weekFromNow) return false;
-                break;
-            case 'weekend':
-                const day = eventDate.getDay();
-                if (day !== 0 && day !== 6) return false;
-                break;
-            case 'month':
-                if (eventDate.getMonth() !== today.getMonth() || 
-                    eventDate.getFullYear() !== today.getFullYear()) return false;
-                break;
-        }
-        
-        return true;
+    // Reset all steps
+    document.querySelectorAll('.delete-step').forEach((step, index) => {
+        step.style.display = index === 0 ? 'block' : 'none';
     });
     
-    populateEventsGrid();
-}
-
-// Update distance filter
-function updateDistance(value) {
-    const element = document.getElementById('distanceValue');
-    if (element) element.textContent = `${value} miles`;
-    currentFilters.distance = parseInt(value);
-}
-
-// Use current location
-function useCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const locationInput = document.getElementById('locationInput');
-                if (locationInput) locationInput.value = 'Current Location';
-                showToast('Location updated to current position', 'success');
-            },
-            (error) => {
-                showToast('Unable to get location. Please enter manually.', 'warning');
-            }
-        );
-    } else {
-        showToast('Geolocation not supported by this browser', 'warning');
-    }
-}
-
-// Reset all filters
-function resetAllFilters() {
-    currentFilters = {
-        search: '',
-        date: 'today',
-        category: 'all',
-        price: 'all',
-        type: 'all',
-        location: '',
-        distance: 25
-    };
+    // Reset form inputs
+    const checkbox = document.getElementById('deleteConfirmation');
+    const password = document.getElementById('deletePassword');
+    const deleteBtn = document.getElementById('finalDeleteBtn');
     
-    // Reset UI
-    const searchInput = document.getElementById('eventsSearchInput');
-    const locationInput = document.getElementById('locationInput');
-    const distanceValue = document.getElementById('distanceValue');
-    const distanceSlider = document.querySelector('input[type="range"]');
+    if (checkbox) checkbox.checked = false;
+    if (password) password.value = '';
+    if (deleteBtn) deleteBtn.disabled = true;
     
-    if (searchInput) searchInput.value = '';
-    if (locationInput) locationInput.value = '';
-    if (distanceValue) distanceValue.textContent = '25 miles';
-    if (distanceSlider) distanceSlider.value = 25;
-    
-    // Reset filter chips
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.classList.remove('active');
-    });
-    
-    // Set default active filters
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        if (chip.textContent.includes('Today') || 
-            chip.textContent.includes('All')) {
-            chip.classList.add('active');
-        }
-    });
-    
-    filteredEvents = [...sampleEvents];
-    populateEventsGrid();
-    showToast('All filters reset', 'info');
-}
-
-// Toggle view
-function toggleView(element, view) {
-    // Update UI
-    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    element.classList.add('active');
-    
-    const mapView = document.getElementById('eventsMapView');
-    const gridView = document.getElementById('eventsGrid');
-    
-    if (view === 'map') {
-        if (mapView) mapView.classList.add('active');
-        if (gridView) gridView.style.display = 'none';
-    } else {
-        if (mapView) mapView.classList.remove('active');
-        if (gridView) gridView.style.display = 'grid';
-    }
-}
-
-// Load more events
-function loadMoreEvents() {
-    showToast('Loading more events...', 'info');
-    // In a real app, this would load more events from the API
-}
-
-// Open Event Detail Modal
-function openEventDetail(eventId) {
-    const event = sampleEvents.find(e => e.id === eventId);
-    if (!event) return;
-    
-    const modal = document.getElementById('eventDetailModal');
-    const imageEl = document.getElementById('eventDetailImage');
-    const bodyEl = document.getElementById('eventDetailBody');
-    
-    // Update image
-    if (imageEl) {
-        imageEl.innerHTML = `
-            ${event.image}
-            <button style="position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 40px; height: 40px;" onclick="closeEventDetailModal()" aria-label="Close event details">✕</button>
-        `;
-    }
-    
-    // Update body with detailed event information
-    if (bodyEl) {
-        bodyEl.innerHTML = `
-            <div class="event-detail-title">${event.title}</div>
-            
-            <div class="event-detail-meta">
-                <div class="event-detail-meta-item">
-                    <span>📅</span>
-                    <div>
-                        <strong>Date & Time</strong><br>
-                        ${formatEventDate(event.date)} at ${event.time}
-                    </div>
-                </div>
-                <div class="event-detail-meta-item">
-                    <span>📍</span>
-                    <div>
-                        <strong>Location</strong><br>
-                        ${event.location}<br>
-                        <small>${event.address}</small>
-                    </div>
-                </div>
-                <div class="event-detail-meta-item">
-                    <span>💰</span>
-                    <div>
-                        <strong>Price</strong><br>
-                        ${event.price}
-                    </div>
-                </div>
-                <div class="event-detail-meta-item">
-                    <span>👥</span>
-                    <div>
-                        <strong>Attendees</strong><br>
-                        ${event.attendees}/${event.maxAttendees}
-                    </div>
-                </div>
-            </div>
-            
-            <div style="margin: 2rem 0;">
-                <h3>About This Event</h3>
-                <p style="line-height: 1.6; color: var(--text-secondary);">${event.description}</p>
-            </div>
-            
-            <div style="display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="joinEvent(${event.id}); closeEventDetailModal();" style="flex: 1; min-width: 200px;">Join Event</button>
-                <button class="btn btn-secondary" onclick="shareEvent(${event.id})" style="flex: 1; min-width: 200px;">Share Event</button>
-            </div>
-        `;
-    }
-    
-    if (modal) {
-        modal.classList.add('active');
-    }
-}
-
-// Close Event Detail Modal
-function closeEventDetailModal() {
-    const modal = document.getElementById('eventDetailModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-}
-
-// Share Event
-function shareEvent(eventId) {
-    const event = sampleEvents.find(e => e.id === eventId);
-    if (event) {
-        showToast(`Shared "${event.title}" with your network!`, 'success');
-    }
-}
-
-// Join Event - Enhanced function
-function joinEvent(eventId) {
-    const event = sampleEvents.find(e => e.id === eventId);
-    if (event) {
-        event.attendees++;
-        showToast(`Successfully joined "${event.title}"!`, 'success');
-        populateEventsGrid(); // Refresh to show updated attendee count
-    }
-}
-
-// Open Personalization Dashboard
-function openPersonalizationDashboard() {
-    if (window.interestPersonalizationDashboard) {
-        window.interestPersonalizationDashboard.showPersonalizationModal();
-        showToast('Interest Personalization Dashboard opened! 🎯', 'success');
-    } else {
-        showToast('Interest Personalization Dashboard not available', 'warning');
-    }
+    // Hide error messages
+    const errorDiv = document.getElementById('deleteError');
+    if (errorDiv) errorDiv.style.display = 'none';
 }

@@ -417,6 +417,199 @@ body {
     animation: modalSlideIn 0.3s ease;
 }
 
+/* Delete Account Modal Specific Styles */
+.delete-modal-content {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--error);
+    box-shadow: 0 20px 60px rgba(239, 68, 68, 0.3);
+    animation: deleteModalSlideIn 0.4s ease;
+}
+
+.delete-modal-header {
+    background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+}
+
+.delete-modal-body {
+    padding: 2rem;
+}
+
+.warning-section {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.data-list {
+    background: var(--glass);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.data-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.data-item:last-child {
+    border-bottom: none;
+}
+
+.data-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--error);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.export-section {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.confirmation-section {
+    background: var(--glass);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    accent-color: var(--error);
+}
+
+.delete-progress {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
+
+.delete-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--glass);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.delete-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--error), #dc2626);
+    width: 0%;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.delete-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: progressShimmer 1.5s infinite;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.step {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.step.active {
+    background: var(--error);
+    transform: scale(1.5);
+}
+
+.step.completed {
+    background: var(--success);
+}
+
+@keyframes deleteModalSlideIn {
+    from { 
+        transform: translateY(-100px); 
+        opacity: 0; 
+        scale: 0.9;
+    }
+    to { 
+        transform: translateY(0); 
+        opacity: 1; 
+        scale: 1;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .delete-modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .delete-modal-header,
+    .delete-modal-body {
+        padding: 1.5rem;
+    }
+}
+
 /* Game Styles */
 .game-board {
     display: grid;
