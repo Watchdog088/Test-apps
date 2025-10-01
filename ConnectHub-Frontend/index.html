@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConnectHub - Your Social Universe</title>
-    <meta name="description" content="ConnectHub - The ultimate social universe platform combining social media, dating, media streaming, and interactive entertainment">
+    <title>Lynk - Connect Your World</title>
+    <meta name="description" content="Lynk - The ultimate social universe platform combining social media, dating, media streaming, and interactive entertainment">
     <meta name="keywords" content="social media, dating app, music streaming, live streaming, games, marketplace">
     
     <!-- Favicon and App Icons -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'><defs><linearGradient id='lynk16' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%236366f1'/><stop offset='100%25' style='stop-color:%238b5cf6'/></linearGradient></defs><circle cx='4' cy='8' r='3' fill='url(%23lynk16)'/><circle cx='8' cy='8' r='3' fill='url(%23lynk16)'/><circle cx='12' cy='8' r='3' fill='url(%23lynk16)'/><path d='M 6.5 6.5 L 9.5 6.5' stroke='url(%23lynk16)' stroke-width='1.5' stroke-linecap='round'/></svg>">
     <meta name="theme-color" content="#4f46e5">
     
     <!-- Progressive Web App Manifest -->
     <link rel="manifest" href="manifest.json">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="ConnectHub - Your Social Universe">
+    <meta property="og:title" content="Lynk - Connect Your World">
     <meta property="og:description" content="Connect, date, create, and discover with the power of AI">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://connecthub.com">
+    <meta property="og:url" content="https://lynk.app">
     
     <link rel="stylesheet" href="src/css/styles.css">
     <link rel="stylesheet" href="src/css/enhanced-story-user-dashboard-styles.css">
@@ -31,7 +31,33 @@
     <nav class="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
             <div class="logo" onclick="goHome()" role="button" tabindex="0" onkeydown="handleKeyPress(event, goHome)">
-                ConnectHub
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40" style="margin-right: 0.5rem;">
+                    <defs>
+                        <linearGradient id="lynkLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1"/>
+                            <stop offset="100%" style="stop-color:#8b5cf6"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Logo mark - Connected nodes forming chain/link -->
+                    <g transform="translate(10, 20)">
+                        <!-- Left circle -->
+                        <circle cx="0" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <!-- Connection line 1 -->
+                        <path d="M 5 -3 Q 12 -5, 19 -3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <!-- Middle circle -->
+                        <circle cx="24" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <!-- Connection line 2 -->
+                        <path d="M 29 3 Q 36 5, 43 3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <!-- Right circle -->
+                        <circle cx="48" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <!-- Inner highlights -->
+                        <circle cx="0" cy="-2" r="2" fill="white" opacity="0.4"/>
+                        <circle cx="24" cy="-2" r="2" fill="white" opacity="0.4"/>
+                        <circle cx="48" cy="-2" r="2" fill="white" opacity="0.4"/>
+                    </g>
+                    <!-- Lynk Text -->
+                    <text x="70" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="url(#lynkLogo)" letter-spacing="-1">Lynk</text>
+                </svg>
             </div>
             
             <div class="main-nav" id="mainNav" role="menubar">
@@ -81,7 +107,7 @@
             <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 140px); padding: 2rem;">
                 <div style="display: grid; grid-template-columns: 1fr 400px; gap: 4rem; max-width: 1200px; width: 100%; align-items: center;">
                     <div>
-                        <h1 style="font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">ConnectHub</h1>
+                        <h1 style="font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">Lynk</h1>
                         <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">Your ultimate social universe. Connect, date, create, and discover with the power of AI.</p>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                             <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; text-align: center;">
@@ -156,7 +182,7 @@
         <section id="categorySelection" class="category-section" aria-label="Category selection">
             <div class="page-layout">
                 <div style="text-align: center; margin-bottom: 3rem;">
-                    <h1 style="font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">Welcome to ConnectHub</h1>
+                    <h1 style="font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">Welcome to Lynk</h1>
                     <p style="font-size: 1.2rem; color: var(--text-secondary);">Choose what you'd like to explore first</p>
                 </div>
 
@@ -283,8 +309,8 @@
                         
                         <h3>Trending</h3>
                         <div style="margin-top: 1rem;">
-                            <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); cursor: pointer;" onclick="searchTrending('ConnectHub')" role="button" tabindex="0">
-                                <div style="font-weight: 600;">#ConnectHub</div>
+                            <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); cursor: pointer;" onclick="searchTrending('Lynk')" role="button" tabindex="0">
+                                <div style="font-weight: 600;">#Lynk</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">24.5K posts</div>
                             </div>
                             <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); cursor: pointer;" onclick="searchTrending('SocialMedia')" role="button" tabindex="0">
@@ -1294,7 +1320,7 @@
                     <h1 style="text-align: center; margin-bottom: 2rem;">💰 Wallet</h1>
                     
                     <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
-                        <h3>ConnectHub Coins</h3>
+                        <h3>Lynk Coins</h3>
                         <div style="font-size: 2.5rem; font-weight: 800; margin: 1rem 0;" id="coinBalance">2,450</div>
                         <p>Available Balance</p>
                         <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center; flex-wrap: wrap;">

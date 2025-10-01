@@ -161,7 +161,7 @@ function openDeleteAccountModal() {
                             <input type="checkbox" id="deleteConfirmation" required>
                             <label for="deleteConfirmation" style="line-height: 1.5; flex: 1;">
                                 <strong>I understand that this action is permanent and irreversible.</strong>
-                                I confirm that I want to permanently delete my ConnectHub account and all associated data. 
+                                I confirm that I want to permanently delete my Lynk account and all associated data.
                                 I acknowledge that this cannot be undone and I will lose access to all my content, 
                                 connections, and account features forever.
                             </label>
@@ -252,8 +252,8 @@ function downloadUserData() {
         
         // Create a mock download
         const link = document.createElement('a');
-        link.href = 'data:text/plain;charset=utf-8,ConnectHub Data Export\nProfile, Messages, Media, and more...';
-        link.download = 'connecthub-data-export.txt';
+        link.href = 'data:text/plain;charset=utf-8,Lynk Data Export\nProfile, Messages, Media, and more...';
+        link.download = 'lynk-data-export.txt';
         link.click();
     }, 3000);
 }
@@ -302,7 +302,7 @@ function showCancelConfirmation() {
                         Still want to delete your account?
                     </p>
                     <div style="display: flex; gap: 1rem; justify-content: center;">
-                        <button class="btn btn-secondary" onclick="closeCancelModal()">Stay on ConnectHub</button>
+                        <button class="btn btn-secondary" onclick="closeCancelModal()">Stay on Lynk</button>
                         <button class="btn btn-error" onclick="closeCancelModal(); setTimeout(openDeleteAccountModal, 300);">Continue Deletion</button>
                     </div>
                 </div>
@@ -672,7 +672,7 @@ function completeDeletion() {
             updateMainNav();
             updateSubNav();
             
-            showToast('Your account has been permanently deleted. Thank you for using ConnectHub.', 'info');
+            showToast('Your account has been permanently deleted. Thank you for using Lynk.', 'info');
         }, 2000);
     }, 1500);
 }
