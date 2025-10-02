@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ConnectHub</string>
+	<string>Lynk</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.connecthub.mobile</string>
+	<string>com.lynk.mobile</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ConnectHub</string>
+	<string>Lynk</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -42,9 +42,9 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to microphone for video messaging features.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Use Face ID to securely authenticate and access your ConnectHub account.</string>
+	<string>Use Face ID to securely authenticate and access your Lynk account.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>This app would like to access your contacts to help you find friends on ConnectHub.</string>
+	<string>This app would like to access your contacts to help you find friends on Lynk.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

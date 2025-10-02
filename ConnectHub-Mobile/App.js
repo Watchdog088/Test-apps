@@ -137,8 +137,8 @@ const AuthScreen = ({ navigation }) => {
       
       <View style={styles.authContainer}>
         <View style={styles.header}>
-          <Text style={styles.logo}>💜 ConnectHub</Text>
-          <Text style={styles.subtitle}>Connect, Share, Date</Text>
+          <Text style={styles.logo}>💜 Lynk</Text>
+          <Text style={styles.subtitle}>Connect Your World</Text>
         </View>
 
         <View style={styles.form}>
@@ -273,7 +273,7 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>💜 ConnectHub</Text>
+        <Text style={styles.headerTitle}>💜 Lynk</Text>
         <TouchableOpacity onPress={() => setShowCreatePost(true)}>
           <Icon name="add" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -572,7 +572,7 @@ const AppNavigator = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>ConnectHub</Text>
+        <Text style={styles.loadingText}>Lynk</Text>
       </View>
     );
   }
