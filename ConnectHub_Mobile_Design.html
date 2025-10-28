@@ -2841,22 +2841,194 @@
                     <div class="post-avatar">👤</div>
                     <div>
                         <div class="post-author">John Doe</div>
-                        <div class="post-meta">🌍 Public</div>
+                        <div class="post-meta" id="postPrivacy" onclick="openModal('selectPrivacy')">🌍 Public</div>
                     </div>
                 </div>
-                <textarea class="input-field textarea-field" placeholder="What's on your mind?"></textarea>
+                <textarea class="input-field textarea-field" id="postTextContent" placeholder="What's on your mind?"></textarea>
+                
+                <!-- Selected Photo Preview -->
+                <div id="selectedPhotoPreview" style="display: none; margin-bottom: 12px;">
+                    <div style="position: relative;">
+                        <div class="post-image" id="photoPreview">📷</div>
+                        <div onclick="removeSelectedPhoto()" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">✕</div>
+                    </div>
+                </div>
+
+                <!-- Selected Video Preview -->
+                <div id="selectedVideoPreview" style="display: none; margin-bottom: 12px;">
+                    <div style="position: relative;">
+                        <div class="post-image" id="videoPreview">🎥</div>
+                        <div onclick="removeSelectedVideo()" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">✕</div>
+                    </div>
+                </div>
+
+                <!-- Selected Location -->
+                <div id="selectedLocation" style="display: none; margin-bottom: 12px;">
+                    <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">📍</span>
+                        <span id="locationText" style="flex: 1; font-size: 14px;"></span>
+                        <div onclick="removeSelectedLocation()" style="cursor: pointer; padding: 8px; color: var(--error);">✕</div>
+                    </div>
+                </div>
+
+                <!-- Tagged People -->
+                <div id="taggedPeople" style="display: none; margin-bottom: 12px;">
+                    <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 16px;">👥</span>
+                            <span style="font-size: 14px; font-weight: 600;">Tagged:</span>
+                        </div>
+                        <div id="taggedPeopleList" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
+                </div>
+
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <div class="create-action" onclick="showToast('Photo added')">
+                    <div class="create-action" onclick="addPhotoToPost()">
                         📷 Photo
                     </div>
-                    <div class="create-action" onclick="showToast('Video added')">
+                    <div class="create-action" onclick="addVideoToPost()">
                         🎥 Video
                     </div>
-                    <div class="create-action" onclick="showToast('Location added')">
+                    <div class="create-action" onclick="addLocationToPost()">
                         📍 Location
                     </div>
-                    <div class="create-action" onclick="showToast('Tag friends')">
+                    <div class="create-action" onclick="tagPeopleInPost()">
                         👥 Tag People
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Privacy Modal -->
+        <div id="selectPrivacyModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectPrivacy')">✕</div>
+                <div class="modal-title">Select Privacy</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectPrivacy('🌍 Public')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone can see this post</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectPrivacy('👥 Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Only your friends can see</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectPrivacy('🔒 Only Me')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Only Me</div>
+                        <div class="list-item-subtitle">Only you can see this</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Photo for Post Modal -->
+        <div id="selectPhotoForPostModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectPhotoForPost')">✕</div>
+                <div class="modal-title">Select Photo</div>
+            </div>
+            <div class="modal-content">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+                    <div onclick="selectPhoto('🏖️')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🏖️</div>
+                    <div onclick="selectPhoto('🌅')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--warning)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌅</div>
+                    <div onclick="selectPhoto('🎨')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--primary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🎨</div>
+                    <div onclick="selectPhoto('🏔️')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🏔️</div>
+                    <div onclick="selectPhoto('🌸')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--error), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌸</div>
+                    <div onclick="selectPhoto('🌆')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌆</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Video for Post Modal -->
+        <div id="selectVideoForPostModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectVideoForPost')">✕</div>
+                <div class="modal-title">Select Video</div>
+            </div>
+            <div class="modal-content">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div onclick="selectVideo('🎮')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">🎮</div>
+                    <div onclick="selectVideo('🎬')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">🎬</div>
+                    <div onclick="selectVideo('🎵')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">🎵</div>
+                    <div onclick="selectVideo('🏃')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">🏃</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Location Modal -->
+        <div id="selectLocationModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectLocation')">✕</div>
+                <div class="modal-title">Add Location</div>
+            </div>
+            <div class="modal-content">
+                <div class="search-bar">
+                    <span>📍</span>
+                    <input type="text" class="search-input" placeholder="Search for a location..." />
+                </div>
+                <div class="list-item" onclick="selectLocation('San Francisco, CA')">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">San Francisco, CA</div>
+                        <div class="list-item-subtitle">City</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectLocation('Golden Gate Park')">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Golden Gate Park</div>
+                        <div class="list-item-subtitle">Park</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectLocation('Starbucks Downtown')">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Starbucks Downtown</div>
+                        <div class="list-item-subtitle">Coffee Shop</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tag People Modal -->
+        <div id="tagPeopleModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('tagPeople')">✕</div>
+                <div class="modal-title">Tag People</div>
+            </div>
+            <div class="modal-content">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search people..." />
+                </div>
+                <div class="friend-card" onclick="tagPerson('Sarah Johnson', '👤')">
+                    <div class="friend-avatar">👤</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Sarah Johnson</div>
+                        <div class="friend-mutual">Friend</div>
+                    </div>
+                </div>
+                <div class="friend-card" onclick="tagPerson('Mike Chen', '😊')">
+                    <div class="friend-avatar">😊</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Mike Chen</div>
+                        <div class="friend-mutual">Friend</div>
+                    </div>
+                </div>
+                <div class="friend-card" onclick="tagPerson('Emily Rodriguez', '🎨')">
+                    <div class="friend-avatar">🎨</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Emily Rodriguez</div>
+                        <div class="friend-mutual">Friend</div>
                     </div>
                 </div>
             </div>
@@ -5168,6 +5340,200 @@
                 showToast('Already at home');
             }
         };
+
+        // ========== CREATE POST FUNCTIONALITY ==========
+        
+        let selectedPhotoForPost = null;
+        let selectedVideoForPost = null;
+        let selectedLocationForPost = null;
+        let taggedPeopleInPost = [];
+
+        // Add photo to post
+        function addPhotoToPost() {
+            openModal('selectPhotoForPost');
+        }
+
+        // Select photo from gallery
+        function selectPhoto(emoji) {
+            selectedPhotoForPost = emoji;
+            document.getElementById('photoPreview').textContent = emoji;
+            document.getElementById('selectedPhotoPreview').style.display = 'block';
+            closeModal('selectPhotoForPost');
+            showToast('Photo added! 📷');
+        }
+
+        // Remove selected photo
+        function removeSelectedPhoto() {
+            selectedPhotoForPost = null;
+            document.getElementById('selectedPhotoPreview').style.display = 'none';
+            showToast('Photo removed');
+        }
+
+        // Add video to post
+        function addVideoToPost() {
+            openModal('selectVideoForPost');
+        }
+
+        // Select video from gallery
+        function selectVideo(emoji) {
+            selectedVideoForPost = emoji;
+            document.getElementById('videoPreview').textContent = emoji;
+            document.getElementById('selectedVideoPreview').style.display = 'block';
+            closeModal('selectVideoForPost');
+            showToast('Video added! 🎥');
+        }
+
+        // Remove selected video
+        function removeSelectedVideo() {
+            selectedVideoForPost = null;
+            document.getElementById('selectedVideoPreview').style.display = 'none';
+            showToast('Video removed');
+        }
+
+        // Add location to post
+        function addLocationToPost() {
+            openModal('selectLocation');
+        }
+
+        // Select location
+        function selectLocation(location) {
+            selectedLocationForPost = location;
+            document.getElementById('locationText').textContent = location;
+            document.getElementById('selectedLocation').style.display = 'block';
+            closeModal('selectLocation');
+            showToast('Location added! 📍');
+        }
+
+        // Remove selected location
+        function removeSelectedLocation() {
+            selectedLocationForPost = null;
+            document.getElementById('selectedLocation').style.display = 'none';
+            showToast('Location removed');
+        }
+
+        // Tag people in post
+        function tagPeopleInPost() {
+            openModal('tagPeople');
+        }
+
+        // Tag a person
+        function tagPerson(name, emoji) {
+            if (!taggedPeopleInPost.find(p => p.name === name)) {
+                taggedPeopleInPost.push({name: name, emoji: emoji});
+                updateTaggedPeopleDisplay();
+                showToast(`Tagged ${name}!`);
+            } else {
+                showToast(`${name} already tagged`);
+            }
+        }
+
+        // Update tagged people display
+        function updateTaggedPeopleDisplay() {
+            const container = document.getElementById('taggedPeopleList');
+            const section = document.getElementById('taggedPeople');
+            
+            if (taggedPeopleInPost.length > 0) {
+                section.style.display = 'block';
+                container.innerHTML = taggedPeopleInPost.map((person, index) => `
+                    <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 16px;">${person.emoji}</span>
+                        <span style="font-size: 13px; font-weight: 600;">${person.name}</span>
+                        <span onclick="removeTaggedPerson(${index})" style="cursor: pointer; margin-left: 4px; color: var(--error);">✕</span>
+                    </div>
+                `).join('');
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // Remove tagged person
+        function removeTaggedPerson(index) {
+            const person = taggedPeopleInPost[index];
+            taggedPeopleInPost.splice(index, 1);
+            updateTaggedPeopleDisplay();
+            showToast(`Removed ${person.name}`);
+        }
+
+        // Select privacy setting
+        function selectPrivacy(privacy) {
+            document.getElementById('postPrivacy').textContent = privacy;
+            closeModal('selectPrivacy');
+            showToast(`Privacy set to ${privacy}`);
+        }
+
+        // Publish post with all selected content
+        function publishPost() {
+            const text = document.getElementById('postTextContent').value;
+            
+            if (!text && !selectedPhotoForPost && !selectedVideoForPost) {
+                showToast('Please add some content to your post');
+                return;
+            }
+
+            // Create new post object
+            const newPost = {
+                text: text,
+                photo: selectedPhotoForPost,
+                video: selectedVideoForPost,
+                location: selectedLocationForPost,
+                taggedPeople: [...taggedPeopleInPost],
+                privacy: document.getElementById('postPrivacy').textContent,
+                timestamp: 'Just now'
+            };
+
+            // Add post to feed
+            addPostToFeed(newPost);
+
+            // Reset form
+            document.getElementById('postTextContent').value = '';
+            selectedPhotoForPost = null;
+            selectedVideoForPost = null;
+            selectedLocationForPost = null;
+            taggedPeopleInPost = [];
+            document.getElementById('selectedPhotoPreview').style.display = 'none';
+            document.getElementById('selectedVideoPreview').style.display = 'none';
+            document.getElementById('selectedLocation').style.display = 'none';
+            document.getElementById('taggedPeople').style.display = 'none';
+            document.getElementById('postPrivacy').textContent = '🌍 Public';
+
+            closeModal('createPost');
+            showToast('Post published successfully! 🎉');
+        }
+
+        // Add post to feed
+        function addPostToFeed(post) {
+            const feedScreen = document.getElementById('feed-screen');
+            const createPostCard = feedScreen.querySelector('.card');
+            
+            const newPostHTML = `
+                <div class="post-card" style="animation: slideUp 0.3s ease;">
+                    <div class="post-header">
+                        <div class="post-avatar">👤</div>
+                        <div class="post-header-info">
+                            <div class="post-author">John Doe</div>
+                            <div class="post-meta">${post.timestamp} • ${post.privacy}</div>
+                        </div>
+                        <div class="post-menu" onclick="openModal('postOptions')">⋯</div>
+                    </div>
+                    ${post.text ? `<div class="post-content">${post.text}${post.location ? ` 📍 ${post.location}` : ''}${post.taggedPeople.length > 0 ? ` — with ${post.taggedPeople.map(p => p.name).join(', ')}` : ''}</div>` : ''}
+                    ${post.photo ? `<div class="post-image">${post.photo}</div>` : ''}
+                    ${post.video ? `<div class="post-image">${post.video}</div>` : ''}
+                    <div class="post-actions">
+                        <div class="post-action" onclick="toggleLikePost(this)">
+                            <span>👍</span> Like
+                        </div>
+                        <div class="post-action" onclick="openModal('comments')">
+                            <span>💬</span> Comment
+                        </div>
+                        <div class="post-action" onclick="sharePost()">
+                            <span>🔄</span> Share
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            createPostCard.insertAdjacentHTML('afterend', newPostHTML);
+        }
     </script>
 </body>
 </html>
