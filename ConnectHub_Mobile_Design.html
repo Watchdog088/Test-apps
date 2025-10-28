@@ -2659,40 +2659,42 @@
                         <div class="section-link" onclick="clearRecentSearches()">Clear</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="performSearch('AI Technology')" style="cursor: pointer;">
                         <div class="list-item-icon">🔍</div>
                         <div class="list-item-content">
                             <div class="list-item-title">AI Technology</div>
                         </div>
-                        <div style="cursor: pointer;" onclick="removeSearch(this)">✕</div>
+                        <div style="cursor: pointer;" onclick="event.stopPropagation(); removeSearch(this)">✕</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="performSearch('Tech Conference')" style="cursor: pointer;">
                         <div class="list-item-icon">🔍</div>
                         <div class="list-item-content">
                             <div class="list-item-title">Tech Conference</div>
                         </div>
-                        <div style="cursor: pointer;" onclick="removeSearch(this)">✕</div>
+                        <div style="cursor: pointer;" onclick="event.stopPropagation(); removeSearch(this)">✕</div>
                     </div>
 
                     <div class="section-header">
                         <div class="section-title">Trending Searches</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="performSearch('#NewFeatures')" style="cursor: pointer;">
                         <div class="list-item-icon">🔥</div>
                         <div class="list-item-content">
                             <div class="list-item-title">#NewFeatures</div>
                             <div class="list-item-subtitle">45.2K posts</div>
                         </div>
+                        <div class="list-item-arrow">→</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="performSearch('#TechNews')" style="cursor: pointer;">
                         <div class="list-item-icon">🔥</div>
                         <div class="list-item-content">
                             <div class="list-item-title">#TechNews</div>
                             <div class="list-item-subtitle">32.1K posts</div>
                         </div>
+                        <div class="list-item-arrow">→</div>
                     </div>
 
                     <div class="section-header">
@@ -2729,20 +2731,22 @@
                         <div class="section-title">Search Results</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="closeModal('searchModal'); openScreen('profile')" style="cursor: pointer;">
                         <div class="post-avatar">👤</div>
                         <div class="list-item-content">
                             <div class="list-item-title">Sarah Johnson</div>
                             <div class="list-item-subtitle">234 mutual friends</div>
                         </div>
+                        <div class="list-item-arrow">→</div>
                     </div>
 
-                    <div class="list-item">
+                    <div class="list-item" onclick="closeModal('searchModal'); openModal('groupDetails')" style="cursor: pointer;">
                         <div class="group-icon" style="width: 40px; height: 40px; font-size: 20px;">💻</div>
                         <div class="list-item-content">
                             <div class="list-item-title">Tech Enthusiasts</div>
                             <div class="list-item-subtitle">2,456 members</div>
                         </div>
+                        <div class="list-item-arrow">→</div>
                     </div>
                 </div>
             </div>
@@ -4885,11 +4889,25 @@
         }
 
         function clearSearch() {
-            document.getElementById('mainSearchInput').value = '';
+            const searchInput = document.getElementById('mainSearchInput');
+            searchInput.value = '';
             handleSearch('');
+            showToast('Search cleared');
         }
 
         function clearRecentSearches() {
+            // Get all recent search items and remove them
+            const searchDefault = document.getElementById('searchDefault');
+            const recentSearchItems = searchDefault.querySelectorAll('.list-item');
+            recentSearchItems.forEach((item, index) => {
+                // Only remove the first two items (recent searches, not trending or quick links)
+                if (index < 2) {
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        item.remove();
+                    }, 200);
+                }
+            });
             showToast('Recent searches cleared');
         }
 
@@ -4899,6 +4917,13 @@
                 element.parentElement.remove();
                 showToast('Removed from recent searches');
             }, 200);
+        }
+
+        function performSearch(query) {
+            const searchInput = document.getElementById('mainSearchInput');
+            searchInput.value = query;
+            handleSearch(query);
+            showToast(`Searching for: ${query}`);
         }
 
         // Notification actions
