@@ -3150,10 +3150,10 @@
                     📷
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <button class="btn" onclick="showToast('Camera opened')">
+                    <button class="btn" onclick="openStoryCamera()">
                         📷 Camera
                     </button>
-                    <button class="btn" onclick="showToast('Gallery opened')">
+                    <button class="btn" onclick="openStoryGallery()">
                         🖼️ Gallery
                     </button>
                 </div>
@@ -3184,16 +3184,16 @@
                 <div class="modal-title">Go Live</div>
             </div>
             <div class="modal-content">
-                <input type="text" class="input-field" placeholder="Add a title..." />
-                <textarea class="input-field textarea-field" placeholder="Add a description..."></textarea>
-                <div class="list-item">
+                <input type="text" class="input-field" placeholder="Add a title..." id="liveTitle" />
+                <textarea class="input-field textarea-field" placeholder="Add a description..." id="liveDescription"></textarea>
+                <div class="list-item" onclick="openModal('selectLivePrivacy')">
                     <div class="list-item-content">
                         <div class="list-item-title">Privacy</div>
-                        <div class="list-item-subtitle">Public</div>
+                        <div class="list-item-subtitle" id="livePrivacy">Public</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <button class="btn" onclick="closeModal('goLive'); showToast('Going live...')">
+                <button class="btn" onclick="startLiveStream()">
                     🔴 Start Live
                 </button>
             </div>
@@ -3405,16 +3405,16 @@
                 <div class="modal-title">Create Group</div>
             </div>
             <div class="modal-content">
-                <input type="text" class="input-field" placeholder="Group name..." />
-                <textarea class="input-field textarea-field" placeholder="Group description..."></textarea>
-                <div class="list-item">
+                <input type="text" class="input-field" placeholder="Group name..." id="groupName" />
+                <textarea class="input-field textarea-field" placeholder="Group description..." id="groupDescription"></textarea>
+                <div class="list-item" onclick="openModal('selectGroupPrivacy')">
                     <div class="list-item-content">
                         <div class="list-item-title">Privacy</div>
-                        <div class="list-item-subtitle">Public</div>
+                        <div class="list-item-subtitle" id="groupPrivacy">Public</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <button class="btn" onclick="closeModal('createGroup'); showToast('Group created')">
+                <button class="btn" onclick="createNewGroup()">
                     Create Group
                 </button>
             </div>
@@ -3459,12 +3459,12 @@
                 <div class="modal-title">Create Event</div>
             </div>
             <div class="modal-content">
-                <input type="text" class="input-field" placeholder="Event name..." />
-                <input type="text" class="input-field" placeholder="Location..." />
-                <input type="date" class="input-field" />
-                <input type="time" class="input-field" />
-                <textarea class="input-field textarea-field" placeholder="Event description..."></textarea>
-                <button class="btn" onclick="closeModal('createEvent'); showToast('Event created')">
+                <input type="text" class="input-field" placeholder="Event name..." id="eventName" />
+                <input type="text" class="input-field" placeholder="Location..." id="eventLocation" />
+                <input type="date" class="input-field" id="eventDate" />
+                <input type="time" class="input-field" id="eventTime" />
+                <textarea class="input-field textarea-field" placeholder="Event description..." id="eventDescription"></textarea>
+                <button class="btn" onclick="createNewEvent()">
                     Create Event
                 </button>
             </div>
@@ -4272,20 +4272,20 @@
                 <div class="modal-title">Create Poll</div>
             </div>
             <div class="modal-content">
-                <input type="text" class="input-field" placeholder="Ask a question..." />
-                <input type="text" class="input-field" placeholder="Option 1" />
-                <input type="text" class="input-field" placeholder="Option 2" />
+                <input type="text" class="input-field" placeholder="Ask a question..." id="pollQuestion" />
+                <input type="text" class="input-field" placeholder="Option 1" id="pollOption1" />
+                <input type="text" class="input-field" placeholder="Option 2" id="pollOption2" />
                 <button class="btn" style="background: var(--glass); margin-bottom: 12px;" onclick="showToast('Option added')">
                     + Add Option
                 </button>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('selectPollLength')">
                     <div class="list-item-content">
                         <div class="list-item-title">Poll Length</div>
-                        <div class="list-item-subtitle">1 day</div>
+                        <div class="list-item-subtitle" id="pollLength">1 day</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <button class="btn" onclick="closeModal('createPoll'); showToast('Poll created')">
+                <button class="btn" onclick="createNewPoll()">
                     Create Poll
                 </button>
             </div>
@@ -4297,17 +4297,17 @@
                 <div class="modal-title">Create Fundraiser</div>
             </div>
             <div class="modal-content">
-                <input type="text" class="input-field" placeholder="Fundraiser title..." />
-                <input type="number" class="input-field" placeholder="Goal amount ($)" />
-                <textarea class="input-field textarea-field" placeholder="Tell people why you're raising money..."></textarea>
-                <div class="list-item">
+                <input type="text" class="input-field" placeholder="Fundraiser title..." id="fundraiserTitle" />
+                <input type="number" class="input-field" placeholder="Goal amount ($)" id="fundraiserGoal" />
+                <textarea class="input-field textarea-field" placeholder="Tell people why you're raising money..." id="fundraiserDescription"></textarea>
+                <div class="list-item" onclick="openModal('selectFundraiserCategory')">
                     <div class="list-item-content">
                         <div class="list-item-title">Category</div>
-                        <div class="list-item-subtitle">Select a category</div>
+                        <div class="list-item-subtitle" id="fundraiserCategory">Select a category</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <button class="btn" onclick="closeModal('createFundraiser'); showToast('Fundraiser created')">
+                <button class="btn" onclick="createNewFundraiser()">
                     Create Fundraiser
                 </button>
             </div>
@@ -4319,15 +4319,15 @@
                 <div class="modal-title">Upload Photo/Video</div>
             </div>
             <div class="modal-content">
-                <div style="background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 16px; padding: 60px 20px; text-align: center; margin-bottom: 20px;">
+                <div style="background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 16px; padding: 60px 20px; text-align: center; margin-bottom: 20px; cursor: pointer;" onclick="selectMediaFromDevice()">
                     <div style="font-size: 64px; margin-bottom: 16px;">📁</div>
                     <div style="font-size: 16px; color: var(--text-secondary);">Tap to select photos or videos</div>
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <button class="btn" style="flex: 1;" onclick="showToast('Photo selected')">
+                    <button class="btn" style="flex: 1;" onclick="selectPhotosFromGallery()">
                         📷 Photos
                     </button>
-                    <button class="btn" style="flex: 1;" onclick="showToast('Video selected')">
+                    <button class="btn" style="flex: 1;" onclick="selectVideosFromGallery()">
                         🎥 Videos
                     </button>
                 </div>
@@ -4476,6 +4476,141 @@
                         </div>
                     </div>
                     <div class="post-content">These new AI features are game-changing! 🚀</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Live Privacy Modal -->
+        <div id="selectLivePrivacyModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectLivePrivacy')">✕</div>
+                <div class="modal-title">Select Privacy</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectLivePrivacy('Public')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone can watch</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectLivePrivacy('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Only your friends can watch</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectLivePrivacy('Private')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Private</div>
+                        <div class="list-item-subtitle">Only invited people</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Group Privacy Modal -->
+        <div id="selectGroupPrivacyModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectGroupPrivacy')">✕</div>
+                <div class="modal-title">Select Privacy</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectGroupPrivacy('Public')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone can find and join</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectGroupPrivacy('Private')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Private</div>
+                        <div class="list-item-subtitle">Members must be approved</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Poll Length Modal -->
+        <div id="selectPollLengthModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectPollLength')">✕</div>
+                <div class="modal-title">Poll Length</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectPollLength('1 day')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">1 day</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectPollLength('3 days')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">3 days</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectPollLength('1 week')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">1 week</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectPollLength('2 weeks')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">2 weeks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Fundraiser Category Modal -->
+        <div id="selectFundraiserCategoryModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectFundraiserCategory')">✕</div>
+                <div class="modal-title">Select Category</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectFundraiserCategory('Medical')">
+                    <div class="list-item-icon">🏥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Medical</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFundraiserCategory('Education')">
+                    <div class="list-item-icon">🎓</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Education</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFundraiserCategory('Emergency')">
+                    <div class="list-item-icon">🚨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Emergency</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFundraiserCategory('Community')">
+                    <div class="list-item-icon">🏘️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Community</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFundraiserCategory('Charity')">
+                    <div class="list-item-icon">💝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Charity</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFundraiserCategory('Other')">
+                    <div class="list-item-icon">📋</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Other</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5498,6 +5633,188 @@
 
             closeModal('createPost');
             showToast('Post published successfully! 🎉');
+        }
+
+        // ========== CREATE STORY FUNCTIONS ==========
+        
+        function openStoryCamera() {
+            closeModal('createStory');
+            showToast('Opening camera... 📷');
+            // Simulate camera opening
+            setTimeout(() => {
+                showToast('Camera ready! Snap a photo or record video');
+            }, 1000);
+        }
+
+        function openStoryGallery() {
+            closeModal('createStory');
+            showToast('Opening gallery... 🖼️');
+            // Simulate gallery opening with selection
+            setTimeout(() => {
+                showToast('Select photos or videos for your story');
+            }, 1000);
+        }
+
+        // ========== GO LIVE FUNCTIONS ==========
+        
+        function selectLivePrivacy(privacy) {
+            document.getElementById('livePrivacy').textContent = privacy;
+            closeModal('selectLivePrivacy');
+            showToast(`Privacy set to ${privacy}`);
+        }
+
+        function startLiveStream() {
+            const title = document.getElementById('liveTitle').value;
+            const description = document.getElementById('liveDescription').value;
+            const privacy = document.getElementById('livePrivacy').textContent;
+
+            if (!title) {
+                showToast('Please add a title for your live stream');
+                return;
+            }
+
+            closeModal('goLive');
+            showToast('🔴 Going live...');
+            
+            // Simulate live stream starting
+            setTimeout(() => {
+                showToast('You are now LIVE! 🎥');
+            }, 1500);
+        }
+
+        // ========== UPLOAD MEDIA FUNCTIONS ==========
+        
+        function selectMediaFromDevice() {
+            showToast('Opening device file picker...');
+            setTimeout(() => {
+                showToast('Select photos or videos to upload');
+            }, 800);
+        }
+
+        function selectPhotosFromGallery() {
+            closeModal('uploadMedia');
+            showToast('Opening photo gallery... 📷');
+            setTimeout(() => {
+                showToast('Photos selected! Ready to upload');
+            }, 1000);
+        }
+
+        function selectVideosFromGallery() {
+            closeModal('uploadMedia');
+            showToast('Opening video gallery... 🎥');
+            setTimeout(() => {
+                showToast('Videos selected! Ready to upload');
+            }, 1000);
+        }
+
+        // ========== CREATE EVENT FUNCTIONS ==========
+        
+        function createNewEvent() {
+            const name = document.getElementById('eventName').value;
+            const location = document.getElementById('eventLocation').value;
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const description = document.getElementById('eventDescription').value;
+
+            if (!name || !location || !date || !time) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+
+            closeModal('createEvent');
+            showToast('Event created successfully! 📅');
+            
+            // Clear the form
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventLocation').value = '';
+            document.getElementById('eventDate').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventDescription').value = '';
+        }
+
+        // ========== CREATE GROUP FUNCTIONS ==========
+        
+        function selectGroupPrivacy(privacy) {
+            document.getElementById('groupPrivacy').textContent = privacy;
+            closeModal('selectGroupPrivacy');
+            showToast(`Privacy set to ${privacy}`);
+        }
+
+        function createNewGroup() {
+            const name = document.getElementById('groupName').value;
+            const description = document.getElementById('groupDescription').value;
+            const privacy = document.getElementById('groupPrivacy').textContent;
+
+            if (!name) {
+                showToast('Please enter a group name');
+                return;
+            }
+
+            closeModal('createGroup');
+            showToast('Group created successfully! 👥');
+            
+            // Clear the form
+            document.getElementById('groupName').value = '';
+            document.getElementById('groupDescription').value = '';
+            document.getElementById('groupPrivacy').textContent = 'Public';
+        }
+
+        // ========== CREATE POLL FUNCTIONS ==========
+        
+        function selectPollLength(length) {
+            document.getElementById('pollLength').textContent = length;
+            closeModal('selectPollLength');
+            showToast(`Poll length set to ${length}`);
+        }
+
+        function createNewPoll() {
+            const question = document.getElementById('pollQuestion').value;
+            const option1 = document.getElementById('pollOption1').value;
+            const option2 = document.getElementById('pollOption2').value;
+            const length = document.getElementById('pollLength').textContent;
+
+            if (!question || !option1 || !option2) {
+                showToast('Please fill in the question and at least 2 options');
+                return;
+            }
+
+            closeModal('createPoll');
+            showToast('Poll created successfully! 📊');
+            
+            // Clear the form
+            document.getElementById('pollQuestion').value = '';
+            document.getElementById('pollOption1').value = '';
+            document.getElementById('pollOption2').value = '';
+            document.getElementById('pollLength').textContent = '1 day';
+        }
+
+        // ========== CREATE FUNDRAISER FUNCTIONS ==========
+        
+        function selectFundraiserCategory(category) {
+            document.getElementById('fundraiserCategory').textContent = category;
+            closeModal('selectFundraiserCategory');
+            showToast(`Category set to ${category}`);
+        }
+
+        function createNewFundraiser() {
+            const title = document.getElementById('fundraiserTitle').value;
+            const goal = document.getElementById('fundraiserGoal').value;
+            const description = document.getElementById('fundraiserDescription').value;
+            const category = document.getElementById('fundraiserCategory').textContent;
+
+            if (!title || !goal || !description || category === 'Select a category') {
+                showToast('Please fill in all fields and select a category');
+                return;
+            }
+
+            closeModal('createFundraiser');
+            showToast('Fundraiser created successfully! 💰');
+            
+            // Clear the form
+            document.getElementById('fundraiserTitle').value = '';
+            document.getElementById('fundraiserGoal').value = '';
+            document.getElementById('fundraiserDescription').value = '';
+            document.getElementById('fundraiserCategory').textContent = 'Select a category';
         }
 
         // Add post to feed
