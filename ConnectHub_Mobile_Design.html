@@ -1826,12 +1826,12 @@
                     </div>
                 </div>
 
-                <div class="section-header">
+                <div class="section-header" style="cursor: pointer;" onclick="openModal('allPosts')">
                     <div class="section-title">Recent Posts</div>
-                    <div class="section-link" onclick="openModal('allPosts')">See All</div>
+                    <div class="section-link" onclick="event.stopPropagation(); openModal('allPosts')">See All</div>
                 </div>
 
-                <div class="post-card">
+                <div class="post-card" style="cursor: pointer;" onclick="openModal('allPosts')">
                     <div class="post-content">Great day at the beach! 🏖️</div>
                     <div class="post-image">🏖️</div>
                     <div class="post-meta">Yesterday at 3:24 PM</div>
