@@ -2473,11 +2473,20 @@
                     <div class="list-item-arrow">→</div>
                 </div>
 
-                <div class="list-item" onclick="openScreen('video')">
+                <div class="list-item" onclick="openScreen('media')">
                     <div class="list-item-icon">📹</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Camera & Video</div>
                         <div class="list-item-subtitle">Create video content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="switchPillTab(document.querySelector('.pill-nav-button:nth-child(3)'), 'live'); closeModal(''); openScreen('feed');">
+                    <div class="list-item-icon">🔴</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Lives</div>
+                        <div class="list-item-subtitle">Watch & go live</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
