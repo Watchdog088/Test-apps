@@ -2000,7 +2000,7 @@
                     <div class="section-title">Hosting</div>
                 </div>
 
-                <div class="event-card">
+                <div class="event-card" onclick="openModal('viewEvent')">
                     <div class="event-date">
                         <div class="event-date-box">
                             <div class="event-month">NOV</div>
@@ -2018,7 +2018,7 @@
                     <div class="section-title">Past Events</div>
                 </div>
 
-                <div class="event-card">
+                <div class="event-card" onclick="openModal('viewEvent')">
                     <div class="event-date">
                         <div class="event-date-box">
                             <div class="event-month">OCT</div>
@@ -2065,18 +2065,18 @@
                     <div class="section-link" onclick="openModal('allGames')">View All</div>
                 </div>
 
-                <div class="game-card" onclick="playGame('puzzle')">
-                    <div class="game-icon">🧩</div>
+                <div class="game-card" onclick="playGame('tetris')">
+                    <div class="game-icon">🟦</div>
                     <div class="game-info">
-                        <div class="game-title">Puzzle Master</div>
-                        <div class="game-stats">Play time: 12h 34m • High Score: 2,450</div>
+                        <div class="game-title">Block Blitz (Tetris)</div>
+                        <div class="game-stats">Play time: 12h 34m • High Score: 24,500</div>
                     </div>
                 </div>
 
-                <div class="game-card" onclick="playGame('racing')">
-                    <div class="game-icon">🏎️</div>
+                <div class="game-card" onclick="playGame('candy')">
+                    <div class="game-icon">🍬</div>
                     <div class="game-info">
-                        <div class="game-title">Speed Racer</div>
+                        <div class="game-title">Candy Crush</div>
                         <div class="game-stats">Play time: 8h 22m • High Score: 18,900</div>
                     </div>
                 </div>
@@ -2094,7 +2094,7 @@
                     <div class="section-link" onclick="openModal('fullLeaderboard')">View All</div>
                 </div>
 
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('fullLeaderboard')" style="cursor: pointer;">
                     <div style="font-size: 24px; font-weight: 700; color: #ffd700;">🥇</div>
                     <div class="list-item-content">
                         <div class="list-item-title">ProGamer123</div>
@@ -2102,7 +2102,7 @@
                     </div>
                 </div>
 
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('fullLeaderboard')" style="cursor: pointer;">
                     <div style="font-size: 24px; font-weight: 700; color: #c0c0c0;">🥈</div>
                     <div class="list-item-content">
                         <div class="list-item-title">GameMaster</div>
@@ -4843,6 +4843,17 @@
             </div>
         </div>
 
+        <!-- GAME INTERFACE MODAL -->
+        <div id="gameInterfaceModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('gameInterface')">✕</div>
+                <div class="modal-title" id="gameInterfaceTitle">Game</div>
+            </div>
+            <div class="modal-content" id="gameInterfaceContent">
+                <!-- Game content will be dynamically inserted here -->
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -5166,7 +5177,56 @@
 
         // Gaming actions
         function playGame(game) {
+            // Open the game interface modal
+            openModal('gameInterface');
+            
+            // Update the game interface based on which game was selected
+            const gameTitle = document.getElementById('gameInterfaceTitle');
+            const gameContent = document.getElementById('gameInterfaceContent');
+            
+            const games = {
+                'puzzle': { title: '🧩 Puzzle Master', content: 'Match 3 or more blocks to clear them!' },
+                'racing': { title: '🏎️ Speed Racer', content: 'Race to the finish line!' },
+                'cards': { title: '🃏 Card Champion', content: 'Beat the dealer in this card game!' },
+                'trivia': { title: '🧠 Trivia Master', content: 'Answer questions to win!' }
+            };
+            
+            const selectedGame = games[game] || { title: '🎮 Game', content: 'Loading game...' };
+            gameTitle.textContent = selectedGame.title;
+            gameContent.innerHTML = `
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 300px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 64px; margin-bottom: 20px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">${selectedGame.title.split(' ')[0]}</div>
+                    <button class="btn" style="width: auto; padding: 16px 40px; font-size: 18px;" onclick="startGame('${game}')">
+                        ▶️ Start Game
+                    </button>
+                </div>
+                <div style="font-size: 16px; text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                    ${selectedGame.content}
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">Level 5</div>
+                        <div class="stat-label">Current Level</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2,450</div>
+                        <div class="stat-label">High Score</div>
+                    </div>
+                </div>
+            `;
+            
             showToast(`Loading ${game}...`);
+        }
+        
+        // Start game function
+        function startGame(game) {
+            closeModal('gameInterface');
+            showToast(`🎮 Starting ${game}... Game will begin!`);
+            
+            // Simulate game starting
+            setTimeout(() => {
+                showToast('🎉 Game started! Good luck!');
+            }, 1000);
         }
 
         // Initialize
