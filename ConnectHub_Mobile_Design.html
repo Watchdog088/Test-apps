@@ -2218,6 +2218,16 @@
                     </div>
                 </div>
 
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">In-App Notifications</div>
+                        <div class="list-item-subtitle">Show notification banners</div>
+                    </div>
+                    <div class="toggle-switch active" id="inAppNotificationsToggle" onclick="toggleInAppNotifications(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
                 <div class="list-item" onclick="openModal('emailPreferences')">
                     <div class="list-item-icon">📧</div>
                     <div class="list-item-content">
@@ -6010,9 +6020,28 @@
         
         let currentNotificationTimeout = null;
         let pendingNotification = null;
+        let inAppNotificationsEnabled = true; // Default to enabled
+
+        // Toggle in-app notifications on/off
+        function toggleInAppNotifications(element) {
+            element.classList.toggle('active');
+            inAppNotificationsEnabled = element.classList.contains('active');
+            
+            if (inAppNotificationsEnabled) {
+                showToast('In-app notifications enabled');
+            } else {
+                showToast('In-app notifications disabled');
+                // Dismiss any currently showing notification
+                dismissInAppNotification();
+            }
+        }
 
         // Show in-app notification banner
         function showInAppNotification(icon, title, text, action) {
+            // Check if notifications are enabled
+            if (!inAppNotificationsEnabled) {
+                return; // Don't show notification if disabled
+            }
             const notification = document.getElementById('inAppNotification');
             const notificationIcon = document.getElementById('notificationIcon');
             const notificationTitle = document.getElementById('notificationTitle');
