@@ -4928,15 +4928,42 @@
 
         // Notification actions
         function markAllAsRead() {
-            document.querySelectorAll('.notification-item.unread').forEach(item => {
+            const unreadNotifications = document.querySelectorAll('#notifications-screen .notification-item.unread');
+            unreadNotifications.forEach(item => {
                 item.classList.remove('unread');
             });
             showToast('All notifications marked as read');
         }
 
         function goToPost(element) {
+            // Remove unread status
             element.classList.remove('unread');
-            showToast('Opening content...');
+            
+            // Get notification type from the icon
+            const icon = element.querySelector('.notification-icon').textContent.trim();
+            
+            // Navigate based on notification type
+            if (icon === '👍' || icon === '💬') {
+                // Like or comment notification - go to feed
+                closeModal('notifications');
+                openScreen('feed');
+                showToast('Navigating to post...');
+            } else if (icon === '👥') {
+                // Friend request - go to friends screen
+                openScreen('friends');
+                showToast('Opening friend requests...');
+            } else if (icon === '📅') {
+                // Event notification - open event details
+                openScreen('events');
+                showToast('Opening event details...');
+            } else if (icon === '🎮') {
+                // Gaming notification - go to gaming screen
+                openScreen('gaming');
+                showToast('Opening gaming hub...');
+            } else {
+                // Default action
+                showToast('Opening content...');
+            }
         }
 
         // Message actions
