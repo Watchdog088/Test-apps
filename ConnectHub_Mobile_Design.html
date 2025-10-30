@@ -3798,24 +3798,24 @@
                 <div class="modal-title">Account Preferences</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('selectLanguage')">
                     <div class="list-item-content">
                         <div class="list-item-title">Language</div>
-                        <div class="list-item-subtitle">English</div>
+                        <div class="list-item-subtitle" id="selectedLanguage">English</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('selectTimezone')">
                     <div class="list-item-content">
                         <div class="list-item-title">Timezone</div>
-                        <div class="list-item-subtitle">Pacific Time (PT)</div>
+                        <div class="list-item-subtitle" id="selectedTimezone">Pacific Time (PT)</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('selectDateFormat')">
                     <div class="list-item-content">
                         <div class="list-item-title">Date Format</div>
-                        <div class="list-item-subtitle">MM/DD/YYYY</div>
+                        <div class="list-item-subtitle" id="selectedDateFormat">MM/DD/YYYY</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -4372,17 +4372,17 @@
                         <div class="toggle-slider"></div>
                     </div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('whoCanSendFriendRequests')">
                     <div class="list-item-content">
                         <div class="list-item-title">Who can send you friend requests</div>
-                        <div class="list-item-subtitle">Everyone</div>
+                        <div class="list-item-subtitle" id="friendRequestsPrivacy">Everyone</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('whoCanSeeFriendsList')">
                     <div class="list-item-content">
                         <div class="list-item-title">Who can see your friends list</div>
-                        <div class="list-item-subtitle">Friends</div>
+                        <div class="list-item-subtitle" id="friendsListPrivacy">Friends</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -4740,6 +4740,188 @@
                 <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeModal('deleteAccount')">
                     Cancel
                 </button>
+            </div>
+        </div>
+
+        <!-- Select Language Modal -->
+        <div id="selectLanguageModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectLanguage')">✕</div>
+                <div class="modal-title">Select Language</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="updateLanguage('English')">
+                    <div class="list-item-icon">🇺🇸</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">English</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateLanguage('Español')">
+                    <div class="list-item-icon">🇪🇸</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Español</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateLanguage('Français')">
+                    <div class="list-item-icon">🇫🇷</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Français</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateLanguage('Deutsch')">
+                    <div class="list-item-icon">🇩🇪</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Deutsch</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateLanguage('中文')">
+                    <div class="list-item-icon">🇨🇳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">中文</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Timezone Modal -->
+        <div id="selectTimezoneModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectTimezone')">✕</div>
+                <div class="modal-title">Select Timezone</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="updateTimezone('Pacific Time (PT)')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Pacific Time (PT)</div>
+                        <div class="list-item-subtitle">UTC-8</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateTimezone('Mountain Time (MT)')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mountain Time (MT)</div>
+                        <div class="list-item-subtitle">UTC-7</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateTimezone('Central Time (CT)')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Central Time (CT)</div>
+                        <div class="list-item-subtitle">UTC-6</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateTimezone('Eastern Time (ET)')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Eastern Time (ET)</div>
+                        <div class="list-item-subtitle">UTC-5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Date Format Modal -->
+        <div id="selectDateFormatModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectDateFormat')">✕</div>
+                <div class="modal-title">Select Date Format</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="updateDateFormat('MM/DD/YYYY')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">MM/DD/YYYY</div>
+                        <div class="list-item-subtitle">12/31/2024</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateDateFormat('DD/MM/YYYY')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">DD/MM/YYYY</div>
+                        <div class="list-item-subtitle">31/12/2024</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateDateFormat('YYYY-MM-DD')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">YYYY-MM-DD</div>
+                        <div class="list-item-subtitle">2024-12-31</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who Can Send Friend Requests Modal -->
+        <div id="whoCanSendFriendRequestsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('whoCanSendFriendRequests')">✕</div>
+                <div class="modal-title">Who Can Send Friend Requests</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Control who can send you friend requests.
+                </div>
+                <div class="list-item" onclick="updateFriendRequestsPrivacy('Everyone')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Everyone</div>
+                        <div class="list-item-subtitle">Anyone can send requests</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateFriendRequestsPrivacy('Friends of Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends of Friends</div>
+                        <div class="list-item-subtitle">Only friends of your friends</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateFriendRequestsPrivacy('No One')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">No One</div>
+                        <div class="list-item-subtitle">Turn off friend requests</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who Can See Friends List Modal -->
+        <div id="whoCanSeeFriendsListModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('whoCanSeeFriendsList')">✕</div>
+                <div class="modal-title">Who Can See Your Friends List</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Control who can view your friends list.
+                </div>
+                <div class="list-item" onclick="updateFriendsListPrivacy('Everyone')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Everyone</div>
+                        <div class="list-item-subtitle">Anyone can view your friends</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateFriendsListPrivacy('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Only your friends can see</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateFriendsListPrivacy('Only Me')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Only Me</div>
+                        <div class="list-item-subtitle">Hidden from everyone</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -7023,6 +7205,40 @@
             // Clear the form
             document.getElementById('deletePassword').value = '';
             confirmToggle.classList.remove('active');
+        }
+
+        // ========== ACCOUNT PREFERENCES FUNCTIONS ==========
+        
+        function updateLanguage(language) {
+            document.getElementById('selectedLanguage').textContent = language;
+            closeModal('selectLanguage');
+            showToast(`Language set to ${language}`);
+        }
+
+        function updateTimezone(timezone) {
+            document.getElementById('selectedTimezone').textContent = timezone;
+            closeModal('selectTimezone');
+            showToast(`Timezone set to ${timezone}`);
+        }
+
+        function updateDateFormat(format) {
+            document.getElementById('selectedDateFormat').textContent = format;
+            closeModal('selectDateFormat');
+            showToast(`Date format set to ${format}`);
+        }
+
+        // ========== PROFILE PRIVACY FUNCTIONS ==========
+        
+        function updateFriendRequestsPrivacy(setting) {
+            document.getElementById('friendRequestsPrivacy').textContent = setting;
+            closeModal('whoCanSendFriendRequests');
+            showToast(`Friend requests: ${setting}`);
+        }
+
+        function updateFriendsListPrivacy(setting) {
+            document.getElementById('friendsListPrivacy').textContent = setting;
+            closeModal('whoCanSeeFriendsList');
+            showToast(`Friends list visibility: ${setting}`);
         }
     </script>
 </body>
