@@ -3617,7 +3617,7 @@
                 <div class="section-header">
                     <div class="section-title">Content Filters</div>
                 </div>
-                <div class="list-item" onclick="openModal('sensitiveContent')">
+                <div class="list-item" onclick="closeModal('contentPreferences'); openModal('sensitiveContent')">
                     <div class="list-item-icon">⚠️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Sensitive Content</div>
@@ -3627,6 +3627,56 @@
                 </div>
                 <button class="btn" style="margin-top: 16px;" onclick="closeModal('contentPreferences'); showToast('Preferences saved')">
                     Save Preferences
+                </button>
+            </div>
+        </div>
+
+        <!-- Sensitive Content Modal -->
+        <div id="sensitiveContentModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sensitiveContent')">✕</div>
+                <div class="modal-title">Sensitive Content</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Sensitive Content Settings</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Control what sensitive content you want to see</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">ℹ️ About Sensitive Content</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        ConnectHub may identify content that could be sensitive. You can choose whether to see warnings or hide this content entirely.
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Filter Settings</div>
+                </div>
+                <div class="list-item" onclick="selectSensitiveContentFilter('Show All')">
+                    <div class="list-item-icon">👁️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Show All Content</div>
+                        <div class="list-item-subtitle">No
+
+                        filters</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectSensitiveContentFilter('Show with Warnings')">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Show with Warnings</div>
+                        <div class="list-item-subtitle">See sensitive content with warning screens</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectSensitiveContentFilter('Hide Sensitive Content')">
+                    <div class="list-item-icon">🚫</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Hide Sensitive Content</div>
+                        <div class="list-item-subtitle">Don't show potentially sensitive content</div>
+                    </div>
+                </div>
+                <button class="btn" style="margin-top: 16px;" onclick="closeModal('sensitiveContent'); showToast('Settings saved')">
+                    Save Settings
                 </button>
             </div>
         </div>
@@ -7575,6 +7625,27 @@
                 openScreen('help');
                 showToast('Visit Help & Support for more information');
             }, 2000);
+        }
+
+        // ========== SENSITIVE CONTENT FILTER FUNCTIONS ==========
+        
+        // Select sensitive content filter setting
+        function selectSensitiveContentFilter(filterType) {
+            closeModal('sensitiveContent');
+            
+            // Show confirmation with appropriate message based on selection
+            if (filterType === 'Show All') {
+                showToast('Sensitive content will be shown without warnings');
+            } else if (filterType === 'Show with Warnings') {
+                showToast('You\'ll see warnings before viewing sensitive content ⚠️');
+            } else if (filterType === 'Hide Sensitive Content') {
+                showToast('Sensitive content will be hidden from your feed 🚫');
+            }
+            
+            // Update the setting in content preferences (if needed in future)
+            setTimeout(() => {
+                showToast('Settings saved successfully! ✓');
+            }, 1500);
         }
     </script>
 </body>
