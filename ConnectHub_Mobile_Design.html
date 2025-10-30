@@ -4460,7 +4460,7 @@
                     <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Quick Tip</div>
                     <div style="font-size: 13px; color: var(--text-secondary);">Tap on an existing conversation to continue chatting!</div>
                 </div>
-                <button class="btn" onclick="closeModal('sendTextMessages'); switchBottomTab('messages')">
+                <button class="btn" onclick="navigateToMessages('sendTextMessages')">
                     Go to Messages
                 </button>
             </div>
@@ -4492,7 +4492,7 @@
                     <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📝 Note</div>
                     <div style="font-size: 13px; color: var(--text-secondary);">You can send multiple photos and videos at once!</div>
                 </div>
-                <button class="btn" onclick="closeModal('sendPhotosVideos'); switchBottomTab('messages')">
+                <button class="btn" onclick="navigateToMessages('sendPhotosVideos')">
                     Open Messages
                 </button>
             </div>
@@ -4524,7 +4524,7 @@
                     <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">⚡ Quick Send</div>
                     <div style="font-size: 13px; color: var(--text-secondary);">Voice messages are perfect for quick updates on the go!</div>
                 </div>
-                <button class="btn" onclick="closeModal('sendVoiceMessages'); switchBottomTab('messages')">
+                <button class="btn" onclick="navigateToMessages('sendVoiceMessages')">
                     Try It Now
                 </button>
             </div>
@@ -7239,6 +7239,26 @@
             document.getElementById('friendsListPrivacy').textContent = setting;
             closeModal('whoCanSeeFriendsList');
             showToast(`Friends list visibility: ${setting}`);
+        }
+
+        // ========== NAVIGATE TO MESSAGES FUNCTION ==========
+        
+        function navigateToMessages(fromModal) {
+            // Close the current modal
+            closeModal(fromModal);
+            
+            // Switch to messages tab in bottom navigation
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav .nav-item')[2].classList.add('active'); // Messages is 3rd item (index 2)
+            
+            // Show messages screen
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('messages-screen').classList.add('active');
+            
+            currentBottomTab = 'messages';
+            currentScreen = 'messages';
+            
+            showToast('Opening Messages... 💬');
         }
     </script>
 </body>
