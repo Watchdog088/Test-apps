@@ -4399,7 +4399,7 @@
                 <div class="post-content" style="margin-bottom: 20px;">
                     Manage your personal data and privacy preferences.
                 </div>
-                <div class="list-item" onclick="showToast('Download started')">
+                <div class="list-item" onclick="closeModal('dataPrivacy'); openModal('downloadYourData')">
                     <div class="list-item-icon">💾</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Download Your Data</div>
@@ -4407,7 +4407,7 @@
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="closeModal('dataPrivacy'); openModal('activityLog')">
                     <div class="list-item-icon">🔍</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Activity Log</div>
@@ -4415,7 +4415,7 @@
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="closeModal('dataPrivacy'); openModal('dataCollection')">
                     <div class="list-item-icon">📊</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Data Collection</div>
@@ -4423,7 +4423,7 @@
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="closeModal('dataPrivacy'); openModal('deleteAccount')">
                     <div class="list-item-icon">🗑️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Delete Account</div>
@@ -4632,6 +4632,118 @@
                         <div class="list-item-subtitle">Hidden from search</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Activity Log Modal -->
+        <div id="activityLogModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('activityLog')">✕</div>
+                <div class="modal-title">Activity Log</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔍</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Your ConnectHub Activity</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Review everything you've done on ConnectHub</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Recent Activity</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">📝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Created a post</div>
+                        <div class="list-item-subtitle">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">👍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Liked 5 posts</div>
+                        <div class="list-item-subtitle">5 hours ago</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">💬</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Commented on a post</div>
+                        <div class="list-item-subtitle">Yesterday</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Added 2 new friends</div>
+                        <div class="list-item-subtitle">2 days ago</div>
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📊 Filter Options</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                        <button class="btn" style="background: var(--glass); padding: 8px; font-size: 12px;">Posts</button>
+                        <button class="btn" style="background: var(--glass); padding: 8px; font-size: 12px;">Comments</button>
+                        <button class="btn" style="background: var(--glass); padding: 8px; font-size: 12px;">Likes</button>
+                        <button class="btn" style="background: var(--glass); padding: 8px; font-size: 12px;">Friends</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Collection Modal -->
+        <div id="dataCollectionModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('dataCollection')">✕</div>
+                <div class="modal-title">Data Collection</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">What Data We Collect</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Transparency about your information</div>
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    We collect information to provide you with the best ConnectHub experience and keep your account secure.
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Information We Collect</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📱 Account Information</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • Name, email, and phone number<br>
+                        • Profile information and photos<br>
+                        • Account settings and preferences
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📝 Content You Create</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • Posts, comments, and messages<br>
+                        • Photos and videos you share<br>
+                        • Reactions and interactions
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">🔍 Usage Information</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • How you use ConnectHub features<br>
+                        • Device information and IP address<br>
+                        • Location data (if enabled)
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 How We Use Your Data</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • Personalize your experience<br>
+                        • Keep your account secure<br>
+                        • Improve our services<br>
+                        • Send you relevant notifications
+                    </div>
+                </div>
+                <button class="btn" onclick="closeModal('dataCollection')">
+                    Got It
+                </button>
             </div>
         </div>
 
