@@ -2439,6 +2439,15 @@
                     <div class="list-item-arrow">→</div>
                 </div>
 
+                <div class="list-item" onclick="openModal('aiAssistant')">
+                    <div class="list-item-icon">🤖</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">AI Assistant</div>
+                        <div class="list-item-subtitle">Get instant help</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
                 <div class="list-item" onclick="window.open('https://help.connecthub.com', '_blank')">
                     <div class="list-item-icon">🌐</div>
                     <div class="list-item-content">
@@ -4149,6 +4158,41 @@
                 <button class="btn" onclick="closeModal('emailSupport'); showToast('Email sent to support')">
                     Send Email
                 </button>
+            </div>
+        </div>
+
+        <div id="aiAssistantModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('aiAssistant')">✕</div>
+                <div class="modal-title">AI Assistant</div>
+            </div>
+            <div class="modal-content">
+                <div class="chat-messages" style="height: calc(100vh - 250px);">
+                    <div class="chat-bubble received">
+                        👋 Hi! I'm your AI Assistant. How can I help you today?
+                    </div>
+                    <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Quick Help Topics:</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                            <button class="btn" style="background: var(--glass); padding: 10px; font-size: 13px;" onclick="askAI('How do I reset my password?')">
+                                🔒 Reset Password
+                            </button>
+                            <button class="btn" style="background: var(--glass); padding: 10px; font-size: 13px;" onclick="askAI('How do I change privacy settings?')">
+                                🔐 Privacy Settings
+                            </button>
+                            <button class="btn" style="background: var(--glass); padding: 10px; font-size: 13px;" onclick="askAI('How do I report a problem?')">
+                                ⚠️ Report Issue
+                            </button>
+                            <button class="btn" style="background: var(--glass); padding: 10px; font-size: 13px;" onclick="askAI('How do I delete my account?')">
+                                🗑️ Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: sticky; bottom: 0; background: var(--bg-primary); padding: 16px 0; display: flex; gap: 10px;">
+                    <input type="text" class="input-field" id="aiAssistantInput" style="margin-bottom: 0;" placeholder="Ask me anything..." />
+                    <button class="chat-send-btn" onclick="sendToAI()">➤</button>
+                </div>
             </div>
         </div>
 
