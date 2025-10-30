@@ -2208,6 +2208,15 @@
                     <div class="list-item-arrow">→</div>
                 </div>
 
+                <div class="list-item" onclick="openModal('manageDevices')">
+                    <div class="list-item-icon">📱</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Manage Login Devices</div>
+                        <div class="list-item-subtitle">View and manage devices</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
                 <div class="toggle-container">
                     <div>
                         <div class="list-item-title">Push Notifications</div>
@@ -3819,21 +3828,21 @@
                 <div class="modal-title">Privacy Settings</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('whoCanSeeMyPosts')">
                     <div class="list-item-content">
                         <div class="list-item-title">Who can see my posts</div>
                         <div class="list-item-subtitle">Friends</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('whoCanMessageMe')">
                     <div class="list-item-content">
                         <div class="list-item-title">Who can message me</div>
                         <div class="list-item-subtitle">Everyone</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('profileVisibility')">
                     <div class="list-item-content">
                         <div class="list-item-title">Profile visibility</div>
                         <div class="list-item-subtitle">Public</div>
@@ -3880,7 +3889,7 @@
                 <div class="modal-title">Data Settings</div>
             </div>
             <div class="modal-content">
-                <div class="list-item" onclick="showToast('Download started')">
+                <div class="list-item" onclick="openModal('downloadYourData')">
                     <div class="list-item-icon">💾</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Download Your Data</div>
@@ -3888,7 +3897,7 @@
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item" onclick="showToast('Account deactivated')">
+                <div class="list-item" onclick="openModal('deactivateAccount')">
                     <div class="list-item-icon">⏸️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Deactivate Account</div>
@@ -3896,7 +3905,7 @@
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item" onclick="showToast('Deletion requested')">
+                <div class="list-item" onclick="openModal('deleteAccount')">
                     <div class="list-item-icon">🗑️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Delete Account</div>
@@ -4517,6 +4526,219 @@
                 </div>
                 <button class="btn" onclick="closeModal('sendVoiceMessages'); switchBottomTab('messages')">
                     Try It Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Who Can See My Posts Modal -->
+        <div id="whoCanSeeMyPostsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('whoCanSeeMyPosts')">✕</div>
+                <div class="modal-title">Who Can See My Posts</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Choose who can see your future posts by default.
+                </div>
+                <div class="list-item" onclick="updatePostVisibility('Public')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone on or off ConnectHub</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updatePostVisibility('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Your friends on ConnectHub</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updatePostVisibility('Only Me')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Only Me</div>
+                        <div class="list-item-subtitle">Only you can see</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who Can Message Me Modal -->
+        <div id="whoCanMessageMeModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('whoCanMessageMe')">✕</div>
+                <div class="modal-title">Who Can Message Me</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Control who can send you messages.
+                </div>
+                <div class="list-item" onclick="updateMessagePrivacy('Everyone')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Everyone</div>
+                        <div class="list-item-subtitle">Anyone can message you</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateMessagePrivacy('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends of Friends</div>
+                        <div class="list-item-subtitle">Your friends and their friends</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateMessagePrivacy('Friends Only')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends Only</div>
+                        <div class="list-item-subtitle">Only your friends can message</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Visibility Modal -->
+        <div id="profileVisibilityModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('profileVisibility')">✕</div>
+                <div class="modal-title">Profile Visibility</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Control who can view your profile.
+                </div>
+                <div class="list-item" onclick="updateProfileVisibility('Public')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone can view your profile</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="updateProfileVisibility('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Only friends can view</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="updateProfileVisibility('Private')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Private</div>
+                        <div class="list-item-subtitle">Hidden from search</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Your Data Modal -->
+        <div id="downloadYourDataModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('downloadYourData')">✕</div>
+                <div class="modal-title">Download Your Data</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">💾</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Download a Copy of Your Data</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Get all your photos, posts, and information</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">What's Included:</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • All your posts and photos<br>
+                        • Your profile information<br>
+                        • Messages and conversations<br>
+                        • Activity log and settings
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">⏱️ Processing Time</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Your download will be ready within 48 hours. We'll notify you when it's available.</div>
+                </div>
+                <button class="btn" onclick="requestDataDownload()">
+                    Request Download
+                </button>
+            </div>
+        </div>
+
+        <!-- Deactivate Account Modal -->
+        <div id="deactivateAccountModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('deactivateAccount')">✕</div>
+                <div class="modal-title">Deactivate Account</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⏸️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Temporarily Deactivate Your Account</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Your profile will be hidden until you reactivate</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">What Happens:</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • Your profile will be hidden<br>
+                        • People can't see your posts<br>
+                        • You can reactivate anytime<br>
+                        • Your data is preserved
+                    </div>
+                </div>
+                <input type="password" class="input-field" placeholder="Enter your password to confirm" id="deactivatePassword" />
+                <button class="btn" style="background: var(--warning);" onclick="confirmDeactivateAccount()">
+                    Deactivate Account
+                </button>
+                <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeModal('deactivateAccount')">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- Delete Account Modal -->
+        <div id="deleteAccountModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('deleteAccount')">✕</div>
+                <div class="modal-title">Delete Account</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🗑️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--error);">Permanently Delete Your Account</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">This action cannot be undone</div>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--error);">⚠️ Warning:</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • All your data will be permanently deleted<br>
+                        • Your posts, photos, and messages will be removed<br>
+                        • This action cannot be undone<br>
+                        • You won't be able to reactivate this account
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Alternative:</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Consider deactivating your account instead. You can always come back.</div>
+                    <button class="btn" style="background: var(--glass); width: 100%;" onclick="closeModal('deleteAccount'); openModal('deactivateAccount')">
+                        Deactivate Instead
+                    </button>
+                </div>
+                <input type="password" class="input-field" placeholder="Enter your password to confirm" id="deletePassword" />
+                <div class="toggle-container" style="margin-bottom: 16px;">
+                    <div>
+                        <div class="list-item-title" style="font-size: 14px;">I understand this is permanent</div>
+                    </div>
+                    <div class="toggle-switch" id="deleteConfirmToggle" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--error);" onclick="confirmDeleteAccount()">
+                    Delete Account Permanently
+                </button>
+                <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeModal('deleteAccount')">
+                    Cancel
                 </button>
             </div>
         </div>
@@ -6711,6 +6933,97 @@
                 });
             }
         });
+
+        // ========== PRIVACY SETTINGS FUNCTIONS ==========
+        
+        function updatePostVisibility(visibility) {
+            // Update the privacy settings screen
+            const element = document.querySelector('#privacySettingsModal .list-item:first-child .list-item-subtitle');
+            if (element) {
+                element.textContent = visibility;
+            }
+            closeModal('whoCanSeeMyPosts');
+            showToast(`Post visibility set to ${visibility}`);
+        }
+
+        function updateMessagePrivacy(privacy) {
+            // Update the privacy settings screen
+            const element = document.querySelector('#privacySettingsModal .list-item:nth-child(2) .list-item-subtitle');
+            if (element) {
+                element.textContent = privacy;
+            }
+            closeModal('whoCanMessageMe');
+            showToast(`Message privacy set to ${privacy}`);
+        }
+
+        function updateProfileVisibility(visibility) {
+            // Update the privacy settings screen
+            const element = document.querySelector('#privacySettingsModal .list-item:nth-child(3) .list-item-subtitle');
+            if (element) {
+                element.textContent = visibility;
+            }
+            closeModal('profileVisibility');
+            showToast(`Profile visibility set to ${visibility}`);
+        }
+
+        // ========== DATA SETTINGS FUNCTIONS ==========
+        
+        function requestDataDownload() {
+            closeModal('downloadYourData');
+            showToast('Data download requested! 📥');
+            
+            // Simulate processing
+            setTimeout(() => {
+                showToast('We\'ll notify you when your data is ready (within 48 hours)');
+            }, 2000);
+        }
+
+        function confirmDeactivateAccount() {
+            const password = document.getElementById('deactivatePassword').value;
+
+            if (!password.trim()) {
+                showToast('Please enter your password to confirm');
+                return;
+            }
+
+            closeModal('deactivateAccount');
+            showToast('Account deactivated successfully');
+            
+            // Simulate account deactivation
+            setTimeout(() => {
+                showToast('Your account has been temporarily disabled');
+            }, 1500);
+            
+            // Clear the password field
+            document.getElementById('deactivatePassword').value = '';
+        }
+
+        function confirmDeleteAccount() {
+            const password = document.getElementById('deletePassword').value;
+            const confirmToggle = document.getElementById('deleteConfirmToggle');
+
+            if (!password.trim()) {
+                showToast('Please enter your password');
+                return;
+            }
+
+            if (!confirmToggle.classList.contains('active')) {
+                showToast('Please confirm you understand this is permanent');
+                return;
+            }
+
+            closeModal('deleteAccount');
+            showToast('Account deletion initiated...');
+            
+            // Simulate account deletion process
+            setTimeout(() => {
+                showToast('Your account will be deleted within 30 days. You can cancel during this period.');
+            }, 2000);
+            
+            // Clear the form
+            document.getElementById('deletePassword').value = '';
+            confirmToggle.classList.remove('active');
+        }
     </script>
 </body>
 </html>
