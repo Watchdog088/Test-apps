@@ -3445,30 +3445,189 @@
                 <div class="modal-title">Post Options</div>
             </div>
             <div class="modal-content">
-                <div class="list-item" onclick="closeModal('postOptions'); showToast('Saved to collection')">
+                <div class="list-item" onclick="closeModal('postOptions'); openScreen('saved'); showToast('Post saved to your collection')">
                     <div class="list-item-icon">🔖</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Save Post</div>
+                        <div class="list-item-subtitle">Add to saved items</div>
                     </div>
+                    <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item" onclick="closeModal('postOptions'); showToast('Copied link')">
+                <div class="list-item" onclick="closeModal('postOptions'); copyPostLink()">
                     <div class="list-item-icon">🔗</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Copy Link</div>
+                        <div class="list-item-subtitle">Share this post</div>
                     </div>
                 </div>
-                <div class="list-item" onclick="closeModal('postOptions'); showToast('Post hidden')">
+                <div class="list-item" onclick="closeModal('postOptions'); openModal('hidePostConfirm')">
                     <div class="list-item-icon">👁️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Hide Post</div>
+                        <div class="list-item-subtitle">See less like this</div>
                     </div>
+                    <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item" onclick="closeModal('postOptions'); showToast('Reported')">
+                <div class="list-item" onclick="closeModal('postOptions'); openModal('reportPost')">
                     <div class="list-item-icon">⚠️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Report Post</div>
+                        <div class="list-item-subtitle">Report inappropriate content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hide Post Confirmation Modal -->
+        <div id="hidePostConfirmModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('hidePostConfirm')">✕</div>
+                <div class="modal-title">Hide Post</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">👁️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Hide this post?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">We'll show you less content like this</div>
+                </div>
+                <div class="list-item" onclick="closeModal('hidePostConfirm'); hidePostAction()">
+                    <div class="list-item-icon">❌</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Hide Post</div>
+                        <div class="list-item-subtitle">Remove from feed</div>
                     </div>
                 </div>
+                <div class="list-item" onclick="closeModal('hidePostConfirm'); openModal('contentPreferences')">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Content Preferences</div>
+                        <div class="list-item-subtitle">Manage what you see</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeModal('hidePostConfirm')">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- Report Post Modal -->
+        <div id="reportPostModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('reportPost')">✕</div>
+                <div class="modal-title">Report Post</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Why are you reporting this?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Your report is anonymous</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Select a reason</div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('spam')">
+                    <div class="list-item-icon">📧</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Spam</div>
+                        <div class="list-item-subtitle">Misleading or repetitive content</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('harassment')">
+                    <div class="list-item-icon">😢</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Harassment or Bullying</div>
+                        <div class="list-item-subtitle">Targeting someone</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('inappropriate')">
+                    <div class="list-item-icon">🚫</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Inappropriate Content</div>
+                        <div class="list-item-subtitle">Offensive or disturbing</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('violence')">
+                    <div class="list-item-icon">⚡</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Violence or Harm</div>
+                        <div class="list-item-subtitle">Dangerous content</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('false_info')">
+                    <div class="list-item-icon">❌</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">False Information</div>
+                        <div class="list-item-subtitle">Misinformation or fake news</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="submitPostReport('other')">
+                    <div class="list-item-icon">📝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Other</div>
+                        <div class="list-item-subtitle">Something else</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Preferences Modal -->
+        <div id="contentPreferencesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('contentPreferences')">✕</div>
+                <div class="modal-title">Content Preferences</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚙️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Customize Your Feed</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Control what content you see</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Content Types</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show trending posts</div>
+                        <div class="list-item-subtitle">See popular content</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Suggested content</div>
+                        <div class="list-item-subtitle">Posts from people you don't follow</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show ads</div>
+                        <div class="list-item-subtitle">Sponsored content</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Content Filters</div>
+                </div>
+                <div class="list-item" onclick="openModal('sensitiveContent')">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Sensitive Content</div>
+                        <div class="list-item-subtitle">Control what you see</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <button class="btn" style="margin-top: 16px;" onclick="closeModal('contentPreferences'); showToast('Preferences saved')">
+                    Save Preferences
+                </button>
             </div>
         </div>
 
@@ -7371,6 +7530,51 @@
             currentScreen = 'messages';
             
             showToast('Opening Messages... 💬');
+        }
+
+        // ========== POST OPTIONS FUNCTIONS ==========
+        
+        // Copy post link to clipboard
+        function copyPostLink() {
+            // Simulate copying link to clipboard
+            const postLink = 'https://connecthub.com/post/12345';
+            
+            // Try to use clipboard API if available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(postLink).then(() => {
+                    showToast('Link copied to clipboard! 🔗');
+                }).catch(() => {
+                    // Fallback if clipboard API fails
+                    showToast('Link copied! 🔗');
+                });
+            } else {
+                // Fallback for browsers that don't support clipboard API
+                showToast('Link copied! 🔗');
+            }
+        }
+
+        // Hide post from feed
+        function hidePostAction() {
+            showToast('Post hidden from your feed');
+            
+            // Simulate removing the post from view
+            setTimeout(() => {
+                showToast('We\'ll show you less content like this');
+            }, 1500);
+        }
+
+        // Submit post report
+        function submitPostReport(reason) {
+            closeModal('reportPost');
+            
+            // Show confirmation message
+            showToast('Report submitted. Thank you for keeping ConnectHub safe! ✓');
+            
+            // Navigate to help screen after a brief delay
+            setTimeout(() => {
+                openScreen('help');
+                showToast('Visit Help & Support for more information');
+            }, 2000);
         }
     </script>
 </body>
