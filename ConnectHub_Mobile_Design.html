@@ -4022,21 +4022,21 @@
                 <div class="modal-title">Account Security</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('resetPassword')">
                     <div class="list-item-icon">🔒</div>
                     <div class="list-item-content">
                         <div class="list-item-title">How to reset your password</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('enable2FA')">
                     <div class="list-item-icon">🛡️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Enable two-factor authentication</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('manageDevices')">
                     <div class="list-item-icon">📱</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Manage login devices</div>
@@ -4052,21 +4052,21 @@
                 <div class="modal-title">Privacy Settings Help</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('whoCanSeePosts')">
                     <div class="list-item-icon">👁️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Who can see your posts</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('profilePrivacy')">
                     <div class="list-item-icon">🔐</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Profile privacy settings</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('dataPrivacy')">
                     <div class="list-item-icon">📊</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Data & Privacy</div>
@@ -4082,21 +4082,21 @@
                 <div class="modal-title">Messaging Features</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('sendTextMessages')">
                     <div class="list-item-icon">💬</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Send text messages</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('sendPhotosVideos')">
                     <div class="list-item-icon">📷</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Send photos and videos</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('sendVoiceMessages')">
                     <div class="list-item-icon">🎤</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Send voice messages</div>
@@ -4112,15 +4112,15 @@
                 <div class="modal-title">Report a Problem</div>
             </div>
             <div class="modal-content">
-                <div class="list-item">
+                <div class="list-item" onclick="openModal('selectProblemType')">
                     <div class="list-item-content">
                         <div class="list-item-title">Problem Type</div>
-                        <div class="list-item-subtitle">Select a category</div>
+                        <div class="list-item-subtitle" id="selectedProblemType">Select a category</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
-                <textarea class="input-field textarea-field" placeholder="Describe the problem in detail..."></textarea>
-                <button class="btn" onclick="closeModal('reportProblem'); showToast('Report submitted')">
+                <textarea class="input-field textarea-field" id="problemDescription" placeholder="Describe the problem in detail..."></textarea>
+                <button class="btn" onclick="submitProblemReport()">
                     Submit Report
                 </button>
             </div>
@@ -4167,7 +4167,7 @@
                 <div class="modal-title">AI Assistant</div>
             </div>
             <div class="modal-content">
-                <div class="chat-messages" style="height: calc(100vh - 250px);">
+                <div class="chat-messages" style="height: calc(100vh - 250px);" id="aiChatMessages">
                     <div class="chat-bubble received">
                         👋 Hi! I'm your AI Assistant. How can I help you today?
                     </div>
@@ -4192,6 +4192,383 @@
                 <div style="position: sticky; bottom: 0; background: var(--bg-primary); padding: 16px 0; display: flex; gap: 10px;">
                     <input type="text" class="input-field" id="aiAssistantInput" style="margin-bottom: 0;" placeholder="Ask me anything..." />
                     <button class="chat-send-btn" onclick="sendToAI()">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Help Modal -->
+        <div id="resetPasswordModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('resetPassword')">✕</div>
+                <div class="modal-title">Reset Your Password</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 1:</strong> Go to Settings → Change Password
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 2:</strong> Enter your current password
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 3:</strong> Create a new strong password (at least 8 characters with letters, numbers, and symbols)
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    <strong>Step 4:</strong> Confirm your new password and save
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Forgot your password?</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Use the "Forgot Password" link on the login screen to reset via email.</div>
+                </div>
+                <button class="btn" onclick="closeModal('resetPassword'); openScreen('settings')">
+                    Go to Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Enable 2FA Modal -->
+        <div id="enable2FAModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('enable2FA')">✕</div>
+                <div class="modal-title">Two-Factor Authentication</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🛡️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Protect Your Account</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Add an extra layer of security</div>
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 1:</strong> Go to Settings → Account Preferences
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 2:</strong> Select "Two-Factor Authentication"
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 3:</strong> Choose your method (SMS or Authenticator App)
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    <strong>Step 4:</strong> Follow the setup instructions
+                </div>
+                <button class="btn" onclick="closeModal('enable2FA'); openScreen('settings')">
+                    Enable 2FA
+                </button>
+            </div>
+        </div>
+
+        <!-- Manage Devices Modal -->
+        <div id="manageDevicesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('manageDevices')">✕</div>
+                <div class="modal-title">Manage Login Devices</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    View and manage all devices where you're logged in to ConnectHub.
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Active Sessions</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">💻</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Windows PC</div>
+                        <div class="list-item-subtitle">Last active: Just now • San Francisco, CA</div>
+                    </div>
+                    <div style="color: var(--success); font-weight: 600;">Current</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">📱</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">iPhone 14</div>
+                        <div class="list-item-subtitle">Last active: 2 hours ago • San Francisco, CA</div>
+                    </div>
+                    <button class="friend-btn secondary" style="padding: 6px 12px; font-size: 12px;" onclick="showToast('Device logged out')">Log Out</button>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Security Tip</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Log out of devices you don't recognize or no longer use.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who Can See Posts Modal -->
+        <div id="whoCanSeePostsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('whoCanSeePosts')">✕</div>
+                <div class="modal-title">Who Can See Your Posts</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Control who can view your posts and updates on ConnectHub.
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Public</div>
+                        <div class="list-item-subtitle">Anyone on or off ConnectHub</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends</div>
+                        <div class="list-item-subtitle">Your friends on ConnectHub</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Only Me</div>
+                        <div class="list-item-subtitle">Only you can see</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Custom</div>
+                        <div class="list-item-subtitle">Choose specific friends</div>
+                    </div>
+                </div>
+                <button class="btn" style="margin-top: 16px;" onclick="closeModal('whoCanSeePosts'); openScreen('settings')">
+                    Change Privacy Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Privacy Modal -->
+        <div id="profilePrivacyModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('profilePrivacy')">✕</div>
+                <div class="modal-title">Profile Privacy Settings</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Manage who can view your profile information.
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show online status</div>
+                        <div class="list-item-subtitle">Let friends see when you're active</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Allow profile visits</div>
+                        <div class="list-item-subtitle">Let people view your full profile</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Who can send you friend requests</div>
+                        <div class="list-item-subtitle">Everyone</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Who can see your friends list</div>
+                        <div class="list-item-subtitle">Friends</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Privacy Modal -->
+        <div id="dataPrivacyModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('dataPrivacy')">✕</div>
+                <div class="modal-title">Data & Privacy</div>
+            </div>
+            <div class="modal-content">
+                <div class="post-content" style="margin-bottom: 20px;">
+                    Manage your personal data and privacy preferences.
+                </div>
+                <div class="list-item" onclick="showToast('Download started')">
+                    <div class="list-item-icon">💾</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Download Your Data</div>
+                        <div class="list-item-subtitle">Get a copy of your information</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🔍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Activity Log</div>
+                        <div class="list-item-subtitle">Review your ConnectHub activity</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">📊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Data Collection</div>
+                        <div class="list-item-subtitle">See what data we collect</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🗑️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Delete Account</div>
+                        <div class="list-item-subtitle">Permanently remove your account</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Text Messages Modal -->
+        <div id="sendTextMessagesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sendTextMessages')">✕</div>
+                <div class="modal-title">Send Text Messages</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">💬</div>
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 1:</strong> Go to Messages tab at the bottom
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 2:</strong> Tap "+ New" to start a new conversation
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 3:</strong> Select a friend from your list
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    <strong>Step 4:</strong> Type your message and tap send ➤
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Quick Tip</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Tap on an existing conversation to continue chatting!</div>
+                </div>
+                <button class="btn" onclick="closeModal('sendTextMessages'); switchBottomTab('messages')">
+                    Go to Messages
+                </button>
+            </div>
+        </div>
+
+        <!-- Send Photos & Videos Modal -->
+        <div id="sendPhotosVideosModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sendPhotosVideos')">✕</div>
+                <div class="modal-title">Send Photos & Videos</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📷</div>
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>In a conversation:</strong>
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 1:</strong> Tap the camera icon next to the message field
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 2:</strong> Choose "Take Photo" or "Choose from Gallery"
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    <strong>Step 3:</strong> Select your photo/video and tap send
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📝 Note</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">You can send multiple photos and videos at once!</div>
+                </div>
+                <button class="btn" onclick="closeModal('sendPhotosVideos'); switchBottomTab('messages')">
+                    Open Messages
+                </button>
+            </div>
+        </div>
+
+        <!-- Send Voice Messages Modal -->
+        <div id="sendVoiceMessagesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sendVoiceMessages')">✕</div>
+                <div class="modal-title">Send Voice Messages</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎤</div>
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 1:</strong> Open a conversation in Messages
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 2:</strong> Tap and hold the microphone icon
+                </div>
+                <div class="post-content" style="margin-bottom: 16px;">
+                    <strong>Step 3:</strong> Record your message while holding
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">
+                    <strong>Step 4:</strong> Release to send or slide to cancel
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">⚡ Quick Send</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Voice messages are perfect for quick updates on the go!</div>
+                </div>
+                <button class="btn" onclick="closeModal('sendVoiceMessages'); switchBottomTab('messages')">
+                    Try It Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Select Problem Type Modal -->
+        <div id="selectProblemTypeModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectProblemType')">✕</div>
+                <div class="modal-title">Select Problem Type</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="selectProblemType('Technical Issue')">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Technical Issue</div>
+                        <div class="list-item-subtitle">App crashes, bugs, errors</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectProblemType('Account Problem')">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Account Problem</div>
+                        <div class="list-item-subtitle">Login, password, account access</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectProblemType('Abusive Content')">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Abusive Content</div>
+                        <div class="list-item-subtitle">Report harmful or inappropriate content</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectProblemType('Privacy Concern')">
+                    <div class="list-item-icon">🔐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Privacy Concern</div>
+                        <div class="list-item-subtitle">Data privacy, security issues</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectProblemType('Feature Request')">
+                    <div class="list-item-icon">💡</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Feature Request</div>
+                        <div class="list-item-subtitle">Suggest new features</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectProblemType('Other')">
+                    <div class="list-item-icon">📝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Other</div>
+                        <div class="list-item-subtitle">Something else</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -6245,6 +6622,94 @@
         // Start simulating notifications on page load
         window.addEventListener('load', () => {
             simulateNotifications();
+        });
+
+        // ========== PROBLEM TYPE SELECTION & SUBMISSION ==========
+        
+        function selectProblemType(type) {
+            document.getElementById('selectedProblemType').textContent = type;
+            closeModal('selectProblemType');
+            showToast(`Problem type: ${type}`);
+        }
+
+        function submitProblemReport() {
+            const problemType = document.getElementById('selectedProblemType').textContent;
+            const description = document.getElementById('problemDescription').value;
+
+            if (problemType === 'Select a category') {
+                showToast('Please select a problem type');
+                return;
+            }
+
+            if (!description.trim()) {
+                showToast('Please describe the problem');
+                return;
+            }
+
+            closeModal('reportProblem');
+            showToast('Problem report submitted successfully! ✓');
+            
+            // Clear the form
+            document.getElementById('selectedProblemType').textContent = 'Select a category';
+            document.getElementById('problemDescription').value = '';
+        }
+
+        // ========== AI ASSISTANT FUNCTIONS ==========
+        
+        function askAI(question) {
+            const chatMessages = document.getElementById('aiChatMessages');
+            
+            // Add user question
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble sent';
+            userBubble.textContent = question;
+            chatMessages.appendChild(userBubble);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = {
+                    'How do I reset my password?': 'To reset your password, go to Settings → Change Password. Enter your current password, then create a new strong password with at least 8 characters including letters, numbers, and symbols.',
+                    'How do I change privacy settings?': 'Go to Settings → Privacy Settings to control who can see your posts, message you, and view your profile. You can set different privacy levels for different types of content.',
+                    'How do I report a problem?': 'To report a problem, go to Help & Support → Report a Problem. Select the problem type and describe the issue in detail. Our team will review and respond within 24 hours.',
+                    'How do I delete my account?': 'To delete your account permanently, go to Settings → Data Settings → Delete Account. Please note this action is permanent and cannot be undone. All your data will be removed.'
+                };
+                
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-bubble received';
+                aiBubble.textContent = responses[question] || 'I can help you with account security, privacy settings, reporting problems, and account management. What would you like to know more about?';
+                chatMessages.appendChild(aiBubble);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 800);
+        }
+
+        function sendToAI() {
+            const input = document.getElementById('aiAssistantInput');
+            const question = input.value.trim();
+            
+            if (!question) {
+                showToast('Please type a question');
+                return;
+            }
+            
+            askAI(question);
+            input.value = '';
+        }
+
+        // Add enter key support for AI assistant
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiInput = document.getElementById('aiAssistantInput');
+            if (aiInput) {
+                aiInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendToAI();
+                    }
+                });
+            }
         });
     </script>
 </body>
