@@ -3228,6 +3228,10 @@
                 <div class="modal-close" onclick="closeModal('chatWindow')">←</div>
                 <div class="post-avatar" style="width: 32px; height: 32px; font-size: 14px; margin-right: 8px;">👤</div>
                 <div class="modal-title">Sarah Johnson</div>
+                <div style="margin-left: auto; display: flex; gap: 8px;">
+                    <div class="nav-btn" onclick="startVideoCall()" title="Video Call">📹</div>
+                    <div class="nav-btn" onclick="startPhoneCall()" title="Phone Call">📞</div>
+                </div>
             </div>
             <div class="modal-content">
                 <div class="chat-messages" style="height: calc(100vh - 250px);">
@@ -3247,9 +3251,17 @@
                         Sure! That sounds great 👍
                     </div>
                 </div>
-                <div style="position: sticky; bottom: 0; background: var(--bg-primary); padding: 16px 0; display: flex; gap: 10px;">
-                    <input type="text" class="input-field" style="margin-bottom: 0;" placeholder="Type a message..." />
-                    <button class="chat-send-btn" onclick="showToast('Message sent')">➤</button>
+                <div style="position: sticky; bottom: 0; background: var(--bg-primary); padding: 16px 0;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px; padding: 0 4px;">
+                        <button class="nav-btn" style="flex: 1; border-radius: 12px;" onclick="openMessagingOptions()" title="More Options">➕</button>
+                        <button class="nav-btn" style="flex: 1; border-radius: 12px;" onclick="openCameraForMessage()" title="Camera">📷</button>
+                        <button class="nav-btn" style="flex: 1; border-radius: 12px;" onclick="openGalleryForMessage()" title="Gallery">🖼️</button>
+                        <button class="nav-btn" style="flex: 1; border-radius: 12px;" onclick="recordVoiceMessage()" title="Voice Message">🎤</button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="input-field" id="chatMessageInput" style="margin-bottom: 0; flex: 1;" placeholder="Type a message..." />
+                        <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5738,7 +5750,7 @@
                 <div class="section-header">
                     <div class="section-title">Related Posts</div>
                 </div>
-                <div class="post-card">
+                <div class="post-card" onclick="openRelatedPost('tech-insider-1')" style="cursor: pointer; transition: all 0.2s;">
                     <div class="post-header">
                         <div class="post-avatar">👤</div>
                         <div class="post-header-info">
@@ -5747,6 +5759,26 @@
                         </div>
                     </div>
                     <div class="post-content">These new AI features are game-changing! 🚀</div>
+                </div>
+                <div class="post-card" onclick="openRelatedPost('ai-expert-2')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="post-header">
+                        <div class="post-avatar">🤖</div>
+                        <div class="post-header-info">
+                            <div class="post-author">AI Expert</div>
+                            <div class="post-meta">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">Here's how the new AI tools can boost your productivity</div>
+                </div>
+                <div class="post-card" onclick="openRelatedPost('developer-news-3')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="post-header">
+                        <div class="post-avatar">💻</div>
+                        <div class="post-header-info">
+                            <div class="post-author">Developer News</div>
+                            <div class="post-meta">3 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">Breaking: New AI features now available to all users!</div>
                 </div>
             </div>
         </div>
@@ -5997,6 +6029,298 @@
             </div>
             <div class="modal-content" id="gameInterfaceContent">
                 <!-- Game content will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Messaging Options Modal (Files, Location, Memes) -->
+        <div id="messagingOptionsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('messagingOptions')">✕</div>
+                <div class="modal-title">Share</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="shareFile()">
+                    <div class="list-item-icon">📁</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">File</div>
+                        <div class="list-item-subtitle">Share documents, PDFs, files</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="shareLocation()">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Location</div>
+                        <div class="list-item-subtitle">Share your current location</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="shareMeme()">
+                    <div class="list-item-icon">😂</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Meme</div>
+                        <div class="list-item-subtitle">Browse and share memes</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="shareContact()">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Contact</div>
+                        <div class="list-item-subtitle">Share a contact</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Filters Modal -->
+        <div id="cameraFiltersModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('cameraFilters')">✕</div>
+                <div class="modal-title">Camera & Filters</div>
+            </div>
+            <div class="modal-content">
+                <div style="background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary)); height: 350px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 16px; position: relative;">
+                    📷
+                    <div style="position: absolute; bottom: 16px; left: 16px; right: 16px;">
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button class="btn" style="width: auto; padding: 12px 24px;" onclick="takePicture()">📸 Take Photo</button>
+                            <button class="btn" style="width: auto; padding: 12px 24px;" onclick="recordVideo()">🎥 Record</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Filters</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                    <div class="list-item" style="flex-direction: column; text-align: center; padding: 16px;" onclick="applyFilter('😎')">
+                        <div style="font-size: 32px;">😎</div>
+                        <div style="font-size: 11px; margin-top: 4px;">Cool</div>
+                    </div>
+                    <div class="list-item" style="flex-direction: column; text-align: center; padding: 16px;" onclick="applyFilter('✨')">
+                        <div style="font-size: 32px;">✨</div>
+                        <div style="font-size: 11px; margin-top: 4px;">Sparkle</div>
+                    </div>
+                    <div class="list-item" style="flex-direction: column; text-align: center; padding: 16px;" onclick="applyFilter('🌈')">
+                        <div style="font-size: 32px;">🌈</div>
+                        <div style="font-size: 11px; margin-top: 4px;">Rainbow</div>
+                    </div>
+                    <div class="list-item" style="flex-direction: column; text-align: center; padding: 16px;" onclick="applyFilter('👑')">
+                        <div style="font-size: 32px;">👑</div>
+                        <div style="font-size: 11px; margin-top: 4px;">Royal</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery & Memes Modal -->
+        <div id="galleryMemesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('galleryMemes')">✕</div>
+                <div class="modal-title">Gallery & Memes</div>
+            </div>
+            <div class="modal-content">
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <button class="pill-nav-button active" onclick="switchGalleryTab(this, 'photos')">Photos</button>
+                    <button class="pill-nav-button" onclick="switchGalleryTab(this, 'memes')">Memes</button>
+                </div>
+                
+                <!-- Photos Tab -->
+                <div id="galleryPhotosTab" class="tab-content active">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <div onclick="selectGalleryPhoto('🏖️')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🏖️</div>
+                        <div onclick="selectGalleryPhoto('🌅')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--warning)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌅</div>
+                        <div onclick="selectGalleryPhoto('🎨')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--primary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🎨</div>
+                        <div onclick="selectGalleryPhoto('🏔️')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🏔️</div>
+                        <div onclick="selectGalleryPhoto('🌸')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--error), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌸</div>
+                        <div onclick="selectGalleryPhoto('🌆')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;">🌆</div>
+                    </div>
+                </div>
+
+                <!-- Memes Tab -->
+                <div id="galleryMemesTab" class="tab-content">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div onclick="selectMeme('😂')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">😂</div>
+                        <div onclick="selectMeme('🤣')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">🤣</div>
+                        <div onclick="selectMeme('💀')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">💀</div>
+                        <div onclick="selectMeme('🔥')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">🔥</div>
+                        <div onclick="selectMeme('👀')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">👀</div>
+                        <div onclick="selectMeme('🤔')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 60px; cursor: pointer;">🤔</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Message Recording Modal -->
+        <div id="voiceMessageModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('voiceMessage')">✕</div>
+                <div class="modal-title">Voice Message</div>
+            </div>
+            <div class="modal-content">
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 300px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <div id="voiceMessageIcon" style="font-size: 80px; margin-bottom: 20px; transition: all 0.3s;">🎤</div>
+                    <div id="voiceMessageStatus" style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">Tap to Record</div>
+                    <div id="voiceMessageTimer" style="font-size: 32px; font-weight: 700; display: none;">00:00</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn" id="recordVoiceBtn" style="flex: 1;" onclick="toggleVoiceRecording()">
+                        🎤 Start Recording
+                    </button>
+                    <button class="btn" id="sendVoiceBtn" style="flex: 1; display: none; background: var(--success);" onclick="sendVoiceMessage()">
+                        ➤ Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Call Modal -->
+        <div id="videoCallModal" class="modal">
+            <div style="background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary)); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                <div style="font-size: 100px; margin-bottom: 20px;">👤</div>
+                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Sarah Johnson</div>
+                <div id="callStatus" style="font-size: 16px; color: var(--text-secondary); margin-bottom: 40px;">Connecting...</div>
+                
+                <div style="position: absolute; top: 20px; right: 20px;">
+                    <button class="nav-btn" onclick="toggleCallCamera()">🔄</button>
+                </div>
+
+                <div style="position: absolute; bottom: 40px; display: flex; gap: 20px;">
+                    <button class="camera-btn" style="background: var(--glass);" onclick="toggleMute()">
+                        🎤
+                    </button>
+                    <button class="camera-btn" style="background: var(--error); width: 70px; height: 70px;" onclick="endCall()">
+                        📞
+                    </button>
+                    <button class="camera-btn" style="background: var(--glass);" onclick="toggleVideo()">
+                        📹
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Call Modal -->
+        <div id="phoneCallModal" class="modal">
+            <div style="background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary)); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                <div style="font-size: 120px; margin-bottom: 30px;">👤</div>
+                <div style="font-size: 28px; font-weight: 700; margin-bottom: 12px;">Sarah Johnson</div>
+                <div id="phoneCallStatus" style="font-size: 18px; color: var(--text-secondary); margin-bottom: 60px;">Calling...</div>
+                
+                <div style="position: absolute; bottom: 60px; display: flex; gap: 24px;">
+                    <button class="camera-btn" style="background: var(--glass); width: 65px; height: 65px;" onclick="toggleSpeaker()">
+                        🔊
+                    </button>
+                    <button class="camera-btn" style="background: var(--error); width: 80px; height: 80px; font-size: 32px;" onclick="endPhoneCall()">
+                        📞
+                    </button>
+                    <button class="camera-btn" style="background: var(--glass); width: 65px; height: 65px;" onclick="togglePhoneMute()">
+                        🎤
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Picker Modal -->
+        <div id="filePickerModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('filePicker')">✕</div>
+                <div class="modal-title">Select File</div>
+            </div>
+            <div class="modal-content">
+                <div style="background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 16px; padding: 60px 20px; text-align: center; margin-bottom: 20px; cursor: pointer;" onclick="selectFileFromDevice()">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📁</div>
+                    <div style="font-size: 16px; color: var(--text-secondary);">Tap to browse files</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Recent Files</div>
+                </div>
+                <div class="list-item" onclick="sendSelectedFile('Document.pdf')">
+                    <div class="list-item-icon">📄</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Document.pdf</div>
+                        <div class="list-item-subtitle">2.5 MB</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="sendSelectedFile('Presentation.pptx')">
+                    <div class="list-item-icon">📊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Presentation.pptx</div>
+                        <div class="list-item-subtitle">5.8 MB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Sharing Modal -->
+        <div id="locationShareModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('locationShare')">✕</div>
+                <div class="modal-title">Share Location</div>
+            </div>
+            <div class="modal-content">
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 250px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 20px;">
+                    📍
+                </div>
+                <div class="list-item" onclick="sendCurrentLocation()">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Current Location</div>
+                        <div class="list-item-subtitle">San Francisco, CA</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('selectLocation')">
+                    <div class="list-item-icon">🗺️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Choose on Map</div>
+                        <div class="list-item-subtitle">Select a different location</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meme Browser Modal -->
+        <div id="memeBrowserModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('memeBrowser')">✕</div>
+                <div class="modal-title">Memes</div>
+            </div>
+            <div class="modal-content">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search memes..." />
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Trending Memes</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div onclick="selectAndSendMeme('😂')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">😂</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">LOL</div>
+                    </div>
+                    <div onclick="selectAndSendMeme('💀')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">💀</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Dead</div>
+                    </div>
+                    <div onclick="selectAndSendMeme('🔥')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">🔥</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Fire</div>
+                    </div>
+                    <div onclick="selectAndSendMeme('👀')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">👀</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Eyes</div>
+                    </div>
+                    <div onclick="selectAndSendMeme('🤡')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">🤡</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Clown</div>
+                    </div>
+                    <div onclick="selectAndSendMeme('💯')" style="aspect-ratio: 1; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 64px; margin-bottom: 8px;">💯</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">100</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -7582,6 +7906,29 @@
             showToast('Opening Messages... 💬');
         }
 
+        // ========== RELATED POSTS NAVIGATION ==========
+        
+        // Open related post from trending details
+        function openRelatedPost(postId) {
+            // Close the trending details modal
+            closeModal('trendingDetails');
+            
+            // Show loading message
+            showToast('Opening post...');
+            
+            // Simulate navigating to the specific post
+            setTimeout(() => {
+                // Navigate to feed screen
+                openScreen('feed');
+                
+                // Show confirmation
+                showToast(`Viewing post from ${postId.replace(/-/g, ' ')}`);
+                
+                // Scroll to top of feed
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300);
+        }
+        
         // ========== POST OPTIONS FUNCTIONS ==========
         
         // Copy post link to clipboard
@@ -7647,6 +7994,354 @@
                 showToast('Settings saved successfully! ✓');
             }, 1500);
         }
+
+        // ========== MESSAGING FEATURES FUNCTIONS ==========
+        
+        // Video call
+        function startVideoCall() {
+            openModal('videoCall');
+            
+            // Simulate call connecting
+            setTimeout(() => {
+                document.getElementById('callStatus').textContent = 'Ringing...';
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('callStatus').textContent = 'Connected';
+            }, 2000);
+            
+            showToast('Starting video call... 📹');
+        }
+
+        // Phone call
+        function startPhoneCall() {
+            openModal('phoneCall');
+            
+            // Simulate call connecting
+            setTimeout(() => {
+                document.getElementById('phoneCallStatus').textContent = 'Ringing...';
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('phoneCallStatus').textContent = 'Connected';
+            }, 2000);
+            
+            showToast('Starting phone call... 📞');
+        }
+
+        // End video call
+        function endCall() {
+            closeModal('videoCall');
+            showToast('Video call ended');
+        }
+
+        // End phone call
+        function endPhoneCall() {
+            closeModal('phoneCall');
+            showToast('Phone call ended');
+        }
+
+        // Toggle mute in video call
+        function toggleMute() {
+            showToast('Microphone toggled');
+        }
+
+        // Toggle video in video call
+        function toggleVideo() {
+            showToast('Video toggled');
+        }
+
+        // Toggle camera in video call
+        function toggleCallCamera() {
+            showToast('Camera switched');
+        }
+
+        // Toggle speaker in phone call
+        function toggleSpeaker() {
+            showToast('Speaker toggled');
+        }
+
+        // Toggle mute in phone call
+        function togglePhoneMute() {
+            showToast('Microphone toggled');
+        }
+
+        // Open messaging options (files, location, memes)
+        function openMessagingOptions() {
+            openModal('messagingOptions');
+        }
+
+        // Share file
+        function shareFile() {
+            closeModal('messagingOptions');
+            openModal('filePicker');
+        }
+
+        // Share location
+        function shareLocation() {
+            closeModal('messagingOptions');
+            openModal('locationShare');
+        }
+
+        // Share meme
+        function shareMeme() {
+            closeModal('messagingOptions');
+            openModal('memeBrowser');
+        }
+
+        // Share contact
+        function shareContact() {
+            closeModal('messagingOptions');
+            showToast('Opening contacts... 👤');
+            setTimeout(() => {
+                showToast('Select a contact to share');
+            }, 800);
+        }
+
+        // Open camera for message
+        function openCameraForMessage() {
+            openModal('cameraFilters');
+        }
+
+        // Open gallery for message
+        function openGalleryForMessage() {
+            openModal('galleryMemes');
+        }
+
+        // Record voice message
+        function recordVoiceMessage() {
+            openModal('voiceMessage');
+        }
+
+        // Switch gallery tabs (Photos/Memes)
+        function switchGalleryTab(element, tab) {
+            // Remove active class from all buttons
+            element.parentElement.querySelectorAll('.pill-nav-button').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Hide all tabs
+            document.querySelectorAll('#galleryMemesModal .tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tab
+            if (tab === 'photos') {
+                document.getElementById('galleryPhotosTab').classList.add('active');
+            } else {
+                document.getElementById('galleryMemesTab').classList.add('active');
+            }
+        }
+
+        // Select gallery photo
+        function selectGalleryPhoto(emoji) {
+            closeModal('galleryMemes');
+            showToast('Photo selected! 📷');
+            
+            // Simulate sending photo
+            setTimeout(() => {
+                addMessageToChat('photo', emoji);
+                showToast('Photo sent! ✓');
+            }, 500);
+        }
+
+        // Select meme
+        function selectMeme(emoji) {
+            showToast('Meme selected! 😂');
+        }
+
+        // Select and send meme
+        function selectAndSendMeme(emoji) {
+            closeModal('memeBrowser');
+            showToast('Sending meme... 😂');
+            
+            // Simulate sending meme
+            setTimeout(() => {
+                addMessageToChat('meme', emoji);
+                showToast('Meme sent! ✓');
+            }, 500);
+        }
+
+        // Take picture with camera
+        function takePicture() {
+            closeModal('cameraFilters');
+            showToast('Taking photo... 📸');
+            
+            setTimeout(() => {
+                showToast('Photo captured! ✓');
+            }, 800);
+        }
+
+        // Record video
+        function recordVideo() {
+            closeModal('cameraFilters');
+            showToast('Recording video... 🎥');
+            
+            setTimeout(() => {
+                showToast('Video recorded! ✓');
+            }, 2000);
+        }
+
+        // Apply filter
+        function applyFilter(filter) {
+            showToast(`Filter applied: ${filter}`);
+        }
+
+        // Toggle voice recording
+        let isRecordingVoice = false;
+        let voiceRecordingTimer = null;
+        let voiceRecordingSeconds = 0;
+
+        function toggleVoiceRecording() {
+            const icon = document.getElementById('voiceMessageIcon');
+            const status = document.getElementById('voiceMessageStatus');
+            const timer = document.getElementById('voiceMessageTimer');
+            const recordBtn = document.getElementById('recordVoiceBtn');
+            const sendBtn = document.getElementById('sendVoiceBtn');
+
+            if (!isRecordingVoice) {
+                // Start recording
+                isRecordingVoice = true;
+                voiceRecordingSeconds = 0;
+                
+                icon.textContent = '🔴';
+                status.textContent = 'Recording...';
+                status.style.display = 'none';
+                timer.style.display = 'block';
+                recordBtn.style.display = 'none';
+                sendBtn.style.display = 'block';
+                
+                // Start timer
+                voiceRecordingTimer = setInterval(() => {
+                    voiceRecordingSeconds++;
+                    const minutes = Math.floor(voiceRecordingSeconds / 60);
+                    const seconds = voiceRecordingSeconds % 60;
+                    timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+                
+                showToast('Recording started... 🎤');
+            } else {
+                // Stop recording
+                isRecordingVoice = false;
+                clearInterval(voiceRecordingTimer);
+                
+                icon.textContent = '✓';
+                status.textContent = 'Recording Complete';
+                status.style.display = 'block';
+                timer.style.display = 'block';
+                
+                showToast('Recording stopped');
+            }
+        }
+
+        // Send voice message
+        function sendVoiceMessage() {
+            if (!isRecordingVoice && voiceRecordingSeconds > 0) {
+                closeModal('voiceMessage');
+                showToast('Voice message sent! 🎤');
+                
+                // Reset voice recording state
+                const icon = document.getElementById('voiceMessageIcon');
+                const status = document.getElementById('voiceMessageStatus');
+                const timer = document.getElementById('voiceMessageTimer');
+                const recordBtn = document.getElementById('recordVoiceBtn');
+                const sendBtn = document.getElementById('sendVoiceBtn');
+                
+                icon.textContent = '🎤';
+                status.textContent = 'Tap to Record';
+                status.style.display = 'block';
+                timer.style.display = 'none';
+                timer.textContent = '00:00';
+                recordBtn.style.display = 'block';
+                sendBtn.style.display = 'none';
+                voiceRecordingSeconds = 0;
+                
+                // Simulate adding voice message to chat
+                setTimeout(() => {
+                    addMessageToChat('voice', '🎤');
+                }, 300);
+            }
+        }
+
+        // Select file from device
+        function selectFileFromDevice() {
+            showToast('Opening file browser...');
+            setTimeout(() => {
+                showToast('Select a file to share');
+            }, 800);
+        }
+
+        // Send selected file
+        function sendSelectedFile(filename) {
+            closeModal('filePicker');
+            showToast(`Sending ${filename}...`);
+            
+            setTimeout(() => {
+                addMessageToChat('file', `📄 ${filename}`);
+                showToast('File sent! ✓');
+            }, 1000);
+        }
+
+        // Send current location
+        function sendCurrentLocation() {
+            closeModal('locationShare');
+            showToast('Sending location... 📍');
+            
+            setTimeout(() => {
+                addMessageToChat('location', '📍 San Francisco, CA');
+                showToast('Location sent! ✓');
+            }, 800);
+        }
+
+        // Send chat message
+        function sendChatMessage() {
+            const input = document.getElementById('chatMessageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                showToast('Please type a message');
+                return;
+            }
+            
+            addMessageToChat('text', message);
+            input.value = '';
+            showToast('Message sent! ✓');
+        }
+
+        // Add message to chat (helper function)
+        function addMessageToChat(type, content) {
+            const chatMessages = document.querySelector('#chatWindowModal .chat-messages');
+            if (!chatMessages) return;
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'chat-bubble sent';
+            
+            if (type === 'photo' || type === 'meme') {
+                messageBubble.innerHTML = `<div style="font-size: 48px;">${content}</div>`;
+            } else if (type === 'voice') {
+                messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 24px;">${content}</span><span style="font-size: 14px;">0:15</span></div>`;
+            } else if (type === 'file') {
+                messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;">${content}</div>`;
+            } else if (type === 'location') {
+                messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;">${content}</div>`;
+            } else {
+                messageBubble.textContent = content;
+            }
+            
+            chatMessages.appendChild(messageBubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add enter key support for chat input
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatMessageInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendChatMessage();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
