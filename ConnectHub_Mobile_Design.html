@@ -6326,6 +6326,9 @@
 
     </div>
 
+    <!-- Load Dating System -->
+    <script src="ConnectHub_Mobile_Design_Dating_System.js"></script>
+    
     <script>
         let currentScreen = 'feed';
         let currentMainTab = 'feed';
@@ -7994,6 +7997,187 @@
                 showToast('Settings saved successfully! ✓');
             }, 1500);
         }
+
+        // ========== COMPREHENSIVE NAVIGATION SYSTEM ==========
+        
+        // Ensure all social media features are clickable (15 features)
+        const socialMediaFeatures = {
+            createPost: () => openModal('createPost'),
+            addPhoto: () => openModal('selectPhotoForPost'),
+            addVideo: () => openModal('selectVideoForPost'),
+            addLocation: () => openModal('selectLocation'),
+            tagFriends: () => openModal('tagPeople'),
+            likePost: (btn) => toggleLikePost(btn),
+            commentPost: () => openModal('comments'),
+            sharePost: () => sharePost(),
+            deletePost: () => showToast('Post deleted'),
+            editPost: () => showToast('Edit post functionality'),
+            reportPost: () => openModal('reportPost'),
+            refreshFeed: () => showToast('Refreshing feed...'),
+            viewAnalytics: () => showToast('Post analytics'),
+            clickHashtag: () => showToast('Viewing hashtag'),
+            savePost: () => { closeModal('postOptions'); openScreen('saved'); showToast('Post saved'); }
+        };
+
+        // Ensure all Messages/Chat features are clickable (20 features)
+        const messagesFeatures = {
+            sendMessage: () => sendChatMessage(),
+            sendPhoto: () => openModal('galleryMemes'),
+            sendVideo: () => openModal('galleryMemes'),
+            sendVoice: () => openModal('voiceMessage'),
+            sendFile: () => openModal('filePicker'),
+            sendLocation: () => openModal('locationShare'),
+            sendMeme: () => openModal('memeBrowser'),
+            sendContact: () => shareContact(),
+            emojiReaction: () => showToast('Emoji reaction added'),
+            messageSearch: () => showToast('Searching messages...'),
+            deleteMessage: () => showToast('Message deleted'),
+            editMessage: () => showToast('Message edited'),
+            blockUser: () => showToast('User blocked'),
+            reportChat: () => showToast('Chat reported'),
+            archiveConversation: () => showToast('Conversation archived'),
+            pinConversation: () => showToast('Conversation pinned'),
+            muteConversation: () => showToast('Conversation muted'),
+            groupChat: () => showToast('Group chat feature'),
+            videoCall: () => startVideoCall(),
+            phoneCall: () => startPhoneCall()
+        };
+
+        // Ensure all Profile features are clickable (17 features)
+        const profileFeatures = {
+            editProfile: () => openModal('editProfile'),
+            uploadProfilePhoto: () => showToast('Upload profile photo'),
+            uploadCoverPhoto: () => showToast('Upload cover photo'),
+            updateBio: () => openModal('editProfile'),
+            updateLocation: () => openModal('editProfile'),
+            privacySettings: () => openModal('privacySettings'),
+            blockList: () => openModal('blockingSettings'),
+            deactivateAccount: () => openModal('deactivateAccount'),
+            deleteAccount: () => openModal('deleteAccount'),
+            changePassword: () => openModal('changePassword'),
+            updateEmail: () => openModal('editPersonalInfo'),
+            updatePhone: () => openModal('editPersonalInfo'),
+            addSocialLinks: () => showToast('Add social media links'),
+            downloadData: () => openModal('downloadYourData'),
+            viewFollowers: () => openModal('followersList'),
+            viewFollowing: () => openModal('followingList'),
+            viewPostArchive: () => openModal('allPosts')
+        };
+
+        // Ensure all Groups features are clickable (17 features)
+        const groupsFeatures = {
+            createGroup: () => openModal('createGroup'),
+            joinGroup: () => showToast('Joined group!'),
+            leaveGroup: () => showToast('Left group'),
+            inviteMembers: () => showToast('Invite sent'),
+            postInGroup: () => openModal('createPost'),
+            groupChat: () => openModal('chatWindow'),
+            setGroupRules: () => showToast('Group rules updated'),
+            adminControls: () => showToast('Admin panel'),
+            banMember: () => showToast('Member banned'),
+            uploadGroupPhoto: () => showToast('Upload group photo'),
+            editGroupDescription: () => showToast('Description updated'),
+            searchGroups: () => showToast('Searching groups...'),
+            filterByCategory: () => showToast('Filtering groups'),
+            approveMembership: () => showToast('Membership approved'),
+            createGroupEvent: () => openModal('createEvent'),
+            shareGroupFiles: () => showToast('File sharing'),
+            viewGroupAnalytics: () => showToast('Group analytics')
+        };
+
+        // Ensure all Events features are clickable (17 features)
+        const eventsFeatures = {
+            createEvent: () => openModal('createEvent'),
+            rsvpEvent: () => showToast('RSVP confirmed!'),
+            setReminder: () => showToast('Reminder set'),
+            addToCalendar: () => showToast('Added to calendar'),
+            eventChat: () => openModal('chatWindow'),
+            shareEvent: () => shareEvent(),
+            uploadEventPhotos: () => showToast('Upload event photos'),
+            viewEventLocation: () => showToast('Opening map...'),
+            buyTickets: () => showToast('Ticket purchase'),
+            viewGuestList: () => showToast('Guest list'),
+            searchEvents: () => showToast('Searching events...'),
+            filterByLocation: () => showToast('Location filter'),
+            filterByDate: () => showToast('Date filter'),
+            filterByCategory: () => showToast('Category filter'),
+            postEventUpdate: () => showToast('Event update posted'),
+            cancelEvent: () => showToast('Event cancelled'),
+            joinWaitlist: () => showToast('Added to waitlist')
+        };
+
+        // Ensure all Stories features are clickable (14 features)
+        const storiesFeatures = {
+            createStory: () => openModal('createStory'),
+            photoCapture: () => openStoryCamera(),
+            videoCapture: () => openStoryCamera(),
+            editStory: () => showToast('Story editor'),
+            viewStoryViews: () => showToast('Story views'),
+            replyToStory: () => showToast('Reply sent'),
+            shareStory: () => showToast('Story shared'),
+            setStoryPrivacy: () => showToast('Privacy updated'),
+            archiveStory: () => showToast('Story archived'),
+            viewStory: () => openModal('viewStory'),
+            createHighlight: () => showToast('Highlight created'),
+            addStoryMusic: () => showToast('Music added'),
+            addStoryPoll: () => showToast('Poll added'),
+            deleteStory: () => showToast('Story deleted')
+        };
+
+        // Ensure all Explore features are clickable (10 features)
+        const exploreFeatures = {
+            viewTrending: () => { switchPillTab(document.querySelectorAll('.pill-nav-button')[3], 'trending'); },
+            viewSuggestedUsers: () => openScreen('friends'),
+            viewInterestFeed: () => showToast('Interest-based feed'),
+            searchPosts: () => openModal('searchModal'),
+            followHashtag: () => showToast('Following hashtag'),
+            locationDiscover: () => showToast('Location discovery'),
+            viewRecommendations: () => showToast('AI recommendations'),
+            saveContent: () => showToast('Content saved'),
+            hideContent: () => showToast('Content hidden'),
+            exploreCategories: () => showToast('Browse categories')
+        };
+
+        // Ensure all Search features are clickable (10 features)
+        const searchFeatures = {
+            searchUsers: () => { openModal('searchModal'); showToast('Search users'); },
+            searchPosts: () => { openModal('searchModal'); showToast('Search posts'); },
+            searchGroups: () => { openModal('searchModal'); showToast('Search groups'); },
+            searchEvents: () => { openModal('searchModal'); showToast('Search events'); },
+            searchHashtags: () => { openModal('searchModal'); showToast('Search hashtags'); },
+            searchLocation: () => { openModal('searchModal'); showToast('Search location'); },
+            applyFilters: () => showToast('Filters applied'),
+            viewSearchHistory: () => showToast('Search history'),
+            getSuggestions: () => showToast('Search suggestions'),
+            clearSearch: () => clearSearch()
+        };
+
+        // Ensure all Settings features are clickable (12 features)
+        const settingsFeatures = {
+            privacySettings: () => openModal('privacySettings'),
+            notificationSettings: () => openModal('emailPreferences'),
+            blockedUsers: () => openModal('blockingSettings'),
+            mutedUsers: () => showToast('Muted users list'),
+            accountPreferences: () => openModal('accountPreferences'),
+            languageSettings: () => openModal('selectLanguage'),
+            themeSettings: () => showToast('Theme settings'),
+            dataManagement: () => openModal('dataSettings'),
+            connectedApps: () => showToast('Connected apps'),
+            twoFactorAuth: () => openModal('enable2FA'),
+            loginHistory: () => openModal('manageDevices'),
+            securityAlerts: () => showToast('Security alerts')
+        };
+
+        // Make all features globally accessible
+        window.socialMediaFeatures = socialMediaFeatures;
+        window.messagesFeatures = messagesFeatures;
+        window.profileFeatures = profileFeatures;
+        window.groupsFeatures = groupsFeatures;
+        window.eventsFeatures = eventsFeatures;
+        window.storiesFeatures = storiesFeatures;
+        window.exploreFeatures = exploreFeatures;
+        window.searchFeatures = searchFeatures;
+        window.settingsFeatures = settingsFeatures;
 
         // ========== MESSAGING FEATURES FUNCTIONS ==========
         
