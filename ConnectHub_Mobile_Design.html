@@ -2221,7 +2221,7 @@
                         <div class="list-item-title">Starlight Dreams</div>
                         <div class="list-item-subtitle">The Moonwalkers • 4:05</div>
                     </div>
-                    <button class="nav-btn" onclick="event.stopPropagation(); window.musicPlayer.toggleLikeSong(1)">🤍</button>
+                    <button class="nav-btn" id="heart-btn-1" onclick="event.stopPropagation(); toggleMusicHeart(1)">🤍</button>
                 </div>
 
                 <div class="list-item" onclick="window.musicPlayer.playMusic(2)">
@@ -2230,7 +2230,7 @@
                         <div class="list-item-title">Electric Pulse</div>
                         <div class="list-item-subtitle">Neon Nights • 3:18</div>
                     </div>
-                    <button class="nav-btn" onclick="event.stopPropagation(); window.musicPlayer.toggleLikeSong(2)">🤍</button>
+                    <button class="nav-btn" id="heart-btn-2" onclick="event.stopPropagation(); toggleMusicHeart(2)">🤍</button>
                 </div>
 
                 <div class="list-item" onclick="window.musicPlayer.playMusic(3)">
@@ -2239,7 +2239,7 @@
                         <div class="list-item-title">Ocean Waves</div>
                         <div class="list-item-subtitle">Calm Collective • 5:12</div>
                     </div>
-                    <button class="nav-btn" onclick="event.stopPropagation(); window.musicPlayer.toggleLikeSong(3)">🤍</button>
+                    <button class="nav-btn" id="heart-btn-3" onclick="event.stopPropagation(); toggleMusicHeart(3)">🤍</button>
                 </div>
 
                 <!-- Music Features -->
@@ -2247,12 +2247,12 @@
                     <div class="section-title">Features</div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <button class="btn" style="background: var(--glass);" onclick="window.musicPlayer.manageQueue()">📋 Queue</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('createMusicPlaylist')">➕ Playlist</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.musicPlayer.showLyrics(1)">📝 Lyrics</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.musicPlayer.shareSong(1)">🔗 Share</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.musicPlayer.downloadSong(1)">⬇️ Download</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('audioQuality')">⚙️ Quality</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicQueueModal()">📋 Queue</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openCreateMusicPlaylistModal()">➕ Playlist</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicLyricsModal()">📝 Lyrics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicShareModal()">🔗 Share</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicDownloadModal()">⬇️ Download</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openAudioQualityModal()">⚙️ Quality</button>
                 </div>
             </div>
 
@@ -8500,6 +8500,434 @@
         window.exploreFeatures = exploreFeatures;
         window.searchFeatures = searchFeatures;
         window.settingsFeatures = settingsFeatures;
+
+        // ========== MUSIC PLAYER FEATURES ==========
+        
+        let likedSongs = [];
+        let musicQueue = [];
+        let musicPlaylists = [];
+
+        // Toggle music heart (like/unlike song)
+        function toggleMusicHeart(songId) {
+            const heartBtn = document.getElementById('heart-btn-' + songId);
+            if (!heartBtn) return;
+            
+            const index = likedSongs.indexOf(songId);
+            if (index > -1) {
+                // Unlike
+                likedSongs.splice(index, 1);
+                heartBtn.textContent = '🤍';
+                showToast('Removed from library');
+            } else {
+                // Like
+                likedSongs.push(songId);
+                heartBtn.textContent = '❤️';
+                showToast('Added to library ❤️');
+            }
+        }
+
+        // Open search music modal
+        function openSearchMusicModal() {
+            const modalHTML = `
+                <div id="searchMusicModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('searchMusic')">✕</div>
+                        <div class="modal-title">Search Music</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search songs, artists, albums..." oninput="searchMusic(this.value)" />
+                        </div>
+                        <div class="section-header">
+                            <div class="section-title">Quick Search</div>
+                        </div>
+                        <div class="list-item" onclick="performMusicSearch('Top Charts')">
+                            <div class="list-item-icon">🔥</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Top Charts</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="performMusicSearch('New Releases')">
+                            <div class="list-item-icon">🆕</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">New Releases</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="performMusicSearch('Discover Weekly')">
+                            <div class="list-item-icon">🌟</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Discover Weekly</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Search music function
+        function searchMusic(query) {
+            if (query.trim().length > 0) {
+                showToast(`Searching for: ${query}`);
+            }
+        }
+
+        // Perform music search
+        function performMusicSearch(query) {
+            closeModal('searchMusic');
+            showToast(`Loading: ${query}`);
+        }
+
+        // Open create music playlist modal
+        function openCreateMusicPlaylistModal() {
+            const modalHTML = `
+                <div id="createMusicPlaylistModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('createMusicPlaylist')">✕</div>
+                        <div class="modal-title">➕ Create Playlist</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📁</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">New Playlist</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Organize your favorite tracks</div>
+                        </div>
+                        <input type="text" class="input-field" placeholder="Playlist name..." id="newPlaylistName" />
+                        <textarea class="input-field textarea-field" placeholder="Description (optional)" id="newPlaylistDescription"></textarea>
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Make Public</div>
+                                <div class="list-item-subtitle">Others can see your playlist</div>
+                            </div>
+                            <div class="toggle-switch" id="playlistPublicToggle" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="createMusicPlaylist()">Create Playlist</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Create music playlist
+        function createMusicPlaylist() {
+            const name = document.getElementById('newPlaylistName').value;
+            
+            if (!name.trim()) {
+                showToast('Please enter a playlist name');
+                return;
+            }
+            
+            const description = document.getElementById('newPlaylistDescription').value;
+            const isPublic = document.getElementById('playlistPublicToggle').classList.contains('active');
+            
+            const newPlaylist = {
+                id: Date.now(),
+                name: name,
+                description: description || 'My playlist',
+                isPublic: isPublic,
+                tracks: [],
+                createdAt: new Date()
+            };
+            
+            musicPlaylists.push(newPlaylist);
+            closeModal('createMusicPlaylist');
+            showToast(`Playlist "${name}" created! 📁`);
+        }
+
+        // Open audio quality modal
+        function openAudioQualityModal() {
+            const modalHTML = `
+                <div id="audioQualityModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('audioQuality')">✕</div>
+                        <div class="modal-title">⚙️ Audio Quality</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 14px; color: var(--text-secondary);">Higher quality uses more data and storage</div>
+                        </div>
+                        <div class="list-item" onclick="selectAudioQuality('Low', '96 kbps', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Low</div>
+                                <div class="list-item-subtitle">96 kbps • ~1 MB/min</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="selectAudioQuality('Medium', '128 kbps', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Medium</div>
+                                <div class="list-item-subtitle">128 kbps • ~1.5 MB/min</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="selectAudioQuality('High', '320 kbps', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                            <div class="list-item-content">
+                                <div class="list-item-title">High</div>
+                                <div class="list-item-subtitle">320 kbps • ~3.5 MB/min</div>
+                            </div>
+                            <div style="color: var(--primary); font-weight: 600;">✓</div>
+                        </div>
+                        <div class="list-item" onclick="selectAudioQuality('Lossless', '1411 kbps', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Lossless</div>
+                                <div class="list-item-subtitle">1411 kbps • ~10 MB/min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Select audio quality
+        function selectAudioQuality(quality, bitrate, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('audioQualityModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            closeModal('audioQuality');
+            showToast(`Quality set to ${quality} (${bitrate})`);
+        }
+
+        // Open music queue modal
+        function openMusicQueueModal() {
+            const modalHTML = `
+                <div id="musicQueueModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('musicQueue')">✕</div>
+                        <div class="modal-title">📋 Queue</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎵</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Up Next</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">3 songs in queue</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">🌟</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Starlight Dreams</div>
+                                <div class="list-item-subtitle">The Moonwalkers • 4:05</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); removeFromQueue(1)">✕</button>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">⚡</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Electric Pulse</div>
+                                <div class="list-item-subtitle">Neon Nights • 3:18</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); removeFromQueue(2)">✕</button>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">🌊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Ocean Waves</div>
+                                <div class="list-item-subtitle">Calm Collective • 5:12</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); removeFromQueue(3)">✕</button>
+                        </div>
+                        <button class="btn" style="background: var(--error); margin-top: 16px;" onclick="clearMusicQueue()">Clear Queue</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Open music lyrics modal
+        function openMusicLyricsModal() {
+            const modalHTML = `
+                <div id="musicLyricsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('musicLyrics')">✕</div>
+                        <div class="modal-title">📝 Lyrics</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Starlight Dreams</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">The Moonwalkers</div>
+                        </div>
+                        <div style="text-align: center; line-height: 2; font-size: 16px; color: var(--text-secondary);">
+                            <div style="margin-bottom: 12px; color: white; font-weight: 600;">Verse 1:</div>
+                            <div style="margin-bottom: 12px;">In the silence of the night</div>
+                            <div style="margin-bottom: 12px;">Stars are shining oh so bright</div>
+                            <div style="margin-bottom: 12px;">Dancing in the moonlight glow</div>
+                            <div style="margin-bottom: 20px;">Let the rhythm take control</div>
+                            
+                            <div style="margin-bottom: 12px; color: white; font-weight: 600;">Chorus:</div>
+                            <div style="margin-bottom: 12px;">Starlight dreams carry me away</div>
+                            <div style="margin-bottom: 12px;">To a place where I can stay</div>
+                            <div style="margin-bottom: 12px;">In this moment here with you</div>
+                            <div style="margin-bottom: 20px;">All my dreams are coming true</div>
+                        </div>
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="shareLyrics()">📤 Share Lyrics</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Open music share modal
+        function openMusicShareModal() {
+            const modalHTML = `
+                <div id="musicShareModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('musicShare')">✕</div>
+                        <div class="modal-title">🔗 Share Music</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎵</div>
+                            <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Starlight Dreams</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">The Moonwalkers</div>
+                        </div>
+                        <div class="section-header">
+                            <div class="section-title">Share to</div>
+                        </div>
+                        <div class="list-item" onclick="shareToSocial('Facebook')">
+                            <div class="list-item-icon">📘</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Facebook</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="shareToSocial('Twitter')">
+                            <div class="list-item-icon">🐦</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Twitter</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="shareToSocial('WhatsApp')">
+                            <div class="list-item-icon">💬</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">WhatsApp</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="copyMusicLink()">
+                            <div class="list-item-icon">🔗</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Copy Link</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Open music download modal
+        function openMusicDownloadModal() {
+            const modalHTML = `
+                <div id="musicDownloadModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('musicDownload')">✕</div>
+                        <div class="modal-title">⬇️ Download</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">💾</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Download for Offline</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Listen without internet connection</div>
+                        </div>
+                        <div class="list-item" onclick="downloadSong('High')">
+                            <div class="list-item-content">
+                                <div class="list-item-title">High Quality</div>
+                                <div class="list-item-subtitle">320 kbps • ~3.5 MB</div>
+                            </div>
+                            <div style="color: var(--primary); font-weight: 600;">✓</div>
+                        </div>
+                        <div class="list-item" onclick="downloadSong('Medium')">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Medium Quality</div>
+                                <div class="list-item-subtitle">128 kbps • ~1.5 MB</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="downloadSong('Low')">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Low Quality</div>
+                                <div class="list-item-subtitle">96 kbps • ~1 MB</div>
+                            </div>
+                        </div>
+                        <button class="btn" style="margin-top: 16px;" onclick="viewDownloadedSongs()">View Downloaded Songs</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Queue functions
+        function removeFromQueue(id) {
+            showToast(`Removed from queue`);
+        }
+
+        function clearMusicQueue() {
+            closeModal('musicQueue');
+            showToast('Queue cleared');
+        }
+
+        // Lyrics functions
+        function shareLyrics() {
+            closeModal('musicLyrics');
+            showToast('Lyrics shared! 📤');
+        }
+
+        // Share functions
+        function shareToSocial(platform) {
+            closeModal('musicShare');
+            showToast(`Shared to ${platform}! 📤`);
+        }
+
+        function copyMusicLink() {
+            closeModal('musicShare');
+            showToast('Link copied to clipboard! 🔗');
+        }
+
+        // Download functions
+        function downloadSong(quality) {
+            closeModal('musicDownload');
+            showToast(`Downloading in ${quality} quality... 💾`);
+            setTimeout(() => {
+                showToast('Download complete! ✓');
+            }, 2000);
+        }
+
+        function viewDownloadedSongs() {
+            closeModal('musicDownload');
+            showToast('Opening downloaded songs... 📥');
+        }
+
+        // Wrapper functions to open modals from music player
+        window.openSearchMusicFromPlayer = openSearchMusicModal;
+        window.openCreatePlaylistFromPlayer = openCreateMusicPlaylistModal;
+        window.openAudioQualityFromPlayer = openAudioQualityModal;
+        window.openMusicQueueFromPlayer = openMusicQueueModal;
+        window.openMusicLyricsFromPlayer = openMusicLyricsModal;
+        window.openMusicShareFromPlayer = openMusicShareModal;
+        window.openMusicDownloadFromPlayer = openMusicDownloadModal;
 
         // ========== MESSAGING FEATURES FUNCTIONS ==========
         
