@@ -1472,6 +1472,7 @@
                 <div class="pill-nav-button active" onclick="switchPillTab(this, 'feed')">Feed</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'stories')">Stories</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'live')">Live</div>
+                <div class="pill-nav-button" onclick="openMusicPlayer()" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none;">🎵 Music</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'trending')">Trending</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'groups')">Groups</div>
             </div>
@@ -6645,6 +6646,22 @@
             
             currentMainTab = tab;
             currentScreen = tab;
+        }
+
+        // Open music player from navigation bar
+        function openMusicPlayer() {
+            // Remove active class from all pill buttons
+            document.querySelectorAll('.pill-nav-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Show music player screen
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const musicPlayerScreen = document.getElementById('musicPlayer-screen');
+            if (musicPlayerScreen) {
+                musicPlayerScreen.classList.add('active');
+            }
+            
+            currentScreen = 'musicPlayer';
+            showToast('🎵 Music Player opened');
         }
 
         // Switch between top navigation tabs (Feed, Stories, Live, Trending, Groups)
