@@ -1480,7 +1480,7 @@
                 <div class="pill-nav-button active" onclick="switchPillTab(this, 'feed')">Feed</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'stories')">Stories</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'live')">Live</div>
-                <div class="pill-nav-button" onclick="openMusicPlayer()" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none;">🎵 Music</div>
+                <div class="pill-nav-button" id="musicPillBtn" onclick="openMusicPlayer(this)">🎵 Music</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'trending')">Trending</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'groups')">Groups</div>
             </div>
@@ -2212,7 +2212,7 @@
                 <!-- Music Library -->
                 <div class="section-header">
                     <div class="section-title">Your Library</div>
-                    <div class="section-link" onclick="openModal('searchMusic')">Search</div>
+                    <div class="section-link" onclick="openSearchMusicModal()">Search</div>
                 </div>
 
                 <div class="list-item" onclick="window.musicPlayer.playMusic(1)">
@@ -6657,9 +6657,14 @@
         }
 
         // Open music player from navigation bar
-        function openMusicPlayer() {
+        function openMusicPlayer(element) {
             // Remove active class from all pill buttons
             document.querySelectorAll('.pill-nav-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked music button
+            if (element) {
+                element.classList.add('active');
+            }
             
             // Show music player screen
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
