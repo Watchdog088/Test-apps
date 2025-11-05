@@ -8585,7 +8585,235 @@
         // Perform music search
         function performMusicSearch(query) {
             closeModal('searchMusic');
+            
+            // Create a full dashboard based on the search query
+            const dashboardHTML = `
+                <div id="musicSearchResultsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('musicSearchResults')">✕</div>
+                        <div class="modal-title">${query}</div>
+                    </div>
+                    <div class="modal-content">
+                        ${getMusicSearchContent(query)}
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', dashboardHTML);
             showToast(`Loading: ${query}`);
+        }
+
+        // Get music search content based on query type
+        function getMusicSearchContent(query) {
+            if (query === 'Top Charts') {
+                return `
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">🔥</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Top Charts</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Most popular songs right now</div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">🏆 Top 10 This Week</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); window.musicPlayer.playMusic(1)">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: #000;">1</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Starlight Dreams</div>
+                            <div class="list-item-subtitle">The Moonwalkers • 4:05</div>
+                        </div>
+                        <button class="nav-btn" id="chart-heart-1" onclick="event.stopPropagation(); toggleMusicHeart('chart-1')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); window.musicPlayer.playMusic(2)">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #c0c0c0, #e8e8e8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: #000;">2</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Electric Pulse</div>
+                            <div class="list-item-subtitle">Neon Nights • 3:18</div>
+                        </div>
+                        <button class="nav-btn" id="chart-heart-2" onclick="event.stopPropagation(); toggleMusicHeart('chart-2')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); window.musicPlayer.playMusic(3)">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #cd7f32, #e8b572); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: #000;">3</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Ocean Waves</div>
+                            <div class="list-item-subtitle">Calm Collective • 5:12</div>
+                        </div>
+                        <button class="nav-btn" id="chart-heart-3" onclick="event.stopPropagation(); toggleMusicHeart('chart-3')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Midnight City')">
+                        <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">4</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Midnight City</div>
+                            <div class="list-item-subtitle">Urban Beats • 3:45</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Summer Breeze')">
+                        <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">5</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Summer Breeze</div>
+                            <div class="list-item-subtitle">Coastal Vibes • 4:20</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Digital Dreams')">
+                        <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">6</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Digital Dreams</div>
+                            <div class="list-item-subtitle">Synthwave Society • 3:55</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <button class="btn" style="margin-top: 16px;" onclick="showToast('Loading more charts...')">
+                        Load More Charts
+                    </button>
+                `;
+            } else if (query === 'New Releases') {
+                return `
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">🆕</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">New Releases</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Fresh tracks from this week</div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">🎵 Just Dropped</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Tomorrow\'s Echo')">
+                        <div class="list-item-icon">🎸</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Tomorrow's Echo</div>
+                            <div class="list-item-subtitle">Future Sound • 3:42 • New</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Neon Lights')">
+                        <div class="list-item-icon">💡</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Neon Lights</div>
+                            <div class="list-item-subtitle">City Nights • 4:15 • New</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Crystal Rain')">
+                        <div class="list-item-icon">💎</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Crystal Rain</div>
+                            <div class="list-item-subtitle">Ambient Flow • 5:30 • New</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">🔥 Hot New Albums</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                        <div onclick="showToast('Opening album...')" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+                            <div style="font-size: 48px; margin-bottom: 8px;">🎵</div>
+                            <div style="font-size: 14px; font-weight: 600;">Electric Hearts</div>
+                            <div style="font-size: 12px; opacity: 0.8;">Various Artists</div>
+                        </div>
+                        <div onclick="showToast('Opening album...')" style="background: linear-gradient(135deg, var(--success), var(--accent)); aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+                            <div style="font-size: 48px; margin-bottom: 8px;">🌊</div>
+                            <div style="font-size: 14px; font-weight: 600;">Ocean Dreams</div>
+                            <div style="font-size: 12px; opacity: 0.8;">Calm Collective</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" style="margin-top: 16px;" onclick="showToast('Loading more releases...')">
+                        Browse All New Releases
+                    </button>
+                `;
+            } else if (query === 'Discover Weekly') {
+                return `
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">🌟</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Discover Weekly</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Personalized recommendations just for you</div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 40px;">🎧</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Your Mix</div>
+                                <div style="font-size: 13px; opacity: 0.9;">30 songs • Updated Weekly</div>
+                            </div>
+                            <button class="nav-btn" onclick="showToast('Playing Discover Weekly mix...')">▶️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">✨ Recommended for You</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Whisper Wind')">
+                        <div class="list-item-icon">🍃</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Whisper Wind</div>
+                            <div class="list-item-subtitle">Acoustic Dreams • 3:50</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Cosmic Journey')">
+                        <div class="list-item-icon">🚀</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Cosmic Journey</div>
+                            <div class="list-item-subtitle">Space Sounds • 6:15</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Golden Hour')">
+                        <div class="list-item-icon">🌅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Golden Hour</div>
+                            <div class="list-item-subtitle">Sunset Melodies • 4:30</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">🎯 Based on Your Taste</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Midnight Jazz')">
+                        <div class="list-item-icon">🎷</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Midnight Jazz</div>
+                            <div class="list-item-subtitle">Smooth Grooves • 5:20</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <div class="list-item" onclick="closeModal('musicSearchResults'); showToast('Playing Thunder Road')">
+                        <div class="list-item-icon">⚡</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Thunder Road</div>
+                            <div class="list-item-subtitle">Rock Legends • 4:45</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); showToast('Added to library')">🤍</button>
+                    </div>
+                    
+                    <button class="btn" style="margin-top: 16px; background: var(--glass);" onclick="showToast('Refreshing recommendations...')">
+                        🔄 Refresh Recommendations
+                    </button>
+                `;
+            }
+            
+            return '<div>Loading...</div>';
         }
 
         // Open create music playlist modal
