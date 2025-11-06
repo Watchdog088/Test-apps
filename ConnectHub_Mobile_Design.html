@@ -11105,17 +11105,349 @@
             closeModal('minimumDonation');
         }
         
-        // Open payment method details
+        // Open payment method details - NOW OPENS FULL DASHBOARD
         function openPaymentMethodDetails(method) {
-            showToast(`Opening ${method} settings... 💳`);
-            setTimeout(() => {
-                showToast(`${method} account connected and active ✓`);
-            }, 1000);
+            closeModal('paymentMethods');
+            
+            const paymentData = {
+                'PayPal': {
+                    email: 'john.doe@email.com',
+                    status: 'Primary',
+                    connected: 'Jan 2024',
+                    transactions: 156,
+                    totalReceived: '$2,450',
+                    gradient: 'linear-gradient(135deg, #0070ba, #1546a0)',
+                    emoji: '💳'
+                },
+                'Stripe': {
+                    account: '****4532',
+                    status: 'Connected',
+                    connected: 'Mar 2024',
+                    transactions: 89,
+                    totalReceived: '$1,890',
+                    gradient: 'linear-gradient(135deg, #635bff, #0a2540)',
+                    emoji: '💎'
+                },
+                'Venmo': {
+                    username: '@johndoe',
+                    status: 'Connected',
+                    connected: 'May 2024',
+                    transactions: 45,
+                    totalReceived: '$780',
+                    gradient: 'linear-gradient(135deg, #3d95ce, #008cff)',
+                    emoji: '📱'
+                }
+            };
+            
+            const data = paymentData[method];
+            if (!data) return;
+            
+            const modalHTML = `
+                <div id="paymentMethodDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closePaymentMethodDetails()">✕</div>
+                        <div class="modal-title">${method} Details</div>
+                        <button class="nav-btn" onclick="removePaymentMethod('${method}')">🗑️</button>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="width: 120px; height: 120px; background: ${data.gradient}; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                                ${data.emoji}
+                            </div>
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${method}</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">${data.email || data.account || data.username}</div>
+                            <div style="display: inline-block; padding: 6px 16px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; font-size: 12px; font-weight: 600; color: var(--success);">
+                                ${data.status}
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">${data.transactions}</div>
+                                <div class="stat-label">Transactions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.totalReceived}</div>
+                                <div class="stat-label">Total Received</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${data.connected}</div>
+                                <div class="stat-label">Connected</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">✓ Active</div>
+                                <div class="stat-label">Status</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Account Settings</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="updatePaymentEmail('${method}')">
+                            <div class="list-item-icon">📧</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Update Email/Account</div>
+                                <div class="list-item-subtitle">Change linked account</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="viewPaymentHistory('${method}')">
+                            <div class="list-item-icon">📊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Transaction History</div>
+                                <div class="list-item-subtitle">${data.transactions} transactions</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Auto-Transfer</div>
+                                <div class="list-item-subtitle">Automatic withdrawal to bank</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Email Notifications</div>
+                                <div class="list-item-subtitle">Get notified of payments</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recent Transactions</div>
+                            <div class="section-link">View All</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">👤</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sarah M.</div>
+                                <div class="list-item-subtitle">2 hours ago</div>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--success);">+$10</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">😊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mike J.</div>
+                                <div class="list-item-subtitle">1 day ago</div>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--success);">+$25</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">🎨</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Emily R.</div>
+                                <div class="list-item-subtitle">3 days ago</div>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--success);">+$50</div>
+                        </div>
+                        
+                        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Payment Info</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                ${method} processes payments instantly. Fees may apply based on transaction type. Standard withdrawal takes 1-3 business days.
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--error); margin-top: 20px;" onclick="confirmRemovePaymentMethod('${method}')">
+                            Remove ${method}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast(`Opening ${method} details... 💳`);
         }
         
-        // Connect payment method
+        // Close payment method details
+        function closePaymentMethodDetails() {
+            const modal = document.getElementById('paymentMethodDetailsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Update payment email
+        function updatePaymentEmail(method) {
+            showToast(`Update ${method} account information`);
+        }
+        
+        // View payment history
+        function viewPaymentHistory(method) {
+            showToast(`Loading ${method} transaction history... 📊`);
+        }
+        
+        // Remove payment method
+        function removePaymentMethod(method) {
+            showToast(`Remove ${method}? This action can be undone by reconnecting.`);
+        }
+        
+        // Confirm remove payment method
+        function confirmRemovePaymentMethod(method) {
+            closePaymentMethodDetails();
+            showToast(`${method} removed successfully`);
+        }
+        
+        // Connect payment method - NOW OPENS SETUP DASHBOARD
         function connectPaymentMethod(method) {
+            closeModal('paymentMethods');
+            
+            const setupData = {
+                'Cash App': {
+                    title: 'Connect Cash App',
+                    emoji: '💸',
+                    gradient: 'linear-gradient(135deg, #00d632, #00b82c)',
+                    steps: [
+                        'Enter your Cash App $Cashtag',
+                        'Verify your account',
+                        'Set payment preferences',
+                        'Start receiving donations'
+                    ]
+                },
+                'Bitcoin': {
+                    title: 'Connect Bitcoin Wallet',
+                    emoji: '₿',
+                    gradient: 'linear-gradient(135deg, #f7931a, #ff9500)',
+                    steps: [
+                        'Enter your Bitcoin wallet address',
+                        'Verify wallet ownership',
+                        'Set conversion preferences',
+                        'Start receiving crypto donations'
+                    ]
+                }
+            };
+            
+            const data = setupData[method];
+            if (!data) return;
+            
+            const modalHTML = `
+                <div id="paymentMethodSetupModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closePaymentMethodSetup()">✕</div>
+                        <div class="modal-title">${data.title}</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="width: 120px; height: 120px; background: ${data.gradient}; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                                ${data.emoji}
+                            </div>
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Connect ${method}</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Enable ${method} payments for your streams</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Setup Steps</div>
+                        </div>
+                        
+                        ${data.steps.map((step, index) => `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 8px;">
+                                <div style="width: 32px; height: 32px; background: ${data.gradient}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; flex-shrink: 0;">
+                                    ${index + 1}
+                                </div>
+                                <div style="flex: 1; font-size: 14px; font-weight: 500;">
+                                    ${step}
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="section-header" style="margin-top: 24px;">
+                            <div class="section-title">Account Information</div>
+                        </div>
+                        
+                        ${method === 'Cash App' ? `
+                            <input type="text" class="input-field" placeholder="Enter your $Cashtag" id="cashtag" />
+                        ` : `
+                            <input type="text" class="input-field" placeholder="Enter Bitcoin wallet address" id="walletAddress" />
+                            <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                    ⚠️ Make sure to double-check your wallet address. Incorrect addresses cannot be recovered.
+                                </div>
+                            </div>
+                        `}
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Enable Notifications</div>
+                                <div class="list-item-subtitle">Get notified of payments</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 16px; border-radius: 12px; margin: 20px 0;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Why Connect ${method}?</div>
+                            <div style="font-size: 13px; opacity: 0.9; line-height: 1.6;">
+                                ${method === 'Cash App' ? 
+                                    'Cash App offers instant transfers and is popular among mobile users. Perfect for quick donations and tips.' :
+                                    'Bitcoin allows global payments without borders. Accept donations from anywhere in the world with low fees.'}
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="completePaymentMethodSetup('${method}')" style="margin-bottom: 12px;">
+                            Connect ${method}
+                        </button>
+                        
+                        <button class="btn" style="background: var(--glass);" onclick="closePaymentMethodSetup()">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast(`Setting up ${method}... 💳`);
+        }
+        
+        // Close payment method setup
+        function closePaymentMethodSetup() {
+            const modal = document.getElementById('paymentMethodSetupModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Complete payment method setup
+        function completePaymentMethodSetup(method) {
+            let input;
+            if (method === 'Cash App') {
+                input = document.getElementById('cashtag');
+                if (!input || !input.value.trim()) {
+                    showToast('Please enter your $Cashtag');
+                    return;
+                }
+                if (!input.value.startsWith('$')) {
+                    showToast('Cashtag must start with $');
+                    return;
+                }
+            } else if (method === 'Bitcoin') {
+                input = document.getElementById('walletAddress');
+                if (!input || !input.value.trim()) {
+                    showToast('Please enter your Bitcoin wallet address');
+                    return;
+                }
+                if (input.value.length < 26) {
+                    showToast('Please enter a valid Bitcoin wallet address');
+                    return;
+                }
+            }
+            
+            closePaymentMethodSetup();
             showToast(`Connecting ${method}... 💳`);
+            
             setTimeout(() => {
                 showToast(`${method} connected successfully! ✓`);
             }, 1500);
