@@ -6335,6 +6335,480 @@
             </div>
         </div>
 
+        <!-- STREAM QUALITY SETTINGS MODAL -->
+        <div id="streamQualitySettingsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('streamQualitySettings')">✕</div>
+                <div class="modal-title">⚙️ Stream Quality</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📹</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Video Quality Settings</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Higher quality requires more bandwidth</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Resolution</div>
+                </div>
+                <div class="list-item" onclick="selectStreamQuality('360p', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">360p</div>
+                        <div class="list-item-subtitle">Low • ~0.5 Mbps</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectStreamQuality('480p', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">480p</div>
+                        <div class="list-item-subtitle">Standard • ~1 Mbps</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectStreamQuality('720p', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">720p HD</div>
+                        <div class="list-item-subtitle">High • ~2.5 Mbps</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectStreamQuality('1080p', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">1080p Full HD</div>
+                        <div class="list-item-subtitle">Ultra • ~4-6 Mbps</div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Frame Rate</div>
+                </div>
+                <div class="list-item" onclick="selectStreamFrameRate('30 FPS', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">30 FPS</div>
+                        <div class="list-item-subtitle">Standard smooth playback</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectStreamFrameRate('60 FPS', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">60 FPS</div>
+                        <div class="list-item-subtitle">Ultra smooth • Gaming recommended</div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Additional Settings</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Hardware Encoding</div>
+                        <div class="list-item-subtitle">Better performance, lower CPU usage</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Adaptive Bitrate</div>
+                        <div class="list-item-subtitle">Auto-adjust quality based on network</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STREAM DONATIONS & TIPS MODAL -->
+        <div id="streamDonationsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('streamDonations')">✕</div>
+                <div class="modal-title">💰 Donations & Tips</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">💸</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Enable Viewer Support</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Let your viewers support your streams</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">$247</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$1.2K</div>
+                        <div class="stat-label">Total Earned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">34</div>
+                        <div class="stat-label">Supporters</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$23</div>
+                        <div class="stat-label">Avg. Tip</div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Payment Settings</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Enable Donations</div>
+                        <div class="list-item-subtitle">Accept tips during streams</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="openModal('donationAlerts')">
+                    <div class="list-item-icon">🔔</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Donation Alerts</div>
+                        <div class="list-item-subtitle">Show alerts when receiving tips</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('minimumDonation')">
+                    <div class="list-item-icon">💵</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Minimum Amount</div>
+                        <div class="list-item-subtitle">$1.00</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('paymentMethods')">
+                    <div class="list-item-icon">💳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Payment Methods</div>
+                        <div class="list-item-subtitle">3 methods connected</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Recent Donations</div>
+                </div>
+                <div class="list-item">
+                    <div class="post-avatar">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Sarah M. donated $10</div>
+                        <div class="list-item-subtitle">2 hours ago • "Great stream!"</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="post-avatar">😊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mike J. donated $25</div>
+                        <div class="list-item-subtitle">1 day ago • "Keep it up!"</div>
+                    </div>
+                </div>
+                <button class="btn" onclick="viewAllDonations()">View All Donations</button>
+            </div>
+        </div>
+
+        <!-- STREAM MODERATORS MODAL -->
+        <div id="streamModeratorsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('streamModerators')">✕</div>
+                <div class="modal-title">🛡️ Moderators</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🛡️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Stream Moderators</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Trusted users to help manage your chat</div>
+                </div>
+                <button class="btn" onclick="openModal('addModerator')" style="margin-bottom: 20px;">
+                    ➕ Add Moderator
+                </button>
+                <div class="section-header">
+                    <div class="section-title">Active Moderators</div>
+                    <div class="section-link">3 moderators</div>
+                </div>
+                <div class="list-item">
+                    <div class="post-avatar">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Sarah Johnson</div>
+                        <div class="list-item-subtitle">Moderator since Jan 2024</div>
+                    </div>
+                    <button class="nav-btn" onclick="removeModerator('Sarah Johnson')">✕</button>
+                </div>
+                <div class="list-item">
+                    <div class="post-avatar">😊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mike Chen</div>
+                        <div class="list-item-subtitle">Moderator since Mar 2024</div>
+                    </div>
+                    <button class="nav-btn" onclick="removeModerator('Mike Chen')">✕</button>
+                </div>
+                <div class="list-item">
+                    <div class="post-avatar">🎨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Emily Rodriguez</div>
+                        <div class="list-item-subtitle">Moderator since May 2024</div>
+                    </div>
+                    <button class="nav-btn" onclick="removeModerator('Emily Rodriguez')">✕</button>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Moderator Permissions</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Delete Messages</div>
+                        <div class="list-item-subtitle">Can remove chat messages</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Timeout Users</div>
+                        <div class="list-item-subtitle">Can temporarily ban users</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Ban Users</div>
+                        <div class="list-item-subtitle">Can permanently ban users</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Banned Users</div>
+                </div>
+                <button class="btn" style="background: var(--glass);" onclick="viewBannedUsers()">
+                    View Banned List
+                </button>
+            </div>
+        </div>
+
+        <!-- SCHEDULE STREAM MODAL -->
+        <div id="scheduleStreamModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('scheduleStream')">✕</div>
+                <div class="modal-title">📅 Schedule Stream</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Schedule a Stream</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Let your audience know when you'll go live</div>
+                </div>
+                <input type="text" class="input-field" placeholder="Stream title..." id="scheduledStreamTitle" />
+                <textarea class="input-field textarea-field" placeholder="Description..." id="scheduledStreamDesc"></textarea>
+                <input type="date" class="input-field" id="scheduledStreamDate" />
+                <input type="time" class="input-field" id="scheduledStreamTime" />
+                <div class="list-item" onclick="openModal('selectStreamCategory')">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Category</div>
+                        <div class="list-item-subtitle" id="scheduledStreamCategory">Select category</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Send Notifications</div>
+                        <div class="list-item-subtitle">Notify followers when you go live</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <button class="btn" onclick="createScheduledStream()">
+                    📅 Schedule Stream
+                </button>
+                <div class="section-header">
+                    <div class="section-title">Upcoming Streams</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🎮</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Gaming Marathon</div>
+                        <div class="list-item-subtitle">Tomorrow at 7:00 PM</div>
+                    </div>
+                    <button class="nav-btn" onclick="cancelScheduledStream('Gaming Marathon')">✕</button>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">🎨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Art Session</div>
+                        <div class="list-item-subtitle">Friday at 3:00 PM</div>
+                    </div>
+                    <button class="nav-btn" onclick="cancelScheduledStream('Art Session')">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MULTI-STREAM MODAL -->
+        <div id="multiStreamModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('multiStream')">✕</div>
+                <div class="modal-title">🌐 Multi-Stream</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🌐</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Multi-Platform Streaming</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Broadcast to multiple platforms simultaneously</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Connected Platforms</div>
+                </div>
+                <div class="toggle-container">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FF0000, #CC0000); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">▶️</div>
+                        <div>
+                            <div class="list-item-title">YouTube</div>
+                            <div class="list-item-subtitle">Connected • 1.2K subscribers</div>
+                        </div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #9146FF, #772CE8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📺</div>
+                        <div>
+                            <div class="list-item-title">Twitch</div>
+                            <div class="list-item-subtitle">Connected • 845 followers</div>
+                        </div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1877F2, #0C63D4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📘</div>
+                        <div>
+                            <div class="list-item-title">Facebook</div>
+                            <div class="list-item-subtitle">Not connected</div>
+                        </div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this); connectPlatform('Facebook')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #E1306C, #C13584); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📸</div>
+                        <div>
+                            <div class="list-item-title">Instagram</div>
+                            <div class="list-item-subtitle">Not connected</div>
+                        </div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this); connectPlatform('Instagram')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Stream Settings</div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Unified Chat</div>
+                        <div class="list-item-subtitle">Show all platform chats together</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Auto-Recording</div>
+                        <div class="list-item-subtitle">Record while multi-streaming</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Pro Tip</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        Multi-streaming requires more bandwidth. We recommend at least 10 Mbps upload speed for best results.
+                    </div>
+                </div>
+                <button class="btn" onclick="connectNewPlatform()" style="margin-top: 16px; background: var(--glass);">
+                    ➕ Connect New Platform
+                </button>
+            </div>
+        </div>
+
+        <!-- SETUP LIVE STREAM MODAL (Complete Setup) -->
+        <div id="setupLiveStreamModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('setupLiveStream')">✕</div>
+                <div class="modal-title">🔴 Setup Live Stream</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎥</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Go Live</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Configure your stream settings</div>
+                </div>
+                
+                <!-- Stream Preview -->
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; margin-bottom: 20px; position: relative;">
+                    📹
+                    <div style="position: absolute; top: 12px; right: 12px; padding: 6px 12px; background: rgba(0,0,0,0.8); border-radius: 12px; font-size: 12px; font-weight: 600;">
+                        <span class="live-dot"></span> Preview
+                    </div>
+                </div>
+                
+                <input type="text" class="input-field" placeholder="Stream title..." id="liveStreamTitle" />
+                <textarea class="input-field textarea-field" placeholder="Description (optional)..." id="liveStreamDesc"></textarea>
+                
+                <div class="section-header">
+                    <div class="section-title">Quick Settings</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('streamQualitySettings')">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Quality</div>
+                        <div class="list-item-subtitle">720p HD • 30 FPS</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('selectLivePrivacy')">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Privacy</div>
+                        <div class="list-item-subtitle" id="liveStreamPrivacy">Public</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Enable Chat</div>
+                        <div class="list-item-subtitle">Allow viewers to comment</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Enable Donations</div>
+                        <div class="list-item-subtitle">Accept tips during stream</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="startLiveStreamNow()" style="margin-top: 20px;">
+                    🔴 Go Live Now
+                </button>
+            </div>
+        </div>
+
         <!-- Messaging Options Modal (Files, Location, Memes) -->
         <div id="messagingOptionsModal" class="modal">
             <div class="modal-header">
@@ -9818,6 +10292,407 @@
                 });
             }
         });
+
+        // ========== LIVE STREAMING FEATURES ==========
+        
+        // Select stream quality
+        function selectStreamQuality(quality, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('streamQualitySettingsModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Stream quality set to ${quality}`);
+            
+            // Update the quality display in setup modal if it exists
+            const qualityDisplay = document.querySelector('#setupLiveStreamModal .list-item-subtitle');
+            if (qualityDisplay && qualityDisplay.parentElement.querySelector('.list-item-title').textContent === 'Quality') {
+                qualityDisplay.textContent = `${quality} HD • 30 FPS`;
+            }
+        }
+        
+        // Select stream frame rate
+        function selectStreamFrameRate(fps, element) {
+            // Remove selection from all frame rate items
+            const modal = document.getElementById('streamQualitySettingsModal');
+            const frameRateItems = Array.from(modal.querySelectorAll('.list-item')).slice(4, 6); // Frame rate items
+            
+            frameRateItems.forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Frame rate set to ${fps}`);
+        }
+        
+        // View all donations
+        function viewAllDonations() {
+            closeModal('streamDonations');
+            
+            // Create donations history modal
+            const modalHTML = `
+                <div id="donationsHistoryModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeDonationsHistory()">✕</div>
+                        <div class="modal-title">💰 Donation History</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">$247</div>
+                                <div class="stat-label">This Month</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$1,234</div>
+                                <div class="stat-label">Total Earned</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">34</div>
+                                <div class="stat-label">Supporters</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$23</div>
+                                <div class="stat-label">Average</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recent Donations</div>
+                            <div class="section-link">Last 30 days</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">👤</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sarah M. donated $10</div>
+                                <div class="list-item-subtitle">2 hours ago • "Great stream!"</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="post-avatar">😊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mike J. donated $25</div>
+                                <div class="list-item-subtitle">1 day ago • "Keep it up!"</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="post-avatar">🎨</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Emily R. donated $50</div>
+                                <div class="list-item-subtitle">3 days ago • "Amazing content!"</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="post-avatar">🚀</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">David K. donated $15</div>
+                                <div class="list-item-subtitle">5 days ago • "Thanks for the stream"</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="post-avatar">💻</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tech Fan donated $100</div>
+                                <div class="list-item-subtitle">1 week ago • "Awesome work!"</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="margin-top: 16px; background: var(--glass);" onclick="exportDonationHistory()">
+                            📊 Export History
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Loading donation history... 💰');
+        }
+        
+        // Close donations history
+        function closeDonationsHistory() {
+            const modal = document.getElementById('donationsHistoryModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Export donation history
+        function exportDonationHistory() {
+            showToast('Exporting donation history... 📊');
+            setTimeout(() => {
+                showToast('Export ready! Check your downloads folder');
+            }, 1500);
+        }
+        
+        // Remove moderator
+        function removeModerator(name) {
+            showToast(`Removed ${name} as moderator`);
+        }
+        
+        // View banned users
+        function viewBannedUsers() {
+            closeModal('streamModerators');
+            
+            // Create banned users modal
+            const modalHTML = `
+                <div id="bannedUsersModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeBannedUsers()">✕</div>
+                        <div class="modal-title">🚫 Banned Users</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🚫</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Banned Users List</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Users banned from your streams</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">😠</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">SpamUser123</div>
+                                <div class="list-item-subtitle">Banned 2 weeks ago • Spam</div>
+                            </div>
+                            <button class="friend-btn primary" style="padding: 6px 12px; font-size: 12px;" onclick="unbanUser('SpamUser123')">Unban</button>
+                        </div>
+                        <div class="list-item">
+                            <div class="post-avatar">😡</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">ToxicViewer</div>
+                                <div class="list-item-subtitle">Banned 1 month ago • Harassment</div>
+                            </div>
+                            <button class="friend-btn primary" style="padding: 6px 12px; font-size: 12px;" onclick="unbanUser('ToxicViewer')">Unban</button>
+                        </div>
+                        
+                        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Note</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                Banned users cannot view or participate in your streams. They can be unbanned at any time.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Loading banned users list... 🚫');
+        }
+        
+        // Close banned users
+        function closeBannedUsers() {
+            const modal = document.getElementById('bannedUsersModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Unban user
+        function unbanUser(username) {
+            showToast(`${username} has been unbanned ✓`);
+            setTimeout(() => {
+                showToast(`${username} can now view your streams again`);
+            }, 1000);
+        }
+        
+        // Create scheduled stream
+        function createScheduledStream() {
+            const title = document.getElementById('scheduledStreamTitle').value;
+            const date = document.getElementById('scheduledStreamDate').value;
+            const time = document.getElementById('scheduledStreamTime').value;
+            
+            if (!title || !date || !time) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+            
+            closeModal('scheduleStream');
+            showToast('Stream scheduled successfully! 📅');
+            
+            // Clear the form
+            document.getElementById('scheduledStreamTitle').value = '';
+            document.getElementById('scheduledStreamDesc').value = '';
+            document.getElementById('scheduledStreamDate').value = '';
+            document.getElementById('scheduledStreamTime').value = '';
+        }
+        
+        // Cancel scheduled stream
+        function cancelScheduledStream(title) {
+            showToast(`Cancelled: ${title}`);
+        }
+        
+        // Connect platform for multi-streaming
+        function connectPlatform(platform) {
+            showToast(`Connecting to ${platform}...`);
+            setTimeout(() => {
+                showToast(`✓ ${platform} connected successfully!`);
+            }, 1500);
+        }
+        
+        // Connect new platform
+        function connectNewPlatform() {
+            showToast('Opening platform connections... 🌐');
+            setTimeout(() => {
+                showToast('Select a platform to connect');
+            }, 800);
+        }
+        
+        // Start live stream now
+        function startLiveStreamNow() {
+            const title = document.getElementById('liveStreamTitle').value;
+            
+            if (!title) {
+                showToast('Please enter a stream title');
+                return;
+            }
+            
+            closeModal('setupLiveStream');
+            showToast('🔴 Going live...');
+            
+            // Simulate stream starting
+            setTimeout(() => {
+                showToast('You are now LIVE! 🎥');
+            }, 1500);
+            
+            setTimeout(() => {
+                showToast('Stream started successfully! Viewers can now join.');
+            }, 3000);
+        }
+        
+        // Stream analytics dashboard
+        window.liveStreaming.viewStreamAnalytics = function() {
+            // Create analytics dashboard modal
+            const modalHTML = `
+                <div id="streamAnalyticsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeStreamAnalytics()">✕</div>
+                        <div class="modal-title">📊 Stream Analytics</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Stream Performance</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Your streaming statistics</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Overall Stats</div>
+                            <div class="section-link">Last 30 days</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Total Streams</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1,234</div>
+                                <div class="stat-label">Total Viewers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">82</div>
+                                <div class="stat-label">Avg Viewers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">45h</div>
+                                <div class="stat-label">Total Duration</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">3.2h</div>
+                                <div class="stat-label">Avg Duration</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">Peak Viewers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$247</div>
+                                <div class="stat-label">Donations</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">89%</div>
+                                <div class="stat-label">Engagement</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Top Streams</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">🎮</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Gaming Marathon</div>
+                                <div class="list-item-subtitle">156 peak viewers • 4h 30m</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">🎨</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Art Session</div>
+                                <div class="list-item-subtitle">124 peak viewers • 3h 15m</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">💻</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Coding Stream</div>
+                                <div class="list-item-subtitle">98 peak viewers • 2h 45m</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Viewer Growth</div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 16px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Growth This Month</div>
+                            <div style="font-size: 48px; font-weight: 800; margin-bottom: 4px;">+23%</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Compared to last month</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass);" onclick="exportAnalytics()">
+                            📊 Export Full Report
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Loading stream analytics... 📊');
+        };
+        
+        // Close stream analytics
+        function closeStreamAnalytics() {
+            const modal = document.getElementById('streamAnalyticsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Export analytics
+        function exportAnalytics() {
+            showToast('Exporting analytics report... 📊');
+            setTimeout(() => {
+                showToast('Report exported successfully! ✓');
+            }, 1500);
+        }
+
     </script>
 </body>
 </html>
