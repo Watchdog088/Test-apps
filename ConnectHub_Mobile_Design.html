@@ -6929,6 +6929,375 @@
             </div>
         </div>
 
+        <!-- DONATION ALERTS MODAL -->
+        <div id="donationAlertsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('donationAlerts')">✕</div>
+                <div class="modal-title">🔔 Donation Alerts</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔔</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Alert Settings</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Customize how donation alerts appear on stream</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Alert Display</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show On-Screen Alerts</div>
+                        <div class="list-item-subtitle">Display alerts during stream</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Play Sound</div>
+                        <div class="list-item-subtitle">Audio notification for donations</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('alertDuration')">
+                    <div class="list-item-icon">⏱️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Alert Duration</div>
+                        <div class="list-item-subtitle" id="alertDurationValue">5 seconds</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('alertAnimation')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Animation Style</div>
+                        <div class="list-item-subtitle" id="alertAnimationValue">Slide In</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Message Display</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show Donor Name</div>
+                        <div class="list-item-subtitle">Display supporter's name</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Show Donation Message</div>
+                        <div class="list-item-subtitle">Display supporter's message</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Preview</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">💰</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Sarah M. donated $10!</div>
+                    <div style="font-size: 14px; opacity: 0.9;">"Great stream!"</div>
+                </div>
+                
+                <button class="btn" onclick="testDonationAlert()">
+                    🎬 Test Alert
+                </button>
+            </div>
+        </div>
+
+        <!-- MINIMUM DONATION MODAL -->
+        <div id="minimumDonationModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('minimumDonation')">✕</div>
+                <div class="modal-title">💵 Minimum Amount</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">💵</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Set Minimum Donation</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Choose the lowest amount viewers can donate</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Select Amount</div>
+                </div>
+                
+                <div class="list-item" onclick="selectMinimumDonation('$1.00', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">$1.00</div>
+                        <div class="list-item-subtitle">Default minimum</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                
+                <div class="list-item" onclick="selectMinimumDonation('$2.00', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">$2.00</div>
+                        <div class="list-item-subtitle">Slightly higher</div>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="selectMinimumDonation('$5.00', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">$5.00</div>
+                        <div class="list-item-subtitle">Premium support</div>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="selectMinimumDonation('$10.00', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">$10.00</div>
+                        <div class="list-item-subtitle">Higher threshold</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Custom Amount</div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+                    <input type="number" class="input-field" placeholder="Enter amount" id="customMinAmount" style="margin-bottom: 0;" />
+                    <button class="btn" style="width: auto; padding: 14px 24px;" onclick="setCustomMinimum()">Set</button>
+                </div>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Tip</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        Lower minimums encourage more donations, but higher minimums mean more valuable support per donation.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT METHODS MODAL -->
+        <div id="paymentMethodsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('paymentMethods')">✕</div>
+                <div class="modal-title">💳 Payment Methods</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">💳</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Connected Payment Methods</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Manage how you receive donations</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Active Methods</div>
+                    <div class="section-link">3 connected</div>
+                </div>
+                
+                <div class="list-item" onclick="openPaymentMethodDetails('PayPal')">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #0070ba, #1546a0); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">PayPal</div>
+                        <div class="list-item-subtitle">john.doe@email.com • Primary</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openPaymentMethodDetails('Stripe')">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #635bff, #0a2540); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💎</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Stripe</div>
+                        <div class="list-item-subtitle">Connected • Bank: ****4532</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openPaymentMethodDetails('Venmo')">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3d95ce, #008cff); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">📱</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Venmo</div>
+                        <div class="list-item-subtitle">@johndoe • Connected</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Add New Method</div>
+                </div>
+                
+                <div class="list-item" onclick="connectPaymentMethod('CashApp')">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #00d632, #00b82c); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💸</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Cash App</div>
+                        <div class="list-item-subtitle">Not connected</div>
+                    </div>
+                    <button class="friend-btn primary" style="padding: 6px 16px; font-size: 13px;" onclick="event.stopPropagation(); connectPaymentMethod('Cash App')">Connect</button>
+                </div>
+                
+                <div class="list-item" onclick="connectPaymentMethod('Bitcoin')">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f7931a, #ff9500); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">₿</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Bitcoin</div>
+                        <div class="list-item-subtitle">Cryptocurrency</div>
+                    </div>
+                    <button class="friend-btn primary" style="padding: 6px 16px; font-size: 13px;" onclick="event.stopPropagation(); connectPaymentMethod('Bitcoin')">Connect</button>
+                </div>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Payment Processing</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        Donations are processed through secure payment providers. Fees may apply depending on the payment method used.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERT DURATION MODAL -->
+        <div id="alertDurationModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('alertDuration')">✕</div>
+                <div class="modal-title">⏱️ Alert Duration</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">How long should alerts display?</div>
+                </div>
+                <div class="list-item" onclick="selectAlertDuration('3 seconds', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">3 seconds</div>
+                        <div class="list-item-subtitle">Quick display</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectAlertDuration('5 seconds', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">5 seconds</div>
+                        <div class="list-item-subtitle">Standard</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectAlertDuration('10 seconds', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">10 seconds</div>
+                        <div class="list-item-subtitle">Extended display</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERT ANIMATION MODAL -->
+        <div id="alertAnimationModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('alertAnimation')">✕</div>
+                <div class="modal-title">✨ Animation Style</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Choose Animation</div>
+                </div>
+                <div class="list-item" onclick="selectAlertAnimation('Slide In', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Slide In</div>
+                        <div class="list-item-subtitle">Smooth slide animation</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectAlertAnimation('Fade In', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Fade In</div>
+                        <div class="list-item-subtitle">Gentle fade effect</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectAlertAnimation('Bounce', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Bounce</div>
+                        <div class="list-item-subtitle">Bouncy entrance</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectAlertAnimation('Zoom In', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Zoom In</div>
+                        <div class="list-item-subtitle">Expanding animation</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STREAM RECORDING MODAL -->
+        <div id="streamRecordingModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('streamRecording')">✕</div>
+                <div class="modal-title">🔴 Auto-Recording</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔴</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Stream Recording Settings</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Automatically save your streams</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Enable Auto-Recording</div>
+                        <div class="list-item-subtitle">Record all streams automatically</div>
+                    </div>
+                    <div class="toggle-switch active" id="autoRecordingToggle" onclick="toggleSwitch(this); updateAutoRecordingStatus(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Recording Quality</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('recordingQuality')">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Video Quality</div>
+                        <div class="list-item-subtitle" id="recordingQualityValue">1080p Full HD</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Storage</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Recorded Streams</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">15.4 GB</div>
+                        <div class="stat-label">Used Storage</div>
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="viewRecordedStreams()">
+                    📁 View Recorded Streams
+                </button>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💾 Important</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        Recordings are automatically saved to your account and can be downloaded or deleted anytime. They count towards your storage quota.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Voice Message Recording Modal -->
         <div id="voiceMessageModal" class="modal">
             <div class="modal-header">
@@ -10691,6 +11060,319 @@
             setTimeout(() => {
                 showToast('Report exported successfully! ✓');
             }, 1500);
+        }
+        
+        // ========== DONATIONS & TIPS FUNCTIONS ==========
+        
+        // Test donation alert
+        function testDonationAlert() {
+            showToast('Testing donation alert... 🔔');
+            setTimeout(() => {
+                showInAppNotification('💰', 'Test Alert', 'Sarah M. donated $10! "Great stream!"', { type: 'donation' });
+            }, 800);
+        }
+        
+        // Select minimum donation amount
+        function selectMinimumDonation(amount, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('minimumDonationModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Minimum donation set to ${amount}`);
+        }
+        
+        // Set custom minimum amount
+        function setCustomMinimum() {
+            const input = document.getElementById('customMinAmount');
+            const amount = input.value;
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount');
+                return;
+            }
+            
+            showToast(`Minimum donation set to $${amount}`);
+            closeModal('minimumDonation');
+        }
+        
+        // Open payment method details
+        function openPaymentMethodDetails(method) {
+            showToast(`Opening ${method} settings... 💳`);
+            setTimeout(() => {
+                showToast(`${method} account connected and active ✓`);
+            }, 1000);
+        }
+        
+        // Connect payment method
+        function connectPaymentMethod(method) {
+            showToast(`Connecting ${method}... 💳`);
+            setTimeout(() => {
+                showToast(`${method} connected successfully! ✓`);
+            }, 1500);
+        }
+        
+        // Select alert duration
+        function selectAlertDuration(duration, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('alertDurationModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            // Update the value in donation alerts modal
+            const durationDisplay = document.getElementById('alertDurationValue');
+            if (durationDisplay) {
+                durationDisplay.textContent = duration;
+            }
+            
+            closeModal('alertDuration');
+            showToast(`Alert duration set to ${duration}`);
+        }
+        
+        // Select alert animation
+        function selectAlertAnimation(animation, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('alertAnimationModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            // Update the value in donation alerts modal
+            const animationDisplay = document.getElementById('alertAnimationValue');
+            if (animationDisplay) {
+                animationDisplay.textContent = animation;
+            }
+            
+            closeModal('alertAnimation');
+            showToast(`Animation set to ${animation}`);
+        }
+        
+        // Update auto-recording status
+        function updateAutoRecordingStatus(toggleElement) {
+            if (toggleElement.classList.contains('active')) {
+                showToast('Auto-recording enabled 🔴');
+            } else {
+                showToast('Auto-recording disabled');
+            }
+        }
+        
+        // View recorded streams
+        function viewRecordedStreams() {
+            closeModal('streamRecording');
+            
+            // Create recorded streams modal
+            const modalHTML = `
+                <div id="recordedStreamsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeRecordedStreams()">✕</div>
+                        <div class="modal-title">📁 Recorded Streams</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📹</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Your Recorded Streams</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">12 recordings available</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Total Streams</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">15.4 GB</div>
+                                <div class="stat-label">Storage Used</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">45h</div>
+                                <div class="stat-label">Total Duration</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1080p</div>
+                                <div class="stat-label">Quality</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recordings</div>
+                            <div class="section-link" id="recordingFilter">Last 30 days</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="playRecording('Gaming Marathon')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎮</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Gaming Marathon</div>
+                                <div class="list-item-subtitle">4h 30m • 2.8 GB • 3 days ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); downloadRecording('Gaming Marathon')">⬇️</button>
+                        </div>
+                        
+                        <div class="list-item" onclick="playRecording('Art Session')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎨</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Art Session</div>
+                                <div class="list-item-subtitle">3h 15m • 2.1 GB • 5 days ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); downloadRecording('Art Session')">⬇️</button>
+                        </div>
+                        
+                        <div class="list-item" onclick="playRecording('Coding Stream')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💻</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Coding Stream</div>
+                                <div class="list-item-subtitle">2h 45m • 1.8 GB • 1 week ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); downloadRecording('Coding Stream')">⬇️</button>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px;">
+                            <button class="btn" style="background: var(--glass);" onclick="changeRecordingFilter()">
+                                📅 Change Filter
+                            </button>
+                            <button class="btn" style="background: var(--glass);" onclick="exportRecordingHistory()">
+                                📊 Export History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Loading recorded streams... 📹');
+        }
+        
+        // Close recorded streams
+        function closeRecordedStreams() {
+            const modal = document.getElementById('recordedStreamsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Play recording
+        function playRecording(title) {
+            showToast(`▶️ Playing: ${title}`);
+            setTimeout(() => {
+                showToast('Recording started! Use video controls to navigate.');
+            }, 1000);
+        }
+        
+        // Download recording
+        function downloadRecording(title) {
+            showToast(`Downloading: ${title}... ⬇️`);
+            setTimeout(() => {
+                showToast('Download started! Check your downloads folder.');
+            }, 1500);
+        }
+        
+        // Change recording filter (Last 30 days, Last 90 days, All time, etc.)
+        function changeRecordingFilter() {
+            const filters = ['Last 30 days', 'Last 90 days', 'This year', 'All time'];
+            const currentFilter = document.getElementById('recordingFilter').textContent;
+            const currentIndex = filters.indexOf(currentFilter);
+            const nextIndex = (currentIndex + 1) % filters.length;
+            const nextFilter = filters[nextIndex];
+            
+            document.getElementById('recordingFilter').textContent = nextFilter;
+            showToast(`Filter changed to: ${nextFilter} 📅`);
+        }
+        
+        // Export recording history
+        function exportRecordingHistory() {
+            showToast('Exporting recording history... 📊');
+            setTimeout(() => {
+                showToast('Export complete! History saved to downloads.');
+            }, 1500);
+        }
+        
+        // Open recording quality modal
+        window.openModal('recordingQuality', function() {
+            const modalHTML = `
+                <div id="recordingQualityModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('recordingQuality')">✕</div>
+                        <div class="modal-title">⚙️ Recording Quality</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="section-header">
+                            <div class="section-title">Select Quality</div>
+                        </div>
+                        <div class="list-item" onclick="selectRecordingQuality('720p HD', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">720p HD</div>
+                                <div class="list-item-subtitle">High quality • ~1.5 GB/hour</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="selectRecordingQuality('1080p Full HD', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                            <div class="list-item-content">
+                                <div class="list-item-title">1080p Full HD</div>
+                                <div class="list-item-subtitle">Best quality • ~3 GB/hour</div>
+                            </div>
+                            <div style="color: var(--primary); font-weight: 600;">✓</div>
+                        </div>
+                        <div class="list-item" onclick="selectRecordingQuality('4K Ultra HD', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">4K Ultra HD</div>
+                                <div class="list-item-subtitle">Maximum quality • ~6 GB/hour</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        });
+        
+        // Select recording quality
+        function selectRecordingQuality(quality, element) {
+            // Remove selection from all items
+            const modal = document.getElementById('recordingQualityModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            // Update the value in stream recording modal
+            const qualityDisplay = document.getElementById('recordingQualityValue');
+            if (qualityDisplay) {
+                qualityDisplay.textContent = quality;
+            }
+            
+            closeModal('recordingQuality');
+            showToast(`Recording quality set to ${quality}`);
         }
 
     </script>
