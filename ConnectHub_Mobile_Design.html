@@ -8835,13 +8835,269 @@
             }, 1000);
         }
         
-        // Open album function
+        // Album Data
+        const albumsData = {
+            'Electric Hearts': {
+                title: 'Electric Hearts',
+                artist: 'Various Artists',
+                year: '2025',
+                genre: 'Electronic/Pop',
+                emoji: '🎵',
+                gradient: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                tracks: [
+                    { id: 1, title: 'Electric Love', artist: 'Neon Nights', duration: '3:45' },
+                    { id: 2, title: 'Heartbeat', artist: 'Pulse Wave', duration: '4:12' },
+                    { id: 3, title: 'Digital Dreams', artist: 'Synthwave Society', duration: '3:55' },
+                    { id: 4, title: 'Voltage', artist: 'Current Flow', duration: '3:30' },
+                    { id: 5, title: 'Circuit Breaker', artist: 'Electric Pulse', duration: '4:05' },
+                    { id: 6, title: 'Spark', artist: 'Lightning Strike', duration: '3:20' },
+                    { id: 7, title: 'Power Grid', artist: 'Energy Source', duration: '4:30' },
+                    { id: 8, title: 'Charged Up', artist: 'Voltage Masters', duration: '3:40' }
+                ]
+            },
+            'Ocean Dreams': {
+                title: 'Ocean Dreams',
+                artist: 'Calm Collective',
+                year: '2025',
+                genre: 'Ambient/Chill',
+                emoji: '🌊',
+                gradient: 'linear-gradient(135deg, var(--success), var(--accent))',
+                tracks: [
+                    { id: 1, title: 'Ocean Waves', artist: 'Calm Collective', duration: '5:12' },
+                    { id: 2, title: 'Seafoam', artist: 'Tidal Wave', duration: '4:45' },
+                    { id: 3, title: 'Deep Blue', artist: 'Aqua Sound', duration: '5:30' },
+                    { id: 4, title: 'Coastal Breeze', artist: 'Beach Vibes', duration: '4:20' },
+                    { id: 5, title: 'Tide Pool', artist: 'Marine Life', duration: '4:55' },
+                    { id: 6, title: 'Moonlit Waters', artist: 'Night Ocean', duration: '5:40' },
+                    { id: 7, title: 'Coral Reef', artist: 'Underwater', duration: '4:10' },
+                    { id: 8, title: 'Sunset Sail', artist: 'Horizon', duration: '5:05' }
+                ]
+            }
+        };
+
+        // Open album function - Now opens full album dashboard
         function openAlbum(albumName) {
+            const album = albumsData[albumName];
+            if (!album) {
+                showToast(`Album not found: ${albumName}`);
+                return;
+            }
+
+            // Create album modal dynamically
+            const albumModalHTML = `
+                <div id="albumDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeAlbumModal()">✕</div>
+                        <div class="modal-title">Album</div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); toggleAlbumLike('${albumName}')">
+                            <span id="albumLikeBtn">🤍</span>
+                        </button>
+                    </div>
+                    <div class="modal-content">
+                        <!-- Album Cover -->
+                        <div style="width: 100%; max-width: 280px; aspect-ratio: 1; margin: 0 auto 20px; background: ${album.gradient}; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 100px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                            ${album.emoji}
+                        </div>
+                        
+                        <!-- Album Info -->
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${album.title}</div>
+                            <div style="font-size: 16px; color: var(--text-secondary); margin-bottom: 4px;">${album.artist}</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">${album.year} • ${album.genre} • ${album.tracks.length} tracks</div>
+                        </div>
+                        
+                        <!-- Album Actions -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
+                            <button class="btn" onclick="playAlbum('${albumName}')">
+                                ▶️ Play All
+                            </button>
+                            <button class="btn" style="background: var(--glass);" onclick="shuffleAlbum('${albumName}')">
+                                🔀 Shuffle
+                            </button>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
+                            <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="shareAlbum('${albumName}')">
+                                🔗 Share
+                            </button>
+                            <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="downloadAlbum('${albumName}')">
+                                ⬇️ Download
+                            </button>
+                            <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="addAlbumToPlaylist('${albumName}')">
+                                ➕ Add
+                            </button>
+                        </div>
+                        
+                        <!-- Track List -->
+                        <div class="section-header">
+                            <div class="section-title">Tracks</div>
+                            <div class="section-link">${album.tracks.length} songs</div>
+                        </div>
+                        
+                        ${album.tracks.map((track, index) => `
+                            <div class="list-item" onclick="playAlbumTrack('${albumName}', ${index})" style="margin-bottom: 8px; cursor: pointer; transition: all 0.2s;">
+                                <div style="width: 36px; height: 36px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                                    ${index + 1}
+                                </div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${track.title}</div>
+                                    <div class="list-item-subtitle">${track.artist} • ${track.duration}</div>
+                                </div>
+                                <button class="nav-btn" id="album-track-heart-${index}" onclick="event.stopPropagation(); toggleAlbumTrackHeart(${index})">🤍</button>
+                            </div>
+                        `).join('')}
+                        
+                        <!-- Album Stats -->
+                        <div class="section-header" style="margin-top: 24px;">
+                            <div class="section-title">Album Info</div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">2.4M</div>
+                                <div class="stat-label">Plays</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">125K</div>
+                                <div class="stat-label">Likes</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${album.year}</div>
+                                <div class="stat-label">Release Year</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${album.tracks.length}</div>
+                                <div class="stat-label">Songs</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Related Albums -->
+                        <div class="section-header" style="margin-top: 24px;">
+                            <div class="section-title">You May Also Like</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            ${getRelatedAlbums(albumName).map(relatedAlbum => `
+                                <div onclick="openAlbum('${relatedAlbum.name}')" style="background: ${relatedAlbum.gradient}; aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; padding: 16px;">
+                                    <div style="font-size: 40px; margin-bottom: 8px;">${relatedAlbum.emoji}</div>
+                                    <div style="font-size: 13px; font-weight: 600; text-align: center;">${relatedAlbum.name}</div>
+                                    <div style="font-size: 11px; opacity: 0.8; text-align: center;">${relatedAlbum.artist}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing album modal if any
+            const existingModal = document.getElementById('albumDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Add new album modal
+            document.body.insertAdjacentHTML('beforeend', albumModalHTML);
+            
+            // Close the music search results modal
             closeModal('musicSearchResults');
-            showToast(`Opening album: ${albumName} 🎵`);
+            
+            showToast(`Opening ${albumName} 🎵`);
+        }
+        
+        // Get related albums
+        function getRelatedAlbums(currentAlbum) {
+            const allAlbums = [
+                { name: 'Electric Hearts', artist: 'Various Artists', emoji: '🎵', gradient: 'linear-gradient(135deg, var(--primary), var(--secondary))' },
+                { name: 'Ocean Dreams', artist: 'Calm Collective', emoji: '🌊', gradient: 'linear-gradient(135deg, var(--success), var(--accent))' }
+            ];
+            
+            return allAlbums.filter(album => album.name !== currentAlbum);
+        }
+        
+        // Close album modal
+        function closeAlbumModal() {
+            const modal = document.getElementById('albumDetailsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Toggle album like
+        function toggleAlbumLike(albumName) {
+            const likeBtn = document.getElementById('albumLikeBtn');
+            if (likeBtn.textContent === '🤍') {
+                likeBtn.textContent = '❤️';
+                showToast(`Added ${albumName} to library ❤️`);
+            } else {
+                likeBtn.textContent = '🤍';
+                showToast(`Removed ${albumName} from library`);
+            }
+        }
+        
+        // Play entire album
+        function playAlbum(albumName) {
+            closeAlbumModal();
+            showToast(`▶️ Playing ${albumName} album...`);
             setTimeout(() => {
-                showToast(`Playing ${albumName}`);
+                showToast(`Now playing all ${albumsData[albumName].tracks.length} tracks!`);
+            }, 1000);
+        }
+        
+        // Shuffle album
+        function shuffleAlbum(albumName) {
+            closeAlbumModal();
+            showToast(`🔀 Shuffling ${albumName}...`);
+            setTimeout(() => {
+                showToast('Album playing in shuffle mode!');
+            }, 1000);
+        }
+        
+        // Share album
+        function shareAlbum(albumName) {
+            showToast(`Sharing ${albumName}... 🔗`);
+            setTimeout(() => {
+                showToast('Album link copied to clipboard!');
             }, 800);
+        }
+        
+        // Download album
+        function downloadAlbum(albumName) {
+            showToast(`Downloading ${albumName}... ⬇️`);
+            setTimeout(() => {
+                showToast(`${albumsData[albumName].tracks.length} tracks downloaded!`);
+            }, 1500);
+        }
+        
+        // Add album to playlist
+        function addAlbumToPlaylist(albumName) {
+            showToast(`Adding ${albumName} to playlist... ➕`);
+            setTimeout(() => {
+                showToast('Album added to your playlist!');
+            }, 800);
+        }
+        
+        // Play specific track from album
+        function playAlbumTrack(albumName, trackIndex) {
+            const album = albumsData[albumName];
+            const track = album.tracks[trackIndex];
+            
+            closeAlbumModal();
+            showToast(`🎵 Playing: ${track.title}`);
+            
+            // Simulate starting playback
+            setTimeout(() => {
+                showToast(`Now playing ${track.title} by ${track.artist}`);
+            }, 800);
+        }
+        
+        // Toggle heart for album track
+        function toggleAlbumTrackHeart(trackIndex) {
+            const heartBtn = document.getElementById(`album-track-heart-${trackIndex}`);
+            if (heartBtn.textContent === '🤍') {
+                heartBtn.textContent = '❤️';
+                showToast('Added to library ❤️');
+            } else {
+                heartBtn.textContent = '🤍';
+                showToast('Removed from library');
+            }
         }
         
         // Browse all new releases function
