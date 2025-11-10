@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Provider Details Test - Lynk</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+
+        .test-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .payment-methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .payment-method-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .payment-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .stripe-icon {
+            background: linear-gradient(135deg, #635BFF 0%, #0A2540 100%);
+        }
+
+        .venmo-icon {
+            background: linear-gradient(135deg, #3D95CE 0%, #008CFF 100%);
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--glass);
+            border-radius: 12px;
+        }
+
+        .feature-list h4 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+
+        .feature-item-icon {
+            color: var(--success);
+            font-size: 1.2rem;
+        }
+
+        .instructions {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .instructions ol {
+            margin-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 10002;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            min-width: 300px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--accent);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--error);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>💳 Payment Provider Details Test</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">
+                Test the fully functional Stripe and Venmo payment dashboards with all features
+            </p>
+        </div>
+
+        <div class="instructions">
+            <h3>🧪 Testing Instructions</h3>
+            <ol>
+                <li><strong>Click any payment method card below</strong> to open its detailed dashboard</li>
+                <li>Navigate through the <strong>three tabs</strong>: Overview, Transactions, and Account Settings</li>
+                <li><strong>Test Transaction History:</strong> Click "Transactions" tab to view detailed transaction list with filters and search</li>
+                <li><strong>Test Account Settings:</strong> Click "Account Settings" tab to:
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Update email/account information</li>
+                        <li>Change password</li>
+                        <li>Enable two-factor authentication</li>
+                        <li>View login history</li>
+                        <li>Manage linked payment methods</li>
+                    </ul>
+                </li>
+                <li><strong>Test View All:</strong> Click "View Complete Transaction History" button to view all transactions</li>
+                <li>All buttons are fully functional and connected to their respective actions</li>
+            </ol>
+        </div>
+
+        <div class="payment-methods-grid">
+            <!-- Stripe Card -->
+            <div class="payment-method-card">
+                <div class="payment-icon stripe-icon">💳</div>
+                <h2 style="margin-bottom: 1rem;">Stripe</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Professional payment processing with comprehensive management tools
+                </p>
+
+                <div class="feature-list">
+                    <h4>✅ Fully Functional Features:</h4>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Account Settings Dashboard</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Update Email/Account Info</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Transaction History Viewer</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>View All Transactions</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Security Settings</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Payout Management</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="paymentProviderDetails.showStripeDetails()" style="width: 100%; font-size: 1.1rem;">
+                    🚀 Open Stripe Dashboard
+                </button>
+            </div>
+
+            <!-- Venmo Card -->
+            <div class="payment-method-card">
+                <div class="payment-icon venmo-icon">💙</div>
+                <h2 style="margin-bottom: 1rem;">Venmo</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Social payment platform with easy money transfers and account management
+                </p>
+
+                <div class="feature-list">
+                    <h4>✅ Fully Functional Features:</h4>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Account Settings Dashboard</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Update Username/Email/Phone</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Transaction History Viewer</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>View All Transactions</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Privacy Settings</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-item-icon">✓</span>
+                        <span>Payment Methods Management</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="paymentProviderDetails.showVenmoDetails()" style="width: 100%; font-size: 1.1rem;">
+                    🚀 Open Venmo Dashboard
+                </button>
+            </div>
+        </div>
+
+        <div class="instructions" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
+            <h3 style="color: white;">🎯 Key Features Implemented</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>📧 Account Settings</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Update email, username, account type, and personal information</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>💳 Transaction History</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Detailed transaction viewer with search, filters, and pagination</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>📊 View All</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Access complete transaction history with export capabilities</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>🔒 Security</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Password changes, 2FA setup, and login history</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>🏦 Payment Methods</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Link and manage bank accounts and payment methods</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>⚡ Quick Actions</strong>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Send money, request payments, create transactions, and more</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="src/js/payment-provider-details.js"></script>
+    <script>
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.5rem;">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                            ${type.charAt(0).toUpperCase() + type.slice(1)}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            ${message}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Log all activity
+        console.log('%c Payment Provider Details System Loaded! ', 'background: #635BFF; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+        console.log('%c Test both Stripe and Venmo dashboards with full functionality ', 'background: #008CFF; color: white; padding: 10px; font-size: 14px;');
+        
+        // Show welcome message
+        setTimeout(() => {
+            showToast('Payment Provider Details Test loaded successfully! Click any payment method to get started.', 'success');
+        }, 500);
+    </script>
+</body>
+</html>

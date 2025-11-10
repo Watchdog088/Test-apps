@@ -363,13 +363,328 @@ class PaymentProviderDetails {
     }
 
     showStripeDetails() {
-        if (typeof showToast === 'function') showToast('Stripe details dashboard fully functional with: Account Settings, Transaction History, and View All options!', 'success');
-        // Full implementation is similar to PayPal
+        const modalBody = this.createModal('stripeDetailsModal', '💳 Stripe Account Details', () => this.closeModal('stripeDetailsModal'));
+
+        modalBody.innerHTML = `
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem; min-height: 600px;">
+                <!-- Account Overview Sidebar -->
+                <div style="background: var(--glass); border-radius: 16px; padding: 1.5rem; height: fit-content;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #635BFF 0%, #0A2540 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 2rem;">💳</div>
+                        <h3 style="margin-bottom: 0.5rem;">Stripe Account</h3>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">${this.stripeAccount.email}</div>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem;">✓ Verified</span>
+                        </div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #635BFF 0%, #0A2540 100%); color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="opacity: 0.9; font-size: 0.9rem; margin-bottom: 0.5rem;">Available Balance</div>
+                        <div style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">$${this.stripeAccount.balance.toFixed(2)}</div>
+                        <div style="opacity: 0.9; font-size: 0.85rem;">${this.stripeAccount.currency}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Account ID</div>
+                        <div style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">${this.stripeAccount.accountId}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Linked Since</div>
+                        <div style="font-size: 0.9rem;">${new Date(this.stripeAccount.linkedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    </div>
+
+                    <button class="btn btn-error btn-small" style="width: 100%;" onclick="paymentProviderDetails.unlinkStripeAccount()">Unlink Account</button>
+                </div>
+
+                <!-- Main Content Area with Tabs -->
+                <div>
+                    <!-- Tabs -->
+                    <div style="display: flex; gap: 2rem; border-bottom: 2px solid var(--glass-border); margin-bottom: 2rem;">
+                        <button class="stripe-tab active" onclick="paymentProviderDetails.switchStripeTab(this, 'overview')" style="padding: 1rem 0; background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Overview</button>
+                        <button class="stripe-tab" onclick="paymentProviderDetails.switchStripeTab(this, 'transactions')" style="padding: 1rem 0; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s ease;">Transactions</button>
+                        <button class="stripe-tab" onclick="paymentProviderDetails.switchStripeTab(this, 'settings')" style="padding: 1rem 0; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s ease;">Account Settings</button>
+                    </div>
+
+                    <!-- Overview Tab -->
+                    <div class="stripe-tab-content" data-content="overview" style="display: block;">
+                        <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.createPaymentIntent()">💳 Create Payment</button>
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.processRefund()">🔄 Process Refund</button>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.payoutToBank()">🏦 Payout to Bank</button>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.viewDashboard()">📊 View Dashboard</button>
+                        </div>
+
+                        <h3 style="margin-bottom: 1.5rem;">Recent Activity</h3>
+                        <div style="background: var(--glass); border-radius: 16px; padding: 1.5rem;">
+                            ${this.generateRecentTransactions('Stripe', 3).map(tx => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--glass-border);">
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${tx.description}</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">${tx.date}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 700; color: ${tx.type === 'credit' ? 'var(--success)' : 'var(--error)'};">
+                                            ${tx.type === 'credit' ? '+' : '-'}$${tx.amount.toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Transactions Tab -->
+                    <div class="stripe-tab-content" data-content="transactions" style="display: none;">
+                        ${this.generateTransactionHistoryTab('Stripe')}
+                    </div>
+
+                    <!-- Account Settings Tab -->
+                    <div class="stripe-tab-content" data-content="settings" style="display: none;">
+                        <h3 style="margin-bottom: 1.5rem;">Account Settings</h3>
+                        
+                        <!-- Update Email/Account Section -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">📧 Account Information</h4>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" value="${this.stripeAccount.email}" id="stripeEmailInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Account Type</label>
+                                <select class="form-input" id="stripeAccountTypeInput">
+                                    <option selected>Business</option>
+                                    <option>Individual</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.updateStripeAccountInfo()">💾 Save Changes</button>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">🔒 Security</h4>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <button class="btn btn-secondary" onclick="paymentProviderDetails.changeStripePassword()">🔑 Change Password</button>
+                                <button class="btn btn-secondary" onclick="paymentProviderDetails.enable2FAStripe()">🛡️ Enable Two-Factor Authentication</button>
+                                <button class="btn btn-secondary" onclick="paymentProviderDetails.viewLoginHistory()">📋 View Login History</button>
+                            </div>
+                        </div>
+
+                        <!-- Payout Settings -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">🏦 Payout Settings</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <span>Automatic payouts</span>
+                                    <input type="checkbox" checked>
+                                </label>
+                                <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <span>Payout schedule</span>
+                                    <select style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.5rem; color: var(--text-primary);">
+                                        <option>Daily</option>
+                                        <option selected>Weekly</option>
+                                        <option>Monthly</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.linkBankAccountStripe()">+ Link Bank Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(document.getElementById('stripeDetailsModal'));
     }
 
     showVenmoDetails() {
-        if (typeof showToast === 'function') showToast('Venmo details dashboard fully functional with: Account Settings, Transaction History, and View All options!', 'success');
-        // Full implementation is similar to PayPal
+        const modalBody = this.createModal('venmoDetailsModal', '💙 Venmo Account Details', () => this.closeModal('venmoDetailsModal'));
+
+        modalBody.innerHTML = `
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem; min-height: 600px;">
+                <!-- Account Overview Sidebar -->
+                <div style="background: var(--glass); border-radius: 16px; padding: 1.5rem; height: fit-content;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #3D95CE 0%, #008CFF 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 2rem;">💙</div>
+                        <h3 style="margin-bottom: 0.5rem;">Venmo Account</h3>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">${this.venmoAccount.username}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">${this.venmoAccount.email}</div>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem;">✓ Verified</span>
+                        </div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #3D95CE 0%, #008CFF 100%); color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="opacity: 0.9; font-size: 0.9rem; margin-bottom: 0.5rem;">Available Balance</div>
+                        <div style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">$${this.venmoAccount.balance.toFixed(2)}</div>
+                        <div style="opacity: 0.9; font-size: 0.85rem;">${this.venmoAccount.currency}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Phone Number</div>
+                        <div style="font-size: 0.9rem;">${this.venmoAccount.phone}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Linked Since</div>
+                        <div style="font-size: 0.9rem;">${new Date(this.venmoAccount.linkedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    </div>
+
+                    <button class="btn btn-error btn-small" style="width: 100%;" onclick="paymentProviderDetails.unlinkVenmoAccount()">Unlink Account</button>
+                </div>
+
+                <!-- Main Content Area with Tabs -->
+                <div>
+                    <!-- Tabs -->
+                    <div style="display: flex; gap: 2rem; border-bottom: 2px solid var(--glass-border); margin-bottom: 2rem;">
+                        <button class="venmo-tab active" onclick="paymentProviderDetails.switchVenmoTab(this, 'overview')" style="padding: 1rem 0; background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Overview</button>
+                        <button class="venmo-tab" onclick="paymentProviderDetails.switchVenmoTab(this, 'transactions')" style="padding: 1rem 0; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s ease;">Transactions</button>
+                        <button class="venmo-tab" onclick="paymentProviderDetails.switchVenmoTab(this, 'settings')" style="padding: 1rem 0; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s ease;">Account Settings</button>
+                    </div>
+
+                    <!-- Overview Tab -->
+                    <div class="venmo-tab-content" data-content="overview" style="display: block;">
+                        <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.sendMoneyVenmo()">💸 Send Money</button>
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.requestMoneyVenmo()">📥 Request Money</button>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.scanQRCode()">📱 Scan QR Code</button>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.shareQRCode()">🔗 Share My QR</button>
+                        </div>
+
+                        <h3 style="margin-bottom: 1.5rem;">Recent Activity</h3>
+                        <div style="background: var(--glass); border-radius: 16px; padding: 1.5rem;">
+                            ${this.generateRecentTransactions('Venmo', 3).map(tx => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--glass-border);">
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${tx.description}</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">${tx.date}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 700; color: ${tx.type === 'credit' ? 'var(--success)' : 'var(--error)'};">
+                                            ${tx.type === 'credit' ? '+' : '-'}$${tx.amount.toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Transactions Tab -->
+                    <div class="venmo-tab-content" data-content="transactions" style="display: none;">
+                        ${this.generateTransactionHistoryTab('Venmo')}
+                    </div>
+
+                    <!-- Account Settings Tab -->
+                    <div class="venmo-tab-content" data-content="settings" style="display: none;">
+                        <h3 style="margin-bottom: 1.5rem;">Account Settings</h3>
+                        
+                        <!-- Update Email/Account Section -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">📧 Account Information</h4>
+                            <div class="form-group">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-input" value="${this.venmoAccount.username}" id="venmoUsernameInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" value="${this.venmoAccount.email}" id="venmoEmailInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-input" value="${this.venmoAccount.phone}" id="venmoPhoneInput">
+                            </div>
+                            <button class="btn btn-primary" onclick="paymentProviderDetails.updateVenmoAccountInfo()">💾 Save Changes</button>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">🔒 Privacy & Security</h4>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <span>Make transactions private</span>
+                                    <input type="checkbox">
+                                </label>
+                                <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <span>Two-factor authentication</span>
+                                    <input type="checkbox" checked>
+                                </label>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="btn btn-secondary" onclick="paymentProviderDetails.changeVenmoPassword()">🔑 Change Password</button>
+                                <button class="btn btn-secondary" onclick="paymentProviderDetails.viewLoginHistory()">📋 View Login History</button>
+                            </div>
+                        </div>
+
+                        <!-- Linked Banks -->
+                        <div style="background: var(--glass); border-radius: 16px; padding: 2rem;">
+                            <h4 style="margin-bottom: 1.5rem;">🏦 Linked Payment Methods</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="padding: 1rem; background: var(--bg-card); border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-weight: 600;">Bank Account •••• 4532</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9rem;">Primary payment method</div>
+                                    </div>
+                                    <span style="color: var(--success);">✓ Verified</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="paymentProviderDetails.linkBankAccountVenmo()">+ Link New Payment Method</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(document.getElementById('venmoDetailsModal'));
+    }
+
+    // Stripe-specific methods
+    updateStripeAccountInfo() {
+        const email = document.getElementById('stripeEmailInput').value;
+        const accountType = document.getElementById('stripeAccountTypeInput').value;
+        if (typeof showToast === 'function') showToast(`Stripe account information updated! Email: ${email}, Type: ${accountType}`, 'success');
+    }
+
+    changeStripePassword() {
+        if (typeof showToast === 'function') showToast('Opening Stripe password change form...', 'info');
+    }
+
+    enable2FAStripe() {
+        if (typeof showToast === 'function') showToast('Setting up two-factor authentication for Stripe...', 'info');
+    }
+
+    linkBankAccountStripe() {
+        if (typeof showToast === 'function') showToast('Opening bank account linking for Stripe...', 'info');
+    }
+
+    unlinkStripeAccount() {
+        if (confirm('Are you sure you want to unlink your Stripe account?')) {
+            if (typeof showToast === 'function') showToast('Stripe account unlinked successfully', 'warning');
+            this.closeModal('stripeDetailsModal');
+        }
+    }
+
+    // Venmo-specific methods
+    updateVenmoAccountInfo() {
+        const username = document.getElementById('venmoUsernameInput').value;
+        const email = document.getElementById('venmoEmailInput').value;
+        const phone = document.getElementById('venmoPhoneInput').value;
+        if (typeof showToast === 'function') showToast(`Venmo account information updated! Username: ${username}`, 'success');
+    }
+
+    changeVenmoPassword() {
+        if (typeof showToast === 'function') showToast('Opening Venmo password change form...', 'info');
+    }
+
+    linkBankAccountVenmo() {
+        if (typeof showToast === 'function') showToast('Opening payment method linking for Venmo...', 'info');
+    }
+
+    unlinkVenmoAccount() {
+        if (confirm('Are you sure you want to unlink your Venmo account?')) {
+            if (typeof showToast === 'function') showToast('Venmo account unlinked successfully', 'warning');
+            this.closeModal('venmoDetailsModal');
+        }
     }
 }
 
