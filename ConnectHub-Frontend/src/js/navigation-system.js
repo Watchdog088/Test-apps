@@ -741,15 +741,30 @@ function closeDataExportModal() {
 // ============================================================================
 
 function swipeCard(direction) {
-    showToast(direction === 'right' ? 'Liked!' : 'Passed', 'success');
+    // Use enhanced version if available
+    if (typeof enhancedSwipeCard === 'function') {
+        enhancedSwipeCard(direction);
+    } else {
+        showToast(direction === 'right' ? 'Liked!' : 'Passed', 'success');
+    }
 }
 
 function superLike() {
-    showToast('Super Liked!', 'success');
+    // Use enhanced version if available  
+    if (typeof enhancedSwipeCard === 'function') {
+        enhancedSwipeCard('up');
+    } else {
+        showToast('Super Liked!', 'success');
+    }
 }
 
 function rewindSwipe() {
-    showToast('Rewind feature - UI Available', 'info');
+    // Use enhanced version if available
+    if (typeof enhancedRewindSwipe === 'function') {
+        enhancedRewindSwipe();
+    } else {
+        showToast('Rewind feature - UI Available', 'info');
+    }
 }
 
 function openBoostProfile() {

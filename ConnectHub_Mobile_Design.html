@@ -2396,20 +2396,32 @@
                 <!-- AR Filters -->
                 <div class="section-header">
                     <div class="section-title">AR Face Filters</div>
-                    <div class="section-link" onclick="window.arVR.openARCamera()">Open AR Camera</div>
+                    <div class="section-link" onclick="window.arVR.openARCamera()" style="cursor: pointer; transition: all 0.2s;">Open AR Camera</div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
-                    <div class="card" onclick="window.arVR.applyFaceFilter('Puppy Ears')" style="text-align: center; padding: 16px; cursor: pointer;">
+                    <div class="card ar-filter" data-filter="Puppy Ears" onclick="window.arVR.applyFaceFilter('Puppy Ears')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="font-size: 40px; margin-bottom: 8px;">🐶</div>
                         <div style="font-size: 12px; font-weight: 600;">Puppy Ears</div>
                     </div>
-                    <div class="card" onclick="window.arVR.applyFaceFilter('Sparkles')" style="text-align: center; padding: 16px; cursor: pointer;">
+                    <div class="card ar-filter" data-filter="Sparkles" onclick="window.arVR.applyFaceFilter('Sparkles')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="font-size: 40px; margin-bottom: 8px;">✨</div>
                         <div style="font-size: 12px; font-weight: 600;">Sparkles</div>
                     </div>
-                    <div class="card" onclick="window.arVR.applyFaceFilter('Crown')" style="text-align: center; padding: 16px; cursor: pointer;">
+                    <div class="card ar-filter" data-filter="Crown" onclick="window.arVR.applyFaceFilter('Crown')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="font-size: 40px; margin-bottom: 8px;">👑</div>
                         <div style="font-size: 12px; font-weight: 600;">Crown</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Rainbow" onclick="window.arVR.applyFaceFilter('Rainbow')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">🌈</div>
+                        <div style="font-size: 12px; font-weight: 600;">Rainbow</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Sunglasses" onclick="window.arVR.applyFaceFilter('Sunglasses')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">😎</div>
+                        <div style="font-size: 12px; font-weight: 600;">Sunglasses</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Heart Eyes" onclick="window.arVR.applyFaceFilter('Heart Eyes')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">😍</div>
+                        <div style="font-size: 12px; font-weight: 600;">Heart Eyes</div>
                     </div>
                 </div>
 
@@ -2417,7 +2429,7 @@
                 <div class="section-header">
                     <div class="section-title">Virtual Rooms</div>
                 </div>
-                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Beach Paradise')">
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Beach Paradise')" style="cursor: pointer; transition: all 0.2s;">
                     <div class="list-item-icon">🏖️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Beach Paradise</div>
@@ -2426,11 +2438,29 @@
                     <div class="list-item-arrow">→</div>
                 </div>
 
-                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Space Station')">
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Space Station')" style="cursor: pointer; transition: all 0.2s;">
                     <div class="list-item-icon">🚀</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Space Station</div>
                         <div class="list-item-subtitle">Zero gravity experience</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Mountain Lodge')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">⛰️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mountain Lodge</div>
+                        <div class="list-item-subtitle">Alpine retreat experience</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Underwater World')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">🌊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Underwater World</div>
+                        <div class="list-item-subtitle">Ocean deep dive experience</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -2440,14 +2470,14 @@
                     <div class="section-title">More Features</div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.play360Video('Nature Documentary')">🎬 360° Videos</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.enterVirtualShop()">🛍️ Virtual Shop</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.launchARGame('Treasure Hunt')">🎮 AR Games</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.startVRMeditation('Forest')">🧘 VR Meditation</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('createCustomARFilter')">🎨 Custom Filter</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('connectVRHeadset')">🥽 VR Headset</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.enableSpatialAudio()">🎧 Spatial Audio</button>
-                    <button class="btn" style="background: var(--glass);" onclick="window.arVR.enableHandTracking()">👋 Hand Tracking</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.play360Video('Nature Documentary')">🎬 360° Videos</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enterVirtualShop()">🛍️ Virtual Shop</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.launchARGame('Treasure Hunt')">🎮 AR Games</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.startVRMeditation('Forest')">🧘 VR Meditation</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="createCustomARFilter()">🎨 Custom Filter</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="connectVRHeadsetPrompt()">🥽 VR Headset</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableSpatialAudio()">🎧 Spatial Audio</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableHandTracking()">👋 Hand Tracking</button>
                 </div>
             </div>
 
@@ -7367,6 +7397,215 @@
             </div>
         </div>
 
+        <!-- VIDEO CALLS MODALS START -->
+        
+        <!-- Select Contact For Video Call Modal -->
+        <div id="selectContactForCallModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectContactForCall')">✕</div>
+                <div class="modal-title">📹 Start Video Call</div>
+            </div>
+            <div class="modal-content">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search contacts..." />
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Contacts</div>
+                </div>
+                <div class="friend-card" onclick="initiateVideoCall('Sarah Johnson', '👤')">
+                    <div class="friend-avatar">👤</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Sarah Johnson</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+                <div class="friend-card" onclick="initiateVideoCall('Mike Chen', '😊')">
+                    <div class="friend-avatar">😊</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Mike Chen</div>
+                        <div class="friend-mutual">Active 2h ago</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+                <div class="friend-card" onclick="initiateVideoCall('Emily Rodriguez', '🎨')">
+                    <div class="friend-avatar">🎨</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Emily Rodriguez</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Contact For Voice Call Modal -->
+        <div id="selectContactForVoiceCallModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectContactForVoiceCall')">✕</div>
+                <div class="modal-title">📞 Start Voice Call</div>
+            </div>
+            <div class="modal-content">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search contacts..." />
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Contacts</div>
+                </div>
+                <div class="friend-card" onclick="initiateVoiceCall('Sarah Johnson', '👤')">
+                    <div class="friend-avatar">👤</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Sarah Johnson</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+                <div class="friend-card" onclick="initiateVoiceCall('Mike Chen', '😊')">
+                    <div class="friend-avatar">😊</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Mike Chen</div>
+                        <div class="friend-mutual">Active 2h ago</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+                <div class="friend-card" onclick="initiateVoiceCall('Emily Rodriguez', '🎨')">
+                    <div class="friend-avatar">🎨</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Emily Rodriguez</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Call</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Call Participant Modal -->
+        <div id="addCallParticipantModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('addCallParticipant')">✕</div>
+                <div class="modal-title">👥 Add People to Call</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Add People</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Invite more people to this call</div>
+                </div>
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search contacts..." />
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Suggested</div>
+                </div>
+                <div class="friend-card" onclick="addPersonToCall('David Kim')">
+                    <div class="friend-avatar">🚀</div>
+                    <div class="friend-info">
+                        <div class="friend-name">David Kim</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Add</button>
+                </div>
+                <div class="friend-card" onclick="addPersonToCall('Jessica Lee')">
+                    <div class="friend-avatar">🎭</div>
+                    <div class="friend-info">
+                        <div class="friend-name">Jessica Lee</div>
+                        <div class="friend-mutual">Online</div>
+                    </div>
+                    <button class="friend-btn primary">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Virtual Backgrounds Modal -->
+        <div id="virtualBackgroundsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('virtualBackgrounds')">✕</div>
+                <div class="modal-title">🎨 Virtual Backgrounds</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎨</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Choose Background</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Select or upload a virtual background</div>
+                </div>
+                <div class="section-header">
+                    <div class="section-title">Options</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div onclick="selectVirtualBackground('None')" style="aspect-ratio: 16/9; background: var(--glass); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🚫</div>
+                        <div style="font-size: 13px; font-weight: 600;">None</div>
+                    </div>
+                    <div onclick="selectVirtualBackground('Blur')" style="aspect-ratio: 16/9; background: radial-gradient(circle, rgba(255,255,255,0.1), rgba(0,0,0,0.5)); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">◎</div>
+                        <div style="font-size: 13px; font-weight: 600;">Blur</div>
+                    </div>
+                    <div onclick="selectVirtualBackground('Office')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, #4a5568, #718096); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏢</div>
+                        <div style="font-size: 13px; font-weight: 600;">Office</div>
+                    </div>
+                    <div onclick="selectVirtualBackground('Beach')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, #06b6d4, #3b82f6); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏖️</div>
+                        <div style="font-size: 13px; font-weight: 600;">Beach</div>
+                    </div>
+                    <div onclick="selectVirtualBackground('Space')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, #1e1b4b, #312e81); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🚀</div>
+                        <div style="font-size: 13px; font-weight: 600;">Space</div>
+                    </div>
+                    <div onclick="selectVirtualBackground('Mountain')" style="aspect-ratio: 16/9; background: linear-gradient(135deg, #059669, #10b981); border: 2px solid var(--glass-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 16px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏔️</div>
+                        <div style="font-size: 13px; font-weight: 600;">Mountain</div>
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-bottom: 12px;" onclick="uploadCustomBackground()">
+                    📤 Upload Custom
+                </button>
+            </div>
+        </div>
+
+        <!-- Schedule Video Call Modal -->
+        <div id="scheduleVideoCallModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('scheduleVideoCall')">✕</div>
+                <div class="modal-title">📅 Schedule Call</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Schedule Video Call</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Plan a call for later</div>
+                </div>
+                <input type="text" class="input-field" placeholder="Call title..." id="scheduleCallTitle" />
+                <input type="date" class="input-field" id="scheduleCallDate" />
+                <input type="time" class="input-field" id="scheduleCallTime" />
+                <div class="list-item" onclick="openModal('selectCallParticipants')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Add Participants</div>
+                        <div class="list-item-subtitle" id="scheduledParticipantsCount">0 selected</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <button class="btn" onclick="createScheduledCall()">
+                    📅 Schedule Call
+                </button>
+                <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-title">Upcoming Calls</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-item-icon">📹</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Team Meeting</div>
+                        <div class="list-item-subtitle">Tomorrow at 2:00 PM • 3 participants</div>
+                    </div>
+                    <button class="nav-btn" onclick="cancelScheduledVideoCall('Team Meeting')">✕</button>
+                </div>
+            </div>
+        </div>
+
         <!-- File Picker Modal -->
         <div id="filePickerModal" class="modal">
             <div class="modal-header">
@@ -11705,6 +11944,688 @@
             
             closeModal('recordingQuality');
             showToast(`Recording quality set to ${quality}`);
+        }
+
+        // ========== AR/VR CUSTOM FEATURES ==========
+        
+        // Create custom AR filter
+        function createCustomARFilter() {
+            const modalHTML = `
+                <div id="createCustomARFilterModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('createCustomARFilter')">✕</div>
+                        <div class="modal-title">🎨 Create Custom Filter</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎨</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Design Your Filter</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Create a unique AR filter</div>
+                        </div>
+                        
+                        <input type="text" class="input-field" placeholder="Filter name..." id="customFilterName" />
+                        
+                        <div class="section-header">
+                            <div class="section-title">Choose Style</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                            <div onclick="selectFilterStyle('Face', this)" style="padding: 16px; background: var(--glass); border: 2px solid var(--glass-border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">👤</div>
+                                <div style="font-size: 12px; font-weight: 600;">Face</div>
+                            </div>
+                            <div onclick="selectFilterStyle('Color', this)" style="padding: 16px; background: var(--glass); border: 2px solid var(--glass-border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🎨</div>
+                                <div style="font-size: 12px; font-weight: 600;">Color</div>
+                            </div>
+                            <div onclick="selectFilterStyle('Effect', this)" style="padding: 16px; background: var(--glass); border: 2px solid var(--glass-border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
+                                <div style="font-size: 12px; font-weight: 600;">Effect</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="saveCustomFilter()">Create Filter</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Opening filter creator... 🎨');
+        }
+        
+        // Select filter style
+        function selectFilterStyle(style, element) {
+            const modal = document.getElementById('createCustomARFilterModal');
+            modal.querySelectorAll('div[onclick*="selectFilterStyle"]').forEach(item => {
+                item.style.borderColor = 'var(--glass-border)';
+            });
+            element.style.borderColor = 'var(--primary)';
+            showToast(`Style: ${style}`);
+        }
+        
+        // Save custom filter
+        function saveCustomFilter() {
+            const name = document.getElementById('customFilterName').value;
+            if (!name.trim()) {
+                showToast('Please enter a filter name');
+                return;
+            }
+            
+            closeModal('createCustomARFilter');
+            showToast(`Creating filter: ${name}... 🎨`);
+            
+            setTimeout(() => {
+                showToast('Custom filter created successfully! ✓');
+            }, 1500);
+        }
+        
+        // Connect VR headset prompt
+        function connectVRHeadsetPrompt() {
+            const modalHTML = `
+                <div id="connectVRHeadsetModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('connectVRHeadset')">✕</div>
+                        <div class="modal-title">🥽 Connect VR Headset</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🥽</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">VR Headset Setup</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Connect your VR device</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Available Devices</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="connectVRDevice('Meta Quest 3')">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🥽</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Meta Quest 3</div>
+                                <div class="list-item-subtitle">Wireless VR headset</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="connectVRDevice('PlayStation VR2')">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎮</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">PlayStation VR2</div>
+                                <div class="list-item-subtitle">Console VR system</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="connectVRDevice('HTC Vive')">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🔵</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">HTC Vive</div>
+                                <div class="list-item-subtitle">PC VR headset</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="connectVRDevice('Apple Vision Pro')">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), var(--primary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🍎</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Apple Vision Pro</div>
+                                <div class="list-item-subtitle">Mixed reality headset</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="scanForVRDevices()">
+                            🔍 Scan for Devices
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Opening VR headset connection... 🥽');
+        }
+        
+        // Connect VR device
+        function connectVRDevice(deviceName) {
+            closeModal('connectVRHeadset');
+            showToast(`Connecting to ${deviceName}... 🥽`);
+            
+            setTimeout(() => {
+                showToast(`✓ Connected to ${deviceName}!`);
+            }, 2000);
+        }
+        
+        // Scan for VR devices
+        function scanForVRDevices() {
+            showToast('Scanning for VR devices... 🔍');
+            
+            setTimeout(() => {
+                showToast('Scan complete! Found 2 devices');
+            }, 2000);
+        }
+        
+        // ========== VIDEO CALLS FUNCTIONS ==========
+        
+        // Initialize video calls module (to be called from ConnectHub_Mobile_Design_Media_Hub.js)
+        window.videoCalls = window.videoCalls || {};
+        
+        // Initiate video call with selected contact
+        function initiateVideoCall(name, emoji) {
+            closeModal('selectContactForCall');
+            showToast(`📹 Starting video call with ${name}...`);
+            
+            // Simulate call connecting
+            setTimeout(() => {
+                openModal('videoCall');
+                document.getElementById('callStatus').textContent = 'Ringing...';
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('callStatus').textContent = 'Connected';
+                showToast(`Connected with ${name}! 📹`);
+            }, 2500);
+        }
+        
+        // Initiate voice call with selected contact
+        function initiateVoiceCall(name, emoji) {
+            closeModal('selectContactForVoiceCall');
+            showToast(`📞 Starting voice call with ${name}...`);
+            
+            // Simulate call connecting
+            setTimeout(() => {
+                openModal('phoneCall');
+                document.getElementById('phoneCallStatus').textContent = 'Ringing...';
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('phoneCallStatus').textContent = 'Connected';
+                showToast(`Connected with ${name}! 📞`);
+            }, 2500);
+        }
+        
+        // Add person to call
+        function addPersonToCall(name) {
+            closeModal('addCallParticipant');
+            showToast(`Adding ${name} to the call... 👥`);
+            
+            setTimeout(() => {
+                showToast(`${name} has been added to the call! ✓`);
+            }, 1000);
+        }
+        
+        // Select virtual background
+        function selectVirtualBackground(background) {
+            closeModal('virtualBackgrounds');
+            showToast(`Background set to: ${background} 🎨`);
+            
+            setTimeout(() => {
+                showToast('Virtual background applied! ✓');
+            }, 800);
+        }
+        
+        // Upload custom background
+        function uploadCustomBackground() {
+            closeModal('virtualBackgrounds');
+            showToast('Opening file picker... 📤');
+            
+            setTimeout(() => {
+                showToast('Select an image for your virtual background');
+            }, 800);
+            
+            setTimeout(() => {
+                showToast('Custom background uploaded successfully! ✓');
+            }, 2500);
+        }
+        
+        // Create scheduled call
+        function createScheduledCall() {
+            const title = document.getElementById('scheduleCallTitle').value;
+            const date = document.getElementById('scheduleCallDate').value;
+            const time = document.getElementById('scheduleCallTime').value;
+            
+            if (!title || !date || !time) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+            
+            closeModal('scheduleVideoCall');
+            showToast('Call scheduled successfully! 📅');
+            
+            setTimeout(() => {
+                showToast(`${title} scheduled for ${date} at ${time}`);
+            }, 1500);
+            
+            // Clear the form
+            document.getElementById('scheduleCallTitle').value = '';
+            document.getElementById('scheduleCallDate').value = '';
+            document.getElementById('scheduleCallTime').value = '';
+        }
+        
+        // Cancel scheduled video call
+        function cancelScheduledVideoCall(title) {
+            showToast(`Cancelled: ${title}`);
+            
+            setTimeout(() => {
+                showToast('Scheduled call removed from calendar');
+            }, 1000);
+        }
+        
+        // Toggle screen share (for video calls)
+        window.videoCalls.toggleScreenShare = function() {
+            showToast('Opening screen share options... 🖥️');
+            
+            // Create screen share modal
+            const modalHTML = `
+                <div id="screenShareModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeScreenShare()">✕</div>
+                        <div class="modal-title">🖥️ Screen Share</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🖥️</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Share Your Screen</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Choose what to share</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Screen Share Options</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="startScreenShare('entire')">
+                            <div class="list-item-icon">🖥️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Share Entire Screen</div>
+                                <div class="list-item-subtitle">Share everything visible</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="startScreenShare('window')">
+                            <div class="list-item-icon">🪟</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Share Application Window</div>
+                                <div class="list-item-subtitle">Share specific app</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="startScreenShare('tab')">
+                            <div class="list-item-icon">📑</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Share Browser Tab</div>
+                                <div class="list-item-subtitle">Share specific tab</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Settings</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Share Audio</div>
+                                <div class="list-item-subtitle">Include system audio</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Show Cursor</div>
+                                <div class="list-item-subtitle">Display mouse pointer</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        };
+        
+        // Close screen share modal
+        function closeScreenShare() {
+            const modal = document.getElementById('screenShareModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Start screen share
+        function startScreenShare(type) {
+            closeScreenShare();
+            
+            const types = {
+                'entire': 'Entire Screen',
+                'window': 'Application Window',
+                'tab': 'Browser Tab'
+            };
+            
+            showToast(`Sharing ${types[type]}... 🖥️`);
+            
+            setTimeout(() => {
+                showToast('Screen sharing started! ✓');
+            }, 1000);
+        }
+        
+        // Toggle call recording
+        window.videoCalls.toggleCallRecording = function() {
+            showToast('Opening recording options... 🔴');
+            
+            // Create call recording modal
+            const modalHTML = `
+                <div id="callRecordingModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeCallRecording()">✕</div>
+                        <div class="modal-title">🔴 Call Recording</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎥</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Record This Call</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Save this conversation for later</div>
+                        </div>
+                        
+                        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">⚠️ Important</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                All participants will be notified when recording starts. Make sure to get consent before recording.
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recording Quality</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="selectCallRecordingQuality('720p HD', this)">
+                            <div class="list-item-content">
+                                <div class="list-item-title">720p HD</div>
+                                <div class="list-item-subtitle">Standard quality • ~100 MB/10min</div>
+                            </div>
+                        </div>
+                        <div class="list-item" onclick="selectCallRecordingQuality('1080p Full HD', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                            <div class="list-item-content">
+                                <div class="list-item-title">1080p Full HD</div>
+                                <div class="list-item-subtitle">High quality • ~200 MB/10min</div>
+                            </div>
+                            <div style="color: var(--primary); font-weight: 600;">✓</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Record Audio</div>
+                                <div class="list-item-subtitle">Include call audio</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Auto-Save</div>
+                                <div class="list-item-subtitle">Save automatically after call</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="startCallRecording()">
+                            🔴 Start Recording
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        };
+        
+        // Close call recording modal
+        function closeCallRecording() {
+            const modal = document.getElementById('callRecordingModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Select call recording quality
+        function selectCallRecordingQuality(quality, element) {
+            // Remove selection from all items in modal
+            const modal = document.getElementById('callRecordingModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Recording quality: ${quality}`);
+        }
+        
+        // Start call recording
+        function startCallRecording() {
+            closeCallRecording();
+            showToast('🔴 Recording started...');
+            
+            setTimeout(() => {
+                showToast('All participants have been notified');
+            }, 1000);
+        }
+        
+        // View call history
+        window.videoCalls.viewCallHistory = function() {
+            // Create call history modal
+            const modalHTML = `
+                <div id="callHistoryModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeCallHistory()">✕</div>
+                        <div class="modal-title">📋 Call History</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📋</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Call History</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Your recent calls</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">23</div>
+                                <div class="stat-label">Total Calls</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">5h 12m</div>
+                                <div class="stat-label">Call Time</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Video Calls</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Voice Calls</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recent Calls</div>
+                            <div class="section-link" onclick="filterCallHistory()">Filter</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="callBackContact('Sarah Johnson', 'video')">
+                            <div class="list-item-icon">📹</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sarah Johnson</div>
+                                <div class="list-item-subtitle">Video Call • 15 minutes • 2h ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); callBackContact('Sarah Johnson', 'video')">📹</button>
+                        </div>
+                        
+                        <div class="list-item" onclick="callBackContact('Mike Chen', 'voice')">
+                            <div class="list-item-icon">📞</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mike Chen</div>
+                                <div class="list-item-subtitle">Voice Call • 8 minutes • 5h ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); callBackContact('Mike Chen', 'voice')">📞</button>
+                        </div>
+                        
+                        <div class="list-item" onclick="viewCallDetails('Emily Rodriguez')">
+                            <div class="list-item-icon">📹</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Emily Rodriguez</div>
+                                <div class="list-item-subtitle">Video Call • 23 minutes • Yesterday</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" style="opacity: 0.6;">
+                            <div class="list-item-icon">📞</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">David Kim</div>
+                                <div class="list-item-subtitle">Missed Call • 2 days ago</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); callBackContact('David Kim', 'voice')">📞</button>
+                        </div>
+                        
+                        <div class="list-item" onclick="viewCallDetails('Jessica Lee')">
+                            <div class="list-item-icon">📹</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Jessica Lee</div>
+                                <div class="list-item-subtitle">Video Call • 35 minutes • 3 days ago</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="exportCallHistory()">
+                            📊 Export History
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Loading call history... 📋');
+        };
+        
+        // Close call history
+        function closeCallHistory() {
+            const modal = document.getElementById('callHistoryModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Call back a contact
+        function callBackContact(name, type) {
+            closeCallHistory();
+            
+            if (type === 'video') {
+                initiateVideoCall(name, '👤');
+            } else {
+                initiateVoiceCall(name, '👤');
+            }
+        }
+        
+        // View call details
+        function viewCallDetails(name) {
+            showToast(`Viewing call details for ${name}... 📊`);
+            
+            // Create call details modal
+            setTimeout(() => {
+                const modalHTML = `
+                    <div id="callDetailsModal" class="modal show">
+                        <div class="modal-header">
+                            <div class="modal-close" onclick="closeCallDetails()">✕</div>
+                            <div class="modal-title">Call Details</div>
+                        </div>
+                        <div class="modal-content">
+                            <div style="text-align: center; margin: 20px 0;">
+                                <div class="post-avatar" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto 12px;">👤</div>
+                                <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">${name}</div>
+                                <div style="font-size: 14px; color: var(--text-secondary);">Video Call</div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value">23:15</div>
+                                    <div class="stat-label">Duration</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">720p</div>
+                                    <div class="stat-label">Quality</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">Good</div>
+                                    <div class="stat-label">Connection</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">Yesterday</div>
+                                    <div class="stat-label">When</div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-header">
+                                <div class="section-title">Actions</div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                <button class="btn" onclick="callBackContact('${name}', 'video')">
+                                    📹 Call Again
+                                </button>
+                                <button class="btn" style="background: var(--glass);" onclick="deleteCallFromHistory('${name}')">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }, 300);
+        }
+        
+        // Close call details
+        function closeCallDetails() {
+            const modal = document.getElementById('callDetailsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Delete call from history
+        function deleteCallFromHistory(name) {
+            closeCallDetails();
+            closeCallHistory();
+            showToast(`Call with ${name} deleted from history`);
+        }
+        
+        // Filter call history
+        function filterCallHistory() {
+            showToast('Opening filter options... 🔍');
+            setTimeout(() => {
+                showToast('Filter by: All / Video / Voice / Missed');
+            }, 800);
+        }
+        
+        // Export call history
+        function exportCallHistory() {
+            showToast('Exporting call history... 📊');
+            setTimeout(() => {
+                showToast('Call history exported successfully! ✓');
+            }, 1500);
         }
 
     </script>
