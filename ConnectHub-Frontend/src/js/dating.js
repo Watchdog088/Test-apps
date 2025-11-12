@@ -233,7 +233,7 @@ function showMatch(profile) {
     modal.className = 'match-modal active';
     modal.innerHTML = `
         <div class="match-content">
-            <h2>It's a Match! 🎉</h2>
+            <h2>It's a Link! 🎉</h2>
             <div class="match-profiles">
                 <div class="match-profile">
                     <img src="${profile.photos[0]}" alt="${profile.user.firstName}">

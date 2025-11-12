@@ -67,7 +67,7 @@ class DatingPostMatchFlowManager {
             <div class="match-container">
                 <div class="match-animation">
                     <div class="confetti">🎉</div>
-                    <h1 class="match-title">It's a Match!</h1>
+                    <h1 class="match-title">It's a Link!</h1>
                     <div class="match-profiles">
                         <div class="profile-circle">
                             <div class="profile-avatar">👤</div>

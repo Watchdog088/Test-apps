@@ -487,7 +487,7 @@ class VideoDetailsDashboard {
                         </div>
                         
                         <div class="celebration-text">
-                            <h2>🎉 It's a Match!</h2>
+                            <h2>🎉 It's a Link!</h2>
                             <p>You and <span id="match-name">Profile Name</span> liked each other!</p>
                         </div>
                         
