@@ -584,20 +584,22 @@
         .toast {
             position: fixed;
             bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 16px;
             background: var(--bg-card);
             border: 1px solid var(--glass-border);
             padding: 12px 20px;
             border-radius: 24px;
             z-index: 1000;
-            display: none;
+            animation: toastSlideIn 0.3s ease forwards;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         .toast.show {
-            display: block;
-            animation: slideUp 0.3s;
+            animation: toastSlideIn 0.3s ease forwards;
+        }
+
+        .toast.removing {
+            animation: toastSlideOut 0.3s ease forwards;
         }
 
         /* In-App Notification Banner */
@@ -685,6 +687,28 @@
             to {
                 transform: translate(-50%, 0);
                 opacity: 1;
+            }
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
             }
         }
 
