@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Profile - Lynk</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/creator-profile.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation">
+        <div class="nav-container">
+            <div class="logo" onclick="window.location.href='index.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+                    <defs>
+                        <linearGradient id="lynkLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1"/>
+                            <stop offset="100%" style="stop-color:#8b5cf6"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(10, 20)">
+                        <circle cx="0" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <path d="M 5 -3 Q 12 -5, 19 -3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <circle cx="24" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <path d="M 29 3 Q 36 5, 43 3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <circle cx="48" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <circle cx="0" cy="-2" r="2" fill="white" opacity="0.4"/>
+                        <circle cx="24" cy="-2" r="2" fill="white" opacity="0.4"/>
+                        <circle cx="48" cy="-2" r="2" fill="white" opacity="0.4"/>
+                    </g>
+                    <text x="70" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="url(#lynkLogo)" letter-spacing="-1">Lynk</text>
+                </svg>
+            </div>
+            <div class="nav-items">
+                <div class="nav-item" onclick="switchTab('profile')">👤 Profile</div>
+                <div class="nav-item" onclick="switchTab('analytics')">📊 Analytics</div>
+                <div class="nav-item" onclick="switchTab('monetization')">💰 Monetization</div>
+                <div class="nav-item" onclick="switchTab('calendar')">📅 Calendar</div>
+                <div class="nav-item" onclick="switchTab('content')">📝 Content</div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="creator-main">
+        <!-- Profile Tab -->
+        <section id="profileTab" class="tab-section active">
+            <!-- Hero Section -->
+            <div class="creator-hero">
+                <div class="hero-cover" id="heroCover">
+                    <button class="edit-cover-btn" onclick="editCoverPhoto()">📷 Edit Cover</button>
+                </div>
+                <div class="hero-content">
+                    <div class="profile-avatar-section">
+                        <div class="profile-avatar" id="profileAvatar">JD</div>
+                        <button class="edit-avatar-btn" onclick="editProfilePhoto()">📷</button>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name-section">
+                            <h1>John Doe</h1>
+                            <div class="verification-badges">
+                                <span class="badge verified" title="Verified Creator">✓</span>
+                                <span class="badge premium" title="Premium Creator">⭐</span>
+                                <span class="badge influencer" title="Top Influencer">🏆</span>
+                            </div>
+                        </div>
+                        <p class="profile-handle">@johndoe • Creator • Tech Enthusiast</p>
+                        <p class="profile-bio">Content creator sharing tech insights, lifestyle tips, and creative ideas. Partnered with leading brands. 🚀</p>
+                        <div class="profile-stats">
+                            <div class="stat-card">
+                                <div class="stat-number">245.5K</div>
+                                <div class="stat-label">Followers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1.2M</div>
+                                <div class="stat-label">Total Views</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">89.4K</div>
+                                <div class="stat-label">Engagement</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">4.8K</div>
+                                <div class="stat-label">Subscribers</div>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="btn btn-primary" onclick="editProfile()">✏️ Edit Profile</button>
+                            <button class="btn btn-secondary" onclick="shareProfile()">📤 Share</button>
+                            <button class="btn btn-secondary" onclick="viewPublicProfile()">👁️ View Public</button>
+                            <button class="btn btn-secondary" onclick="openSettings()">⚙️ Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>✓ Verification Status</h2>
+                    <button class="btn btn-primary" onclick="applyForVerification()">Apply for Verification</button>
+                </div>
+                <div class="verification-grid">
+                    <div class="verification-card verified">
+                        <div class="verification-icon">✓</div>
+                        <h3>Account Verified</h3>
+                        <p>Your account has been verified as authentic</p>
+                        <span class="verification-date">Verified on Jan 15, 2024</span>
+                    </div>
+                    <div class="verification-card in-progress">
+                        <div class="verification-icon">⭐</div>
+                        <h3>Premium Creator</h3>
+                        <p>Unlock advanced features and analytics</p>
+                        <button class="btn btn-small" onclick="upgradeToPremium()">Upgrade</button>
+                    </div>
+                    <div class="verification-card">
+                        <div class="verification-icon">🏆</div>
+                        <h3>Influencer Badge</h3>
+                        <p>Reach 500K followers to unlock</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 49%"></div>
+                        </div>
+                        <span class="progress-text">245.5K / 500K</span>
+                    </div>
+                    <div class="verification-card">
+                        <div class="verification-icon">🎖️</div>
+                        <h3>Official Partner</h3>
+                        <p>Partner with brands and platforms</p>
+                        <button class="btn btn-small" onclick="becomePartner()">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Showcase -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📸 Content Showcase</h2>
+                    <button class="btn btn-secondary" onclick="manageContent()">Manage Content</button>
+                </div>
+                <div class="content-grid" id="contentShowcase">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🔗 Social Links</h2>
+                    <button class="btn btn-secondary" onclick="editSocialLinks()">Edit Links</button>
+                </div>
+                <div class="social-links-grid">
+                    <div class="social-link-card" onclick="openLink('twitter')">
+                        <div class="social-icon">🐦</div>
+                        <div class="social-info">
+                            <div class="social-name">Twitter</div>
+                            <div class="social-handle">@johndoe</div>
+                        </div>
+                        <div class="social-stats">125K followers</div>
+                    </div>
+                    <div class="social-link-card" onclick="openLink('instagram')">
+                        <div class="social-icon">📷</div>
+                        <div class="social-info">
+                            <div class="social-name">Instagram</div>
+                            <div class="social-handle">@johndoe</div>
+                        </div>
+                        <div class="social-stats">89K followers</div>
+                    </div>
+                    <div class="social-link-card" onclick="openLink('youtube')">
+                        <div class="social-icon">▶️</div>
+                        <div class="social-info">
+                            <div class="social-name">YouTube</div>
+                            <div class="social-handle">John Doe</div>
+                        </div>
+                        <div class="social-stats">245K subscribers</div>
+                    </div>
+                    <div class="social-link-card" onclick="openLink('tiktok')">
+                        <div class="social-icon">🎵</div>
+                        <div class="social-info">
+                            <div class="social-name">TikTok</div>
+                            <div class="social-handle">@johndoe</div>
+                        </div>
+                        <div class="social-stats">567K followers</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Tab -->
+        <section id="analyticsTab" class="tab-section">
+            <div class="analytics-header">
+                <h1>📊 Analytics Dashboard</h1>
+                <div class="time-filter">
+                    <button class="filter-btn active" onclick="filterAnalytics('week')">7 Days</button>
+                    <button class="filter-btn" onclick="filterAnalytics('month')">30 Days</button>
+                    <button class="filter-btn" onclick="filterAnalytics('year')">12 Months</button>
+                    <button class="filter-btn" onclick="filterAnalytics('all')">All Time</button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">👁️</div>
+                    <div class="metric-info">
+                        <div class="metric-label">Total Views</div>
+                        <div class="metric-value">1,234,567</div>
+                        <div class="metric-change positive">+12.5% from last period</div>
+                    </div>
+                    <div class="metric-chart">📈</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">❤️</div>
+                    <div class="metric-info">
+                        <div class="metric-label">Engagement Rate</div>
+                        <div class="metric-value">8.4%</div>
+                        <div class="metric-change positive">+2.3% from last period</div>
+                    </div>
+                    <div class="metric-chart">📈</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">👥</div>
+                    <div class="metric-info">
+                        <div class="metric-label">New Followers</div>
+                        <div class="metric-value">+12,456</div>
+                        <div class="metric-change positive">+18.7% from last period</div>
+                    </div>
+                    <div class="metric-chart">📈</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">💰</div>
+                    <div class="metric-info">
+                        <div class="metric-label">Revenue</div>
+                        <div class="metric-value">$8,945</div>
+                        <div class="metric-change positive">+24.2% from last period</div>
+                    </div>
+                    <div class="metric-chart">📈</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📈 Growth Trends</h3>
+                        <select class="chart-select" onchange="updateChart('growth', this.value)">
+                            <option value="followers">Followers</option>
+                            <option value="views">Views</option>
+                            <option value="engagement">Engagement</option>
+                        </select>
+                    </div>
+                    <div class="chart-container" id="growthChart">
+                        <canvas id="growthCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>🎯 Audience Demographics</h3>
+                        <button class="btn btn-small" onclick="viewFullDemographics()">View Details</button>
+                    </div>
+                    <div class="chart-container" id="demographicsChart">
+                        <canvas id="demographicsCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🎯 Content Performance</h2>
+                    <button class="btn btn-secondary" onclick="exportAnalytics()">📥 Export Data</button>
+                </div>
+                <div class="performance-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Content</th>
+                                <th>Views</th>
+                                <th>Engagement</th>
+                                <th>Shares</th>
+                                <th>Revenue</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audience Insights -->
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <h3>🌍 Top Locations</h3>
+                    <div class="location-list">
+                        <div class="location-item">
+                            <span class="location-name">🇺🇸 United States</span>
+                            <span class="location-percentage">42%</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-name">🇬🇧 United Kingdom</span>
+                            <span class="location-percentage">18%</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-name">🇨🇦 Canada</span>
+                            <span class="location-percentage">12%</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-name">🇦🇺 Australia</span>
+                            <span class="location-percentage">8%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <h3>⏰ Peak Activity Times</h3>
+                    <div class="activity-heatmap" id="activityHeatmap">
+                        <!-- Heatmap populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <h3>📱 Device Breakdown</h3>
+                    <div class="device-list">
+                        <div class="device-item">
+                            <span class="device-name">📱 Mobile</span>
+                            <div class="device-bar" style="width: 68%">68%</div>
+                        </div>
+                        <div class="device-item">
+                            <span class="device-name">💻 Desktop</span>
+                            <div class="device-bar" style="width: 25%">25%</div>
+                        </div>
+                        <div class="device-item">
+                            <span class="device-name">📱 Tablet</span>
+                            <div class="device-bar" style="width: 7%">7%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monetization Tab -->
+        <section id="monetizationTab" class="tab-section">
+            <div class="monetization-header">
+                <h1>💰 Monetization Tools</h1>
+                <div class="earnings-summary">
+                    <div class="earnings-card">
+                        <span class="earnings-label">This Month</span>
+                        <span class="earnings-value">$8,945.00</span>
+                    </div>
+                    <div class="earnings-card">
+                        <span class="earnings-label">Pending</span>
+                        <span class="earnings-value">$1,234.00</span>
+                    </div>
+                    <div class="earnings-card">
+                        <span class="earnings-label">Total Earned</span>
+                        <span class="earnings-value">$124,567.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Streams -->
+            <div class="revenue-streams">
+                <div class="stream-card" onclick="openStreamDetails('subscriptions')">
+                    <div class="stream-icon">💳</div>
+                    <div class="stream-info">
+                        <h3>Subscriptions</h3>
+                        <p>Monthly recurring revenue from subscribers</p>
+                        <div class="stream-stats">
+                            <span class="stream-count">4,834 subscribers</span>
+                            <span class="stream-revenue">$3,245/mo</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); manageSubscriptions()">Manage</button>
+                </div>
+                <div class="stream-card" onclick="openStreamDetails('donations')">
+                    <div class="stream-icon">🎁</div>
+                    <div class="stream-info">
+                        <h3>Donations & Tips</h3>
+                        <p>One-time support from your audience</p>
+                        <div class="stream-stats">
+                            <span class="stream-count">2,156 tips</span>
+                            <span class="stream-revenue">$2,890/mo</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); setupDonations()">Setup</button>
+                </div>
+                <div class="stream-card" onclick="openStreamDetails('sponsorships')">
+                    <div class="stream-icon">🤝</div>
+                    <div class="stream-info">
+                        <h3>Sponsorships</h3>
+                        <p>Brand partnerships and sponsored content</p>
+                        <div class="stream-stats">
+                            <span class="stream-count">5 active deals</span>
+                            <span class="stream-revenue">$1,800/mo</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); findSponsors()">Find Sponsors</button>
+                </div>
+                <div class="stream-card" onclick="openStreamDetails('merchandise')">
+                    <div class="stream-icon">👕</div>
+                    <div class="stream-info">
+                        <h3>Merchandise</h3>
+                        <p>Sell your branded products</p>
+                        <div class="stream-stats">
+                            <span class="stream-count">156 products</span>
+                            <span class="stream-revenue">$1,010/mo</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); manageMerch()">Manage Store</button>
+                </div>
+            </div>
+
+            <!-- Subscription Tiers -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>💳 Subscription Tiers</h2>
+                    <button class="btn btn-primary" onclick="createNewTier()">+ Add Tier</button>
+                </div>
+                <div class="tiers-grid">
+                    <div class="tier-card">
+                        <div class="tier-header">
+                            <h3>Basic</h3>
+                            <div class="tier-price">$4.99<span>/month</span></div>
+                        </div>
+                        <div class="tier-benefits">
+                            <div class="benefit">✓ Early access to content</div>
+                            <div class="benefit">✓ Exclusive community access</div>
+                            <div class="benefit">✓ Monthly live Q&A</div>
+                        </div>
+                        <div class="tier-stats">
+                            <span>2,456 subscribers</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="editTier('basic')">Edit Tier</button>
+                    </div>
+                    <div class="tier-card premium">
+                        <div class="tier-badge">POPULAR</div>
+                        <div class="tier-header">
+                            <h3>Premium</h3>
+                            <div class="tier-price">$9.99<span>/month</span></div>
+                        </div>
+                        <div class="tier-benefits">
+                            <div class="benefit">✓ All Basic benefits</div>
+                            <div class="benefit">✓ Behind-the-scenes content</div>
+                            <div class="benefit">✓ 1-on-1 monthly call</div>
+                            <div class="benefit">✓ Custom badge</div>
+                        </div>
+                        <div class="tier-stats">
+                            <span>1,890 subscribers</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="editTier('premium')">Edit Tier</button>
+                    </div>
+                    <div class="tier-card">
+                        <div class="tier-header">
+                            <h3>VIP</h3>
+                            <div class="tier-price">$24.99<span>/month</span></div>
+                        </div>
+                        <div class="tier-benefits">
+                            <div class="benefit">✓ All Premium benefits</div>
+                            <div class="benefit">✓ Personal mentorship</div>
+                            <div class="benefit">✓ Exclusive Discord role</div>
+                            <div class="benefit">✓ Free merchandise</div>
+                        </div>
+                        <div class="tier-stats">
+                            <span>488 subscribers</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="editTier('vip')">Edit Tier</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payout Settings -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>💵 Payout Settings</h2>
+                    <button class="btn btn-secondary" onclick="requestPayout()">Request Payout</button>
+                </div>
+                <div class="payout-info">
+                    <div class="payout-method">
+                        <h4>Payment Method</h4>
+                        <div class="method-card">
+                            <div class="method-icon">🏦</div>
+                            <div class="method-info">
+                                <div class="method-type">Bank Account</div>
+                                <div class="method-details">****4567</div>
+                            </div>
+                            <button class="btn btn-small" onclick="changePaymentMethod()">Change</button>
+                        </div>
+                    </div>
+                    <div class="payout-schedule">
+                        <h4>Payout Schedule</h4>
+                        <select class="form-select" onchange="updatePayoutSchedule(this.value)">
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly" selected>Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                        <p class="schedule-note">Next payout: December 31, 2024</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📜 Transaction History</h2>
+                    <button class="btn btn-secondary" onclick="exportTransactions()">📥 Export</button>
+                </div>
+                <div class="transactions-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar Tab -->
+        <section id="calendarTab" class="tab-section">
+            <div class="calendar-header">
+                <h1>📅 Content Calendar</h1>
+                <div class="calendar-actions">
+                    <button class="btn btn-primary" onclick="schedulePost()">+ Schedule Post</button>
+                    <button class="btn btn-secondary" onclick="viewCalendarSettings()">⚙️ Settings</button>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" onclick="switchCalendarView('month')">Month</button>
+                        <button class="toggle-btn" onclick="switchCalendarView('week')">Week</button>
+                        <button class="toggle-btn" onclick="switchCalendarView('day')">Day</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Navigation -->
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="previousPeriod()">← Previous</button>
+                <h2 id="calendarTitle">December 2024</h2>
+                <button class="nav-btn" onclick="nextPeriod()">Next →</button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-container">
+                <div class="calendar-weekdays">
+                    <div class="weekday">Sunday</div>
+                    <div class="weekday">Monday</div>
+                    <div class="weekday">Tuesday</div>
+                    <div class="weekday">Wednesday</div>
+                    <div class="weekday">Thursday</div>
+                    <div class="weekday">Friday</div>
+                    <div class="weekday">Saturday</div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar days populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Scheduled Posts -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📋 Upcoming Posts</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterPosts('all')">All</button>
+                        <button class="filter-btn" onclick="filterPosts('draft')">Drafts</button>
+                        <button class="filter-btn" onclick="filterPosts('scheduled')">Scheduled</button>
+                        <button class="filter-btn" onclick="filterPosts('published')">Published</button>
+                    </div>
+                </div>
+                <div class="scheduled-posts-list" id="scheduledPostsList">
+                    <!-- Posts populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Content Ideas -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>💡 Content Ideas</h2>
+                    <button class="btn btn-secondary" onclick="generateIdeas()">✨ Generate Ideas</button>
+                </div>
+                <div class="ideas-grid" id="contentIdeas">
+                    <!-- Ideas populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Content Tab -->
+        <section id="contentTab" class="tab-section">
+            <div class="content-header">
+                <h1>📝 Content Management</h1>
+                <button class="btn btn-primary" onclick="createNewContent()">+ Create Content</button>
+            </div>
+
+            <!-- Content Stats -->
+            <div class="content-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Total Posts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value">23</div>
+                    <div class="stat-label">Scheduled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💾</div>
+                    <div class="stat-value">45</div>
+                    <div class="stat-label">Drafts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">8.4%</div>
+                    <div class="stat-label">Avg Engagement</div>
+                </div>
+            </div>
+
+            <!-- Content Library -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📚 Content Library</h2>
+                    <div class="content-filters">
+                        <input type="text" class="search-input" placeholder="Search content..." onkeyup="searchContent(this.value)">
+                        <select class="filter-select" onchange="filterContentType(this.value)">
+                            <option value="all">All Types</option>
+                            <option value="post">Posts</option>
+                            <option value="video">Videos</option>
+                            <option value="image">Images</option>
+                            <option value="story">Stories</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="content-library-grid" id="contentLibrary">
+                    <!-- Content items populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 Schedule Post</h2>
+                <button class="close-btn" onclick="closeModal('scheduleModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Select Date & Time</label>
+                    <input type="datetime-local" class="form-input" id="scheduleDateTime">
+                </div>
+                <div class="form-group">
+                    <label>Content Type</label>
+                    <select class="form-input" id="contentType">
+                        <option value="post">Regular Post</option>
+                        <option value="video">Video</option>
+                        <option value="story">Story</option>
+                        <option value="live">Live Stream</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Caption</label>
+                    <textarea class="form-input" rows="4" id="contentCaption" placeholder="Write your caption..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('scheduleModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveScheduledPost()">Schedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/js/creator-profile.js"></script>
+</body>
+</html>
