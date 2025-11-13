@@ -619,10 +619,13 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     border-left: 4px solid #28a745;
     z-index: 10001;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
+    animation: toastSlideIn 0.3s ease forwards;
     max-width: 300px;
     font-weight: 500;
+}
+
+.toast.removing {
+    animation: toastSlideOut 0.3s ease forwards;
 }
 
 .toast.show {
@@ -639,6 +642,28 @@
 
 .toast-info {
     border-left-color: #667eea;
+}
+
+@keyframes toastSlideIn {
+    from { 
+        transform: translateX(100%); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
+}
+
+@keyframes toastSlideOut {
+    from { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
+    to { 
+        transform: translateX(100%); 
+        opacity: 0; 
+    }
 }
 
 /* Responsive Design */
