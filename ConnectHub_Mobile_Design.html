@@ -2506,6 +2506,201 @@
                 </div>
             </div>
 
+            <!-- CREATOR PROFILE SCREEN -->
+            <div id="creator-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">✨ Creator Profile</div>
+                    <div class="section-link" onclick="openModal('creatorSettings')">Settings</div>
+                </div>
+
+                <!-- Creator Profile Header -->
+                <div class="card" style="text-align: center; padding: 24px;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border);">
+                        👤
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        John Doe
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Verified Creator">✓</span>
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Premium Creator">⭐</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">@johndoe • Content Creator</div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value">245K</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">1.2M</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">8.4%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$8.9K</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px;" onclick="openModal('editCreatorProfile')">✏️ Edit</button>
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: var(--glass);" onclick="shareCreatorProfile()">📤 Share</button>
+                    </div>
+                </div>
+
+                <!-- Verification Status -->
+                <div class="section-header">
+                    <div class="section-title">✓ Verification</div>
+                    <div class="section-link" onclick="openModal('applyVerification')">Apply</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="card" style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); border-color: var(--success);">
+                        <div style="font-size: 32px; margin-bottom: 8px;">✓</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Verified</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Jan 15, 2024</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('upgradePremium')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">⭐</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Premium</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Upgrade</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Influencer</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">245K / 500K</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('becomePartner')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🎖️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Partner</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Apply</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard -->
+                <div class="section-header">
+                    <div class="section-title">📊 Analytics</div>
+                    <div class="section-link" onclick="openModal('detailedAnalytics')">View All</div>
+                </div>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <button class="pill-nav-button active" onclick="filterCreatorAnalytics(this, '7d')">7 Days</button>
+                        <button class="pill-nav-button" onclick="filterCreatorAnalytics(this, '30d')">30 Days</button>
+                        <button class="pill-nav-button" onclick="filterCreatorAnalytics(this, '1y')">1 Year</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Total Views</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">1.23M</div>
+                            <div style="font-size: 10px; color: var(--success);">+12.5%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Engagement</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--secondary);">8.4%</div>
+                            <div style="font-size: 10px; color: var(--success);">+2.3%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">New Followers</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--accent);">+12.5K</div>
+                            <div style="font-size: 10px; color: var(--success);">+18.7%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Revenue</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--success);">$8,945</div>
+                            <div style="font-size: 10px; color: var(--success);">+24.2%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monetization Tools -->
+                <div class="section-header">
+                    <div class="section-title">💰 Monetization</div>
+                    <div class="section-link" onclick="openModal('monetizationDetails')">Manage</div>
+                </div>
+                <div class="list-item" onclick="openModal('subscriptions')">
+                    <div class="list-item-icon">💳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Subscriptions</div>
+                        <div class="list-item-subtitle">4,834 subscribers • $3,245/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('donations')">
+                    <div class="list-item-icon">🎁</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Donations & Tips</div>
+                        <div class="list-item-subtitle">2,156 tips • $2,890/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('sponsorships')">
+                    <div class="list-item-icon">🤝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Sponsorships</div>
+                        <div class="list-item-subtitle">5 active deals • $1,800/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('merchandise')">
+                    <div class="list-item-icon">👕</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Merchandise</div>
+                        <div class="list-item-subtitle">156 products • $1,010/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Content Calendar -->
+                <div class="section-header">
+                    <div class="section-title">📅 Content Calendar</div>
+                    <div class="section-link" onclick="openModal('fullCalendar')">View Full</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Upcoming Posts</div>
+                    <div class="list-item" style="margin-bottom: 8px;" onclick="openModal('editScheduledPost')">
+                        <div class="list-item-icon">🎥</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Tech Review Video</div>
+                            <div class="list-item-subtitle">Dec 20, 10:00 AM</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); deleteScheduledPostMobile(1)">🗑️</button>
+                    </div>
+                    <div class="list-item" style="margin-bottom: 8px;" onclick="openModal('editScheduledPost')">
+                        <div class="list-item-icon">📸</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Behind the Scenes</div>
+                            <div class="list-item-subtitle">Dec 22, 3:00 PM</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); deleteScheduledPostMobile(2)">🗑️</button>
+                    </div>
+                    <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="openModal('scheduleNewPost')">+ Schedule New Post</button>
+                </div>
+
+                <!-- Content Management -->
+                <div class="section-header">
+                    <div class="section-title">📝 Content Library</div>
+                    <div class="section-link" onclick="openModal('contentLibrary')">View All</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📸</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎥</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📝</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎬</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📱</div>
+                    <div onclick="openModal('newContent')" style="aspect-ratio: 1; background: var(--glass); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; border: 2px dashed var(--glass-border);">➕</div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" onclick="openModal('scheduleNewPost')">📅 Schedule</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('contentIdeas')">💡 Ideas</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('creatorAnalytics')">📊 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('payoutSettings')">💵 Payouts</button>
+                </div>
+            </div>
+
             <!-- SECTION 13: SETTINGS SCREEN -->
             <div id="settings-screen" class="screen">
                 <div class="section-header">
@@ -2908,6 +3103,15 @@
                     <div class="list-item-content">
                         <div class="list-item-title">Marketplace</div>
                         <div class="list-item-subtitle">Buy & sell items</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('creator')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Creator Profile</div>
+                        <div class="list-item-subtitle">Verification, analytics, monetization</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -12652,6 +12856,881 @@
                 showToast('Call history exported successfully! ✓');
             }, 1500);
         }
+
+        // ========== CREATOR PROFILE FUNCTIONS ==========
+        
+        // Filter creator analytics
+        function filterCreatorAnalytics(element, period) {
+            // Remove active class from all buttons
+            element.parentElement.querySelectorAll('.pill-nav-button').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            const periods = {
+                '7d': '7 days',
+                '30d': '30 days',
+                '1y': '1 year'
+            };
+            
+            showToast(`Showing analytics for ${periods[period]}`);
+        }
+        
+        // Share creator profile
+        function shareCreatorProfile() {
+            showToast('Creator profile link copied! 🔗');
+            setTimeout(() => {
+                showToast('Share your profile to gain more followers!');
+            }, 1500);
+        }
+        
+        // Delete scheduled post (mobile version)
+        function deleteScheduledPostMobile(id) {
+            if (confirm('Delete this scheduled post?')) {
+                showToast('Scheduled post deleted');
+            }
+        }
+        
+        // Open detailed analytics modal
+        window.openModal = (function(original) {
+            return function(type) {
+                // Handle creator profile modals
+                if (type === 'detailedAnalytics') {
+                    openDetailedAnalyticsModal();
+                } else if (type === 'subscriptions') {
+                    openSubscriptionsModal();
+                } else if (type === 'donations') {
+                    openDonationsModal();
+                } else if (type === 'sponsorships') {
+                    openSponsorshipsModal();
+                } else if (type === 'merchandise') {
+                    openMerchandiseModal();
+                } else if (type === 'fullCalendar') {
+                    openFullCalendarModal();
+                } else if (type === 'scheduleNewPost') {
+                    openScheduleNewPostModal();
+                } else if (type === 'contentLibrary') {
+                    openContentLibraryModal();
+                } else if (type === 'contentDetails') {
+                    openContentDetailsModal();
+                } else if (type === 'contentIdeas') {
+                    openContentIdeasModal();
+                } else if (type === 'creatorAnalytics') {
+                    openCreatorAnalyticsModal();
+                } else if (type === 'payoutSettings') {
+                    openPayoutSettingsModal();
+                } else if (type === 'newContent') {
+                    openNewContentModal();
+                } else if (type === 'editCreatorProfile') {
+                    openEditCreatorProfileModal();
+                } else if (type === 'applyVerification') {
+                    openApplyVerificationModal();
+                } else if (type === 'upgradePremium') {
+                    openUpgradePremiumModal();
+                } else if (type === 'becomePartner') {
+                    openBecomePartnerModal();
+                } else if (type === 'monetizationDetails') {
+                    openMonetizationDetailsModal();
+                } else if (type === 'editScheduledPost') {
+                    openEditScheduledPostModal();
+                } else if (type === 'creatorSettings') {
+                    openCreatorSettingsModal();
+                } else {
+                    original(type);
+                }
+            };
+        })(openModal);
+        
+        // Detailed Analytics Modal
+        function openDetailedAnalyticsModal() {
+            const modalHTML = `
+                <div id="detailedAnalyticsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('detailedAnalytics')">✕</div>
+                        <div class="modal-title">📊 Detailed Analytics</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Performance Dashboard</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Last 30 days</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">1.23M</div>
+                                <div class="stat-label">Total Views</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">89.4K</div>
+                                <div class="stat-label">Engagement</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">+12.5K</div>
+                                <div class="stat-label">New Followers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$8,945</div>
+                                <div class="stat-label">Revenue</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Top Content</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">🎥</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tech Review Video</div>
+                                <div class="list-item-subtitle">125K views • 8.5% engagement</div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Behind the Scenes</div>
+                                <div class="list-item-subtitle">89K views • 12.3% engagement</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="exportAnalytics()">
+                            📥 Export Report
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Subscriptions Modal
+        function openSubscriptionsModal() {
+            const modalHTML = `
+                <div id="subscriptionsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('subscriptions')">✕</div>
+                        <div class="modal-title">💳 Subscriptions</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Monthly Revenue</div>
+                            <div style="font-size: 48px; font-weight: 800;">$3,245</div>
+                            <div style="font-size: 13px; opacity: 0.9;">4,834 subscribers</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Subscription Tiers</div>
+                            <button class="btn" style="width: auto; padding: 8px 16px;" onclick="createNewTier()">+ Add Tier</button>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Basic Tier</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 8px;">$4.99<span style="font-size: 14px; color: var(--text-secondary); font-weight: 400;">/month</span></div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">2,456 subscribers</div>
+                            <div style="font-size: 13px; margin-bottom: 8px;">✓ Early access to content</div>
+                            <div style="font-size: 13px; margin-bottom: 8px;">✓ Exclusive community access</div>
+                            <button class="btn" style="background: var(--glass); margin-top: 8px;" onclick="editTier('basic')">Edit Tier</button>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px; border-color: var(--primary); background: rgba(79, 70, 229, 0.05);">
+                            <div style="display: inline-block; padding: 4px 12px; background: var(--primary); border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 8px;">POPULAR</div>
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Premium Tier</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 8px;">$9.99<span style="font-size: 14px; color: var(--text-secondary); font-weight: 400;">/month</span></div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">1,890 subscribers</div>
+                            <div style="font-size: 13px; margin-bottom: 8px;">✓ All Basic benefits</div>
+                            <div style="font-size: 13px; margin-bottom: 8px;">✓ Behind-the-scenes content</div>
+                            <div style="font-size: 13px; margin-bottom: 8px;">✓ 1-on-1 monthly call</div>
+                            <button class="btn" style="background: var(--glass); margin-top: 8px;" onclick="editTier('premium')">Edit Tier</button>
+                        </div>
+                        
+                        <button class="btn" onclick="manageSubscribers()">Manage Subscribers</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Donations Modal
+        function openDonationsModal() {
+            const modalHTML = `
+                <div id="donationsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('donations')">✕</div>
+                        <div class="modal-title">🎁 Donations & Tips</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--success), var(--accent)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total Received</div>
+                            <div style="font-size: 48px; font-weight: 800;">$2,890</div>
+                            <div style="font-size: 13px; opacity: 0.9;">2,156 tips this month</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recent Tips</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">👤</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sarah M. • $10</div>
+                                <div class="list-item-subtitle">2h ago • "Great content!"</div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="post-avatar">😊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mike J. • $25</div>
+                                <div class="list-item-subtitle">1 day ago • "Keep it up!"</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass);" onclick="setupDonationOptions()">Setup Donations</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Sponsorships Modal
+        function openSponsorshipsModal() {
+            const modalHTML = `
+                <div id="sponsorshipsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('sponsorships')">✕</div>
+                        <div class="modal-title">🤝 Sponsorships</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--warning), var(--error)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Monthly Revenue</div>
+                            <div style="font-size: 48px; font-weight: 800;">$1,800</div>
+                            <div style="font-size: 13px; opacity: 0.9;">5 active sponsorship deals</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Active Deals</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Tech Brand Partnership</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--success);">$500/month</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">1 sponsored post per week</div>
+                        </div>
+                        
+                        <button class="btn" onclick="findNewSponsors()">Find New Sponsors</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Merchandise Modal
+        function openMerchandiseModal() {
+            const modalHTML = `
+                <div id="merchandiseModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('merchandise')">✕</div>
+                        <div class="modal-title">👕 Merchandise Store</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--accent), var(--success)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Monthly Sales</div>
+                            <div style="font-size: 48px; font-weight: 800;">$1,010</div>
+                            <div style="font-size: 13px; opacity: 0.9;">156 products</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Your Products</div>
+                            <button class="btn" style="width: auto; padding: 8px 16px;" onclick="addNewProduct()">+ Add Product</button>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">👕</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">T-Shirt</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$25</div>
+                            </div>
+                            <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">🧢</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Cap</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$18</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="manageStore()">Manage Store</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Full Calendar Modal
+        function openFullCalendarModal() {
+            const modalHTML = `
+                <div id="fullCalendarModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('fullCalendar')">✕</div>
+                        <div class="modal-title">📅 Content Calendar</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px;" onclick="openScheduleNewPostModal()">+ Schedule</button>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">December 2024</div>
+                            <div style="display: flex; justify-content: center; gap: 12px;">
+                                <button class="nav-btn" onclick="previousMonth()">←</button>
+                                <button class="nav-btn" onclick="nextMonth()">→</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px;">
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">S</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">M</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">T</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">W</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">T</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">F</div>
+                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 8px;">S</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;" id="calendarDays">
+                            <!-- Calendar days will be generated -->
+                        </div>
+                        
+                        <div class="section-header" style="margin-top: 20px;">
+                            <div class="section-title">Scheduled Posts</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">🎥</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tech Review Video</div>
+                                <div class="list-item-subtitle">Dec 20, 10:00 AM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            generateCalendarDays();
+        }
+        
+        // Generate calendar days
+        function generateCalendarDays() {
+            const container = document.getElementById('calendarDays');
+            if (!container) return;
+            
+            const daysHTML = [];
+            const today = 13; // Current day
+            
+            // Add empty cells for days before month starts (December 2024 starts on Sunday)
+            for (let i = 0; i < 0; i++) {
+                daysHTML.push('<div></div>');
+            }
+            
+            // Add days (31 days in December)
+            for (let day = 1; day <= 31; day++) {
+                const isToday = day === today;
+                const hasPost = day === 20 || day === 22 || day === 25;
+                
+                daysHTML.push(`
+                    <div onclick="selectCalendarDay(${day})" style="aspect-ratio: 1; background: ${isToday ? 'rgba(79, 70, 229, 0.2)' : 'var(--glass)'}; border: 1px solid ${isToday ? 'var(--primary)' : 'var(--glass-border)'}; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 4px;">
+                        <div style="font-size: 13px; font-weight: 600;">${day}</div>
+                        ${hasPost ? '<div style="width: 4px; height: 4px; background: var(--primary); border-radius: 50%; margin-top: 2px;"></div>' : ''}
+                    </div>
+                `);
+            }
+            
+            container.innerHTML = daysHTML.join('');
+        }
+        
+        // Select calendar day
+        function selectCalendarDay(day) {
+            showToast(`Selected day ${day}`);
+        }
+        
+        // Previous/Next month
+        function previousMonth() {
+            showToast('Showing previous month');
+        }
+        
+        function nextMonth() {
+            showToast('Showing next month');
+        }
+        
+        // Schedule New Post Modal
+        function openScheduleNewPostModal() {
+            const modalHTML = `
+                <div id="scheduleNewPostModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('scheduleNewPost')">✕</div>
+                        <div class="modal-title">📅 Schedule Post</div>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Post title..." id="scheduledPostTitle" />
+                        <textarea class="input-field textarea-field" placeholder="Caption..." id="scheduledPostCaption"></textarea>
+                        <input type="datetime-local" class="input-field" id="scheduledPostDateTime" />
+                        <select class="input-field" id="scheduledPostType">
+                            <option>Regular Post</option>
+                            <option>Video</option>
+                            <option>Story</option>
+                            <option>Live Stream</option>
+                        </select>
+                        <button class="btn" onclick="saveScheduledPost()">Schedule Post</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Save scheduled post
+        function saveScheduledPost() {
+            const title = document.getElementById('scheduledPostTitle').value;
+            const caption = document.getElementById('scheduledPostCaption').value;
+            const dateTime = document.getElementById('scheduledPostDateTime').value;
+            
+            if (!title || !caption || !dateTime) {
+                showToast('Please fill in all fields');
+                return;
+            }
+            
+            closeModal('scheduleNewPost');
+            showToast('Post scheduled successfully! 📅');
+        }
+        
+        // Content Library Modal
+        function openContentLibraryModal() {
+            const modalHTML = `
+                <div id="contentLibraryModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('contentLibrary')">✕</div>
+                        <div class="modal-title">📚 Content Library</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search content..." />
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <div onclick="viewContent(1)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📸</div>
+                            <div onclick="viewContent(2)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎥</div>
+                            <div onclick="viewContent(3)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📝</div>
+                            <div onclick="viewContent(4)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎬</div>
+                            <div onclick="viewContent(5)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📱</div>
+                            <div onclick="viewContent(6)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--error), var(--warning)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🖼️</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Content Details Modal
+        function openContentDetailsModal() {
+            const modalHTML = `
+                <div id="contentDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('contentDetails')">✕</div>
+                        <div class="modal-title">Content Details</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="post-image" style="height: 300px; font-size: 80px;">📸</div>
+                        
+                        <div class="stats-grid" style="margin-top: 16px;">
+                            <div class="stat-card">
+                                <div class="stat-value">125K</div>
+                                <div class="stat-label">Views</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8.5%</div>
+                                <div class="stat-label">Engagement</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">15.2K</div>
+                                <div class="stat-label">Likes</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$625</div>
+                                <div class="stat-label">Revenue</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+                            <button class="btn" onclick="editContent()">✏️ Edit</button>
+                            <button class="btn" style="background: var(--glass);" onclick="deleteContent()">🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Content Ideas Modal
+        function openContentIdeasModal() {
+            const modalHTML = `
+                <div id="contentIdeasModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('contentIdeas')">✕</div>
+                        <div class="modal-title">💡 Content Ideas</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">💡</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Content Ideas Generator</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">AI-powered inspiration</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Trending Topics</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px; cursor: pointer;" onclick="useIdea('Tech Reviews')">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🎥 Tech Reviews</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Review latest gadgets and tech products</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px; cursor: pointer;" onclick="useIdea('Behind the Scenes')">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">📸 Behind the Scenes</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Show your creative process</div>
+                        </div>
+                        
+                        <button class="btn" onclick="generateMoreIdeas()">Generate More Ideas</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Creator Analytics Modal
+        function openCreatorAnalyticsModal() {
+            openDetailedAnalyticsModal();
+        }
+        
+        // Payout Settings Modal
+        function openPayoutSettingsModal() {
+            const modalHTML = `
+                <div id="payoutSettingsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('payoutSettings')">✕</div>
+                        <div class="modal-title">💵 Payout Settings</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--success), var(--primary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Available Balance</div>
+                            <div style="font-size: 48px; font-weight: 800;">$8,945</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Ready to withdraw</div>
+                        </div>
+                        
+                        <button class="btn" style="margin-bottom: 20px;" onclick="requestPayout()">Request Payout</button>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Payment Methods</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="openPaymentMethodDetails('PayPal')">
+                            <div class="list-item-icon">💳</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">PayPal</div>
+                                <div class="list-item-subtitle">john.doe@email.com • Primary</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // New Content Modal
+        function openNewContentModal() {
+            const modalHTML = `
+                <div id="newContentModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('newContent')">✕</div>
+                        <div class="modal-title">➕ New Content</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <button class="btn" onclick="createNewVideo()">🎥 Video</button>
+                            <button class="btn" style="background: var(--glass);" onclick="createNewPhoto()">📸 Photo</button>
+                            <button class="btn" style="background: var(--glass);" onclick="createNewArticle()">📝 Article</button>
+                            <button class="btn" style="background: var(--glass);" onclick="createNewStory()">⭐ Story</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Edit Creator Profile Modal
+        function openEditCreatorProfileModal() {
+            const modalHTML = `
+                <div id="editCreatorProfileModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('editCreatorProfile')">✕</div>
+                        <div class="modal-title">✏️ Edit Profile</div>
+                        <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveCreatorProfile()">Save</button>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Creator name" value="John Doe" id="creatorName" />
+                        <input type="text" class="input-field" placeholder="Username" value="@johndoe" id="creatorUsername" />
+                        <textarea class="input-field textarea-field" placeholder="Bio" id="creatorBio">Content Creator</textarea>
+                        <input type="text" class="input-field" placeholder="Category" value="Technology" id="creatorCategory" />
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Apply Verification Modal
+        function openApplyVerificationModal() {
+            const modalHTML = `
+                <div id="applyVerificationModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('applyVerification')">✕</div>
+                        <div class="modal-title">✓ Apply for Verification</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">✓</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Get Verified</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Prove your authenticity</div>
+                        </div>
+                        
+                        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Requirements:</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+                                ✓ Active account for 6+ months<br>
+                                ✓ 10,000+ followers<br>
+                                ✓ Valid government ID<br>
+                                ✓ Authentic & active presence
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="startVerificationProcess()">Start Application</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Upgrade Premium Modal
+        function openUpgradePremiumModal() {
+            const modalHTML = `
+                <div id="upgradePremiumModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('upgradePremium')">✕</div>
+                        <div class="modal-title">⭐ Upgrade to Premium</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">⭐</div>
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Premium Creator</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 4px;">$19.99<span style="font-size: 14px; color: var(--text-secondary); font-weight: 400;">/month</span></div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Premium Benefits</div>
+                        </div>
+                        
+                        <div style="font-size: 14px; margin-bottom: 12px;">✓ Advanced analytics dashboard</div>
+                        <div style="font-size: 14px; margin-bottom: 12px;">✓ Priority support</div>
+                        <div style="font-size: 14px; margin-bottom: 12px;">✓ Custom branding options</div>
+                        <div style="font-size: 14px; margin-bottom: 12px;">✓ Higher revenue share</div>
+                        <div style="font-size: 14px; margin-bottom: 20px;">✓ Exclusive features early access</div>
+                        
+                        <button class="btn" onclick="upgradeToPremium()">Upgrade Now</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Become Partner Modal
+        function openBecomePartnerModal() {
+            const modalHTML = `
+                <div id="becomePartnerModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('becomePartner')">✕</div>
+                        <div class="modal-title">🎖️ Become a Partner</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎖️</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Partner Program</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Exclusive benefits for top creators</div>
+                        </div>
+                        
+                        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Requirements:</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+                                ✓ 500,000+ followers<br>
+                                ✓ Verified account<br>
+                                ✓ Consistent content quality<br>
+                                ✓ Active engagement
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="applyForPartnership()">Apply Now</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Monetization Details Modal
+        function openMonetizationDetailsModal() {
+            const modalHTML = `
+                <div id="monetizationDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('monetizationDetails')">✕</div>
+                        <div class="modal-title">💰 Monetization Overview</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="background: linear-gradient(135deg, var(--success), var(--accent)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total Revenue</div>
+                            <div style="font-size: 48px; font-weight: 800;">$8,945</div>
+                            <div style="font-size: 13px; opacity: 0.9;">This month</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">$3,245</div>
+                                <div class="stat-label">Subscriptions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$2,890</div>
+                                <div class="stat-label">Tips</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$1,800</div>
+                                <div class="stat-label">Sponsorships</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$1,010</div>
+                                <div class="stat-label">Merchandise</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="viewDetailedRevenue()">View Details</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Edit Scheduled Post Modal
+        function openEditScheduledPostModal() {
+            const modalHTML = `
+                <div id="editScheduledPostModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('editScheduledPost')">✕</div>
+                        <div class="modal-title">✏️ Edit Scheduled Post</div>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Post title..." value="Tech Review Video" />
+                        <textarea class="input-field textarea-field" placeholder="Caption...">My latest tech review</textarea>
+                        <input type="datetime-local" class="input-field" value="2024-12-20T10:00" />
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <button class="btn" onclick="updateScheduledPost()">Save Changes</button>
+                            <button class="btn" style="background: var(--error);" onclick="deleteScheduledPost()">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Creator Settings Modal
+        function openCreatorSettingsModal() {
+            const modalHTML = `
+                <div id="creatorSettingsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('creatorSettings')">✕</div>
+                        <div class="modal-title">⚙️ Creator Settings</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="section-header">
+                            <div class="section-title">Profile Settings</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Show Analytics to Public</div>
+                                <div class="list-item-subtitle">Display your stats</div>
+                            </div>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Enable Subscriptions</div>
+                                <div class="list-item-subtitle">Allow paid subscriptions</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-item" onclick="openPayoutSettingsModal()">
+                            <div class="list-item-icon">💵</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Payout Settings</div>
+                                <div class="list-item-subtitle">Manage payments</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Helper functions for Creator Profile
+        function createNewTier() { showToast('Creating new tier... 💳'); }
+        function editTier(tier) { showToast(`Editing ${tier} tier... ✏️`); }
+        function manageSubscribers() { showToast('Opening subscribers dashboard... 👥'); }
+        function setupDonationOptions() { showToast('Setting up donations... 🎁'); }
+        function findNewSponsors() { showToast('Finding sponsors... 🤝'); }
+        function addNewProduct() { showToast('Adding new product... 👕'); }
+        function manageStore() { showToast('Opening store manager... 🛍️'); }
+        function viewContent(id) { openContentDetailsModal(); }
+        function editContent() { showToast('Opening editor... ✏️'); }
+        function deleteContent() { if(confirm('Delete this content?')) showToast('Content deleted'); }
+        function useIdea(idea) { closeModal('contentIdeas'); showToast(`Using idea: ${idea} 💡`); }
+        function generateMoreIdeas() { showToast('Generating more ideas... 💡'); }
+        function requestPayout() { showToast('Requesting payout... 💵'); setTimeout(() => showToast('Payout requested! Processing 1-3 days'), 1500); }
+        function createNewVideo() { closeModal('newContent'); showToast('Creating new video... 🎥'); }
+        function createNewPhoto() { closeModal('newContent'); showToast('Creating new photo... 📸'); }
+        function createNewArticle() { closeModal('newContent'); showToast('Creating new article... 📝'); }
+        function createNewStory() { closeModal('newContent'); showToast('Creating new story... ⭐'); }
+        function saveCreatorProfile() { closeModal('editCreatorProfile'); showToast('Profile updated! ✓'); }
+        function startVerificationProcess() { closeModal('applyVerification'); showToast('Starting verification... ✓'); }
+        function upgradeToPremium() { closeModal('upgradePremium'); showToast('Processing upgrade... ⭐'); }
+        function applyForPartnership() { closeModal('becomePartner'); showToast('Application submitted! 🎖️'); }
+        function viewDetailedRevenue() { closeModal('monetizationDetails'); openDetailedAnalyticsModal(); }
+        function updateScheduledPost() { closeModal('editScheduledPost'); showToast('Post updated! ✓'); }
+        function deleteScheduledPost() { if(confirm('Delete this post?')) { closeModal('editScheduledPost'); showToast('Post deleted'); } }
 
     </script>
 </body>
