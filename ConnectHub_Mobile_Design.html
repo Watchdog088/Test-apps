@@ -1484,6 +1484,30 @@
             background: var(--glass);
             color: var(--text-primary);
         }
+
+        /* Interest Tags */
+        .interest-tag {
+            display: inline-block;
+            padding: 10px 16px;
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .interest-tag:active {
+            transform: scale(0.95);
+        }
+
+        .interest-tag.selected {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -1892,6 +1916,48 @@
                     <div class="section-link" onclick="openModal('datingSettings')">Settings</div>
                 </div>
 
+                <!-- My Dating Profile Card -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="section-header" style="margin-bottom: 12px;">
+                        <div class="section-title" style="font-size: 16px;">My Dating Profile</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="openModal('editDatingProfile')">✏️ Edit</button>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 32px; border: 3px solid var(--glass-border); position: relative;">
+                            👤
+                            <div style="position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">John, 28</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">📍 San Francisco, CA</div>
+                            <div style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success);">✓ VERIFIED</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                        <div style="text-align: center; padding: 8px; background: var(--glass); border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--primary);">87%</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">Complete</div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: var(--glass); border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--secondary);">4.8★</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Profile Actions -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" style="font-size: 13px; padding: 12px;" onclick="openModal('datingPreferences')">⚙️ Preferences</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('relationshipGoals')">🎯 Goals</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('interestsHobbies')">🎨 Interests</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('photoVerification')">📸 Verify</button>
+                </div>
+
+                <!-- Discover Matches -->
+                <div class="section-header">
+                    <div class="section-title">Discover</div>
+                </div>
+
                 <div class="dating-card">
                     <div class="dating-card-image">👤</div>
                     <div class="dating-card-info">
@@ -1906,6 +1972,10 @@
                     </div>
                 </div>
 
+                <!-- Dating Stats -->
+                <div class="section-header">
+                    <div class="section-title">Activity</div>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card" onclick="openModal('recentMatches')">
                         <div class="stat-value">12</div>
@@ -2503,6 +2573,236 @@
                     <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="connectVRHeadsetPrompt()">🥽 VR Headset</button>
                     <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableSpatialAudio()">🎧 Spatial Audio</button>
                     <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableHandTracking()">👋 Hand Tracking</button>
+                </div>
+            </div>
+
+            <!-- BUSINESS PROFILE SCREEN -->
+            <div id="business-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">🏢 Business Profile</div>
+                    <div class="section-link" onclick="openModal('businessSettings')">Settings</div>
+                </div>
+
+                <!-- Business Profile Header -->
+                <div class="card" style="text-align: center; padding: 24px;">
+                    <div style="width: 100px; height: 100px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border);">
+                        🏢
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        Tech Solutions Inc.
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Verified Business">✓</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Technology & Consulting</div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">📍 123 Market St, San Francisco, CA</div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value">4.8★</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">2.4K</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">15K</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">892</div>
+                            <div class="stat-label">Customers</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px;" onclick="openModal('editBusinessProfile')">✏️ Edit</button>
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: var(--glass);" onclick="shareBusinessProfile()">📤 Share</button>
+                    </div>
+                </div>
+
+                <!-- Business Hours -->
+                <div class="section-header">
+                    <div class="section-title">🕐 Business Hours</div>
+                    <div class="section-link" onclick="openModal('editBusinessHours')">Edit</div>
+                </div>
+                <div class="card">
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Monday - Friday</div>
+                            <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                        </div>
+                        <div style="padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success);">OPEN</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Saturday</div>
+                            <div class="list-item-subtitle">10:00 AM - 4:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Sunday</div>
+                            <div class="list-item-subtitle">Closed</div>
+                        </div>
+                    </div>
+                    <div class="toggle-container" style="margin-top: 12px;">
+                        <div>
+                            <div class="list-item-title">Holiday Hours</div>
+                            <div class="list-item-subtitle">Special holiday schedule</div>
+                        </div>
+                        <div class="list-item-arrow" onclick="openModal('holidayHours')">→</div>
+                    </div>
+                </div>
+
+                <!-- Location & Contact -->
+                <div class="section-header">
+                    <div class="section-title">📍 Location & Contact</div>
+                    <div class="section-link" onclick="openModal('editLocation')">Edit</div>
+                </div>
+                <div class="card">
+                    <div class="list-item" onclick="openModal('viewMap')">
+                        <div class="list-item-icon">📍</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Address</div>
+                            <div class="list-item-subtitle">123 Market St, San Francisco, CA 94103</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="callBusiness()">
+                        <div class="list-item-icon">📞</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Phone</div>
+                            <div class="list-item-subtitle">(415) 555-0123</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="emailBusiness()">
+                        <div class="list-item-icon">📧</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Email</div>
+                            <div class="list-item-subtitle">contact@techsolutions.com</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="visitWebsite()">
+                        <div class="list-item-icon">🌐</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Website</div>
+                            <div class="list-item-subtitle">www.techsolutions.com</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('socialMediaLinks')">
+                        <div class="list-item-icon">🔗</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Social Media</div>
+                            <div class="list-item-subtitle">5 connected platforms</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                </div>
+
+                <!-- Products & Services -->
+                <div class="section-header">
+                    <div class="section-title">💼 Products & Services</div>
+                    <div class="section-link" onclick="openModal('manageProductsServices')">Manage</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Web Development')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">💻</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Web Development</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$5,000+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Mobile Apps')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">📱</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Mobile Apps</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$8,000+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Cloud Solutions')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">☁️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Cloud Solutions</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$3,500+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'IT Consulting')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🎯</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">IT Consulting</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$150/hr</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Hourly</div>
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-bottom: 16px;" onclick="openModal('catalogBrowser')">View All Services</button>
+
+                <!-- Team Management -->
+                <div class="section-header">
+                    <div class="section-title">👥 Team</div>
+                    <div class="section-link" onclick="openModal('manageTeam')">Manage</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', 'Sarah Johnson')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">👤</div>
+                        <div style="font-size: 11px; font-weight: 600;">Sarah</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">CEO</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', 'Mike Chen')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--success), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">😊</div>
+                        <div style="font-size: 11px; font-weight: 600;">Mike</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">CTO</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', 'Emily Rodriguez')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--warning), var(--error)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">🎨</div>
+                        <div style="font-size: 11px; font-weight: 600;">Emily</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Designer</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('viewAllTeam')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--glass); border: 2px dashed var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 8px;">➕</div>
+                        <div style="font-size: 11px; font-weight: 600;">View All</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">25 members</div>
+                    </div>
+                </div>
+
+                <!-- Professional Networking -->
+                <div class="section-header">
+                    <div class="section-title">🤝 Professional Network</div>
+                    <div class="section-link" onclick="openModal('networkingTools')">Tools</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="stat-card" onclick="openModal('businessConnections')">
+                        <div class="stat-value">234</div>
+                        <div class="stat-label">Connections</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('partnerships')">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Partnerships</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('leads')">
+                        <div class="stat-value">45</div>
+                        <div class="stat-label">Active Leads</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('opportunities')">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Opportunities</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" onclick="openModal('findBusinesses')">🔍 Find Businesses</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('sendProposal')">📄 Send Proposal</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('scheduleBusinessMeeting')">📅 Schedule Meeting</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('businessMessenger')">💬 Messenger</button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" onclick="openModal('getDirections')">🗺️ Directions</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('bookAppointment')">📅 Book</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('requestQuote')">💰 Quote</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('businessAnalytics')">📊 Analytics</button>
                 </div>
             </div>
 
@@ -3112,6 +3412,15 @@
                     <div class="list-item-content">
                         <div class="list-item-title">Creator Profile</div>
                         <div class="list-item-subtitle">Verification, analytics, monetization</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('business')">
+                    <div class="list-item-icon">🏢</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Business Profile</div>
+                        <div class="list-item-subtitle">Hours, location, team, products</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -5872,6 +6181,970 @@
             </div>
         </div>
 
+        <!-- ADVANCED DATING PROFILE MODALS -->
+        
+        <!-- Edit Dating Profile Modal (Complete Profile Builder) -->
+        <div id="editDatingProfileModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('editDatingProfile')">✕</div>
+                <div class="modal-title">✏️ Edit Dating Profile</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveDatingProfile()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border); position: relative;">
+                        👤
+                        <div style="position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                    </div>
+                    <button class="btn" style="margin-top: 12px; background: var(--glass);" onclick="changeDatingPhotos()">
+                        📷 Change Photos
+                    </button>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Basic Information</div>
+                </div>
+                <input type="text" class="input-field" placeholder="Display Name" value="John" id="datingName" />
+                <input type="number" class="input-field" placeholder="Age" value="28" id="datingAge" />
+                <select class="input-field" id="datingGender">
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Non-binary</option>
+                    <option>Prefer not to say</option>
+                </select>
+                <input type="text" class="input-field" placeholder="Location" value="San Francisco, CA" id="datingLocation" />
+                <input type="text" class="input-field" placeholder="Occupation" value="Software Engineer" id="datingOccupation" />
+                <input type="text" class="input-field" placeholder="School/University" id="datingSchool" />
+                
+                <div class="section-header">
+                    <div class="section-title">About Me</div>
+                </div>
+                <textarea class="input-field textarea-field" placeholder="Write something about yourself..." id="datingBio">Love hiking, photography, and meeting new people ✨</textarea>
+                
+                <div class="section-header">
+                    <div class="section-title">Physical Attributes</div>
+                </div>
+                <select class="input-field" id="datingHeight">
+                    <option>Select height...</option>
+                    <option>4'0" - 4'11"</option>
+                    <option>5'0" - 5'5"</option>
+                    <option>5'6" - 5'11"</option>
+                    <option selected>6'0" - 6'5"</option>
+                    <option>6'6"+</option>
+                </select>
+                <select class="input-field" id="datingBodyType">
+                    <option>Select body type...</option>
+                    <option>Slim</option>
+                    <option selected>Athletic</option>
+                    <option>Average</option>
+                    <option>Muscular</option>
+                    <option>Curvy</option>
+                    <option>Plus Size</option>
+                </select>
+                
+                <div class="section-header">
+                    <div class="section-title">Lifestyle</div>
+                </div>
+                <select class="input-field" id="datingDrinking">
+                    <option>Drinking</option>
+                    <option selected>Socially</option>
+                    <option>Never</option>
+                    <option>Frequently</option>
+                </select>
+                <select class="input-field" id="datingSmoking">
+                    <option>Smoking</option>
+                    <option selected>Never</option>
+                    <option>Socially</option>
+                    <option>Regularly</option>
+                </select>
+                <select class="input-field" id="datingExercise">
+                    <option>Exercise</option>
+                    <option>Never</option>
+                    <option>Sometimes</option>
+                    <option selected>Regularly</option>
+                    <option>Very Active</option>
+                </select>
+                <select class="input-field" id="datingDiet">
+                    <option>Diet</option>
+                    <option selected>Everything</option>
+                    <option>Vegetarian</option>
+                    <option>Vegan</option>
+                    <option>Pescatarian</option>
+                    <option>Kosher</option>
+                    <option>Halal</option>
+                </select>
+                
+                <div class="section-header">
+                    <div class="section-title">Advanced Settings</div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-bottom: 12px;" onclick="openModal('datingPreferences')">
+                    ⚙️ Match Preferences
+                </button>
+                <button class="btn" style="background: var(--glass); margin-bottom: 12px;" onclick="openModal('relationshipGoals')">
+                    🎯 Relationship Goals
+                </button>
+                <button class="btn" style="background: var(--glass); margin-bottom: 12px;" onclick="openModal('interestsHobbies')">
+                    🎨 Interests & Hobbies
+                </button>
+                <button class="btn" style="background: var(--glass);" onclick="openModal('photoVerification')">
+                    📸 Photo Verification
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dating Preferences Modal (Extended) -->
+        <div id="datingPreferencesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('datingPreferences')">✕</div>
+                <div class="modal-title">⚙️ Match Preferences</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveDatingPreferences()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚙️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Match Preferences</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Customize who you want to meet</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Basic Preferences</div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 14px; font-weight: 600;">Age Range</span>
+                        <span style="font-size: 14px; color: var(--primary); font-weight: 600;" id="ageRangeDisplay">22 - 35</span>
+                    </div>
+                    <div style="background: var(--glass); padding: 16px; border-radius: 12px;">
+                        <input type="range" min="18" max="25" value="22" style="width: 100%; margin-bottom: 8px;" oninput="updateAgeRange(this, 'min')" />
+                        <input type="range" min="25" max="50" value="35" style="width: 100%;" oninput="updateAgeRange(this, 'max')" />
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 14px; font-weight: 600;">Maximum Distance</span>
+                        <span style="font-size: 14px; color: var(--primary); font-weight: 600;" id="distanceDisplay">50 miles</span>
+                    </div>
+                    <div style="background: var(--glass); padding: 16px; border-radius: 12px;">
+                        <input type="range" min="1" max="100" value="50" style="width: 100%;" oninput="updateDistance(this)" />
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Show Me</div>
+                </div>
+                <div class="list-item" onclick="selectGenderPreference('Women', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-icon">👩</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Women</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectGenderPreference('Men', this)">
+                    <div class="list-item-icon">👨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Men</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectGenderPreference('Everyone', this)">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Everyone</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Advanced Filters</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('educationFilter')">
+                    <div class="list-item-icon">🎓</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Education Level</div>
+                        <div class="list-item-subtitle" id="educationFilterValue">Any</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('bodyTypeFilter')">
+                    <div class="list-item-icon">💪</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Body Type</div>
+                        <div class="list-item-subtitle" id="bodyTypeFilterValue">Any</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('heightFilter')">
+                    <div class="list-item-icon">📏</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Height Range</div>
+                        <div class="list-item-subtitle" id="heightFilterValue">Any</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('religionFilter')">
+                    <div class="list-item-icon">🙏</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Religion</div>
+                        <div class="list-item-subtitle" id="religionFilterValue">Any</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openModal('ethnicityFilter')">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Ethnicity</div>
+                        <div class="list-item-subtitle" id="ethnicityFilterValue">Any</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Dealbreakers</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Must not smoke</div>
+                        <div class="list-item-subtitle">Filter out smokers</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Must want children</div>
+                        <div class="list-item-subtitle">Family-oriented matches</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Must have a job</div>
+                        <div class="list-item-subtitle">Employed individuals only</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Smart Matching</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        Our algorithm uses your preferences to show you compatible matches. The more specific you are, the better your matches will be!
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Relationship Goals Modal -->
+        <div id="relationshipGoalsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('relationshipGoals')">✕</div>
+                <div class="modal-title">🎯 Relationship Goals</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveRelationshipGoals()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎯</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">What Are You Looking For?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Help us find your perfect match</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Relationship Type</div>
+                </div>
+                <div class="list-item" onclick="selectRelationshipType('Long-term Partnership', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-icon">💑</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Long-term Partnership</div>
+                        <div class="list-item-subtitle">Ready for commitment</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectRelationshipType('Dating / Short-term', this)">
+                    <div class="list-item-icon">🌹</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Dating / Short-term</div>
+                        <div class="list-item-subtitle">Keep it casual</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectRelationshipType('New Friends', this)">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">New Friends</div>
+                        <div class="list-item-subtitle">Just looking to connect</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectRelationshipType('Not Sure Yet', this)">
+                    <div class="list-item-icon">🤔</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Not Sure Yet</div>
+                        <div class="list-item-subtitle">Let's see where it goes</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Future Plans</div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPreference('Want children', this)">
+                    <div class="list-item-icon">👶</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Children</div>
+                        <div class="list-item-subtitle" id="childrenValue">Want children</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectMarriagePreference('Open to marriage', this)">
+                    <div class="list-item-icon">💍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Marriage</div>
+                        <div class="list-item-subtitle" id="marriageValue">Open to marriage</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectFamilyImportance('Very Important', this)">
+                    <div class="list-item-icon">👨‍👩‍👧‍👦</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Family Importance</div>
+                        <div class="list-item-subtitle" id="familyValue">Very Important</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Values & Priorities</div>
+                </div>
+                <div class="list-item" onclick="openModal('selectDatingValues')">
+                    <div class="list-item-icon">❤️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">What Matters Most</div>
+                        <div class="list-item-subtitle" id="selectedValuesCount">3 selected</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('selectDealbreakers')">
+                    <div class="list-item-icon">🚫</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Dealbreakers</div>
+                        <div class="list-item-subtitle" id="selectedDealbreakers">2 selected</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interests & Hobbies Modal (Detailed) -->
+        <div id="interestsHobbiesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('interestsHobbies')">✕</div>
+                <div class="modal-title">🎨 Interests & Hobbies</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveInterestsHobbies()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🎨</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">What Do You Love?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Select up to 10 interests</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 4px;">Selected Interests</div>
+                    <div style="font-size: 32px; font-weight: 800;" id="interestCount">3 / 10</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🏃 Fitness & Wellness</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;" id="fitnessInterests">
+                    <div class="interest-tag selected" onclick="toggleInterest(this, 'Gym')">💪 Gym</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Yoga')">🧘 Yoga</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Running')">🏃 Running</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Hiking')">🥾 Hiking</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Swimming')">🏊 Swimming</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Cycling')">🚴 Cycling</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Martial Arts')">🥋 Martial Arts</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Dancing')">💃 Dancing</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🎭 Arts & Culture</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag selected" onclick="toggleInterest(this, 'Photography')">📷 Photography</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Music')">🎵 Music</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Art')">🎨 Art</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Theater')">🎭 Theater</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Museums')">🏛️ Museums</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Reading')">📚 Reading</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Writing')">✍️ Writing</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Movies')">🎬 Movies</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🌍 Travel & Adventure</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag selected" onclick="toggleInterest(this, 'Travel')">✈️ Travel</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Camping')">🏕️ Camping</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Road Trips')">🚗 Road Trips</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Beach')">🏖️ Beach</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Mountains')">⛰️ Mountains</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Backpacking')">🎒 Backpacking</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🎮 Entertainment</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Gaming')">🎮 Gaming</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'TV Shows')">📺 TV Shows</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Netflix')">🍿 Netflix</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Concerts')">🎤 Concerts</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Live Music')">🎸 Live Music</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Comedy')">😂 Comedy</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🍽️ Food & Drink</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Cooking')">👨‍🍳 Cooking</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Foodie')">🍕 Foodie</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Wine')">🍷 Wine</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Coffee')">☕ Coffee</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Baking')">🧁 Baking</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Fine Dining')">🍽️ Fine Dining</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">💻 Professional</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Technology')">💻 Technology</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Entrepreneurship')">💼 Entrepreneurship</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Finance')">💰 Finance</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Startups')">🚀 Startups</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Investing')">📈 Investing</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🐾 Animals & Pets</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Dogs')">🐕 Dogs</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Cats')">🐱 Cats</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Exotic Pets')">🦎 Exotic Pets</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Animal Rescue')">❤️ Animal Rescue</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Pet Photography')">📷 Pet Photography</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">🌱 Wellness & Mindfulness</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Meditation')">🧘‍♂️ Meditation</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Wellness')">🌿 Wellness</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Self-Care')">💆 Self-Care</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Mental Health')">🧠 Mental Health</div>
+                    <div class="interest-tag" onclick="toggleInterest(this, 'Spirituality')">🕉️ Spirituality</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Photo Verification Modal (Complete) -->
+        <div id="photoVerificationModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('photoVerification')">✕</div>
+                <div class="modal-title">📸 Photo Verification</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">✓</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Verify Your Photos</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Build trust with verified photos</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, var(--success), var(--primary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Verification Status</div>
+                    <div style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">✓ Verified</div>
+                    <div style="font-size: 13px; opacity: 0.9;">Verified on Jan 15, 2024</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Why Verify?</div>
+                </div>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                        ✓ Build trust with potential matches<br>
+                        ✓ Get 3x more profile views<br>
+                        ✓ Stand out from the crowd<br>
+                        ✓ Increase match quality<br>
+                        ✓ Show you're authentic
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Verified Photos</div>
+                    <div class="section-link">3 verified</div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+                    <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; position: relative; border: 2px solid var(--success);">
+                        👤
+                        <div style="position: absolute; bottom: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                    </div>
+                    <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; position: relative; border: 2px solid var(--success);">
+                        😊
+                        <div style="position: absolute; bottom: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                    </div>
+                    <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; position: relative; border: 2px solid var(--success);">
+                        🏔️
+                        <div style="position: absolute; bottom: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="addNewVerifiedPhoto()">
+                    📷 Add New Photo to Verify
+                </button>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 How It Works</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        1. Upload a clear photo of yourself<br>
+                        2. Take a selfie matching the pose shown<br>
+                        3. Our system verifies it's really you<br>
+                        4. Get the verified badge!
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Dating Profile Advanced Filters -->
+        
+        <!-- Education Filter Modal -->
+        <div id="educationFilterModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('educationFilter')">✕</div>
+                <div class="modal-title">🎓 Education Level</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Select Education Level</div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('Any', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Any</div>
+                        <div class="list-item-subtitle">No preference</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('High School', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">High School</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('Some College', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Some College</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('Bachelor\'s Degree', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Bachelor's Degree</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('Master\'s Degree', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Master's Degree</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEducationFilter('Doctorate', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Doctorate/PhD</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Body Type Filter Modal -->
+        <div id="bodyTypeFilterModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('bodyTypeFilter')">✕</div>
+                <div class="modal-title">💪 Body Type</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Select Body Type</div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Any', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Any</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Slim', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Slim</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Athletic', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Athletic</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Average', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Average</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Muscular', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Muscular</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectBodyTypeFilter('Curvy', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Curvy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Height Filter Modal -->
+        <div id="heightFilterModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('heightFilter')">✕</div>
+                <div class="modal-title">📏 Height Range</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Select Height Range</div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('Any', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Any</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('Under 5\'0\"', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Under 5'0"</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('5\'0\" - 5\'5\"', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">5'0" - 5'5"</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('5\'6\" - 5\'11\"', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">5'6" - 5'11"</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('6\'0\" - 6\'5\"', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">6'0" - 6'5"</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectHeightFilter('Over 6\'5\"', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Over 6'5"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Religion Filter Modal -->
+        <div id="religionFilterModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('religionFilter')">✕</div>
+                <div class="modal-title">🙏 Religion</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Select Religion</div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Any', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Any</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Christian', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Christian</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Muslim', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Muslim</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Jewish', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Jewish</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Hindu', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Hindu</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Buddhist', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Buddhist</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Spiritual', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Spiritual but not religious</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Atheist', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Atheist/Agnostic</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectReligionFilter('Other', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Other</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ethnicity Filter Modal -->
+        <div id="ethnicityFilterModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('ethnicityFilter')">✕</div>
+                <div class="modal-title">🌍 Ethnicity</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Select Ethnicity Preference</div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Any', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Any</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Asian', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Asian</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Black/African American', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Black/African American</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Caucasian/White', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Caucasian/White</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Hispanic/Latino', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Hispanic/Latino</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Middle Eastern', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Middle Eastern</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Mixed/Multi-racial', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mixed/Multi-racial</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectEthnicityFilter('Other', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Other</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Children Preference Modal -->
+        <div id="childrenPreferenceModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('childrenPreference')">✕</div>
+                <div class="modal-title">👶 Children</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Your Preference</div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPref('Want children', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Want children</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPref('Don\'t want children', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Don't want children</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPref('Have and want more', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Have and want more</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPref('Have and don\'t want more', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Have and don't want more</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectChildrenPref('Not sure yet', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Not sure yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Marriage Preference Modal -->
+        <div id="marriagePreferenceModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('marriagePreference')">✕</div>
+                <div class="modal-title">💍 Marriage</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">Marriage Plans</div>
+                </div>
+                <div class="list-item" onclick="selectMarriagePref('Open to marriage', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Open to marriage</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectMarriagePref('Want to get married', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Want to get married</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectMarriagePref('Don\'t want marriage', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Don't want marriage</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectMarriagePref('Not sure yet', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Not sure yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Family Importance Modal -->
+        <div id="familyImportanceModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('familyImportance')">✕</div>
+                <div class="modal-title">👨‍👩‍👧‍👦 Family Importance</div>
+            </div>
+            <div class="modal-content">
+                <div class="section-header">
+                    <div class="section-title">How Important is Family?</div>
+                </div>
+                <div class="list-item" onclick="selectFamilyImp('Very Important', this)" style="background: rgba(79, 70, 229, 0.1); border-color: var(--primary);">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Very Important</div>
+                    </div>
+                    <div style="color: var(--primary); font-weight: 600;">✓</div>
+                </div>
+                <div class="list-item" onclick="selectFamilyImp('Important', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Important</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFamilyImp('Somewhat Important', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Somewhat Important</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="selectFamilyImp('Not that Important', this)">
+                    <div class="list-item-content">
+                        <div class="list-item-title">Not that Important</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Select Dating Values Modal -->
+        <div id="selectDatingValuesModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectDatingValues')">✕</div>
+                <div class="modal-title">❤️ What Matters Most</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveDatingValues()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">❤️</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Select Your Values</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Choose up to 5 values</div>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="interest-tag selected" onclick="toggleValue(this, 'Honesty')">✓ Honesty</div>
+                    <div class="interest-tag selected" onclick="toggleValue(this, 'Loyalty')">✓ Loyalty</div>
+                    <div class="interest-tag selected" onclick="toggleValue(this, 'Communication')">✓ Communication</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Respect')">Respect</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Trust')">Trust</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Humor')">Humor</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Adventure')">Adventure</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Stability')">Stability</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Ambition')">Ambition</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Compassion')">Compassion</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Intelligence')">Intelligence</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Creativity')">Creativity</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Select Dealbreakers Modal -->
+        <div id="selectDealbreakersModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('selectDealbreakers')">✕</div>
+                <div class="modal-title">🚫 Dealbreakers</div>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveDealbreakers()">Save</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🚫</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Your Dealbreakers</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">What you can't accept</div>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div class="interest-tag selected" onclick="toggleValue(this, 'Smoking')">✓ Smoking</div>
+                    <div class="interest-tag selected" onclick="toggleValue(this, 'Dishonesty')">✓ Dishonesty</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'No Job')">No Job</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Different Politics')">Different Politics</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'No Ambition')">No Ambition</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Drug Use')">Drug Use</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Excessive Drinking')">Excessive Drinking</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Poor Communication')">Poor Communication</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Disrespectful')">Disrespectful</div>
+                    <div class="interest-tag" onclick="toggleValue(this, 'Unreliable')">Unreliable</div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Additional Dating Modals -->
         <div id="recentMatchesModal" class="modal">
             <div class="modal-header">
@@ -13731,6 +15004,1708 @@
         function viewDetailedRevenue() { closeModal('monetizationDetails'); openDetailedAnalyticsModal(); }
         function updateScheduledPost() { closeModal('editScheduledPost'); showToast('Post updated! ✓'); }
         function deleteScheduledPost() { if(confirm('Delete this post?')) { closeModal('editScheduledPost'); showToast('Post deleted'); } }
+
+        // ========== BUSINESS PROFILE FUNCTIONS ==========
+        
+        // Share business profile
+        function shareBusinessProfile() {
+            showToast('Business profile link copied! 🔗');
+            setTimeout(() => {
+                showToast('Share your business to attract more customers!');
+            }, 1500);
+        }
+        
+        // Call business
+        function callBusiness() {
+            showToast('Calling (415) 555-0123... 📞');
+            setTimeout(() => {
+                showToast('Call connected! Speak with Tech Solutions Inc.');
+            }, 1500);
+        }
+        
+        // Email business
+        function emailBusiness() {
+            showToast('Opening email to contact@techsolutions.com... 📧');
+            setTimeout(() => {
+                showToast('Email client opened');
+            }, 800);
+        }
+        
+        // Visit website
+        function visitWebsite() {
+            showToast('Opening www.techsolutions.com... 🌐');
+            setTimeout(() => {
+                showToast('Website opened in browser');
+            }, 800);
+        }
+        
+        // Business Profile Modals
+        
+        // Edit Business Profile Modal
+        window.openModal = (function(original) {
+            return function(type) {
+                // Handle business profile modals
+                if (type === 'editBusinessProfile') {
+                    openEditBusinessProfileModal();
+                } else if (type === 'businessSettings') {
+                    openBusinessSettingsModal();
+                } else if (type === 'editBusinessHours') {
+                    openEditBusinessHoursModal();
+                } else if (type === 'businessHoursDetails') {
+                    openBusinessHoursDetailsModal();
+                } else if (type === 'holidayHours') {
+                    openHolidayHoursModal();
+                } else if (type === 'editLocation') {
+                    openEditLocationModal();
+                } else if (type === 'viewMap') {
+                    openViewMapModal();
+                } else if (type === 'socialMediaLinks') {
+                    openSocialMediaLinksModal();
+                } else if (type === 'manageProductsServices') {
+                    openManageProductsServicesModal();
+                } else if (type === 'serviceDetails') {
+                    openServiceDetailsModal(arguments[1]);
+                } else if (type === 'catalogBrowser') {
+                    openCatalogBrowserModal();
+                } else if (type === 'manageTeam') {
+                    openManageTeamModal();
+                } else if (type === 'teamMemberProfile') {
+                    openTeamMemberProfileModal(arguments[1]);
+                } else if (type === 'viewAllTeam') {
+                    openViewAllTeamModal();
+                } else if (type === 'networkingTools') {
+                    openNetworkingToolsModal();
+                } else if (type === 'businessConnections') {
+                    openBusinessConnectionsModal();
+                } else if (type === 'partnerships') {
+                    openPartnershipsModal();
+                } else if (type === 'leads') {
+                    openLeadsModal();
+                } else if (type === 'opportunities') {
+                    openOpportunitiesModal();
+                } else if (type === 'findBusinesses') {
+                    openFindBusinessesModal();
+                } else if (type === 'sendProposal') {
+                    openSendProposalModal();
+                } else if (type === 'scheduleBusinessMeeting') {
+                    openScheduleBusinessMeetingModal();
+                } else if (type === 'businessMessenger') {
+                    openBusinessMessengerModal();
+                } else if (type === 'getDirections') {
+                    openGetDirectionsModal();
+                } else if (type === 'bookAppointment') {
+                    openBookAppointmentModal();
+                } else if (type === 'requestQuote') {
+                    openRequestQuoteModal();
+                } else if (type === 'businessAnalytics') {
+                    openBusinessAnalyticsModal();
+                } else {
+                    original(type);
+                }
+            };
+        })(openModal);
+        
+        // Edit Business Profile Modal
+        function openEditBusinessProfileModal() {
+            const modalHTML = `
+                <div id="editBusinessProfileModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('editBusinessProfile')">✕</div>
+                        <div class="modal-title">✏️ Edit Business Profile</div>
+                        <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveBusinessProfile()">Save</button>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="width: 100px; height: 100px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border);">
+                                🏢
+                            </div>
+                            <button class="btn" style="margin-top: 12px; background: var(--glass);" onclick="changeBusinessLogo()">
+                                Change Logo
+                            </button>
+                        </div>
+                        
+                        <input type="text" class="input-field" placeholder="Business Name" value="Tech Solutions Inc." id="businessName" />
+                        <input type="text" class="input-field" placeholder="Industry/Category" value="Technology & Consulting" id="businessCategory" />
+                        <textarea class="input-field textarea-field" placeholder="Business Description" id="businessDescription">Leading provider of technology solutions and consulting services.</textarea>
+                        <input type="text" class="input-field" placeholder="Tagline" value="Innovation Meets Excellence" id="businessTagline" />
+                        <input type="email" class="input-field" placeholder="Contact Email" value="contact@techsolutions.com" id="businessEmail" />
+                        <input type="tel" class="input-field" placeholder="Phone Number" value="(415) 555-0123" id="businessPhone" />
+                        <input type="url" class="input-field" placeholder="Website URL" value="www.techsolutions.com" id="businessWebsite" />
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Business Settings Modal
+        function openBusinessSettingsModal() {
+            const modalHTML = `
+                <div id="businessSettingsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('businessSettings')">✕</div>
+                        <div class="modal-title">⚙️ Business Settings</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="section-header">
+                            <div class="section-title">Profile Settings</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Business Profile Active</div>
+                                <div class="list-item-subtitle">Show business features</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Show Contact Info</div>
+                                <div class="list-item-subtitle">Display publicly</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Accept Appointments</div>
+                                <div class="list-item-subtitle">Allow booking</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Notifications</div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">New Customer Inquiries</div>
+                                <div class="list-item-subtitle">Get notified</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Review Notifications</div>
+                                <div class="list-item-subtitle">New reviews</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-item" onclick="openBusinessPrivacySettings()">
+                            <div class="list-item-icon">🔐</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Privacy Settings</div>
+                                <div class="list-item-subtitle">Manage data visibility</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Edit Business Hours Modal
+        function openEditBusinessHoursModal() {
+            const modalHTML = `
+                <div id="editBusinessHoursModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('editBusinessHours')">✕</div>
+                        <div class="modal-title">🕐 Edit Business Hours</div>
+                        <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveBusinessHours()">Save</button>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🕐</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Set Your Hours</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Let customers know when you're open</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Weekly Schedule</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 12px;">Monday - Friday</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <input type="time" class="input-field" value="09:00" style="margin-bottom: 0;" />
+                                <input type="time" class="input-field" value="18:00" style="margin-bottom: 0;" />
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 12px;">Saturday</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <input type="time" class="input-field" value="10:00" style="margin-bottom: 0;" />
+                                <input type="time" class="input-field" value="16:00" style="margin-bottom: 0;" />
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-weight: 600;">Sunday</div>
+                                <div class="toggle-switch" id="sundayToggle" onclick="toggleSwitch(this)">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">Closed</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="copyHours()">
+                            📋 Copy Hours to All Days
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Business Hours Details Modal
+        function openBusinessHoursDetailsModal() {
+            const modalHTML = `
+                <div id="businessHoursDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('businessHoursDetails')">✕</div>
+                        <div class="modal-title">🕐 Business Hours</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🕐</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Operating Hours</div>
+                            <div style="padding: 8px 20px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; font-size: 14px; font-weight: 700; color: var(--success); display: inline-block;">
+                                OPEN NOW
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Weekly Schedule</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Monday</div>
+                                <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tuesday</div>
+                                <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Wednesday</div>
+                                <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Thursday</div>
+                                <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Friday</div>
+                                <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Saturday</div>
+                                <div class="list-item-subtitle">10:00 AM - 4:00 PM</div>
+                            </div>
+                        </div>
+                        <div class="list-item" style="opacity: 0.6;">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sunday</div>
+                                <div class="list-item-subtitle">Closed</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="editBusinessHours()">
+                            ✏️ Edit Hours
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Holiday Hours Modal
+        function openHolidayHoursModal() {
+            const modalHTML = `
+                <div id="holidayHoursModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('holidayHours')">✕</div>
+                        <div class="modal-title">🎄 Holiday Hours</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px;" onclick="addHolidayHours()">+ Add</button>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎄</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Special Holiday Schedule</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Manage holiday operating hours</div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Upcoming Holidays</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">🎄 Christmas Day</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">December 25, 2024</div>
+                            <div style="padding: 6px 16px; background: rgba(239, 68, 68, 0.2); border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--error); display: inline-block;">
+                                CLOSED
+                            </div>
+                            <button class="btn" style="background: var(--glass); margin-top: 12px; font-size: 13px; padding: 10px;" onclick="editHoliday('Christmas')">
+                                Edit
+                            </button>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">🎊 New Year's Day</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">January 1, 2025</div>
+                            <div style="padding: 6px 16px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--success); display: inline-block;">
+                                12:00 PM - 5:00 PM
+                            </div>
+                            <button class="btn" style="background: var(--glass); margin-top: 12px; font-size: 13px; padding: 10px;" onclick="editHoliday('NewYear')">
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Edit Location Modal
+        function openEditLocationModal() {
+            const modalHTML = `
+                <div id="editLocationModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('editLocation')">✕</div>
+                        <div class="modal-title">📍 Edit Location</div>
+                        <button class="btn" style="width: auto; padding: 8px 20px;" onclick="saveLocation()">Save</button>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Street Address" value="123 Market St" id="businessStreet" />
+                        <input type="text" class="input-field" placeholder="City" value="San Francisco" id="businessCity" />
+                        <input type="text" class="input-field" placeholder="State" value="CA" id="businessState" />
+                        <input type="text" class="input-field" placeholder="ZIP Code" value="94103" id="businessZip" />
+                        <input type="text" class="input-field" placeholder="Country" value="United States" id="businessCountry" />
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="useCurrentLocation()">
+                            📍 Use Current Location
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // View Map Modal
+        function openViewMapModal() {
+            const modalHTML = `
+                <div id="viewMapModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('viewMap')">✕</div>
+                        <div class="modal-title">📍 Location</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="width: 100%; height: 300px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative;">
+                            <div style="font-size: 80px; margin-bottom: 16px;">📍</div>
+                            <div style="font-size: 16px; font-weight: 600;">123 Market St</div>
+                            <div style="font-size: 14px; opacity: 0.9;">San Francisco, CA 94103</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">2.4mi</div>
+                                <div class="stat-label">Distance</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8 min</div>
+                                <div class="stat-label">Drive Time</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+                            <button class="btn" onclick="getDirectionsToLocation()">
+                                🗺️ Directions
+                            </button>
+                            <button class="btn" style="background: var(--glass);" onclick="shareBusinessLocation()">
+                                📤 Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Social Media Links Modal
+        function openSocialMediaLinksModal() {
+            const modalHTML = `
+                <div id="socialMediaLinksModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('socialMediaLinks')">✕</div>
+                        <div class="modal-title">🔗 Social Media</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="section-header">
+                            <div class="section-title">Connected Platforms</div>
+                            <div class="section-link">5 connected</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="visitSocialMedia('Facebook')">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1877F2, #0C63D4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📘</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Facebook</div>
+                                <div class="list-item-subtitle">@techsolutions</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="visitSocialMedia('Twitter')">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1DA1F2, #0C85D0); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🐦</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Twitter</div>
+                                <div class="list-item-subtitle">@techsolutions</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="visitSocialMedia('LinkedIn')">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #0077B5, #005E93); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💼</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">LinkedIn</div>
+                                <div class="list-item-subtitle">Tech Solutions Inc</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="visitSocialMedia('Instagram')">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #E1306C, #C13584); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📸</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Instagram</div>
+                                <div class="list-item-subtitle">@techsolutionsinc</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="visitSocialMedia('YouTube')">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FF0000, #CC0000); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">▶️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">YouTube</div>
+                                <div class="list-item-subtitle">Tech Solutions Channel</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="addSocialMediaPlatform()">
+                            ➕ Add Platform
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Manage Products/Services Modal
+        function openManageProductsServicesModal() {
+            const modalHTML = `
+                <div id="manageProductsServicesModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('manageProductsServices')">✕</div>
+                        <div class="modal-title">💼 Manage Services</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px;" onclick="addNewService()">+ Add</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Services</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">45</div>
+                                <div class="stat-label">Active Projects</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$45K</div>
+                                <div class="stat-label">Monthly</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">4.9★</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">All Services</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="font-size: 40px;">💻</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Web Development</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: var(--primary);">$5,000+</div>
+                                </div>
+                            </div>
+                            <button class="btn" style="background: var(--glass); font-size: 13px; padding: 10px;" onclick="editService('Web Development')">✏️ Edit</button>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass);" onclick="viewAllServices()">View All 8 Services</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Service Details Modal
+        function openServiceDetailsModal(serviceName) {
+            const serviceData = {
+                'Web Development': {
+                    price: '$5,000+',
+                    emoji: '💻',
+                    description: 'Professional web development services for modern businesses',
+                    gradient: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                    features: ['Responsive Design', 'SEO Optimized', 'Fast Performance', 'Security Features']
+                },
+                'Mobile Apps': {
+                    price: '$8,000+',
+                    emoji: '📱',
+                    description: 'Native iOS and Android app development',
+                    gradient: 'linear-gradient(135deg, var(--success), var(--accent))',
+                    features: ['Cross-Platform', 'App Store Ready', 'Push Notifications', 'Cloud Integration']
+                },
+                'Cloud Solutions': {
+                    price: '$3,500+',
+                    emoji: '☁️',
+                    description: 'Scalable cloud infrastructure and migration services',
+                    gradient: 'linear-gradient(135deg, var(--accent), var(--primary))',
+                    features: ['AWS/Azure/GCP', 'Auto-Scaling', '99.9% Uptime', '24/7 Monitoring']
+                },
+                'IT Consulting': {
+                    price: '$150/hr',
+                    emoji: '🎯',
+                    description: 'Expert technology consulting and strategic planning',
+                    gradient: 'linear-gradient(135deg, var(--warning), var(--error))',
+                    features: ['Technology Strategy', 'System Architecture', 'Best Practices', 'Technical Audit']
+                }
+            };
+            
+            const service = serviceData[serviceName] || serviceData['Web Development'];
+            
+            const modalHTML = `
+                <div id="serviceDetailsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('serviceDetails')">✕</div>
+                        <div class="modal-title">${serviceName}</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="width: 100%; height: 200px; background: ${service.gradient}; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 20px;">
+                            ${service.emoji}
+                        </div>
+                        
+                        <div style="font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">${service.price}</div>
+                        <div style="font-size: 16px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">${service.description}</div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Key Features</div>
+                        </div>
+                        
+                        ${service.features.map(feature => `
+                            <div style="font-size: 14px; margin-bottom: 8px;">✓ ${feature}</div>
+                        `).join('')}
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px;">
+                            <button class="btn" onclick="requestServiceQuote('${serviceName}')">💬 Get Quote</button>
+                            <button class="btn" style="background: var(--glass);" onclick="bookServiceConsultation('${serviceName}')">📅 Book Call</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Catalog Browser Modal
+        function openCatalogBrowserModal() {
+            const modalHTML = `
+                <div id="catalogBrowserModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('catalogBrowser')">✕</div>
+                        <div class="modal-title">📁 Service Catalog</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search services..." />
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Web Development')">
+                                <div style="font-size: 48px; margin-bottom: 12px;">💻</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Web Development</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$5,000+</div>
+                            </div>
+                            <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Mobile Apps')">
+                                <div style="font-size: 48px; margin-bottom: 12px;">📱</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Mobile Apps</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$8,000+</div>
+                            </div>
+                            <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Cloud Solutions')">
+                                <div style="font-size: 48px; margin-bottom: 12px;">☁️</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Cloud Solutions</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$3,500+</div>
+                            </div>
+                            <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'IT Consulting')">
+                                <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">IT Consulting</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary);">$150/hr</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Manage Team Modal
+        function openManageTeamModal() {
+            const modalHTML = `
+                <div id="manageTeamModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('manageTeam')">✕</div>
+                        <div class="modal-title">👥 Manage Team</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px;" onclick="inviteTeamMember()">+ Invite</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">25</div>
+                                <div class="stat-label">Team Members</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">Departments</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Managers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">17</div>
+                                <div class="stat-label">Staff</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Team Members</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="openModal('teamMemberProfile', 'Sarah Johnson')">
+                            <div class="post-avatar">👤</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Sarah Johnson</div>
+                                <div class="list-item-subtitle">CEO • Joined 2020</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="openModal('teamMemberProfile', 'Mike Chen')">
+                            <div class="post-avatar">😊</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mike Chen</div>
+                                <div class="list-item-subtitle">CTO • Joined 2021</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="viewOrgChart()">📊 View Org Chart</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Team Member Profile Modal
+        function openTeamMemberProfileModal(name) {
+            const memberData = {
+                'Sarah Johnson': { title: 'CEO', department: 'Executive', joined: '2020', emoji: '👤', email: 'sarah@techsolutions.com' },
+                'Mike Chen': { title: 'CTO', department: 'Technology', joined: '2021', emoji: '😊', email: 'mike@techsolutions.com' },
+                'Emily Rodriguez': { title: 'Lead Designer', department: 'Design', joined: '2022', emoji: '🎨', email: 'emily@techsolutions.com' }
+            };
+            
+            const member = memberData[name] || memberData['Sarah Johnson'];
+            
+            const modalHTML = `
+                <div id="teamMemberProfileModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('teamMemberProfile')">✕</div>
+                        <div class="modal-title">${name}</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px;">${member.emoji}</div>
+                            <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">${name}</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">${member.title}</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="emailTeamMember('${member.email}')">
+                            <div class="list-item-icon">📧</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Email</div>
+                                <div class="list-item-subtitle">${member.email}</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">🏢</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Department</div>
+                                <div class="list-item-subtitle">${member.department}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-item">
+                            <div class="list-item-icon">📅</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Joined</div>
+                                <div class="list-item-subtitle">${member.joined}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+                            <button class="btn" onclick="messageTeamMember('${name}')">💬 Message</button>
+                            <button class="btn" style="background: var(--glass);" onclick="editTeamMember('${name}')">✏️ Edit</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // View All Team Modal
+        function openViewAllTeamModal() {
+            const modalHTML = `
+                <div id="viewAllTeamModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('viewAllTeam')">✕</div>
+                        <div class="modal-title">👥 All Team Members</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search team..." />
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                            ${['Executive', 'Technology Management', 'Design', 'Engineering', 'Sales', 'Marketing', 'Support', 'HR', 'Finance'].map(member => `
+                                <div style="text-align: center; cursor: pointer;" onclick="showToast('Opening ${member} profile')">
+                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px;">👤</div>
+                                    <div style="font-size: 11px; font-weight: 600; margin-bottom: 2px;">${member.split(' ')[0]}</div>
+                                    <div style="font-size: 10px; color: var(--text-secondary);">${member.split(' ')[1] || 'Team'}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Networking Tools Modal
+        function openNetworkingToolsModal() {
+            const modalHTML = `
+                <div id="networkingToolsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('networkingTools')">✕</div>
+                        <div class="modal-title">🤝 Networking Tools</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <button class="btn" onclick="createNetworkingEvent()">📅 Create Event</button>
+                            <button class="btn" style="background: var(--glass);" onclick="sendConnectionRequest()">👥 Connect</button>
+                            <button class="btn" style="background: var(--glass);" onclick="viewIndustryGroups()">🏢 Industry Groups</button>
+                            <button class="btn" style="background: var(--glass);" onclick="attendNetworkingEvent()">🎯 Events</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Business Connections Modal
+        function openBusinessConnectionsModal() {
+            const modalHTML = `
+                <div id="businessConnectionsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('businessConnections')">✕</div>
+                        <div class="modal-title">👥 Business Connections</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">234 Connections</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Your professional network</div>
+                        </div>
+                        
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search connections..." />
+                        </div>
+                        
+                        <div class="friend-card">
+                            <div class="friend-avatar">🏢</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Acme Corporation</div>
+                                <div class="friend-mutual">Technology Partner</div>
+                            </div>
+                            <button class="friend-btn secondary">Message</button>
+                        </div>
+                        
+                        <div class="friend-card">
+                            <div class="friend-avatar">💼</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Global Consulting LLC</div>
+                                <div class="friend-mutual">Business Partner</div>
+                            </div>
+                            <button class="friend-btn secondary">Message</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Partnerships Modal
+        function openPartnershipsModal() {
+            const modalHTML = `
+                <div id="partnershipsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('partnerships')">✕</div>
+                        <div class="modal-title">🤝 Partnerships</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Active Partners</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$125K</div>
+                                <div class="stat-label">Total Value</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Active Partnerships</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Strategic Technology Alliance</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Acme Corporation</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--success);">$45K/year</div>
+                        </div>
+                        
+                        <button class="btn" onclick="findNewPartners()">Find New Partners</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Leads Modal
+        function openLeadsModal() {
+            const modalHTML = `
+                <div id="leadsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('leads')">✕</div>
+                        <div class="modal-title">📊 Active Leads</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">45</div>
+                                <div class="stat-label">Active Leads</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">23</div>
+                                <div class="stat-label">Hot Leads</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$89K</div>
+                                <div class="stat-label">Potential Value</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">68%</div>
+                                <div class="stat-label">Conversion</div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Hot Leads</div>
+                        </div>
+                        
+                        <div class="list-item" onclick="viewLeadDetails('Startup Co')">
+                            <div class="list-item-icon">🔥</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Startup Co</div>
+                                <div class="list-item-subtitle">$15K opportunity • 85% confident</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        
+                        <button class="btn" onclick="generateLeadReport()">📊 Generate Report</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Opportunities Modal
+        function openOpportunitiesModal() {
+            const modalHTML = `
+                <div id="opportunitiesModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('opportunities')">✕</div>
+                        <div class="modal-title">💼 Opportunities</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">💼</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Business Opportunities</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">8 new opportunities</div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom: 12px; cursor: pointer;" onclick="viewOpportunityDetails('Cloud Migration')">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">☁️ Cloud Migration Project</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Enterprise Solutions Inc.</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--success);">$75K - $100K</div>
+                            <div style="padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success); display: inline-block; margin-top: 8px;">
+                                ACTIVE
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="findMoreOpportunities()">🔍 Find More</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Find Businesses Modal
+        function openFindBusinessesModal() {
+            const modalHTML = `
+                <div id="findBusinessesModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('findBusinesses')">✕</div>
+                        <div class="modal-title">🔍 Find Businesses</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search businesses..." />
+                        </div>
+                        
+                        <div class="section-header">
+                            <div class="section-title">Recommended</div>
+                        </div>
+                        
+                        <div class="friend-card">
+                            <div class="friend-avatar">🏢</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Innovation Labs</div>
+                                <div class="friend-mutual">Technology • 4.8★</div>
+                            </div>
+                            <button class="friend-btn primary">Connect</button>
+                        </div>
+                        
+                        <div class="friend-card">
+                            <div class="friend-avatar">💼</div>
+                            <div class="friend-info">
+                                <div class="friend-name">Digital Agency Pro</div>
+                                <div class="friend-mutual">Marketing • 4.9★</div>
+                            </div>
+                            <button class="friend-btn primary">Connect</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Send Proposal Modal
+        function openSendProposalModal() {
+            const modalHTML = `
+                <div id="sendProposalModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('sendProposal')">✕</div>
+                        <div class="modal-title">📄 Send Proposal</div>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Proposal title..." id="proposalTitle" />
+                        <input type="text" class="input-field" placeholder="Client/Business name..." id="proposalClient" />
+                        <input type="number" class="input-field" placeholder="Estimated value ($)..." id="proposalValue" />
+                        <textarea class="input-field textarea-field" placeholder="Proposal details..." id="proposalDetails"></textarea>
+                        <button class="btn" onclick="sendBusinessProposal()">📤 Send Proposal</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Schedule Business Meeting Modal
+        function openScheduleBusinessMeetingModal() {
+            const modalHTML = `
+                <div id="scheduleBusinessMeetingModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('scheduleBusinessMeeting')">✕</div>
+                        <div class="modal-title">📅 Schedule Meeting</div>
+                    </div>
+                    <div class="modal-content">
+                        <input type="text" class="input-field" placeholder="Meeting title..." id="meetingTitle" />
+                        <input type="datetime-local" class="input-field" id="meetingDateTime" />
+                        <input type="text" class="input-field" placeholder="Meeting location/link..." id="meetingLocation" />
+                        <textarea class="input-field textarea-field" placeholder="Meeting agenda..." id="meetingAgenda"></textarea>
+                        <button class="btn" onclick="scheduleBusinessMeeting()">📅 Schedule</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Business Messenger Modal
+        function openBusinessMessengerModal() {
+            const modalHTML = `
+                <div id="businessMessengerModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('businessMessenger')">✕</div>
+                        <div class="modal-title">💬 Business Messenger</div>
+                    </div>
+                    <div class="modal-content">
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="Search messages..." />
+                        </div>
+                        
+                        <div class="message-item" onclick="openBusinessChat('Acme Corp')">
+                            <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 600;">AC</div>
+                            <div class="message-content">
+                                <div class="message-name">Acme Corp</div>
+                                <div class="message-preview">We'd like to discuss a partnership...</div>
+                            </div>
+                            <div class="message-time">1h</div>
+                        </div>
+                        
+                        <div class="message-item" onclick="openBusinessChat('Global LLC')">
+                            <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 600;">GL</div>
+                            <div class="message-content">
+                                <div class="message-name">Global Consulting</div>
+                                <div class="message-preview">Thanks for the proposal!</div>
+                            </div>
+                            <div class="message-time">3h</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Get Directions Modal
+        function openGetDirectionsModal() {
+            const modalHTML = `
+                <div id="getDirectionsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('getDirections')">✕</div>
+                        <div class="modal-title">🗺️ Get Directions</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="width: 100%; height: 250px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <div style="font-size: 80px; margin-bottom: 16px;">🗺️</div>
+                            <div style="font-size: 16px; font-weight: 600;">123 Market St</div>
+                            <div style="font-size: 14px; opacity: 0.9;">San Francisco, CA 94103</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">2.4mi</div>
+                                <div class="stat-label">Distance</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8 min</div>
+                                <div class="stat-label">Drive</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" onclick="openInMaps()">Open in Maps</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Book Appointment Modal
+        function openBookAppointmentModal() {
+            const modalHTML = `
+                <div id="bookAppointmentModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('bookAppointment')">✕</div>
+                        <div class="modal-title">📅 Book Appointment</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                            <div style="font-size: 18px; font-weight: 600;">Schedule Your Visit</div>
+                        </div>
+                        
+                        <input type="text" class="input-field" placeholder="Your name..." />
+                        <input type="email" class="input-field" placeholder="Email address..." />
+                        <input type="tel" class="input-field" placeholder="Phone number..." />
+                        <select class="input-field">
+                            <option>Select service...</option>
+                            <option>Web Development</option>
+                            <option>Mobile Apps</option>
+                            <option>Cloud Solutions</option>
+                            <option>IT Consulting</option>
+                        </select>
+                        <input type="date" class="input-field" />
+                        <input type="time" class="input-field" />
+                        <textarea class="input-field textarea-field" placeholder="Additional notes (optional)"></textarea>
+                        <button class="btn" onclick="confirmAppointment()">Confirm Appointment</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Request Quote Modal
+        function openRequestQuoteModal() {
+            const modalHTML = `
+                <div id="requestQuoteModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('requestQuote')">✕</div>
+                        <div class="modal-title">💰 Request Quote</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">💰</div>
+                            <div style="font-size: 18px; font-weight: 600;">Get a Custom Quote</div>
+                        </div>
+                        
+                        <input type="text" class="input-field" placeholder="Your name..." />
+                        <input type="email" class="input-field" placeholder="Email address..." />
+                        <select class="input-field">
+                            <option>Select service...</option>
+                            <option>Web Development</option>
+                            <option>Mobile Apps</option>
+                            <option>Cloud Solutions</option>
+                            <option>IT Consulting</option>
+                        </select>
+                        <textarea class="input-field textarea-field" placeholder="Project details..."></textarea>
+                        <button class="btn" onclick="submitQuoteRequest()">Request Quote</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Business Analytics Modal
+        function openBusinessAnalyticsModal() {
+            const modalHTML = `
+                <div id="businessAnalyticsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('businessAnalytics')">✕</div>
+                        <div class="modal-title">📊 Business Analytics</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Business Performance</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Last 30 days</div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">892</div>
+                                <div class="stat-label">Customers</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">$45K</div>
+                                <div class="stat-label">Revenue</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">4.8★</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">2.4K</div>
+                                <div class="stat-label">Reviews</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="exportBusinessReport()">
+                            📥 Export Report
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        // Helper functions for Business Profile
+        function changeBusinessLogo() { showToast('Opening logo picker... 🏢'); }
+        function saveBusinessProfile() { closeModal('editBusinessProfile'); showToast('Business profile updated! ✓'); }
+        function openBusinessPrivacySettings() { showToast('Opening privacy settings... 🔐'); }
+        function editBusinessHours() { closeModal('businessHoursDetails'); openModal('editBusinessHours'); }
+        function saveBusinessHours() { closeModal('editBusinessHours'); showToast('Business hours updated! ✓'); }
+        function copyHours() { showToast('Hours copied to all days! 📋'); }
+        function addHolidayHours() { showToast('Adding holiday hours... 🎄'); }
+        function editHoliday(holiday) { showToast(`Editing ${holiday} hours... ✏️`); }
+        function saveLocation() { closeModal('editLocation'); showToast('Location updated! ✓'); }
+        function useCurrentLocation() { showToast('Using current location... 📍'); }
+        function getDirectionsToLocation() { showToast('Opening directions... 🗺️'); }
+        function shareBusinessLocation() { showToast('Location link copied! 📤'); }
+        function visitSocialMedia(platform) { showToast(`Opening ${platform}... 🔗`); }
+        function addSocialMediaPlatform() { showToast('Adding new platform... ➕'); }
+        function editService(service) { showToast(`Editing ${service}... ✏️`); }
+        function viewAllServices() { showToast('Loading all services... 💼'); }
+        function requestServiceQuote(service) { closeModal('serviceDetails'); showToast(`Requesting quote for ${service}... 💬`); }
+        function bookServiceConsultation(service) { closeModal('serviceDetails'); showToast(`Booking consultation for ${service}... 📅`); }
+        function inviteTeamMember() { showToast('Sending invitation... ➕'); }
+        function viewOrgChart() { showToast('Loading organization chart... 📊'); }
+        function emailTeamMember(email) { showToast(`Opening email to ${email}... 📧`); }
+        function messageTeamMember(name) { showToast(`Opening chat with ${name}... 💬`); }
+        function editTeamMember(name) { showToast(`Editing ${name} profile... ✏️`); }
+        function createNetworkingEvent() { showToast('Creating networking event... 📅'); }
+        function sendConnectionRequest() { showToast('Sending connection request... 👥'); }
+        function viewIndustryGroups() { showToast('Finding industry groups... 🏢'); }
+        function attendNetworkingEvent() { showToast('Finding events... 🎯'); }
+        function findNewPartners() { showToast('Searching for partners... 🤝'); }
+        function viewLeadDetails(lead) { showToast(`Opening details for ${lead}... 🔥`); }
+        function generateLeadReport() { showToast('Generating lead report... 📊'); }
+        function viewOpportunityDetails(opp) { showToast(`Opening ${opp}... 💼`); }
+        function findMoreOpportunities() { showToast('Finding opportunities... 🔍'); }
+        function sendBusinessProposal() { closeModal('sendProposal'); showToast('Proposal sent! 📤'); }
+        function scheduleBusinessMeeting() { closeModal('scheduleBusinessMeeting'); showToast('Meeting scheduled! 📅'); }
+        function openBusinessChat(name) { closeModal('businessMessenger'); showToast(`Opening chat with ${name}... 💬`); }
+        function openInMaps() { closeModal('getDirections'); showToast('Opening in maps app... 🗺️'); }
+        function confirmAppointment() { closeModal('bookAppointment'); showToast('Appointment confirmed! 📅'); }
+        function submitQuoteRequest() { closeModal('requestQuote'); showToast('Quote request submitted! 💰'); }
+        function exportBusinessReport() { showToast('Exporting business report... 📊'); }
+
+        // ========== ADVANCED DATING PROFILE FUNCTIONS ==========
+        
+        let selectedInterests = ['Gym', 'Photography', 'Travel'];
+        let selectedValues = ['Honesty', 'Loyalty', 'Communication'];
+        let selectedDealbreakers = ['Smoking', 'Dishonesty'];
+        
+        // Save Dating Profile
+        function saveDatingProfile() {
+            closeModal('editDatingProfile');
+            showToast('Dating profile updated! ✓');
+        }
+        
+        // Change Dating Photos
+        function changeDatingPhotos() {
+            showToast('Opening photo gallery... 📷');
+            setTimeout(() => {
+                showToast('Select photos to add to your dating profile');
+            }, 800);
+        }
+        
+        // Save Dating Preferences
+        function saveDatingPreferences() {
+            closeModal('datingPreferences');
+            showToast('Preferences saved! ⚙️');
+        }
+        
+        // Update Age Range
+        function updateAgeRange(slider, type) {
+            const display = document.getElementById('ageRangeDisplay');
+            if (!display) return;
+            
+            const min = slider.parentElement.querySelector('input[min="18"]').value;
+            const max = slider.parentElement.querySelector('input[min="25"]').value;
+            display.textContent = `${min} - ${max}`;
+        }
+        
+        // Update Distance
+        function updateDistance(slider) {
+            const display = document.getElementById('distanceDisplay');
+            if (!display) return;
+            display.textContent = `${slider.value} miles`;
+        }
+        
+        // Select Gender Preference
+        function selectGenderPreference(gender, element) {
+            const modal = document.getElementById('datingPreferencesModal');
+            if (!modal) return;
+            
+            // Remove selection from all gender preference items
+            const genderItems = modal.querySelectorAll('.list-item');
+            genderItems.forEach(item => {
+                if (item.querySelector('.list-item-icon')?.textContent.includes('👩') || 
+                    item.querySelector('.list-item-icon')?.textContent.includes('👨') || 
+                    item.querySelector('.list-item-icon')?.textContent.includes('👥')) {
+                    item.style.background = 'var(--glass)';
+                    item.style.borderColor = 'var(--glass-border)';
+                    const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                    if (checkmark) checkmark.remove();
+                }
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Show me: ${gender}`);
+        }
+        
+        // Select Education Filter
+        function selectEducationFilter(value, element) {
+            // Update selection
+            const modal = document.getElementById('educationFilterModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            // Update display in preferences modal
+            const display = document.getElementById('educationFilterValue');
+            if (display) display.textContent = value;
+            
+            closeModal('educationFilter');
+            showToast(`Education: ${value}`);
+        }
+        
+        // Select Body Type Filter
+        function selectBodyTypeFilter(value, element) {
+            const modal = document.getElementById('bodyTypeFilterModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('bodyTypeFilterValue');
+            if (display) display.textContent = value;
+            
+            closeModal('bodyTypeFilter');
+            showToast(`Body type: ${value}`);
+        }
+        
+        // Select Height Filter
+        function selectHeightFilter(value, element) {
+            const modal = document.getElementById('heightFilterModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('heightFilterValue');
+            if (display) display.textContent = value;
+            
+            closeModal('heightFilter');
+            showToast(`Height: ${value}`);
+        }
+        
+        // Select Religion Filter
+        function selectReligionFilter(value, element) {
+            const modal = document.getElementById('religionFilterModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('religionFilterValue');
+            if (display) display.textContent = value;
+            
+            closeModal('religionFilter');
+            showToast(`Religion: ${value}`);
+        }
+        
+        // Select Ethnicity Filter
+        function selectEthnicityFilter(value, element) {
+            const modal = document.getElementById('ethnicityFilterModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('ethnicityFilterValue');
+            if (display) display.textContent = value;
+            
+            closeModal('ethnicityFilter');
+            showToast(`Ethnicity: ${value}`);
+        }
+        
+        // Select Children Preference
+        function selectChildrenPreference(value, element) {
+            openModal('childrenPreference');
+        }
+        
+        function selectChildrenPref(value, element) {
+            const modal = document.getElementById('childrenPreferenceModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('childrenValue');
+            if (display) display.textContent = value;
+            
+            closeModal('childrenPreference');
+            showToast(`Children: ${value}`);
+        }
+        
+        // Select Marriage Preference
+        function selectMarriagePreference(value, element) {
+            openModal('marriagePreference');
+        }
+        
+        function selectMarriagePref(value, element) {
+            const modal = document.getElementById('marriagePreferenceModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('marriageValue');
+            if (display) display.textContent = value;
+            
+            closeModal('marriagePreference');
+            showToast(`Marriage: ${value}`);
+        }
+        
+        // Select Family Importance
+        function selectFamilyImportance(value, element) {
+            openModal('familyImportance');
+        }
+        
+        function selectFamilyImp(value, element) {
+            const modal = document.getElementById('familyImportanceModal');
+            modal.querySelectorAll('.list-item').forEach(item => {
+                item.style.background = 'var(--glass)';
+                item.style.borderColor = 'var(--glass-border)';
+                const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                if (checkmark) checkmark.remove();
+            });
+            
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            const display = document.getElementById('familyValue');
+            if (display) display.textContent = value;
+            
+            closeModal('familyImportance');
+            showToast(`Family: ${value}`);
+        }
+        
+        // Toggle Value in Dating Values
+        function toggleValue(element, value) {
+            element.classList.toggle('selected');
+            
+            if (element.classList.contains('selected')) {
+                if (!element.textContent.startsWith('✓')) {
+                    element.textContent = '✓ ' + value;
+                }
+            } else {
+                element.textContent = value;
+            }
+        }
+        
+        // Save Dating Values
+        function saveDatingValues() {
+            const selectedCount = document.querySelectorAll('#selectDatingValuesModal .interest-tag.selected').length;
+            const display = document.getElementById('selectedValuesCount');
+            if (display) display.textContent = `${selectedCount} selected`;
+            
+            closeModal('selectDatingValues');
+            showToast('Values saved! ❤️');
+        }
+        
+        // Save Dealbreakers
+        function saveDealbreakers() {
+            const selectedCount = document.querySelectorAll('#selectDealbreakersModal .interest-tag.selected').length;
+            const display = document.getElementById('selectedDealbreakers');
+            if (display) display.textContent = `${selectedCount} selected`;
+            
+            closeModal('selectDealbreakers');
+            showToast('Dealbreakers saved! 🚫');
+        }
+        
+        // Save Relationship Goals
+        function saveRelationshipGoals() {
+            closeModal('relationshipGoals');
+            showToast('Relationship goals saved! 🎯');
+        }
+        
+        // Select Relationship Type
+        function selectRelationshipType(type, element) {
+            const modal = document.getElementById('relationshipGoalsModal');
+            if (!modal) return;
+            
+            // Remove selection from all relationship type items
+            const items = modal.querySelectorAll('.list-item');
+            items.forEach(item => {
+                if (item.querySelector('.list-item-icon')?.textContent.includes('💑') || 
+                    item.querySelector('.list-item-icon')?.textContent.includes('🌹') || 
+                    item.querySelector('.list-item-icon')?.textContent.includes('👥') || 
+                    item.querySelector('.list-item-icon')?.textContent.includes('🤔')) {
+                    item.style.background = 'var(--glass)';
+                    item.style.borderColor = 'var(--glass-border)';
+                    const checkmark = item.querySelector('div[style*="color: var(--primary)"]');
+                    if (checkmark) checkmark.remove();
+                }
+            });
+            
+            // Add selection to clicked item
+            element.style.background = 'rgba(79, 70, 229, 0.1)';
+            element.style.borderColor = 'var(--primary)';
+            element.insertAdjacentHTML('beforeend', '<div style="color: var(--primary); font-weight: 600;">✓</div>');
+            
+            showToast(`Looking for: ${type}`);
+        }
+        
+        // Save Interests & Hobbies
+        function saveInterestsHobbies() {
+            const selectedCount = document.querySelectorAll('#interestsHobbiesModal .interest-tag.selected').length;
+            closeModal('interestsHobbies');
+            showToast(`Saved ${selectedCount} interests! 🎨`);
+        }
+        
+        // Toggle Interest
+        function toggleInterest(element, interest) {
+            const max = 10;
+            const currentCount = document.querySelectorAll('#interestsHobbiesModal .interest-tag.selected').length;
+            const counter = document.getElementById('interestCount');
+            
+            if (element.classList.contains('selected')) {
+                // Deselect
+                element.classList.remove('selected');
+                if (counter) counter.textContent = `${currentCount - 1} / ${max}`;
+                selectedInterests = selectedInterests.filter(i => i !== interest);
+            } else {
+                // Select (check limit)
+                if (currentCount >= max) {
+                    showToast(`Maximum ${max} interests allowed`);
+                    return;
+                }
+                element.classList.add('selected');
+                if (counter) counter.textContent = `${currentCount + 1} / ${max}`;
+                selectedInterests.push(interest);
+            }
+        }
+        
+        // Add New Verified Photo
+        function addNewVerifiedPhoto() {
+            closeModal('photoVerification');
+            showToast('Opening camera for verification... 📸');
+            
+            setTimeout(() => {
+                showToast('Take a selfie matching the pose shown');
+            }, 1000);
+            
+            setTimeout(() => {
+                showToast('Photo verified successfully! ✓');
+                openModal('photoVerification');
+            }, 3000);
+        }
 
     </script>
 </body>
