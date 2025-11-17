@@ -3001,6 +3001,266 @@
                 </div>
             </div>
 
+            <!-- PREMIUM PROFILE SCREEN -->
+            <div id="premium-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">⭐ Premium Profile</div>
+                    <div class="section-link" onclick="openModal('premiumSettings')">Settings</div>
+                </div>
+
+                <!-- Premium Profile Header -->
+                <div class="card" style="text-align: center; padding: 24px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent); border-color: #ffd700;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);">
+                        👤
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        John Doe
+                        <span style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);" title="Premium User">⭐</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Premium Member since Jan 2024</div>
+                    <div style="display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 20px; font-size: 13px; font-weight: 700; color: #000; margin-bottom: 16px;">
+                        ⭐ PREMIUM VIP
+                    </div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), transparent); border-color: #ffd700;">
+                            <div class="stat-value" style="color: #ffd700;">∞</div>
+                            <div class="stat-label">Storage</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), transparent); border-color: #ffd700;">
+                            <div class="stat-value" style="color: #ffd700;">24/7</div>
+                            <div class="stat-label">Support</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), transparent); border-color: #ffd700;">
+                            <div class="stat-value" style="color: #ffd700;">15+</div>
+                            <div class="stat-label">Features</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), transparent); border-color: #ffd700;">
+                            <div class="stat-value" style="color: #ffd700;">VIP</div>
+                            <div class="stat-label">Status</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000;" onclick="openModal('upgradePremiumPlus')">⬆️ Upgrade</button>
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: var(--glass);" onclick="sharePremiumProfile()">📤 Share</button>
+                    </div>
+                </div>
+
+                <!-- Exclusive Features Showcase -->
+                <div class="section-header">
+                    <div class="section-title">✨ Exclusive Features</div>
+                    <div class="section-link" onclick="openModal('allPremiumFeatures')">View All</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="card" onclick="openModal('premiumStorageFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), transparent); border-color: var(--primary);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">☁️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Unlimited Storage</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">No limits</div>
+                    </div>
+                    <div class="card" onclick="openModal('premiumAdFreeFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); border-color: var(--success);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🚫</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Ad-Free</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Zero ads</div>
+                    </div>
+                    <div class="card" onclick="openModal('premiumCustomBadgesFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent); border-color: #ffd700;">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🎖️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Custom Badges</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">50+ badges</div>
+                    </div>
+                    <div class="card" onclick="openModal('premiumThemesFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), transparent); border-color: var(--secondary);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🎨</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Custom Themes</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">20+ themes</div>
+                    </div>
+                    <div class="card" onclick="openModal('premiumAnalyticsFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), transparent); border-color: var(--accent);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Advanced Analytics</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Detailed insights</div>
+                    </div>
+                    <div class="card" onclick="openModal('premiumDownloadsFeature')" style="text-align: center; padding: 20px; cursor: pointer; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent); border-color: var(--warning);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">⬇️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Offline Downloads</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Save content</div>
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--glass);" onclick="openModal('allPremiumFeatures')">
+                    View All 15+ Premium Features
+                </button>
+
+                <!-- Priority Support Access -->
+                <div class="section-header">
+                    <div class="section-title">🎧 Priority Support</div>
+                    <div class="section-link" onclick="openModal('supportHistory')">History</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent); border-color: #ffd700;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);">🎧</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">VIP Support Team</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Average response: Under 5 minutes</div>
+                        </div>
+                    </div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ffd700;"><5min</div>
+                            <div class="stat-label">Response Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ffd700;">24/7</div>
+                            <div class="stat-label">Availability</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ffd700;">VIP</div>
+                            <div class="stat-label">Queue Priority</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ffd700;">98%</div>
+                            <div class="stat-label">Satisfaction</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <button class="btn" style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000;" onclick="openModal('premiumLiveChat')">💬 Live Chat</button>
+                        <button class="btn" style="background: var(--glass);" onclick="openModal('premiumPhoneSupport')">📞 Call Support</button>
+                        <button class="btn" style="background: var(--glass);" onclick="openModal('premiumEmailSupport')">📧 Email VIP</button>
+                        <button class="btn" style="background: var(--glass);" onclick="openModal('premiumSupportTicket')">🎫 New Ticket</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Privacy Controls -->
+                <div class="section-header">
+                    <div class="section-title">🔐 Advanced Privacy</div>
+                    <div class="section-link" onclick="openModal('privacyInsights')">Insights</div>
+                </div>
+                <div class="card">
+                    <div class="list-item" onclick="openModal('premiumWhoCanSeeMe')">
+                        <div class="list-item-icon">👁️</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Who Can See Me</div>
+                            <div class="list-item-subtitle">Advanced visibility controls</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumDataControl')">
+                        <div class="list-item-icon">💾</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Data Control Center</div>
+                            <div class="list-item-subtitle">Manage all your data</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumActivityTracking')">
+                        <div class="list-item-icon">📍</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Activity Tracking</div>
+                            <div class="list-item-subtitle">Control what's tracked</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumBlockingControls')">
+                        <div class="list-item-icon">🚫</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Advanced Blocking</div>
+                            <div class="list-item-subtitle">Block by keywords, locations</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumIncognitoMode')">
+                        <div class="list-item-icon">🕵️</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Incognito Mode</div>
+                            <div class="list-item-subtitle">Browse anonymously</div>
+                        </div>
+                        <div class="toggle-switch" onclick="event.stopPropagation(); togglePremiumIncognito(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumReadReceipts')">
+                        <div class="list-item-icon">✓</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Read Receipts Control</div>
+                            <div class="list-item-subtitle">Control message read status</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="event.stopPropagation(); toggleSwitch(this)">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="openModal('premiumProfileViews')">
+                        <div class="list-item-icon">👀</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Profile View History</div>
+                            <div class="list-item-subtitle">See who viewed your profile</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                </div>
+
+                <!-- Custom Themes & Badges -->
+                <div class="section-header">
+                    <div class="section-title">🎨 Customization</div>
+                    <div class="section-link" onclick="openModal('customizationGallery')">Gallery</div>
+                </div>
+                
+                <!-- Current Theme Preview -->
+                <div class="card" onclick="openModal('selectPremiumTheme')" style="margin-bottom: 16px; cursor: pointer; background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), transparent); border-color: var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🎨</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Current Theme</div>
+                            <div style="font-size: 16px; font-weight: 700;">Midnight Galaxy</div>
+                        </div>
+                        <div class="list-item-arrow" style="font-size: 20px;">→</div>
+                    </div>
+                </div>
+                
+                <!-- Badge Collection -->
+                <div class="card" onclick="openModal('managePremiumBadges')" style="margin-bottom: 16px; cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="font-size: 16px; font-weight: 700;">🎖️ Badge Collection</div>
+                        <div style="padding: 4px 12px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 12px; font-size: 11px; font-weight: 700; color: #000;">
+                            38 / 50
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+                        <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);">⭐</div>
+                        <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">✓</div>
+                        <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">👑</div>
+                        <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--error), var(--warning)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🔥</div>
+                        <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--primary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💎</div>
+                        <div style="width: 100%; aspect-ratio: 1; background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">+12</div>
+                    </div>
+                </div>
+
+                <!-- Premium Benefits Overview -->
+                <div class="section-header">
+                    <div class="section-title">💎 Premium Benefits</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; margin-bottom: 12px;">✨ What You Get:</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 2;">
+                        ✓ Unlimited cloud storage<br>
+                        ✓ Ad-free experience<br>
+                        ✓ Priority customer support<br>
+                        ✓ Advanced privacy controls<br>
+                        ✓ Custom themes & badges<br>
+                        ✓ Early feature access<br>
+                        ✓ Enhanced profile visibility<br>
+                        ✓ Extended analytics<br>
+                        ✓ Exclusive community access<br>
+                        ✓ Premium content downloads
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000;" onclick="openModal('premiumLiveChat')">💬 VIP Chat</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('selectPremiumTheme')">🎨 Themes</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('managePremiumBadges')">🎖️ Badges</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('premiumAnalyticsFull')">📊 Analytics</button>
+                </div>
+            </div>
+
             <!-- SECTION 13: SETTINGS SCREEN -->
             <div id="settings-screen" class="screen">
                 <div class="section-header">
