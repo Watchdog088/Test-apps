@@ -4588,6 +4588,22 @@
                 <div class="modal-title">Post Options</div>
             </div>
             <div class="modal-content">
+                <div class="list-item" onclick="editPostFromMenu()">
+                    <div class="list-item-icon">✏️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Edit Post</div>
+                        <div class="list-item-subtitle">Modify your post</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="deletePostFromMenu()">
+                    <div class="list-item-icon">🗑️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Delete Post</div>
+                        <div class="list-item-subtitle">Remove permanently</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
                 <div class="list-item" onclick="closeModal('postOptions'); openScreen('saved'); showToast('Post saved to your collection')">
                     <div class="list-item-icon">🔖</div>
                     <div class="list-item-content">
@@ -4799,9 +4815,7 @@
                     <div class="list-item-icon">👁️</div>
                     <div class="list-item-content">
                         <div class="list-item-title">Show All Content</div>
-                        <div class="list-item-subtitle">No
-
-                        filters</div>
+                        <div class="list-item-subtitle">No filters</div>
                     </div>
                 </div>
                 <div class="list-item" onclick="selectSensitiveContentFilter('Show with Warnings')">
@@ -7097,27 +7111,27 @@
                     </div>
                     <div style="color: var(--primary); font-weight: 600;">✓</div>
                 </div>
-                <div class="list-item" onclick="selectHeightFilter('Under 5\'0\"', this)">
+                <div class="list-item" onclick="selectHeightFilter('Under 5ft', this)">
                     <div class="list-item-content">
                         <div class="list-item-title">Under 5'0"</div>
                     </div>
                 </div>
-                <div class="list-item" onclick="selectHeightFilter('5\'0\" - 5\'5\"', this)">
+                <div class="list-item" onclick="selectHeightFilter('5ft-5ft5in', this)">
                     <div class="list-item-content">
                         <div class="list-item-title">5'0" - 5'5"</div>
                     </div>
                 </div>
-                <div class="list-item" onclick="selectHeightFilter('5\'6\" - 5\'11\"', this)">
+                <div class="list-item" onclick="selectHeightFilter('5ft6in-5ft11in', this)">
                     <div class="list-item-content">
                         <div class="list-item-title">5'6" - 5'11"</div>
                     </div>
                 </div>
-                <div class="list-item" onclick="selectHeightFilter('6\'0\" - 6\'5\"', this)">
+                <div class="list-item" onclick="selectHeightFilter('6ft-6ft5in', this)">
                     <div class="list-item-content">
                         <div class="list-item-title">6'0" - 6'5"</div>
                     </div>
                 </div>
-                <div class="list-item" onclick="selectHeightFilter('Over 6\'5\"', this)">
+                <div class="list-item" onclick="selectHeightFilter('Over 6ft5in', this)">
                     <div class="list-item-content">
                         <div class="list-item-title">Over 6'5"</div>
                     </div>
@@ -9473,6 +9487,9 @@
 
     </div>
 
+    <!-- Load Feed System -->
+    <script src="ConnectHub_Mobile_Design_Feed_System.js"></script>
+    
     <!-- Load Dating System -->
     <script src="ConnectHub_Mobile_Design_Dating_System.js"></script>
     
