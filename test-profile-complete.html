@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Complete Profile System - ConnectHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 8px 16px;
+        }
+
+        .nav-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+
+        .nav-back, .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.9);
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+            text-align: center;
+        }
+
+        .profile-cover {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cover-actions {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .cover-btn {
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-header {
+            text-align: center;
+            padding: 0 20px 20px;
+            margin-top: -60px;
+            position: relative;
+        }
+
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 16px;
+            border: 6px solid var(--bg-primary);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .profile-avatar-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 4px solid var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .verified-badge {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .profile-username {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .profile-bio {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 20px;
+        }
+
+        .profile-stat {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .profile-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .profile-stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+        }
+
+        .profile-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 0 16px;
+            position: sticky;
+            top: 64px;
+            background: var(--bg-primary);
+            z-index: 50;
+        }
+
+        .profile-tab-btn {
+            flex: 1;
+            padding: 16px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .profile-tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .profile-tab-content {
+            display: none;
+            padding: 16px;
+        }
+
+        .profile-tab-content.active {
+            display: block;
+        }
+
+        .highlights-container {
+            padding: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .highlights-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .highlight-item {
+            flex-shrink: 0;
+            width: 80px;
+            cursor: pointer;
+        }
+
+        .highlight-cover {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 8px;
+            border: 3px solid var(--glass-border);
+        }
+
+        .highlight-name {
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .featured-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .featured-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .featured-emoji {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .featured-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .featured-engagement {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .badge-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .badge-item.rare {
+            border-color: #ffd700;
+        }
+
+        .badge-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .badge-name {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .photo-item {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+        }
+
+        .video-item {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .video-thumbnail {
+            width: 120px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .about-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .about-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .about-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .interest-tag {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-content {
+            padding: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-link {
+            font-size: 14px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:active {
+            transform: scale(0.98);
+        }
+
+        .list-item-icon {
+            font-size: 24px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-item-arrow {
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        .post-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .post-content {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            margin-bottom: 12px;
+        }
+
+        .post-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            margin-bottom: 12px;
+        }
+
+        .textarea-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .qr-code-display {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code-icon {
+            font-size: 100px;
+            color: #000;
+            line-height: 1.2;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 24px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            display: none;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            display: block;
+            animation: toastSlideIn 0.3s ease forwards;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="top-nav">
+            <div class="nav-main">
+                <div class="nav-back" onclick="window.history.back()">←</div>
+                <div class="nav-title">Profile</div>
+                <div class="nav-btn" onclick="openModal('profileMenu')">⋯</div>
+            </div>
+        </div>
+
+        <div class="profile-cover" onclick="viewCoverPhoto()">
+            <div class="cover-actions" onclick="event.stopPropagation()">
+                <div class="cover-btn" onclick="uploadCoverPhoto()">📷 Change</div>
+            </div>
+        </div>
+
+        <div class="profile-header">
+            <div class="profile-avatar-large" onclick="viewProfilePhoto()">
+                👤
+                <div class="profile-avatar-badge" onclick="event.stopPropagation(); uploadProfilePhoto()">
+                    📷
+                </div>
+            </div>
+            <div class="profile-name">
+                John Doe
+                <div class="verified-badge">✓</div>
+            </div>
+            <div class="profile-username">@johndoe</div>
+            <div class="profile-bio">Tech enthusiast | Traveler | Coffee lover ☕</div>
+            <div class="profile-stats">
+                <div class="profile-stat" onclick="openModal('followers')">
+                    <div class="profile-stat-value">1.2K</div>
+                    <div class="profile-stat-label">Followers</div>
+                </div>
+                <div class="profile-stat" onclick="openModal('following')">
+                    <div class="profile-stat-value">456</div>
+                    <div class="profile-stat-label">Following</div>
+                </div>
+                <div class="profile-stat" onclick="openModal('friends')">
+                    <div class="profile-stat-value">234</div>
+                    <div class="profile-stat-label">Friends</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <button class="btn" onclick="openModal('editProfile')">✏️ Edit Profile</button>
+            <button class="btn btn-secondary" onclick="shareProfile()">📤 Share</button>
+        </div>
+
+        <div class="highlights-container">
+            <div class="section-header">
+                <div class="section-title">✨ Highlights</div>
+                <div class="section-link" onclick="createHighlight()">+ New</div>
+            </div>
+            <div class="highlights-scroll">
+                <div class="highlight-item" onclick="viewHighlight(1)">
+                    <div class="highlight-cover">🏖️</div>
+                    <div class="highlight-name">Vacation</div>
+                </div>
+                <div class="highlight-item" onclick="viewHighlight(2)">
+                    <div class="highlight-cover">💻</div>
+                    <div class="highlight-name">Tech</div>
+                </div>
+                <div class="highlight-item" onclick="viewHighlight(3)">
+                    <div class="highlight-cover">🍕</div>
+                    <div class="highlight-name">Food</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="featured-section">
+            <div class="section-header">
+                <div class="section-title">⭐ Featured</div>
+                <div class="section-link" onclick="openModal('manageFeatured')">Manage</div>
+            </div>
+            <div class="featured-grid">
+                <div class="featured-item" onclick="viewFeaturedItem(1)">
+                    <div class="featured-emoji">🏖️</div>
+                    <div class="featured-title">Popular Post</div>
+                    <div class="featured-engagement">High Engagement</div>
+                </div>
+                <div class="featured-item" onclick="viewFeaturedItem(2)">
+                    <div class="featured-emoji">🎬</div>
+                    <div class="featured-title">Top Video</div>
+                    <div class="featured-engagement">Very High</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-tabs">
+            <div class="profile-tab-btn active" onclick="switchProfileTab('posts')">📝 Posts</div>
+            <div class="profile-tab-btn" onclick="switchProfileTab('photos')">📷 Photos</div>
+            <div class="profile-tab-btn" onclick="switchProfileTab('videos')">🎥 Videos</div>
+            <div class="profile-tab-btn" onclick="switchProfileTab('about')">ℹ️ About</div>
+        </div>
+
+        <div id="profile-posts-tab" class="profile-tab-content active">
+            <div class="post-card">
+                <div class="post-content">Great day at the beach! 🏖️</div>
+                <div class="post-image">🏖️</div>
+                <div class="post-meta">2 hours ago • 156 likes • 23 comments</div>
+            </div>
+            <div class="post-card">
+                <div class="post-content">Working on exciting new projects! 💻</div>
+                <div class="post-image">💻</div>
+                <div class="post-meta">1 day ago • 89 likes • 12 comments</div>
+            </div>
+        </div>
+
+        <div id="profile-photos-tab" class="profile-tab-content">
+            <div class="photo-grid">
+                <div class="photo-item" onclick="viewPhoto(1)">🏖️</div>
+                <div class="photo-item" onclick="viewPhoto(2)">🌅</div>
+                <div class="photo-item" onclick="viewPhoto(3)">🎨</div>
+                <div class="photo-item" onclick="viewPhoto(4)">🏔️</div>
+                <div class="photo-item" onclick="viewPhoto(5)">☕</div>
+                <div class="photo-item" onclick="viewPhoto(6)">🌸</div>
+            </div>
+        </div>
+
+        <div id="profile-videos-tab" class="profile-tab-content">
+            <div class="video-item" onclick="playProfileVideo(1)">
+                <div class="video-thumbnail">🎬</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">Day in my life</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">12.5K views • 5:30</div>
+                </div>
+            </div>
+            <div class="video-item" onclick="playProfileVideo(2)">
+                <div class="video-thumbnail">🎮</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">Gaming highlights</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">8.9K views • 12:45</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-about-tab" class="profile-tab-content">
+            <div class="about-item">
+                <div class="about-label">Work</div>
+                <div class="about-value">Software Engineer at Tech Corp</div>
+            </div>
+            <div class="about-item">
+                <div class="about-label">Education</div>
+                <div class="about-value">Stanford University</div>
+            </div>
+            <div class="about-item">
+                <div class="about-label">Location</div>
+                <div class="about-value">San Francisco, CA</div>
+            </div>
+            <div class="about-item">
+                <div class="about-label">Interests</div>
+                <div style="margin-top: 8px;">
+                    <span class="interest-tag">Technology</span>
+                    <span class="interest-tag">Travel</span>
+                    <span class="interest-tag">Photography</span>
+                    <span class="interest-tag">Coffee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileMenuModal" class="modal">
+        <div class="modal-header">
+            <div class="modal-close" onclick="closeModal('profileMenu')">✕</div>
+            <div class="modal-title">Profile Menu</div>
+        </div>
+        <div class="modal-content">
+            <div class="list-item" onclick="openModal('badges')">
+                <div class="list-item-icon">🎖️</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Badges & Achievements</div>
+                    <div class="list-item-subtitle">View your collection</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+            <div class="list-item" onclick="viewQRCode()">
+                <div class="list-item-icon">📱</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">My QR Code</div>
+                    <div class="list-item-subtitle">Share your profile</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+            <div class="list-item" onclick="customizeProfileUrl()">
+                <div class="list-item-icon">🔗</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Custom URL</div>
+                    <div class="list-item-subtitle">connecthub.com/johndoe</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+            <div class="list-item" onclick="viewProfileViewers()">
+                <div class="list-item-icon">👁️</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Profile Viewers</div>
+                    <div class="list-item-subtitle">See who viewed</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+            <div class="list-item" onclick="openModal('profilePrivacyZones')">
+                <div class="list-item-icon">🔐</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Privacy Zones</div>
+                    <div class="list-item-subtitle">Manage visibility</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Profile_System.js"></script>
+</body>
+</html>
