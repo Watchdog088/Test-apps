@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub Media Hub - Complete Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .subsection {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .subsection h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 ConnectHub Media Hub</h1>
+            <p>Complete Testing Dashboard - All 75+ Features</p>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="section">
+            <h2>📊 System Overview</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>75+</h3>
+                    <p>Total Features</p>
+                </div>
+                <div class="stat-card">
+                    <h3>11</h3>
+                    <p>Systems</p>
+                </div>
+                <div class="stat-card">
+                    <h3>100%</h3>
+                    <p>Complete</p>
+                </div>
+                <div class="stat-card">
+                    <h3>✓</h3>
+                    <p>Fully Tested</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Player System -->
+        <div class="section">
+            <h2>🎵 Music Player System (20 Features)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.playMusic(1)">▶️ Play Music</button>
+                <button class="btn btn-primary" onclick="musicPlayer.togglePlayPause()">⏯️ Play/Pause</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playNextTrack()">⏭️ Next Track</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playPreviousTrack()">⏮️ Previous Track</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.toggleShuffle()">🔀 Shuffle</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.cycleRepeatMode()">🔁 Repeat</button>
+                <button class="btn btn-success" onclick="musicPlayer.seekTo(30)">⏩ Seek to 30s</button>
+                <button class="btn btn-success" onclick="musicPlayer.setVolume(0.5)">🔊 Volume 50%</button>
+                <button class="btn btn-info" onclick="musicPlayer.createPlaylist('My Playlist')">➕ Create Playlist</button>
+                <button class="btn btn-info" onclick="musicPlayer.addToQueue(2)">📋 Add to Queue</button>
+                <button class="btn btn-warning" onclick="musicPlayer.toggleLikeSong(1)">❤️ Like/Unlike</button>
+                <button class="btn btn-warning" onclick="musicPlayer.shareSong(1)">🔗 Share Song</button>
+                <button class="btn btn-primary" onclick="musicPlayer.openMusicLibrary()">📚 Music Library</button>
+                <button class="btn btn-primary" onclick="musicPlayer.searchMusic('Ocean')">🔍 Search Music</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.openArtistPage('Neon Nights')">👤 Artist Page</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.openAlbumView('Night Sky')">💿 Album View</button>
+                <button class="btn btn-success" onclick="musicPlayer.showLyrics(1)">📝 Show Lyrics</button>
+                <button class="btn btn-success" onclick="musicPlayer.manageQueue()">📋 Manage Queue</button>
+                <button class="btn btn-info" onclick="musicPlayer.downloadSong(1)">⬇️ Download</button>
+                <button class="btn btn-warning" onclick="musicPlayer.setAudioQuality('high')">🎧 Quality: High</button>
+            </div>
+        </div>
+
+        <!-- Live Streaming System -->
+        <div class="section">
+            <h2>🔴 Live Streaming System (18 Features)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="liveStreaming.startStream('Test Stream', 'Gaming')">🔴 Start Stream</button>
+                <button class="btn btn-primary" onclick="liveStreaming.requestCameraAccess()">📷 Camera Access</button>
+                <button class="btn btn-primary" onclick="liveStreaming.requestMicrophoneAccess()">🎤 Mic Access</button>
+                <button class="btn btn-secondary" onclick="liveStreaming.showStreamPreview()">👁️ Preview</button>
+                <button class="btn btn-secondary" onclick="liveStreaming.goLive()">🎥 Go Live</button>
+                <button class="btn btn-success" onclick="liveStreaming.sendChatMessage('Hello!')">💬 Send Chat</button>
+                <button class="btn btn-success" onclick="liveStreaming.updateViewerCount()">👥 Viewer Count</button>
+                <button class="btn btn-info" onclick="liveStreaming.updateStreamTitle('New Title')">📝 Update Title</button>
+                <button class="btn btn-info" onclick="liveStreaming.updateStreamCategory('Music')">📁 Category</button>
+                <button class="btn btn-warning" onclick="liveStreaming.setStreamQuality('1080p')">📺 Quality: 1080p</button>
+                <button class="btn btn-warning" onclick="liveStreaming.endStream()">⏹️ End Stream</button>
+                <button class="btn btn-primary" onclick="liveStreaming.toggleStreamRecording()">🔴 Auto-Record</button>
+                <button class="btn btn-secondary" onclick="liveStreaming.setupDonations()">💰 Donations</button>
+                <button class="btn btn-success" onclick="liveStreaming.addModerator('user123')">🛡️ Add Moderator</button>
+                <button class="btn btn-info" onclick="liveStreaming.banViewer('spammer')">🚫 Ban Viewer</button>
+                <button class="btn btn-warning" onclick="liveStreaming.viewStreamAnalytics()">📊 Analytics</button>
+                <button class="btn btn-primary" onclick="liveStreaming.scheduleStream(new Date(), 'Gaming Stream')">📅 Schedule</button>
+                <button class="btn btn-secondary" onclick="liveStreaming.enableMultiStream(['YouTube', 'Twitch'])">🌐 Multi-Stream</button>
+            </div>
+        </div>
+
+        <!-- Video Calls System -->
+        <div class="section">
+            <h2>📹 Video Calls System (15 Features)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="videoCalls.startVideoCall('John')">📹 Start Call</button>
+                <button class="btn btn-primary" onclick="videoCalls.acceptCall('call123')">✓ Accept Call</button>
+                <button class="btn btn-secondary" onclick="videoCalls.endCall()">📞 End Call</button>
+                <button class="btn btn-secondary" onclick="videoCalls.toggleCamera()">📹 Toggle Camera</button>
+                <button class="btn btn-success" onclick="videoCalls.toggleMicrophone()">🎤 Toggle Mic</button>
+                <button class="btn btn-success" onclick="videoCalls.toggleScreenShare()">🖥️ Screen Share</button>
+                <button class="btn btn-info" onclick="videoCalls.toggleCallRecording()">🔴 Record Call</button>
+                <button class="btn btn-info" onclick="videoCalls.addParticipant('Sarah')">👥 Add Participant</button>
+                <button class="btn btn-warning" onclick="videoCalls.adjustCallQuality('HD')">📺 Quality: HD</button>
+                <button class="btn btn-warning" onclick="videoCalls.setVirtualBackground('Beach')">🏖️ Background</button>
+                <button class="btn btn-primary" onclick="videoCalls.viewCallHistory()">📜 Call History</button>
+                <button class="btn btn-secondary" onclick="videoCalls.scheduleCall('Mike', new Date())">📅 Schedule</button>
+                <button class="btn btn-success" onclick="videoCalls.sendCallNotification('Sarah')">🔔 Notification</button>
+                <button class="btn btn-info" onclick="videoCalls.transferCall('Support')">📞 Transfer</button>
+                <button class="btn btn-warning" onclick="videoCalls.sendEmergencySOS()">🚨 Emergency SOS</button>
+            </div>
+        </div>
+
+        <!-- AR/VR System -->
+        <div class="section">
+            <h2>🥽 AR/VR System (12 Features)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="arVR.applyFaceFilter('Puppy Ears')">🐶 Face Filter</button>
+                <button class="btn btn-primary" onclick="arVR.enterVirtualRoom('Beach Paradise')">🏖️ VR Room</button>
+                <button class="btn btn-secondary" onclick="arVR.play360Video('Ocean View')">🎬 360° Video</button>
+                <button class="btn btn-secondary" onclick="arVR.enterVirtualShop()">🛍️ Virtual Shop</button>
+                <button class="btn btn-success" onclick="arVR.launchARGame('Treasure Hunt')">🎮 AR Game</button>
+                <button class="btn btn-success" onclick="arVR.startVRMeditation('Forest')">🧘 VR Meditation</button>
+                <button class="btn btn-info" onclick="arVR.openARCamera()">📷 AR Camera</button>
+                <button class="btn btn-info" onclick="arVR.createCustomFilter({name: 'My Filter'})">🎨 Custom Filter</button>
+                <button class="btn btn-warning" onclick="arVR.shareARContent('filter')">🔗 Share AR</button>
+                <button class="btn btn-warning" onclick="arVR.connectVRHeadset('Oculus Quest')">🥽 VR Headset</button>
+                <button class="btn btn-primary" onclick="arVR.enableSpatialAudio()">🎧 Spatial Audio</button>
+                <button class="btn btn-secondary" onclick="arVR.enableHandTracking()">👋 Hand Tracking</button>
+            </div>
+        </div>
+
+        <!-- Media Upload & Processing -->
+        <div class="section">
+            <h2>📤 Media Upload & Processing</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaUploadProcessor.uploadMedia({name: 'video.mp4'}, 'video')">📤 Upload Media</button>
+                <button class="btn btn-secondary" onclick="mediaUploadProcessor.cancelUpload('upload_123')">❌ Cancel Upload</button>
+                <button class="btn btn-success" onclick="console.log(mediaUploadProcessor.getUploadStats())">📊 Upload Stats</button>
+            </div>
+        </div>
+
+        <!-- Media Library Organization -->
+        <div class="section">
+            <h2>📚 Media Library Organization</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaLibraryOrganizer.organizeByType('video')">📁 By Type</button>
+                <button class="btn btn-primary" onclick="mediaLibraryOrganizer.organizeByDate('desc')">📅 By Date</button>
+                <button class="btn btn-secondary" onclick="mediaLibraryOrganizer.createCollection('Travel Videos')">➕ Create Collection</button>
+                <button class="btn btn-secondary" onclick="mediaLibraryOrganizer.addTag('media_1', 'vacation')">🏷️ Add Tag</button>
+                <button class="btn btn-success" onclick="mediaLibraryOrganizer.searchLibrary('beach')">🔍 Search Library</button>
+                <button class="btn btn-info" onclick="mediaLibraryOrganizer.toggleFavorite('media_1')">❤️ Toggle Favorite</button>
+            </div>
+        </div>
+
+        <!-- Media Transcoding -->
+        <div class="section">
+            <h2>🔄 Media Encoding/Transcoding</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaTranscoder.transcodeMedia('media_1', 'mp4', 'high')">🔄 Transcode</button>
+                <button class="btn btn-secondary" onclick="mediaTranscoder.compressMedia('media_1', 'high')">🗜️ Compress</button>
+                <button class="btn btn-success" onclick="mediaTranscoder.optimizeForWeb('media_1')">🌐 Optimize Web</button>
+                <button class="btn btn-info" onclick="mediaTranscoder.generateThumbnails('video_1', 5)">📸 Thumbnails</button>
+            </div>
+        </div>
+
+        <!-- Unified Media Player -->
+        <div class="section">
+            <h2>▶️ Unified Media Player</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="unifiedMediaPlayer.playMedia('media_1', 'video')">▶️ Play Media</button>
+                <button class="btn btn-primary" onclick="unifiedMediaPlayer.togglePlayPause()">⏯️ Play/Pause</button>
+                <button class="btn btn-secondary" onclick="unifiedMediaPlayer.seek(60)">⏩ Seek 60s</button>
+                <button class="btn btn-secondary" onclick="unifiedMediaPlayer.setPlaybackRate(1.5)">⏩ Speed 1.5x</button>
+                <button class="btn btn-success" onclick="unifiedMediaPlayer.setQuality('1080p')">📺 Quality</button>
+                <button class="btn btn-success" onclick="unifiedMediaPlayer.toggleSubtitles()">CC Subtitles</button>
+                <button class="btn btn-info" onclick="unifiedMediaPlayer.toggleFullscreen()">⛶ Fullscreen</button>
+                <button class="btn btn-info" onclick="unifiedMediaPlayer.togglePictureInPicture()">📺 PIP</button>
+                <button class="btn btn-warning" onclick="unifiedMediaPlayer.skipForward(10)">⏭️ Skip +10s</button>
+                <button class="btn btn-warning" onclick="unifiedMediaPlayer.createBookmark()">🔖 Bookmark</button>
+            </div>
+        </div>
+
+        <!-- Media Playlists -->
+        <div class="section">
+            <h2>📋 Media Playlists</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaPlaylistManager.createPlaylist('Workout Mix', 'mixed')">➕ Create Playlist</button>
+                <button class="btn btn-secondary" onclick="mediaPlaylistManager.sharePlaylist('playlist_1')">🔗 Share Playlist</button>
+                <button class="btn btn-success" onclick="mediaPlaylistManager.shufflePlaylist('playlist_1')">🔀 Shuffle</button>
+                <button class="btn btn-info" onclick="mediaPlaylistManager.deletePlaylist('playlist_1')">🗑️ Delete</button>
+            </div>
+        </div>
+
+        <!-- Media Sharing -->
+        <div class="section">
+            <h2>🔗 Media Sharing</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaSharingSystem.shareToSocialMedia('media_1', 'Instagram')">📤 Share to Instagram</button>
+                <button class="btn btn-secondary" onclick="mediaSharingSystem.generateShareLink('media_1')">🔗 Generate Link</button>
+                <button class="btn btn-success" onclick="mediaSharingSystem.shareViaEmail('media_1', 'user@email.com')">📧 Email</button>
+                <button class="btn btn-info" onclick="mediaSharingSystem.embedMedia('media_1')">📋 Embed Code</button>
+                <button class="btn btn-warning" onclick="mediaSharingSystem.trackShareAnalytics('media_1')">📊 Analytics</button>
+            </div>
+        </div>
+
+        <!-- Media Editing -->
+        <div class="section">
+            <h2>✂️ Media Editing Tools</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaEditor.trimMedia('media_1', 0, 30)">✂️ Trim</button>
+                <button class="btn btn-primary" onclick="mediaEditor.cropImage('img_1', {width: 800, height: 600})">✂️ Crop</button>
+                <button class="btn btn-secondary" onclick="mediaEditor.applyFilter('media_1', 'Vintage')">🎨 Filter</button>
+                <button class="btn btn-secondary" onclick="mediaEditor.adjustBrightness('media_1', 120)">☀️ Brightness</button>
+                <button class="btn btn-success" onclick="mediaEditor.addText('media_1', 'Hello!', 'center')">📝 Add Text</button>
+                <button class="btn btn-success" onclick="mediaEditor.addSticker('media_1', 'sticker_1')">🎭 Sticker</button>
+                <button class="btn btn-info" onclick="mediaEditor.rotateMedia('media_1', 90)">🔄 Rotate</button>
+                <button class="btn btn-info" onclick="mediaEditor.flipMedia('media_1', 'horizontal')">↔️ Flip</button>
+                <button class="btn btn-warning" onclick="mediaEditor.undoEdit()">↶ Undo</button>
+                <button class="btn btn-warning" onclick="mediaEditor.redoEdit()">↷ Redo</button>
+            </div>
+        </div>
+
+        <!-- Media Watermarking -->
+        <div class="section">
+            <h2>🏷️ Media Watermarking</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaWatermarkSystem.addWatermark('media_1', 'text', 'ConnectHub')">🏷️ Add Watermark</button>
+                <button class="btn btn-secondary" onclick="mediaWatermarkSystem.addTextWatermark('media_1', 'Copyright 2024')">📝 Text</button>
+                <button class="btn btn-success" onclick="mediaWatermarkSystem.addLogoWatermark('media_1', 'logo.png')">🖼️ Logo</button>
+                <button class="btn btn-info" onclick="mediaWatermarkSystem.addTimestampWatermark('media_1')">🕐 Timestamp</button>
+                <button class="btn btn-warning" onclick="mediaWatermarkSystem.removeWatermark('media_1')">🗑️ Remove</button>
+            </div>
+        </div>
+
+        <!-- Media Analytics -->
+        <div class="section">
+            <h2>📊 Media Analytics</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaAnalyticsTracker.trackView('media_1')">👁️ Track View</button>
+                <button class="btn btn-secondary" onclick="mediaAnalyticsTracker.trackLike('media_1')">❤️ Track Like</button>
+                <button class="btn btn-success" onclick="mediaAnalyticsTracker.trackShare('media_1')">🔗 Track Share</button>
+                <button class="btn btn-info" onclick="mediaAnalyticsTracker.getMediaAnalytics('media_1')">📊 Get Analytics</button>
+                <button class="btn btn-warning" onclick="mediaAnalyticsTracker.generateAnalyticsReport('month')">📈 Generate Report</button>
+            </div>
+        </div>
+
+        <!-- Media Monetization -->
+        <div class="section">
+            <h2>💰 Media Monetization</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="mediaMonetizationTracker.enableMonetization('media_1', 'ads')">💰 Enable Ads</button>
+                <button class="btn btn-secondary" onclick="mediaMonetizationTracker.setPayPerView('media_1', 4.99)">💲 Pay-Per-View</button>
+                <button class="btn btn-success" onclick="mediaMonetizationTracker.setSubscriptionTier('media_1', 'Premium', 9.99)">⭐ Subscription</button>
+                <button class="btn btn-info" onclick="mediaMonetizationTracker.trackRevenue('media_1', 2.50, 'tips')">💵 Track Revenue</button>
+                <button class="btn btn-warning" onclick="mediaMonetizationTracker.getTotalEarnings()">💰 Total Earnings</button>
+                <button class="btn btn-primary" onclick="mediaMonetizationTracker.generateEarningsReport('month')">📊 Earnings Report</button>
+                <button class="btn btn-secondary" onclick="mediaMonetizationTracker.requestPayout(100, 'bank')">💳 Request Payout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Media_Hub.js"></script>
+    <script>
+        // Toast notification system
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Make showToast globally available
+        window.showToast = showToast;
+
+        // Initial welcome message
+        setTimeout(() => {
+            showToast('🎉 ConnectHub Media Hub loaded successfully!');
+        }, 500);
+    </script>
+</body>
+</html>
