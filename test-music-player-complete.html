@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub Music Player - Complete Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Music Player Card */
+        .music-player-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .now-playing {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .album-art {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+
+        .song-info h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .song-info p {
+            color: #666;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 20px 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Player Controls */
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .control-btn.play {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Volume Control */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Feature Buttons */
+        .feature-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .feature-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .feature-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Modal Styles */
+        .music-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .modal-header button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .library-item, .search-result, .queue-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: background 0.2s;
+        }
+
+        .library-item:hover, .search-result:hover {
+            background: #f8f8f8;
+        }
+
+        .library-item span {
+            font-size: 30px;
+        }
+
+        .song-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .song-artist {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .artist-header, .album-header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .artist-songs, .album-songs {
+            margin-top: 15px;
+        }
+
+        .artist-songs div, .album-songs div {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .artist-songs div:hover, .album-songs div:hover {
+            background: #f8f8f8;
+        }
+
+        .lyrics {
+            white-space: pre-line;
+            line-height: 1.8;
+            color: #333;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 10px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .equalizer-presets, .sleep-timer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .equalizer-presets button, .sleep-timer-options button {
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .equalizer-presets button:hover, .sleep-timer-options button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .equalizer-presets button.active {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 ConnectHub Music Player</h1>
+            <p>Complete Implementation - All 20 Features</p>
+        </div>
+
+        <!-- Main Music Player -->
+        <div class="music-player-card">
+            <div class="now-playing">
+                <div class="album-art" id="albumArt">🎵</div>
+                <div class="song-info">
+                    <h2 id="songTitle">No song playing</h2>
+                    <p id="artistName">Select a song to start</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" onclick="handleProgressClick(event)">
+                <div class="progress-bar" id="musicProgressBar"></div>
+            </div>
+            <div class="time-display">
+                <span id="musicCurrentTime">0:00</span>
+                <span id="musicDuration">0:00</span>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls">
+                <button class="control-btn" onclick="musicPlayer.playPreviousTrack()" title="Previous">⏮️</button>
+                <button class="control-btn play" id="musicPlayBtn" onclick="musicPlayer.togglePlayPause()" title="Play/Pause">▶️</button>
+                <button class="control-btn" onclick="musicPlayer.playNextTrack()" title="Next">⏭️</button>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-control">
+                <span>🔈</span>
+                <input type="range" class="volume-slider" min="0" max="100" value="70" 
+                       onchange="musicPlayer.setVolume(this.value / 100)">
+                <span>🔊</span>
+            </div>
+
+            <!-- Quick Feature Buttons -->
+            <div class="feature-buttons">
+                <button class="feature-btn" onclick="musicPlayer.toggleShuffle()">🔀 Shuffle</button>
+                <button class="feature-btn" onclick="musicPlayer.cycleRepeatMode()">🔁 Repeat</button>
+                <button class="feature-btn" onclick="musicPlayer.openMusicLibrary()">📚 Library</button>
+                <button class="feature-btn" onclick="musicPlayer.manageQueue()">📋 Queue</button>
+                <button class="feature-btn" onclick="musicPlayer.showLyrics(1)">📝 Lyrics</button>
+                <button class="feature-btn" onclick="musicPlayer.showEqualizerModal()">🎛️ Equalizer</button>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>20</h3>
+                <p>Features</p>
+            </div>
+            <div class="stat-card">
+                <h3>✓</h3>
+                <p>HTML5 Audio</p>
+            </div>
+            <div class="stat-card">
+                <h3>100%</h3>
+                <p>Complete</p>
+            </div>
+            <div class="stat-card">
+                <h3>🎵</h3>
+                <p>Ready</p>
+            </div>
+        </div>
+
+        <!-- Core Playback Features -->
+        <div class="section">
+            <h2>🎵 Core Playback (Features 1-8)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.playMusic(1)">▶️ Play Song 1</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playMusic(2)">▶️ Play Song 2</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playMusic(3)">▶️ Play Song 3</button>
+                <button class="btn btn-primary" onclick="musicPlayer.togglePlayPause()">⏯️ Play/Pause</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playNextTrack()">⏭️ Next Track</button>
+                <button class="btn btn-primary" onclick="musicPlayer.playPreviousTrack()">⏮️ Previous</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.seekTo(30)">⏩ Seek 30s</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.setVolume(0.5)">🔊 50% Volume</button>
+            </div>
+        </div>
+
+        <!-- Playlist & Library -->
+        <div class="section">
+            <h2>📚 Playlist & Library (Features 9-14)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.createPlaylist('My Favorites')">➕ Create Playlist</button>
+                <button class="btn btn-primary" onclick="musicPlayer.addToPlaylist('playlist_1', 1)">📝 Add to Playlist</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.toggleLikeSong(1)">❤️ Like/Unlike Song</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.shareSong(1)">🔗 Share Song</button>
+                <button class="btn btn-primary" onclick="musicPlayer.openMusicLibrary()">📚 Open Library</button>
+                <button class="btn btn-primary" onclick="musicPlayer.searchMusic('Ocean')">🔍 Search Music</button>
+            </div>
+        </div>
+
+        <!-- Artist & Album Discovery -->
+        <div class="section">
+            <h2>🎤 Artist & Album (Features 15-16)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.openArtistPage('The Moonwalkers')">👤 Artist: The Moonwalkers</button>
+                <button class="btn btn-primary" onclick="musicPlayer.openArtistPage('Neon Nights')">👤 Artist: Neon Nights</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.openAlbumView('Night Sky')">💿 Album: Night Sky</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.openAlbumView('Serenity')">💿 Album: Serenity</button>
+                <button class="btn btn-primary" onclick="musicPlayer.toggleFavoriteArtist('The Moonwalkers')">❤️ Favorite Artist</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.toggleFavoriteAlbum('Night Sky')">❤️ Favorite Album</button>
+            </div>
+        </div>
+
+        <!-- Lyrics & Queue -->
+        <div class="section">
+            <h2>📝 Lyrics & Queue (Features 17-18)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.showLyrics(1)">📝 Show Lyrics</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.manageQueue()">📋 Manage Queue</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.addToQueue(2)">➕ Add to Queue</button>
+                <button class="btn btn-primary" onclick="musicPlayer.addToQueue(3); musicPlayer.addToQueue(4);">➕ Add Multiple</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.clearQueue()">🗑️ Clear Queue</button>
+            </div>
+        </div>
+
+        <!-- Download & Quality -->
+        <div class="section">
+            <h2>⬇️ Download & Quality (Features 19-20)</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.downloadSong(1)">⬇️ Download Song 1</button>
+                <button class="btn btn-primary" onclick="musicPlayer.downloadSong(2)">⬇️ Download Song 2</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.deleteDownload(1)">🗑️ Delete Download</button>
+                <button class="btn btn-primary" onclick="musicPlayer.setAudioQuality('low')">🎧 Quality: Low</button>
+                <button class="btn btn-primary" onclick="musicPlayer.setAudioQuality('normal')">🎧 Quality: Normal</button>
+                <button class="btn btn-primary" onclick="musicPlayer.setAudioQuality('high')">🎧 Quality: High</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.setAudioQuality('extreme')">🎧 Quality: Extreme</button>
+            </div>
+        </div>
+
+        <!-- Advanced Features -->
+        <div class="section">
+            <h2>⚙️ Advanced Features</h2>
+            <div class="button-grid">
+                <button class="btn btn-primary" onclick="musicPlayer.getRecommendations()">🎯 Recommendations</button>
+                <button class="btn btn-primary" onclick="musicPlayer.toggleCrossfade()">🔄 Toggle Crossfade</button>
+                <button class="btn btn-secondary" onclick="musicPlayer.showEqualizerModal()">🎛️ Equalizer</button>
+                <button class="btn btn-secondary" onclick="setSleepTimerUI()">⏰ Sleep Timer</button>
+                <button class="btn btn-primary" onclick="musicPlayer.syncLibrary()">☁️ Sync Library</button>
+                <button class="btn btn-primary" onclick="musicPlayer.showRecentlyPlayed()">⏮️ Recently Played</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Media_Hub_Complete.js"></script>
+    <script>
+        // Toast notification system
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Progress bar click handler
+        function handleProgressClick(event) {
+            if (!musicPlayer.currentSong) return;
+            
+            const progressContainer = event.currentTarget;
+            const clickX = event.offsetX;
+            const width = progressContainer.clientWidth;
+            const percentage = clickX / width;
+            const newTime = percentage * musicPlayer.audioElement.duration;
+            
+            musicPlayer.seekTo(newTime);
+        }
+
+        // Sleep timer UI helper
+        function setSleepTimerUI() {
+            const modal = document.createElement('div');
+            modal.className = 'music-modal';
+            modal.style.opacity = '1';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Sleep Timer</h3>
+                        <button onclick="this.closest('.music-modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="sleep-timer-options">
+                            <button onclick="musicPlayer.setSleepTimer(5); this.closest('.music-modal').remove();">5 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(10); this.closest('.music-modal').remove();">10 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(15); this.closest('.music-modal').remove();">15 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(30); this.closest('.music-modal').remove();">30 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(45); this.closest('.music-modal').remove();">45 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(60); this.closest('.music-modal').remove();">60 minutes</button>
+                            <button onclick="musicPlayer.setSleepTimer(0); this.closest('.music-modal').remove();" style="grid-column: span 2;">Cancel Timer</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Update now playing UI
+        setInterval(() => {
+            if (musicPlayer.currentSong) {
+                document.getElementById('songTitle').textContent = musicPlayer.currentSong.title;
+                document.getElementById('artistName').textContent = musicPlayer.currentSong.artist;
+                document.getElementById('albumArt').textContent = musicPlayer.currentSong.emoji;
+            }
+        }, 500);
+
+        // Make showToast globally available
+        window.showToast = showToast;
+
+        // Initial welcome message
+        setTimeout(() => {
+            showToast('🎉 ConnectHub Music Player loaded successfully!');
+            showToast('Click any song to start playing');
+        }, 500);
+
+        // Auto-play first song after 2 seconds for demo
+        setTimeout(() => {
+            musicPlayer.playMusic(1);
+        }, 2000);
+    </script>
+</body>
+</html>
