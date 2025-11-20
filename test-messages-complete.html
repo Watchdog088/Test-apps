@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages System - Complete Test</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --background: #ffffff;
+            --background-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--background-secondary); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--background); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { padding: 20px; border-bottom: 1px solid var(--background-secondary); }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header p { color: var(--text-secondary); font-size: 14px; }
+        .search-bar { padding: 16px; border-bottom: 1px solid var(--background-secondary); }
+        .search-bar input { width: 100%; padding: 12px; border: 1px solid var(--background-secondary); border-radius: 8px; font-size: 14px; }
+        .conversations { padding: 8px; }
+        .conversation-item { padding: 16px; display: flex; gap: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; }
+        .conversation-item:hover { background: var(--background-secondary); }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .conversation-content { flex: 1; min-width: 0; }
+        .conversation-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .conversation-name { font-weight: 600; font-size: 16px; }
+        .conversation-time { font-size: 12px; color: var(--text-secondary); }
+        .conversation-message { font-size: 14px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread-badge { background: var(--primary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+        .online-indicator { width: 12px; height: 12px; border-radius: 50%; background: var(--success); border: 2px solid var(--background); position: absolute; bottom: 2px; right: 2px; }
+        .typing-indicator { color: var(--primary); font-size: 12px; font-style: italic; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal > div { background: var(--background); border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--background-secondary); display: flex; align-items: center; gap: 12px; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--background-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
+        .modal-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .list-item { padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 8px; background: var(--background-secondary); }
+        .list-item:hover { background: #e9ecef; }
+        .btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--secondary); }
+        .btn-text { background: none; color: var(--primary); padding: 8px; border: none; cursor: pointer; font-size: 16px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid var(--background-secondary); border-radius: 8px; font-size: 14px; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 8px; display: none; z-index: 2000; }
+        .toast.show { display: block; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); } to { transform: translateX(-50%) translateY(0); } }
+        .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .fab:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Messages</h1>
+            <p>Complete Messages System - All 20 Features Implemented</p>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="🔍 Search conversations..." onkeyup="searchConversations(this.value)">
+        </div>
+
+        <div class="conversations" id="conversationsList">
+            <!-- Conversations will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="fab" onclick="showGroupOptions()" title="Create Group">+</div>
+
+    <script src="ConnectHub_Mobile_Design_Messages_System.js"></script>
+    <script>
+        // Populate conversations
+        function renderConversations() {
+            const container = document.getElementById('conversationsList');
+            container.innerHTML = messagesState.conversations.map(conv => `
+                <div class="conversation-item" onclick="openChat(${conv.id})">
+                    <div style="position: relative;">
+                        <div class="avatar">${conv.avatar}</div>
+                        ${conv.online ? '<div class="online-indicator"></div>' : ''}
+                    </div>
+                    <div class="conversation-content">
+                        <div class="conversation-header">
+                            <div class="conversation-name">${conv.name}${conv.isGroup ? ' 👥' : ''}</div>
+                            <div class="conversation-time">${conv.time}</div>
+                        </div>
+                        <div class="conversation-message">
+                            ${conv.typing ? '<span class="typing-indicator">typing...</span>' : conv.lastMessage}
+                        </div>
+                    </div>
+                    ${conv.unread > 0 ? `<div class="unread-badge">${conv.unread}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Search conversations
+        function searchConversations(query) {
+            const filtered = messagesState.conversations.filter(conv => 
+                conv.name.toLowerCase().includes(query.toLowerCase()) ||
+                conv.lastMessage.toLowerCase().includes(query.toLowerCase())
+            );
+            const container = document.getElementById('conversationsList');
+            container.innerHTML = filtered.map(conv => `
+                <div class="conversation-item" onclick="openChat(${conv.id})">
+                    <div style="position: relative;">
+                        <div class="avatar">${conv.avatar}</div>
+                        ${conv.online ? '<div class="online-indicator"></div>' : ''}
+                    </div>
+                    <div class="conversation-content">
+                        <div class="conversation-header">
+                            <div class="conversation-name">${conv.name}</div>
+                            <div class="conversation-time">${conv.time}</div>
+                        </div>
+                        <div class="conversation-message">${conv.lastMessage}</div>
+                    </div>
+                    ${conv.unread > 0 ? `<div class="unread-badge">${conv.unread}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Initial render
+        renderConversations();
+
+        // Refresh conversations periodically
+        setInterval(() => {
+            renderConversations();
+        }, 2000);
+
+        // Feature test buttons
+        console.log(`
+        === MESSAGES SYSTEM TEST COMMANDS ===
+        1. openChat(1) - Open chat with Sarah Johnson
+        2. sendMessage(1, 'Hello!') - Send message
+        3. reactToMessage(msgId, chatId, '❤️') - React to message
+        4. startVoiceRecording() - Record voice message
+        5. shareLocation(1) - Share location
+        6. createGroup('My Group', ['user1', 'user2']) - Create group
+        7. toggleEncryption(true) - Toggle encryption
+        8. searchInConversation(1, 'hello') - Search messages
+        9. pinMessage(msgId, chatId) - Pin message
+        10. archiveConversation(1) - Archive conversation
+        11. backupMessages() - Backup all messages
+        12. restoreMessages() - Restore from backup
+        `);
+    </script>
+</body>
+</html>
