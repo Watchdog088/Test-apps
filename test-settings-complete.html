@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings System - Complete Test</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --background: #ffffff;
+            --background-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--background-secondary); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--background); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { padding: 20px; border-bottom: 1px solid var(--background-secondary); text-align: center; }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header p { color: var(--text-secondary); font-size: 14px; }
+        .settings-grid { padding: 20px; display: grid; gap: 12px; }
+        .setting-item { padding: 16px; background: var(--background-secondary); border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .setting-item:hover { transform: translateY(-2px); }
+        .setting-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .setting-desc { font-size: 14px; color: var(--text-secondary); }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--background-secondary); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--background-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
+        .modal-content { padding: 20px; max-width: 500px; max-height: 70vh; overflow-y: auto; background: var(--background); border-radius: 12px; width: 100%; }
+        .list-item { padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 8px; background: var(--background-secondary); }
+        .list-item:hover { background: #e9ecef; }
+        .list-item-title { font-weight: 500; }
+        .list-item-subtitle { font-size: 12px;color: var(--text-secondary); }
+        .btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 12px; font-size: 16px; }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--secondary); }
+        .btn-text { background: none; color: var(--primary); padding: 8px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid var(--background-secondary); border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 8px; display: none; z-index: 2000; }
+        .toast.show { display: block; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); } to { transform: translateX(-50%) translateY(0); } }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: var(--success); color: white; }
+        .badge-warning { background: var(--warning); color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Settings</h1>
+            <p>Complete Settings System - All 15 Features Implemented</p>
+        </div>
+
+        <div class="settings-grid">
+            <div class="setting-item" onclick="showChangePasswordModal()">
+                <div class="setting-title">🔐 Change Password</div>
+                <div class="setting-desc">Update your password with validation</div>
+            </div>
+
+            <div class="setting-item" onclick="showChangeEmailModal()">
+                <div class="setting-title">📧 Change Email</div>
+                <div class="setting-desc">Update email with verification</div>
+            </div>
+
+            <div class="setting-item" onclick="showTwoFactorSetup()">
+                <div class="setting-title">
+                    🔐 Two-Factor Authentication
+                    <span class="badge badge-success" id="2faStatus">OFF</span>
+                </div>
+                <div class="setting-desc">Add extra security layer</div>
+            </div>
+
+            <div class="setting-item" onclick="showDeviceManagement()">
+                <div class="setting-title">📱 Device Management</div>
+                <div class="setting-desc">Manage logged-in devices</div>
+            </div>
+
+            <div class="setting-item" onclick="showPrivacyEnforcement()">
+                <div class="setting-title">🔐 Privacy Settings</div>
+                <div class="setting-desc">Control your privacy</div>
+            </div>
+
+            <div class="setting-item" onclick="showDataExport()">
+                <div class="setting-title">📦 Export Data</div>
+                <div class="setting-desc">Download your information</div>
+            </div>
+
+            <div class="setting-item" onclick="showAccountDeactivation()">
+                <div class="setting-title">⏸️ Deactivate Account</div>
+                <div class="setting-desc">Temporarily hide your account</div>
+            </div>
+
+            <div class="setting-item" onclick="showAccountDeletion()">
+                <div class="setting-title">🗑️ Delete Account</div>
+                <div class="setting-desc">Permanently delete your account</div>
+            </div>
+
+            <div class="setting-item" onclick="showLanguageSettings()">
+                <div class="setting-title">🌍 Language</div>
+                <div class="setting-desc">Change app language</div>
+            </div>
+
+            <div class="setting-item" onclick="showTimezoneSettings()">
+                <div class="setting-title">🕐 Timezone</div>
+                <div class="setting-desc">Set your timezone</div>
+            </div>
+
+            <div class="setting-item" onclick="showNotificationSettings()">
+                <div class="setting-title">🔔 Notifications</div>
+                <div class="setting-desc">Manage notification preferences</div>
+            </div>
+
+            <div class="setting-item" onclick="showBlockedUsers()">
+                <div class="setting-title">🚫 Blocked Users</div>
+                <div class="setting-desc">Manage blocked accounts</div>
+            </div>
+
+            <div class="setting-item" onclick="showLoginHistory()">
+                <div class="setting-title">📋 Login History</div>
+                <div class="setting-desc">View recent login activity</div>
+            </div>
+
+            <div class="setting-item" onclick="showSecurityAlerts()">
+                <div class="setting-title">⚠️ Security Alerts</div>
+                <div class="setting-desc">View security notifications</div>
+            </div>
+
+            <div class="setting-item" onclick="showSessionManagement()">
+                <div class="setting-title">🔐 Active Sessions</div>
+                <div class="setting-desc">Manage active login sessions</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Settings_System.js"></script>
+    <script>
+        // Update 2FA status badge
+        function update2FABadge() {
+            const badge = document.getElementById('2faStatus');
+            if (settingsState.security.twoFactorEnabled) {
+                badge.textContent = 'ON';
+                badge.className = 'badge badge-success';
+            } else {
+                badge.textContent = 'OFF';
+                badge.className = 'badge badge-warning';
+            }
+        }
+
+        // Call on page load
+        window.addEventListener('load', update2FABadge);
+        
+        // Poll for changes
+        setInterval(update2FABadge, 1000);
+    </script>
+</body>
+</html>
