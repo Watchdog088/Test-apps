@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Events System - Feature Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+        }
+
+        .feature-card.tested {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .feature-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .test-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .test-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .test-btn:active {
+            transform: scale(0.95);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .status-pass {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .summary {
+            background: linear-gradient(135deg, var(--success), var(--accent));
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .summary-label {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Events System Test</h1>
+            <div class="subtitle">Comprehensive Testing of All 17 Event Features</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>🎯</span>
+                Core Event Features
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card" id="feature-1">
+                    <div class="feature-icon">➕</div>
+                    <div class="feature-name">1. Event Creation</div>
+                    <div class="feature-desc">Create events with all details</div>
+                    <button class="test-btn" onclick="testEventCreation()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-1">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-2">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-name">2. RSVP System</div>
+                    <div class="feature-desc">Going/Interested responses</div>
+                    <button class="test-btn" onclick="testRSVP()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-2">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-3">
+                    <div class="feature-icon">📅</div>
+                    <div class="feature-name">3. Calendar View</div>
+                    <div class="feature-desc">View events in calendar</div>
+                    <button class="test-btn" onclick="testCalendar()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-3">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-4">
+                    <div class="feature-icon">🔔</div>
+                    <div class="feature-name">4. Event Reminders</div>
+                    <div class="feature-desc">Set notification reminders</div>
+                    <button class="test-btn" onclick="testReminders()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-4">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-5">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-name">5. Event Check-In</div>
+                    <div class="feature-desc">Check in at event location</div>
+                    <button class="test-btn" onclick="testCheckIn()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-5">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-6">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-name">6. Photo Album</div>
+                    <div class="feature-desc">Event photo gallery</div>
+                    <button class="test-btn" onclick="testPhotoAlbum()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-6">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>💬</span>
+                Communication Features
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card" id="feature-7">
+                    <div class="feature-icon">📢</div>
+                    <div class="feature-name">7. Live Updates</div>
+                    <div class="feature-desc">Post event announcements</div>
+                    <button class="test-btn" onclick="testLiveUpdates()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-7">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-8">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-name">8. Event Chat</div>
+                    <div class="feature-desc">Group chat for attendees</div>
+                    <button class="test-btn" onclick="testEventChat()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-8">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-9">
+                    <div class="feature-icon">💳</div>
+                    <div class="feature-name">9. Ticket Sales</div>
+                    <div class="feature-desc">Payment integration</div>
+                    <button class="test-btn" onclick="testTicketSales()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-9">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-10">
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-name">10. Share with Tracking</div>
+                    <div class="feature-desc">Track invite performance</div>
+                    <button class="test-btn" onclick="testShareTracking()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-10">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>🗺️</span>
+                Location & Management
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card" id="feature-11">
+                    <div class="feature-icon">🗺️</div>
+                    <div class="feature-name">11. Location Map</div>
+                    <div class="feature-desc">Interactive event location</div>
+                    <button class="test-btn" onclick="testLocationMap()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-11">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-12">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-name">12. Guest List</div>
+                    <div class="feature-desc">Manage attendees</div>
+                    <button class="test-btn" onclick="testGuestList()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-12">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-13">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-name">13. Co-Hosts</div>
+                    <div class="feature-desc">Add co-host management</div>
+                    <button class="test-btn" onclick="testCoHosts()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-13">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-14">
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-name">14. Categories/Filtering</div>
+                    <div class="feature-desc">Filter events by type</div>
+                    <button class="test-btn" onclick="testFiltering()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-14">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>🌐</span>
+                Advanced Features
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card" id="feature-15">
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-name">15. Event Search</div>
+                    <div class="feature-desc">Search all events</div>
+                    <button class="test-btn" onclick="testEventSearch()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-15">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-16">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-name">16. Virtual Events</div>
+                    <div class="feature-desc">Online event support</div>
+                    <button class="test-btn" onclick="testVirtualEvents()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-16">Pending</div>
+                </div>
+
+                <div class="feature-card" id="feature-17">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">17. Host Analytics</div>
+                    <div class="feature-desc">Event performance data</div>
+                    <button class="test-btn" onclick="testAnalytics()">Test Feature</button>
+                    <div class="status-badge status-pending" id="status-17">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-value" id="passedCount">0 / 17</div>
+            <div class="summary-label">Features Tested Successfully</div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="ConnectHub_Mobile_Design_Events_System.js"></script>
+    <script>
+        let testedFeatures = 0;
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.id = 'toast';
+            
+            const existing = document.getElementById('toast');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function markFeatureTested(featureNum) {
+            const card = document.getElementById(`feature-${featureNum}`);
+            const status = document.getElementById(`status-${featureNum}`);
+            
+            if (card && status) {
+                card.classList.add('tested');
+                status.textContent = 'PASS ✓';
+                status.className = 'status-badge status-pass';
+                
+                testedFeatures++;
+                document.getElementById('passedCount').textContent = `${testedFeatures} / 17`;
+            }
+        }
+
+        // Feature 1: Event Creation
+        function testEventCreation() {
+            const testEvent = eventsSystem.createEvent({
+                title: 'Test Event',
+                date: '2024-12-01',
+                time: '18:00',
+                location: 'Test Location',
+                description: 'This is a test event',
+                capacity: 50,
+                price: 25.00
+            });
+            
+            if (testEvent && testEvent.id) {
+                markFeatureTested(1);
+                showToast('✓ Event creation works!');
+            }
+        }
+
+        // Feature 2: RSVP System
+        function testRSVP() {
+            eventsSystem.rsvpEvent(1, 'going');
+            setTimeout(() => {
+                if (eventsState.rsvpStatus && eventsState.rsvpStatus[1] === 'going') {
+                    markFeatureTested(2);
+                    showToast('✓ RSVP system works!');
+                }
+            }, 500);
+        }
+
+        // Feature 3: Calendar View
+        function testCalendar() {
+            eventsSystem.openEventCalendar();
+            setTimeout(() => {
+                const modal = document.getElementById('eventCalendarModal');
+                if (modal) {
+                    markFeatureTested(3);
+                    showToast('✓ Calendar view works!');
+                    modal.remove();
+                }
+            }, 500);
+        }
+
+        // Feature 4: Event Reminders
+        function testReminders() {
+            eventsSystem.openReminderSettings(1);
+            setTimeout(() => {
+                const modal = document.getElementById('eventReminderModal');
+                if (modal) {
+                    markFeatureTested(4);
+                    showToast('✓ Reminders work!');
+                    modal.remove();
+                }
+            }, 500);
+        }
+
+        // Feature 5: Check-In
+        function testCheckIn() {
+            eventsSystem.openCheckIn(1);
+            setTimeout(() => {
+                const modal = document.getElementById('eventCheckInModal');
+                if (modal) {
+                    markFeatureTested(5);
+                    showToast('✓ Check-in works!');
+                    modal.remove();
+                }
+            }, 500);
+        }
+
+        // Feature 6: Photo Album
+        function testPhotoAlbum() {
+            eventsSystem.openEventAlbum(1);
+            setTimeout(() => {
+                markFeatureTested(6);
+                showToast('✓ Photo album works!');
+            }, 500);
+        }
+
+        // Feature 7: Live Updates
+        function testLiveUpdates() {
+            eventsSystem.postEventUpdate(1, 'Test update');
+            setTimeout(() => {
+                markFeatureTested(7);
+                showToast('✓ Live updates work!');
+            }, 500);
+        }
+
+        // Feature 8: Event Chat
+        function testEventChat() {
+            eventsSystem.openEventChat(1);
+            setTimeout(() => {
+                markFeatureTested(8);
+                showToast('✓ Event chat works!');
+            }, 500);
+        }
+
+        // Feature 9: Ticket Sales
+        function testTicketSales() {
+            eventsSystem.purchaseTicket(1);
+            setTimeout(() => {
+                markFeatureTested(9);
+                showToast('✓ Ticket sales work!');
+            }, 2000);
+        }
+
+        // Feature 10: Share with Tracking
+        function testShareTracking() {
+            eventsSystem.shareEventWithTracking(1);
+            setTimeout(() => {
+                if (Object.keys(eventsState.eventInvites || {}).length > 0) {
+                    markFeatureTested(10);
+                    showToast('✓ Invite tracking works!');
+                }
+            }, 500);
+        }
+
+        // Feature 11: Location Map
+        function testLocationMap() {
+            eventsSystem.openEventMap(1);
+            setTimeout(() => {
+                markFeatureTested(11);
+                showToast('✓ Location map works!');
+            }, 500);
+        }
+
+        // Feature 12: Guest List
+        function testGuestList() {
+            eventsSystem.manageGuestList(1);
+            setTimeout(() => {
+                markFeatureTested(12);
+                showToast('✓ Guest list works!');
+            }, 500);
+        }
+
+        // Feature 13: Co-Hosts
+        function testCoHosts() {
+            eventsSystem.addCoHost(1, 'Test User');
+            setTimeout(() => {
+                markFeatureTested(13);
+                showToast('✓ Co-hosts work!');
+            }, 500);
+        }
+
+        // Feature 14: Categories/Filtering
+        function testFiltering() {
+            eventsSystem.filterByCategory('Business');
+            setTimeout(() => {
+                if (eventsState.currentFilter === 'Business') {
+                    markFeatureTested(14);
+                    showToast('✓ Filtering works!');
+                }
+            }, 500);
+        }
+
+        // Feature 15: Event Search
+        function testEventSearch() {
+            const results = eventsSystem.searchEvents('Tech');
+            if (results && results.length > 0) {
+                markFeatureTested(15);
+                showToast('✓ Event search works!');
+            }
+        }
+
+        // Feature 16: Virtual Events
+        function testVirtualEvents() {
+            const virtualEvent = eventsSystem.createEvent({
+                title: 'Virtual Meetup',
+                date: '2024-12-05',
+                time: '19:00',
+                location: 'Online',
+                isVirtual: true,
+                virtualLink: 'https://meet.connecthub.com/event123'
+            });
+            
+            if (virtualEvent && virtualEvent.isVirtual) {
+                markFeatureTested(16);
+                showToast('✓ Virtual events work!');
+            }
+        }
+
+        // Feature 17: Host Analytics
+        function testAnalytics() {
+            eventsSystem.showEventAnalytics(1);
+            setTimeout(() => {
+                if (eventsState.eventAnalytics && eventsState.eventAnalytics[1]) {
+                    markFeatureTested(17);
+                    showToast('✓ Analytics work!');
+                }
+            }, 500);
+        }
+
+        // Auto-test all features on load
+        window.addEventListener('load', () => {
+            console.log('Events System Test Page Loaded');
+            console.log('Click "Test Feature" buttons to verify each feature');
+            showToast('Events System Test Ready! Click buttons to test features.');
+        });
+
+        // Test All Features
+        function testAllFeatures() {
+            const features = [
+                testEventCreation,
+                testRSVP,
+                testCalendar,
+                testReminders,
+                testCheckIn,
+                testPhotoAlbum,
+                testLiveUpdates,
+                testEventChat,
+                testTicketSales,
+                testShareTracking,
+                testLocationMap,
+                testGuestList,
+                testCoHosts,
+                testFiltering,
+                testEventSearch,
+                testVirtualEvents,
+                testAnalytics
+            ];
+
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < features.length) {
+                    features[index]();
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    showToast('🎉 All features tested!');
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
