@@ -2169,7 +2169,7 @@
                     <div class="section-link" onclick="openModal('allGames')">View All</div>
                 </div>
 
-                <div class="game-card" onclick="playGame('tetris')">
+                <div class="game-card" onclick="gamingSystem.playGame('tetris')">
                     <div class="game-icon">🟦</div>
                     <div class="game-info">
                         <div class="game-title">Block Blitz (Tetris)</div>
@@ -2177,19 +2177,27 @@
                     </div>
                 </div>
 
-                <div class="game-card" onclick="playGame('candy')">
+                <div class="game-card" onclick="gamingSystem.playGame('candy')">
                     <div class="game-icon">🍬</div>
                     <div class="game-info">
-                        <div class="game-title">Candy Crush</div>
+                        <div class="game-title">Sweet Match</div>
                         <div class="game-stats">Play time: 8h 22m • High Score: 18,900</div>
                     </div>
                 </div>
 
-                <div class="game-card" onclick="playGame('cards')">
+                <div class="game-card" onclick="gamingSystem.playGame('cards')">
                     <div class="game-icon">🃏</div>
                     <div class="game-info">
                         <div class="game-title">Card Champion</div>
                         <div class="game-stats">Play time: 15h 45m • High Score: 5,670</div>
+                    </div>
+                </div>
+
+                <div class="game-card" onclick="gamingSystem.playGame('puzzle')">
+                    <div class="game-icon">🧩</div>
+                    <div class="game-info">
+                        <div class="game-title">Puzzle Master</div>
+                        <div class="game-stats">Play time: 5h 10m • High Score: 12,300</div>
                     </div>
                 </div>
 
@@ -4970,9 +4978,25 @@
             <div class="modal-content">
                 <input type="text" class="input-field" placeholder="Event name..." id="eventName" />
                 <input type="text" class="input-field" placeholder="Location..." id="eventLocation" />
+                <input type="text" class="input-field" placeholder="Address (optional)..." id="eventAddress" />
                 <input type="date" class="input-field" id="eventDate" />
                 <input type="time" class="input-field" id="eventTime" />
+                <input type="number" class="input-field" placeholder="Capacity (optional)" id="eventCapacity" />
+                <input type="number" class="input-field" placeholder="Ticket Price (optional)" id="eventPrice" />
                 <textarea class="input-field textarea-field" placeholder="Event description..." id="eventDescription"></textarea>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Virtual Event</div>
+                        <div class="list-item-subtitle">Online event with link</div>
+                    </div>
+                    <div class="toggle-switch" id="virtualEventToggle" onclick="toggleSwitch(this); toggleVirtualEvent()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <input type="url" class="input-field" placeholder="Virtual event link (if virtual)" id="eventVirtualLink" style="display: none;" />
+                
                 <button class="btn" onclick="createNewEvent()">
                     Create Event
                 </button>
@@ -4987,16 +5011,51 @@
             <div class="modal-content">
                 <div class="post-image">📅</div>
                 <div class="section-title" style="margin: 16px 0 8px;">Tech Conference 2025</div>
-                <div class="post-meta" style="margin-bottom: 16px;">📍 Convention Center • November 15 • 9:00 AM</div>
-                <div class="post-content">Join us for the biggest tech conference of the year!</div>
-                <div style="display: flex; gap: 12px; margin: 20px 0;">
-                    <button class="btn" style="flex: 1;" onclick="showToast('Marked as interested')">
+                <div class="post-meta" style="margin-bottom: 8px;">📍 Convention Center • November 15 • 9:00 AM</div>
+                <div style="padding: 6px 12px; background: rgba(79, 70, 229, 0.2); border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--primary); display: inline-block; margin-bottom: 16px;">
+                    234 attending • 456 interested
+                </div>
+                <div class="post-content" style="margin-bottom: 20px;">Join us for the biggest tech conference of the year!</div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <button class="btn" style="font-size: 13px; padding: 10px;" onclick="eventsSystem.rsvpEvent(1, 'going')">
+                        ✓ Going
+                    </button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 10px;" onclick="eventsSystem.rsvpEvent(1, 'interested')">
                         ⭐ Interested
                     </button>
-                    <button class="btn" style="flex: 1;" onclick="shareEvent()">
-                        🔄 Share
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 10px;" onclick="eventsSystem.shareEventWithTracking(1)">
+                        🔗 Share
                     </button>
                 </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Event Features</div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openEventCalendar()">📅 Calendar</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openReminderSettings(1)">🔔 Reminders</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openCheckIn(1)">✅ Check-In</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openEventAlbum(1)">📸 Photos</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openEventChat(1)">💬 Chat</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.openEventMap(1)">🗺️ Map</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.manageGuestList(1)">👥 Guests</button>
+                    <button class="btn" style="background: var(--glass);" onclick="eventsSystem.showEventAnalytics(1)">📊 Analytics</button>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Buy Tickets</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Ticket Price</div>
+                    <div style="font-size: 48px; font-weight: 800;">$149.99</div>
+                </div>
+                
+                <button class="btn" onclick="eventsSystem.purchaseTicket(1)">
+                    💳 Purchase Ticket
+                </button>
             </div>
         </div>
 
@@ -9499,6 +9558,12 @@
     <!-- Load Trending System -->
     <script src="ConnectHub_Mobile_Design_Trending_System.js"></script>
     
+    <!-- Load Events System -->
+    <script src="ConnectHub_Mobile_Design_Events_System.js"></script>
+    
+    <!-- Load Gaming System -->
+    <script src="ConnectHub_Mobile_Design_Gaming_System.js"></script>
+    
     <script>
         let currentScreen = 'feed';
         let currentMainTab = 'feed';
@@ -13243,26 +13308,26 @@
                             </div>
                         </div>
                         
-                        <div class="section-header">
-                            <div class="section-title">Recent Transactions</div>
-                            <div class="section-link">View All</div>
-                        </div>
-                        
-                        <div class="list-item">
-                            <div class="post-avatar">👤</div>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Sarah M.</div>
-                                <div class="list-item-subtitle">2 hours ago</div>
-                            </div>
-                            <div style="font-size: 16px; font-weight: 700; color: var(--success);">+$10</div>
-                        </div>
-                        
-                        <div class="list-item">
-                            <div class="post-avatar">😊</div>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Mike J.</div>
-                                <div class="list-item-subtitle">1 day ago</div>
-                            </div>
+                <div class="section-header">
+                    <div class="section-title">Leaderboard</div>
+                    <div class="section-link" onclick="gamingSystem.viewFullLeaderboard()">View All</div>
+                </div>
+
+                <div class="list-item" onclick="gamingSystem.viewFullLeaderboard()" style="cursor: pointer;">
+                    <div style="font-size: 24px; font-weight: 700; color: #ffd700;">🥇</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">ProGamer123</div>
+                        <div class="list-item-subtitle">5,890 points • 🟢 Online</div>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="gamingSystem.viewFullLeaderboard()" style="cursor: pointer;">
+                    <div style="font-size: 24px; font-weight: 700; color: #c0c0c0;">🥈</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">GameMaster</div>
+                        <div class="list-item-subtitle">5,234 points • 🟢 Online</div>
+                    </div>
+                </div>
                             <div style="font-size: 16px; font-weight: 700; color: var(--success);">+$25</div>
                         </div>
                         
@@ -13325,112 +13390,16 @@
         // Connect payment method - NOW OPENS SETUP DASHBOARD
         function connectPaymentMethod(method) {
             closeModal('paymentMethods');
-            
-            const setupData = {
-                'Cash App': {
-                    title: 'Connect Cash App',
-                    emoji: '💸',
-                    gradient: 'linear-gradient(135deg, #00d632, #00b82c)',
-                    steps: [
-                        'Enter your Cash App $Cashtag',
-                        'Verify your account',
-                        'Set payment preferences',
-                        'Start receiving donations'
-                    ]
-                },
-                'Bitcoin': {
-                    title: 'Connect Bitcoin Wallet',
-                    emoji: '₿',
-                    gradient: 'linear-gradient(135deg, #f7931a, #ff9500)',
-                    steps: [
-                        'Enter your Bitcoin wallet address',
-                        'Verify wallet ownership',
-                        'Set conversion preferences',
-                        'Start receiving crypto donations'
-                    ]
-                }
-            };
-            
-            const data = setupData[method];
-            if (!data) return;
-            
-            const modalHTML = `
-                <div id="paymentMethodSetupModal" class="modal show">
-                    <div class="modal-header">
-                        <div class="modal-close" onclick="closePaymentMethodSetup()">✕</div>
-                        <div class="modal-title">${data.title}</div>
-                    </div>
-                    <div class="modal-content">
-                        <div style="text-align: center; margin: 30px 0;">
-                            <div style="width: 120px; height: 120px; background: ${data.gradient}; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
-                                ${data.emoji}
-                            </div>
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Connect ${method}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Enable ${method} payments for your streams</div>
-                        </div>
-                        
-                        <div class="section-header">
-                            <div class="section-title">Setup Steps</div>
-                        </div>
-                        
-                        ${data.steps.map((step, index) => `
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 8px;">
-                                <div style="width: 32px; height: 32px; background: ${data.gradient}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; flex-shrink: 0;">
-                                    ${index + 1}
-                                </div>
-                                <div style="flex: 1; font-size: 14px; font-weight: 500;">
-                                    ${step}
-                                </div>
-                            </div>
-                        `).join('')}
-                        
-                        <div class="section-header" style="margin-top: 24px;">
-                            <div class="section-title">Account Information</div>
-                        </div>
-                        
-                        ${method === 'Cash App' ? `
-                            <input type="text" class="input-field" placeholder="Enter your $Cashtag" id="cashtag" />
-                        ` : `
-                            <input type="text" class="input-field" placeholder="Enter Bitcoin wallet address" id="walletAddress" />
-                            <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-                                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
-                                    ⚠️ Make sure to double-check your wallet address. Incorrect addresses cannot be recovered.
-                                </div>
-                            </div>
-                        `}
-                        
-                        <div class="toggle-container">
-                            <div>
-                                <div class="list-item-title">Enable Notifications</div>
-                                <div class="list-item-subtitle">Get notified of payments</div>
-                            </div>
-                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
-                                <div class="toggle-slider"></div>
-                            </div>
-                        </div>
-                        
-                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 16px; border-radius: 12px; margin: 20px 0;">
-                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Why Connect ${method}?</div>
-                            <div style="font-size: 13px; opacity: 0.9; line-height: 1.6;">
-                                ${method === 'Cash App' ? 
-                                    'Cash App offers instant transfers and is popular among mobile users. Perfect for quick donations and tips.' :
-                                    'Bitcoin allows global payments without borders. Accept donations from anywhere in the world with low fees.'}
-                            </div>
-                        </div>
-                        
-                        <button class="btn" onclick="completePaymentMethodSetup('${method}')" style="margin-bottom: 12px;">
-                            Connect ${method}
-                        </button>
-                        
-                        <button class="btn" style="background: var(--glass);" onclick="closePaymentMethodSetup()">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
             showToast(`Setting up ${method}... 💳`);
+            
+            // Simple confirmation for demo
+            setTimeout(() => {
+                showToast(`${method} connection pending... Please check your email to verify.`);
+            }, 1500);
+            
+            setTimeout(() => {
+                showToast(`${method} will be connected once verified! ✓`);
+            }, 3000);
         }
         
         // Close payment method setup
