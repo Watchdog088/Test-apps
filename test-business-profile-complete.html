@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ConnectHub - Business Profile System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .business-profile {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .business-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .business-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .business-type {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .business-rating {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .verified-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .feature-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .feature-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .feature-btn:active {
+            transform: scale(0.95);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 8px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .verification-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .verification-step {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .step-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .step-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .status-bar {
+            background: var(--glass);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .status-progress {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .status-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">💼 Business Profile System</div>
+            <div class="header-subtitle">Complete Implementation Test</div>
+        </div>
+
+        <div class="business-profile">
+            <div class="business-header">
+                <div class="business-name">Tech Solutions Inc</div>
+                <div class="business-type">Technology Services</div>
+                <div class="business-rating">⭐ 4.5 (125 reviews)</div>
+                <span class="verified-badge" id="verifiedBadge" style="display: none;">✓ Verified</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">1.2K</div>
+                    <div class="stat-label">Visitors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$5.7K</div>
+                    <div class="stat-label">Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">45</div>
+                    <div class="stat-label">Bookings</div>
+                </div>
+            </div>
+
+            <div class="section-title">🎯 All Features (17)</div>
+
+            <div class="features-grid">
+                <div class="feature-btn" data-business-action="verify">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-name">Verification</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="hours">
+                    <div class="feature-icon">🕐</div>
+                    <div class="feature-name">Business Hours</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="holidays">
+                    <div class="feature-icon">📅</div>
+                    <div class="feature-name">Holiday Hours</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="booking">
+                    <div class="feature-icon">📆</div>
+                    <div class="feature-name">Bookings</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="quotes">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-name">Quotes</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="team">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-name">Team</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="analytics">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">Analytics</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="crm">
+                    <div class="feature-icon">👤</div>
+                    <div class="feature-name">CRM</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="invoices">
+                    <div class="feature-icon">📄</div>
+                    <div class="feature-name">Invoices</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="payments">
+                    <div class="feature-icon">💳</div>
+                    <div class="feature-name">Payments</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="messenger">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-name">Messenger</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="reviews">
+                    <div class="feature-icon">⭐</div>
+                    <div class="feature-name">Reviews</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="insights">
+                    <div class="feature-icon">💡</div>
+                    <div class="feature-name">Insights</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="competitors">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-name">Competitors</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="promotions">
+                    <div class="feature-icon">🎁</div>
+                    <div class="feature-name">Promotions</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="catalog">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-name">Catalog</div>
+                </div>
+
+                <div class="feature-btn" data-business-action="appointments">
+                    <div class="feature-icon">🗓️</div>
+                    <div class="feature-name">Appointments</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="business-profile">
+            <div class="section-title">✅ Feature Checklist</div>
+            <div style="font-size: 14px; line-height: 1.8; color: var(--text-secondary);">
+                ✓ Business verification process<br>
+                ✓ Business hours with timezone handling<br>
+                ✓ Holiday hours logic<br>
+                ✓ Service booking system<br>
+                ✓ Quote request processing<br>
+                ✓ Team member permissions<br>
+                ✓ Business analytics data<br>
+                ✓ Customer relationship management (CRM)<br>
+                ✓ Invoice generation<br>
+                ✓ Payment processing for services<br>
+                ✓ Business messenger integration<br>
+                ✓ Review management system<br>
+                ✓ Business insights/recommendations<br>
+                ✓ Competitor analysis<br>
+                ✓ Business promotion tools<br>
+                ✓ Catalog management<br>
+                ✓ Appointment scheduling system
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Business_Profile_System.js"></script>
+</body>
+</html>
