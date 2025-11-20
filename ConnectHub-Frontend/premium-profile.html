@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Profile - Lynk</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/premium-profile.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation">
+        <div class="nav-container">
+            <div class="logo" onclick="window.location.href='index.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+                    <defs>
+                        <linearGradient id="lynkLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1"/>
+                            <stop offset="100%" style="stop-color:#8b5cf6"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(10, 20)">
+                        <circle cx="0" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <path d="M 5 -3 Q 12 -5, 19 -3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <circle cx="24" cy="0" r="6" fill="url(#lynkLogo)"/>
+                        <path d="M 29 3 Q 36 5, 43 3" stroke="url(#lynkLogo)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <circle cx="48" cy="0" r="6" fill="url(#lynkLogo)"/>
+                    </g>
+                    <text x="70" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="url(#lynkLogo)">Lynk</text>
+                </svg>
+            </div>
+            <div class="nav-items">
+                <div class="nav-item" onclick="switchTab('overview')">⭐ Overview</div>
+                <div class="nav-item" onclick="switchTab('subscription')">💳 Subscription</div>
+                <div class="nav-item" onclick="switchTab('themes')">🎨 Themes</div>
+                <div class="nav-item" onclick="switchTab('badges')">🏆 Badges</div>
+                <div class="nav-item" onclick="switchTab('privacy')">🔒 Privacy</div>
+                <div class="nav-item" onclick="switchTab('support')">💬 Support</div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="premium-main">
+        <!-- Overview Tab -->
+        <section id="overviewTab" class="tab-section active">
+            <div class="premium-header">
+                <div class="premium-badge-large">
+                    <span class="premium-icon">⭐</span>
+                    <h1>Premium Profile</h1>
+                    <p class="premium-status" id="premiumStatus">Free Plan</p>
+                </div>
+            </div>
+
+            <!-- Premium Features Showcase -->
+            <div class="features-grid">
+                <div class="feature-card" onclick="navigateToTab('themes')">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Custom Themes</h3>
+                    <p>Personalize your profile with exclusive themes and color schemes</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card" onclick="navigateToTab('badges')">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Exclusive Badges</h3>
+                    <p>Show off special achievements and custom badges</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card" onclick="navigateToTab('privacy')">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Advanced Privacy</h3>
+                    <p>Incognito mode, read receipts control, and more</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card" onclick="navigateToTab('support')">
+                    <div class="feature-icon">💬</div>
+                    <h3>Priority Support</h3>
+                    <p>Get help faster with dedicated support queue</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Detailed insights about your profile and content</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚫</div>
+                    <h3>Ad-Free Experience</h3>
+                    <p>Enjoy the platform without any advertisements</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Increased Storage</h3>
+                    <p>10GB of cloud storage for your content</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Early Access</h3>
+                    <p>Try new features before everyone else</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📥</div>
+                    <h3>Offline Download</h3>
+                    <p>Save content to view without internet</p>
+                    <span class="feature-badge premium">Premium</span>
+                </div>
+            </div>
+
+            <!-- Storage Usage -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>💾 Storage Usage</h2>
+                    <button class="btn btn-secondary" onclick="manageStorage()">Manage Storage</button>
+                </div>
+                <div class="storage-info">
+                    <div class="storage-bar-container">
+                        <div class="storage-bar" id="storageBar"></div>
+                    </div>
+                    <div class="storage-details">
+                        <span id="storageUsed">0 GB</span> / <span id="storageTotal">1 GB</span>
+                        <span class="storage-upgrade" onclick="upgradeToPremium()">Upgrade for 10GB →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Visibility Stats -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>👁️ Profile Views</h2>
+                    <button class="btn btn-secondary" onclick="viewDetailedStats()">View Details</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalViews">0</div>
+                        <div class="stat-label">Total Views</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="todayViews">0</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="weekViews">0</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uniqueVisitors">0</div>
+                        <div class="stat-label">Unique Visitors</div>
+                    </div>
+                </div>
+                <div id="viewHistory" class="view-history"></div>
+            </div>
+        </section>
+
+        <!-- Subscription Tab -->
+        <section id="subscriptionTab" class="tab-section">
+            <div class="subscription-header">
+                <h1>💳 Subscription Plans</h1>
+                <p>Choose the plan that's right for you</p>
+            </div>
+
+            <!-- Subscription Plans -->
+            <div class="plans-grid">
+                <div class="plan-card" data-plan="free">
+                    <div class="plan-header">
+                        <h3>Free</h3>
+                        <div class="plan-price">$0<span>/month</span></div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✓ Basic profile features</div>
+                        <div class="feature">✓ 1GB storage</div>
+                        <div class="feature">✓ Standard support</div>
+                        <div class="feature">✓ Basic analytics</div>
+                        <div class="feature disabled">✗ Custom themes</div>
+                        <div class="feature disabled">✗ Ad-free experience</div>
+                    </div>
+                    <button class="btn btn-secondary" disabled>Current Plan</button>
+                </div>
+
+                <div class="plan-card featured" data-plan="premium">
+                    <div class="plan-badge">MOST POPULAR</div>
+                    <div class="plan-header">
+                        <h3>Premium</h3>
+                        <div class="plan-price">$9.99<span>/month</span></div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✓ All Free features</div>
+                        <div class="feature">✓ 10GB storage</div>
+                        <div class="feature">✓ Priority support</div>
+                        <div class="feature">✓ Advanced analytics</div>
+                        <div class="feature">✓ Custom themes</div>
+                        <div class="feature">✓ Ad-free experience</div>
+                        <div class="feature">✓ Exclusive badges</div>
+                        <div class="feature">✓ Incognito mode</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="subscribeToPlan('premium', 'monthly')">Upgrade Now</button>
+                </div>
+
+                <div class="plan-card" data-plan="premium-yearly">
+                    <div class="plan-badge saving">SAVE 20%</div>
+                    <div class="plan-header">
+                        <h3>Premium Annual</h3>
+                        <div class="plan-price">$95.99<span>/year</span></div>
+                        <div class="plan-savings">Save $23.89/year</div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature">✓ All Premium features</div>
+                        <div class="feature">✓ 2 months free</div>
+                        <div class="feature">✓ Early access to features</div>
+                        <div class="feature">✓ Exclusive annual badge</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="subscribeToPlan('premium', 'yearly')">Get Annual Plan</button>
+                </div>
+            </div>
+
+            <!-- Current Subscription -->
+            <div class="section-card" id="currentSubscriptionCard" style="display: none;">
+                <div class="section-header">
+                    <h2>📋 Current Subscription</h2>
+                    <button class="btn btn-secondary" onclick="manageSubscription()">Manage</button>
+                </div>
+                <div class="subscription-details" id="subscriptionDetails"></div>
+            </div>
+
+            <!-- Payment History -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>💵 Payment History</h2>
+                    <button class="btn btn-secondary" onclick="exportPayments()">Export</button>
+                </div>
+                <div class="payment-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentHistory"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Themes Tab -->
+        <section id="themesTab" class="tab-section">
+            <div class="themes-header">
+                <h1>🎨 Custom Themes</h1>
+                <p>Personalize your profile appearance</p>
+            </div>
+
+            <!-- Theme Preview -->
+            <div class="theme-preview-card">
+                <h3>Current Theme</h3>
+                <div class="theme-preview" id="currentThemePreview">
+                    <div class="preview-header">Header</div>
+                    <div class="preview-content">Content Area</div>
+                    <div class="preview-sidebar">Sidebar</div>
+                </div>
+                <div class="theme-name" id="currentThemeName">Default Dark</div>
+            </div>
+
+            <!-- Available Themes -->
+            <div class="themes-grid" id="themesGrid"></div>
+
+            <!-- Custom Theme Creator -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>✨ Create Custom Theme</h2>
+                    <button class="btn btn-primary" onclick="saveCustomTheme()">Save Theme</button>
+                </div>
+                <div class="theme-creator">
+                    <div class="color-picker-group">
+                        <label>Primary Color</label>
+                        <input type="color" id="primaryColor" value="#6366f1">
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Secondary Color</label>
+                        <input type="color" id="secondaryColor" value="#8b5cf6">
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Background Color</label>
+                        <input type="color" id="backgroundColor" value="#1a1a1a">
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Text Color</label>
+                        <input type="color" id="textColor" value="#ffffff">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges Tab -->
+        <section id="badgesTab" class="tab-section">
+            <div class="badges-header">
+                <h1>🏆 Badge Collection</h1>
+                <p>Earn and display exclusive badges</p>
+            </div>
+
+            <!-- Badge Stats -->
+            <div class="badge-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="earnedBadges">0</div>
+                    <div class="stat-label">Badges Earned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalBadges">0</div>
+                    <div class="stat-label">Total Available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="badgeProgress">0%</div>
+                    <div class="stat-label">Collection Progress</div>
+                </div>
+            </div>
+
+            <!-- Equipped Badges -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>✨ Equipped Badges</h2>
+                    <button class="btn btn-secondary" onclick="editEquippedBadges()">Edit</button>
+                </div>
+                <div class="equipped-badges" id="equippedBadges">
+                    <div class="empty-state">No badges equipped</div>
+                </div>
+            </div>
+
+            <!-- Available Badges -->
+            <div class="badges-grid" id="badgesGrid"></div>
+
+            <!-- Create Custom Badge -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🎨 Create Custom Badge</h2>
+                    <span class="premium-only-tag">Premium Only</span>
+                </div>
+                <div class="badge-creator">
+                    <div class="badge-preview">
+                        <div class="custom-badge-preview" id="customBadgePreview">
+                            <span id="previewIcon">⭐</span>
+                        </div>
+                    </div>
+                    <div class="badge-creator-form">
+                        <div class="form-group">
+                            <label>Badge Name</label>
+                            <input type="text" id="badgeName" placeholder="Enter badge name" maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Icon (Emoji)</label>
+                            <input type="text" id="badgeIcon" placeholder="⭐" maxlength="2" oninput="updateBadgePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Badge Color</label>
+                            <input type="color" id="badgeColor" value="#6366f1" onchange="updateBadgePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="badgeDescription" placeholder="Describe your badge" rows="3"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="createCustomBadge()">Create Badge</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy Tab -->
+        <section id="privacyTab" class="tab-section">
+            <div class="privacy-header">
+                <h1>🔒 Privacy & Security</h1>
+                <p>Advanced privacy controls for premium users</p>
+            </div>
+
+            <!-- Incognito Mode -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🕵️ Incognito Mode</h2>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="incognitoMode" onchange="toggleIncognitoMode()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p class="section-description">Browse profiles anonymously without leaving view history</p>
+            </div>
+
+            <!-- Read Receipts -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>✅ Read Receipts</h2>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="readReceipts" checked onchange="toggleReadReceipts()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p class="section-description">Show others when you've read their messages</p>
+            </div>
+
+            <!-- Profile Viewing -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>👁️ Profile View History</h2>
+                    <button class="btn btn-secondary" onclick="clearViewHistory()">Clear History</button>
+                </div>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="profileViews" value="everyone" checked onchange="updateProfileViewSettings()">
+                        Show everyone who viewed my profile
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="profileViews" value="connections" onchange="updateProfileViewSettings()">
+                        Show only connections
+                    </label>
+                </div>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="profileViews" value="none" onchange="updateProfileViewSettings()">
+                        Don't show anyone (Premium)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Online Status -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🟢 Online Status</h2>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="onlineStatus" checked onchange="toggleOnlineStatus()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p class="section-description">Show your online status to others</p>
+            </div>
+
+            <!-- Content Visibility -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🔐 Premium Content Access</h2>
+                </div>
+                <div class="content-access-options">
+                    <div class="access-option">
+                        <h4>Posts Visibility</h4>
+                        <select id="postsVisibility" onchange="updateContentVisibility('posts')">
+                            <option value="public">Public</option>
+                            <option value="followers">Followers Only</option>
+                            <option value="premium">Premium Subscribers Only</option>
+                        </select>
+                    </div>
+                    <div class="access-option">
+                        <h4>Stories Visibility</h4>
+                        <select id="storiesVisibility" onchange="updateContentVisibility('stories')">
+                            <option value="public">Public</option>
+                            <option value="followers">Followers Only</option>
+                            <option value="premium">Premium Subscribers Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data & Privacy -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📊 Data & Privacy</h2>
+                </div>
+                <div class="privacy-actions">
+                    <button class="btn btn-secondary" onclick="downloadMyData()">📥 Download My Data</button>
+                    <button class="btn btn-secondary" onclick="viewPrivacySettings()">⚙️ Advanced Settings</button>
+                    <button class="btn btn-danger" onclick="deleteAccount()">🗑️ Delete Account</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support Tab -->
+        <section id="supportTab" class="tab-section">
+            <div class="support-header">
+                <h1>💬 Premium Support</h1>
+                <p>Get priority help from our support team</p>
+            </div>
+
+            <!-- Priority Support Status -->
+            <div class="support-status-card">
+                <div class="status-icon">⚡</div>
+                <div class="status-info">
+                    <h3>Priority Support Active</h3>
+                    <p>Average response time: <strong>Under 2 hours</strong></p>
+                </div>
+            </div>
+
+            <!-- Support Tickets -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>🎫 My Support Tickets</h2>
+                    <button class="btn btn-primary" onclick="createSupportTicket()">+ New Ticket</button>
+                </div>
+                <div class="tickets-list" id="supportTickets"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="support-quick-actions">
+                <div class="quick-action-card" onclick="openLiveChat()">
+                    <div class="action-icon">💬</div>
+                    <h4>Live Chat</h4>
+                    <p>Chat with support agent</p>
+                </div>
+                <div class="quick-action-card" onclick="viewFAQ()">
+                    <div class="action-icon">❓</div>
+                    <h4>FAQ</h4>
+                    <p>Find quick answers</p>
+                </div>
+                <div class="quick-action-card" onclick="contactEmail()">
+                    <div class="action-icon">📧</div>
+                    <h4>Email Support</h4>
+                    <p>Send us an email</p>
+                </div>
+            </div>
+
+            <!-- Help Resources -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📚 Help Resources</h2>
+                </div>
+                <div class="resources-list">
+                    <a href="#" class="resource-item">
+                        <span class="resource-icon">📖</span>
+                        <span class="resource-title">Premium Features Guide</span>
+                    </a>
+                    <a href="#" class="resource-item">
+                        <span class="resource-icon">🎥</span>
+                        <span class="resource-title">Video Tutorials</span>
+                    </a>
+                    <a href="#" class="resource-item">
+                        <span class="resource-icon">💡</span>
+                        <span class="resource-title">Tips & Tricks</span>
+                    </a>
+                    <a href="#" class="resource-item">
+                        <span class="resource-icon">🔧</span>
+                        <span class="resource-title">Troubleshooting</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="subscribeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💳 Subscribe to Premium</h2>
+                <button class="close-btn" onclick="closeModal('subscribeModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="subscriptionForm"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="supportTicketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎫 Create Support Ticket</h2>
+                <button class="close-btn" onclick="closeModal('supportTicketModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="ticketSubject" class="form-input" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="ticketPriority" class="form-input">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="ticketCategory" class="form-input">
+                        <option value="technical">Technical Issue</option>
+                        <option value="billing">Billing</option>
+                        <option value="features">Feature Request</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ticketDescription" class="form-input" rows="6" placeholder="Describe your issue..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('supportTicketModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitSupportTicket()">Submit Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/js/premium-profile.js"></script>
+</body>
+</html>

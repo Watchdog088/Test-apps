@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Profile Test - Lynk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .test-header {
+            text-align: center;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .test-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-section {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #333;
+        }
+
+        .test-section h2 {
+            color: #6366f1;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .test-card {
+            background: #252525;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-5px);
+        }
+
+        .test-card h3 {
+            color: #8b5cf6;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-card p {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-partial {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .missing-list li:before {
+            content: "✗";
+            color: #ef4444;
+        }
+
+        .test-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🌟 Premium Profile System Test</h1>
+            <p>Comprehensive testing interface for all premium features</p>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="test-section">
+            <h2>📊 System Overview</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>UI Components</h3>
+                    <span class="status-badge status-complete">Complete</span>
+                    <p>All UI components have been implemented including premium badge display, subscription plans, themes, badges, privacy controls, and support interface.</p>
+                </div>
+                <div class="test-card">
+                    <h3>JavaScript Functionality</h3>
+                    <span class="status-badge status-complete">Complete</span>
+                    <p>Full frontend logic implemented with subscription management, theme engine, badge system, and privacy controls.</p>
+                </div>
+                <div class="test-card">
+                    <h3>Backend Integration</h3>
+                    <span class="status-badge status-partial">Partial</span>
+                    <p>Frontend is ready for backend integration. Backend routes available in monetization.ts need to be expanded.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Implemented -->
+        <div class="test-section">
+            <h2>✅ Implemented Features</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>Subscription Management</h3>
+                    <ul class="feature-list">
+                        <li>Premium subscription plans (Monthly & Annual)</li>
+                        <li>Subscription status display</li>
+                        <li>Payment form interface</li>
+                        <li>Subscription activation flow</li>
+                        <li>Feature unlock system</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Theme Engine</h3>
+                    <ul class="feature-list">
+                        <li>6 predefined themes (1 free, 5 premium)</li>
+                        <li>Live theme switching</li>
+                        <li>Custom theme creator</li>
+                        <li>Theme persistence</li>
+                        <li>Real-time preview</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Badge System</h3>
+                    <ul class="feature-list">
+                        <li>8 achievement badges</li>
+                        <li>Badge unlock conditions</li>
+                        <li>Equipment system (up to 5)</li>
+                        <li>Custom badge creation (Premium)</li>
+                        <li>Progress tracking</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Privacy Controls</h3>
+                    <ul class="feature-list">
+                        <li>Incognito mode (Premium)</li>
+                        <li>Read receipts toggle</li>
+                        <li>Online status control</li>
+                        <li>Profile view settings</li>
+                        <li>Content visibility options</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Storage Management</h3>
+                    <ul class="feature-list">
+                        <li>Storage quota display</li>
+                        <li>Usage visualization</li>
+                        <li>10GB for premium (1GB free)</li>
+                        <li>Auto-scaling storage bar</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Analytics & Tracking</h3>
+                    <ul class="feature-list">
+                        <li>Profile view statistics</li>
+                        <li>Today/Week/Total views</li>
+                        <li>Unique visitors count</li>
+                        <li>View history tracking</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Support System</h3>
+                    <ul class="feature-list">
+                        <li>Priority support for premium</li>
+                        <li>Ticket creation system</li>
+                        <li>Live chat interface</li>
+                        <li>FAQ and email support</li>
+                        <li>Help resources</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Payment History</h3>
+                    <ul class="feature-list">
+                        <li>Transaction history table</li>
+                        <li>Invoice download</li>
+                        <li>Export functionality</li>
+                        <li>Payment status tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backend Routes Needed -->
+        <div class="test-section">
+            <h2>🔧 Backend Routes to Implement</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>Premium Routes</h3>
+                    <ul class="feature-list missing-list">
+                        <li>/api/premium/themes</li>
+                        <li>/api/premium/badges</li>
+                        <li>/api/premium/badges/:id/award</li>
+                        <li>/api/premium/badges/:id/equip</li>
+                        <li>/api/premium/badges/custom</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Privacy Routes</h3>
+                    <ul class="feature-list missing-list">
+                        <li>/api/premium/privacy</li>
+                        <li>/api/premium/privacy/incognito</li>
+                        <li>/api/premium/privacy/read-receipts</li>
+                        <li>/api/premium/privacy/online-status</li>
+                        <li>/api/premium/privacy/profile-views</li>
+                        <li>/api/premium/privacy/content-visibility</li>
+                        <li>/api/premium/privacy/clear-view-history</li>
+                        <li>/api/premium/privacy/download-data</li>
+                        <li>/api/premium/privacy/delete-account</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Support Routes</h3>
+                    <ul class="feature-list missing-list">
+                        <li>/api/premium/support/tickets</li>
+                        <li>/api/premium/support/tickets/:id</li>
+                        <li>/api/premium/live-chat</li>
+                    </ul>
+                </div>
+                <div class="test-card">
+                    <h3>Analytics Routes</h3>
+                    <ul class="feature-list missing-list">
+                        <li>/api/premium/profile-views</li>
+                        <li>/api/premium/storage</li>
+                        <li>/api/premium/storage/quota</li>
+                        <li>/api/premium/payments/history</li>
+                        <li>/api/premium/payments/:id/invoice</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Actions -->
+        <div class="test-section">
+            <h2>🧪 Test Actions</h2>
+            <div class="test-actions">
+                <a href="premium-profile.html" class="btn">🌟 Open Premium Profile</a>
+                <a href="creator-profile.html" class="btn">👤 Open Creator Profile</a>
+                <a href="index.html" class="btn">🏠 Back to Home</a>
+            </div>
+        </div>
+
+        <!-- Feature Matrix -->
+        <div class="test-section">
+            <h2>📋 Feature Completion Matrix</h2>
+            <table style="width: 100%; border-collapse: collapse; color: #fff;">
+                <thead>
+                    <tr style="background: #252525;">
+                        <th style="padding: 1rem; text-align: left; border: 1px solid #444;">Feature</th>
+                        <th style="padding: 1rem; text-align: center; border: 1px solid #444;">UI</th>
+                        <th style="padding: 1rem; text-align: center; border: 1px solid #444;">Frontend</th>
+                        <th style="padding: 1rem; text-align: center; border: 1px solid #444;">Backend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #444;">Theme Switching</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr style="background: #1a1a1a;">
+                        <td style="padding: 1rem; border: 1px solid #444;">Badge System</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #444;">Subscription Processing</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">⚠️ (Partial)</td>
+                    </tr>
+                    <tr style="background: #1a1a1a;">
+                        <td style="padding: 1rem; border: 1px solid #444;">Priority Support</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #444;">Incognito Mode</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr style="background: #1a1a1a;">
+                        <td style="padding: 1rem; border: 1px solid #444;">Read Receipts Control</td>
+                        <td style="padding: 1rem; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #444;">Profile View Tracking</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                    <tr style="background: #1a1a1a;">
+                        <td style="padding: 1rem; border: 1px solid #444;">Storage Quota Management</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">✅</td>
+                        <td style="padding: 1rem; text-align: center; border: 1px solid #444;">❌</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
