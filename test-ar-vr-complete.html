@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ConnectHub - AR/VR System Complete</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            padding-bottom: 70px;
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 8px 16px;
+        }
+
+        .nav-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Content Container */
+        .content {
+            padding: 16px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Filter Grid */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .filter-card.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .filter-card:active {
+            transform: scale(0.95);
+        }
+
+        .filter-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .filter-title {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* VR Rooms Grid */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .room-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .room-card.active {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .room-card:active {
+            transform: scale(0.98);
+        }
+
+        .room-thumbnail {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .room-info {
+            text-align: center;
+        }
+
+        .room-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .room-participants {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* List Items */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:active {
+            transform: scale(0.98);
+        }
+
+        .list-item-icon {
+            font-size: 24px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-item-arrow {
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        /* AR Camera View */
+        .ar-camera-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #ar-camera-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #ar-filter-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+
+        .camera-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .camera-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            max-width: 90%;
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* Shopping Items */
+        .shopping-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .shopping-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shopping-card:active {
+            transform: scale(0.98);
+        }
+
+        .shopping-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .shopping-name {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .shopping-price {
+            font-size: 16px;
+            color: var(--success);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Settings Toggle */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: var(--text-muted);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: 24px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--primary);
+            color: white;
+        }
+
+        .badge-success {
+            background: var(--success);
+        }
+
+        .badge-warning {
+            background: var(--warning);
+        }
+
+        .badge-error {
+            background: var(--error);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-main">
+                <div class="nav-logo">🥽 AR/VR System</div>
+                <div class="nav-actions">
+                    <div class="nav-btn" onclick="openScreen('settings')">⚙️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- HOME SCREEN -->
+            <div id="home-screen" class="screen active">
+                <div class="section-header">
+                    <div class="section-title">Choose Mode</div>
+                </div>
+
+                <div class="mode-toggle">
+                    <button class="mode-btn active" onclick="switchToARMode()">
+                        📸 AR Mode
+                    </button>
+                    <button class="mode-btn" onclick="switchToVRMode()">
+                        🥽 VR Mode
+                    </button>
+                </div>
+
+                <div class="list-item" onclick="openScreen('ar-filters')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">AR Face Filters</div>
+                        <div class="list-item-subtitle">10 filters available</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('vr-rooms')">
+                    <div class="list-item-icon">🏠</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">VR Rooms</div>
+                        <div class="list-item-subtitle">8 environments</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('ar-games')">
+                    <div class="list-item-icon">🎮</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">AR Games</div>
+                        <div class="list-item-subtitle">5 games to play</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('vr-meditation')">
+                    <div class="list-item-icon">🧘</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">VR Meditation</div>
+                        <div class="list-item-subtitle">4 experiences</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('ar-shopping')">
+                    <div class="list-item-icon">🛍️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">AR Try-On Shopping</div>
+                        <div class="list-item-subtitle">Virtual try before you buy</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('filter-creator')">
+                    <div class="list-item-icon">🎨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Create Custom Filters</div>
+                        <div class="list-item-subtitle">Design your own AR filters</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('ar-effects')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">AR Effects Library</div>
+                        <div class="list-item-subtitle">6 world effects</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('vr-social')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">VR Social Spaces</div>
+                        <div class="list-item-subtitle">Meet people in VR</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('shared-content')">
+                    <div class="list-item-icon">📤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Shared Content</div>
+                        <div class="list-item-subtitle">View your AR/VR creations</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+
+            <!-- AR FILTERS SCREEN -->
+            <div id="ar-filters-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> AR Face Filters
+                    </div>
+                </div>
+
+                <div class="ar-camera-container">
+                    <video id="ar-camera-video" autoplay playsinline></video>
+                    <canvas id="ar-filter-canvas"></canvas>
+                    <div class="camera-controls">
+                        <div class="camera-btn" onclick="capturePhoto()">📸</div>
+                        <div class="camera-btn" onclick="toggleRecording()">🎥</div>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="startARCamera()">📸 Start AR Camera</button>
+                <button class="btn btn-danger" onclick="stopARCamera()">⏹️ Stop Camera</button>
+
+                <div class="section-subtitle">Select a filter to apply</div>
+
+                <div class="filter-grid" id="filters-grid"></div>
+            </div>
+
+            <!-- VR ROOMS SCREEN -->
+            <div id="vr-rooms-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> VR Rooms
+                    </div>
+                </div>
+
+                <div class="section-subtitle">Immersive VR environments with 360° video and 3D spaces</div>
+
+                <div class="rooms-grid" id="rooms-grid"></div>
+
+                <button class="btn btn-danger" onclick="exitCurrentRoom()">🚪 Exit Current Room</button>
+            </div>
+
+            <!-- AR GAMES SCREEN -->
+            <div id="ar-games-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> AR Games
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="current-game-score">0</div>
+                        <div class="stat-label">Current Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="best-score">0</div>
+                        <div class="stat-label">Best Score</div>
+                    </div>
+                </div>
+
+                <div id="games-list"></div>
+
+                <button class="btn btn-danger" onclick="endCurrentGame()">🎮 End Game</button>
+            </div>
+
+            <!-- VR MEDITATION SCREEN -->
+            <div id="vr-meditation-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> VR Meditation
+                    </div>
+                </div>
+
+                <div class="section-subtitle">Find peace in immersive VR meditation experiences</div>
+
+                <div id="meditation-list"></div>
+
+                <button class="btn btn-danger" onclick="endCurrentMeditation()">🧘 End Meditation</button>
+            </div>
+
+            <!-- AR SHOPPING SCREEN -->
+            <div id="ar-shopping-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> AR Shopping
+                    </div>
+                </div>
+
+                <div class="section-subtitle">Try on items virtually before you buy</div>
+
+                <div class="ar-camera-container">
+                    <video id="ar-shopping-video" autoplay playsinline></video>
+                    <canvas id="ar-shopping-canvas"></canvas>
+                </div>
+
+                <div class="shopping-grid" id="shopping-items-grid"></div>
+
+                <button class="btn btn-danger" onclick="stopTryOn()">⏹️ Stop Try-On</button>
+            </div>
+
+            <!-- FILTER CREATOR SCREEN -->
+            <div id="filter-creator-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> Filter Creator
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter Name</label>
+                        <input type="text" id="filter-name-input" placeholder="Enter filter name" style="width: 100%; padding: 12px; border-radius: 8px; background: var(--glass); border: 1px solid var(--glass-border); color: white;">
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Choose Effects</label>
+                        <div class="filter-grid">
+                            <div class="filter-card" onclick="addEffect('ears')">
+                                <div class="filter-icon">👂</div>
+                                <div class="filter-title">Ears</div>
+                            </div>
+                            <div class="filter-card" onclick="addEffect('sparkles')">
+                                <div class="filter-icon">✨</div>
+                                <div class="filter-title">Sparkles</div>
+                            </div>
+                            <div class="filter-card" onclick="addEffect('glow')">
+                                <div class="filter-icon">💫</div>
+                                <div class="filter-title">Glow</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveCustomFilter()">✅ Save Custom Filter</button>
+                </div>
+
+                <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-title">Your Custom Filters</div>
+                </div>
+                <div id="custom-filters-list"></div>
+            </div>
+
+            <!-- AR EFFECTS SCREEN -->
+            <div id="ar-effects-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> AR Effects
+                    </div>
+                </div>
+
+                <div class="section-subtitle">World effects and particle systems</div>
+
+                <div id="effects-list"></div>
+
+                <button class="btn btn-danger" onclick="stopCurrentEffect()">⏹️ Stop Effect</button>
+            </div>
+
+            <!-- VR SOCIAL SCREEN -->
+            <div id="vr-social-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> VR Social Spaces
+                    </div>
+                </div>
+
+                <div class="section-subtitle">Connect with others in virtual reality</div>
+
+                <div id="social-spaces-list"></div>
+
+                <button class="btn btn-danger" onclick="leaveSocialSpace()">🚪 Leave Space</button>
+            </div>
+
+            <!-- SHARED CONTENT SCREEN -->
+            <div id="shared-content-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> Shared Content
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-photos">0</div>
+                        <div class="stat-label">Photos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-videos">0</div>
+                        <div class="stat-label">Videos</div>
+                    </div>
+                </div>
+
+                <div id="shared-content-list"></div>
+            </div>
+
+            <!-- SETTINGS SCREEN -->
+            <div id="settings-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span onclick="openScreen('home')" style="cursor: pointer;">←</span> Settings
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div>
+                        <div class="list-item-title">Hand Tracking</div>
+                        <div class="list-item-subtitle">Track hand gestures</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleHandTracking()" id="hand-tracking-toggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div>
+                        <div class="list-item-title">Spatial Audio</div>
+                        <div class="list-item-subtitle">3D positional audio</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSpatialAudio()" id="spatial-audio-toggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div>
+                        <div class="list-item-title">Motion Sickness Prevention</div>
+                        <div class="list-item-subtitle">Comfort features for VR</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleMotionSickness()" id="motion-sickness-toggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="list-item-title" style="margin-bottom: 12px;">Performance Mode</div>
+                    <div class="list-item" onclick="setPerformanceMode('high_quality')">
+                        <div class="list-item-icon">🌟</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">High Quality</div>
+                            <div class="list-item-subtitle">90 FPS, Best visuals</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="setPerformanceMode('balanced')">
+                        <div class="list-item-icon">⚖️</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Balanced</div>
+                            <div class="list-item-subtitle">72 FPS, Good balance</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="setPerformanceMode('performance')">
+                        <div class="list-item-icon">⚡</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Performance</div>
+                            <div class="list-item-subtitle">60 FPS, Best performance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="connectVRHeadset()">🔌 Connect VR Headset</button>
+                <button class="btn btn-danger" onclick="disconnectVRHeadset()">🔌 Disconnect VR Headset</button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+
+        <!-- Hidden Elements for AR/VR -->
+        <div id="vr-360-player" style="display: none;"></div>
+        <div id="vr-3d-scene" style="display: none;"></div>
+        <div id="vr-meditation-scene" style="display: none;"></div>
+        <div id="vr-social-scene" style="display: none;"></div>
+        <div id="breathing-guide" style="display: none;"></div>
+    </div>
+
+    <!-- Load AR/VR System -->
+    <script src="ConnectHub_Mobile_Design_AR_VR_System.js"></script>
+
+    <!-- UI Control Script -->
+    <script>
+        // Screen Navigation
+        function openScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName + '-screen').classList.add('active');
+        }
+
+        // Mode Switching
+        function switchToARMode() {
+            arvrSystem.switchMode('ar');
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function switchToVRMode() {
+            arvrSystem.switchMode('vr');
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // AR Camera Functions
+        async function startARCamera() {
+            await arvrSystem.startARCamera();
+        }
+
+        function stopARCamera() {
+            arvrSystem.stopARCamera();
+        }
+
+        function capturePhoto() {
+            const content = arvrSystem.captureARPhoto();
+            updateSharedContent();
+        }
+
+        let isRecording = false;
+        function toggleRecording() {
+            if (!isRecording) {
+                arvrSystem.captureARVideo();
+                isRecording = true;
+            } else {
+                arvrSystem.stopARVideoRecording();
+                isRecording = false;
+                updateSharedContent();
+            }
+        }
+
+        // Filter Functions
+        function selectFilter(filterId) {
+            arvrSystem.selectFilter(filterId);
+            document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
+            event.target.closest('.filter-card').classList.add('active');
+        }
+
+        // VR Room Functions
+        function enterRoom(roomId) {
+            arvrSystem.enterVRRoom(roomId);
+            document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
+            event.target.closest('.room-card').classList.add('active');
+            renderRooms();
+        }
+
+        function exitCurrentRoom() {
+            arvrSystem.exitVRRoom();
+            document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
+            renderRooms();
+        }
+
+        // Game Functions
+        function startGame(gameId) {
+            arvrSystem.startARGame(gameId);
+            updateGameScores();
+        }
+
+        function endCurrentGame() {
+            arvrSystem.endARGame();
+            updateGameScores();
+        }
+
+        function updateGameScores() {
+            document.getElementById('current-game-score').textContent = arvrSystem.gameScore || 0;
+            const game = arvrSystem.arGames.find(g => g.id === arvrSystem.currentGame);
+            document.getElementById('best-score').textContent = game ? game.bestScore : 0;
+        }
+
+        // Meditation Functions
+        function startMeditationExperience(meditationId) {
+            arvrSystem.startMeditation(meditationId);
+        }
+
+        function endCurrentMeditation() {
+            arvrSystem.endMeditation();
+        }
+
+        // Shopping Functions
+        function tryOnItem(itemId) {
+            arvrSystem.startShoppingTryOn(itemId);
+        }
+
+        function stopTryOn() {
+            arvrSystem.stopTryOn();
+        }
+
+        function buyItem(itemId) {
+            arvrSystem.purchaseItem(itemId);
+        }
+
+        // Filter Creator Functions
+        const selectedEffects = [];
+        function addEffect(effectType) {
+            selectedEffects.push(effectType);
+            arvrSystem.addFilterEffect(effectType);
+        }
+
+        function saveCustomFilter() {
+            const name = document.getElementById('filter-name-input').value;
+            if (name) {
+                arvrSystem.customFilterData.name = name;
+            }
+            arvrSystem.saveCustomFilter();
+            renderCustomFilters();
+            document.getElementById('filter-name-input').value = '';
+        }
+
+        function deleteFilter(filterId) {
+            arvrSystem.deleteCustomFilter(filterId);
+            renderCustomFilters();
+        }
+
+        // Effects Functions
+        function applyEffect(effectId) {
+            arvrSystem.applyAREffect(effectId);
+        }
+
+        function stopCurrentEffect() {
+            arvrSystem.stopEffect();
+        }
+
+        // Social Space Functions
+        function joinSocialSpace(spaceId) {
+            arvrSystem.enterSocialSpace(spaceId);
+            renderSocialSpaces();
+        }
+
+        function leaveSocialSpace() {
+            arvrSystem.leaveSocialSpace();
+            renderSocialSpaces();
+        }
+
+        // Settings Functions
+        function toggleHandTracking() {
+            arvrSystem.handTrackingActive = !arvrSystem.handTrackingActive;
+            document.getElementById('hand-tracking-toggle').classList.toggle('active');
+            if (arvrSystem.handTrackingActive) {
+                arvrSystem.startHandTracking();
+            } else {
+                arvrSystem.stopHandTracking();
+            }
+        }
+
+        function toggleSpatialAudio() {
+            arvrSystem.spatialAudioEnabled = !arvrSystem.spatialAudioEnabled;
+            document.getElementById('spatial-audio-toggle').classList.toggle('active');
+            arvrSystem.showToast(arvrSystem.spatialAudioEnabled ? '🔊 Spatial Audio On' : '🔇 Spatial Audio Off');
+        }
+
+        function toggleMotionSickness() {
+            arvrSystem.toggleMotionSicknessPrevention();
+            document.getElementById('motion-sickness-toggle').classList.toggle('active');
+        }
+
+        function setPerformanceMode(mode) {
+            arvrSystem.setPerformanceMode(mode);
+        }
+
+        function connectVRHeadset() {
+            arvrSystem.connectVRHeadset();
+        }
+
+        function disconnectVRHeadset() {
+            arvrSystem.disconnectVRHeadset();
+        }
+
+        // Shared Content Functions
+        function shareContent(contentId, platform) {
+            arvrSystem.shareContent(contentId, platform);
+        }
+
+        function deleteContent(contentId) {
+            arvrSystem.deleteSharedContent(contentId);
+            updateSharedContent();
+        }
+
+        // Render Functions
+        function renderFilters() {
+            const grid = document.getElementById('filters-grid');
+            grid.innerHTML = arvrSystem.filters.map(filter => `
+                <div class="filter-card" onclick="selectFilter('${filter.id}')">
+                    <div class="filter-icon">${filter.icon}</div>
+                    <div class="filter-title">${filter.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderRooms() {
+            const grid = document.getElementById('rooms-grid');
+            grid.innerHTML = arvrSystem.vrRooms.map(room => `
+                <div class="room-card ${room.id === arvrSystem.currentRoom ? 'active' : ''}" onclick="enterRoom('${room.id}')">
+                    <div class="room-thumbnail">${room.thumbnail}</div>
+                    <div class="room-info">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-participants">${room.participants}/${room.maxParticipants} users</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGames() {
+            const list = document.getElementById('games-list');
+            list.innerHTML = arvrSystem.arGames.map(game => `
+                <div class="list-item" onclick="startGame('${game.id}')">
+                    <div class="list-item-icon">${game.icon}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${game.name}</div>
+                        <div class="list-item-subtitle">${game.description} • Best: ${game.bestScore}</div>
+                    </div>
+                    <div class="list-item-arrow">▶️</div>
+                </div>
+            `).join('');
+        }
+
+        function renderMeditation() {
+            const list = document.getElementById('meditation-list');
+            list.innerHTML = arvrSystem.meditationExperiences.map(med => `
+                <div class="list-item" onclick="startMeditationExperience('${med.id}')">
+                    <div class="list-item-icon">${med.icon}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${med.name}</div>
+                        <div class="list-item-subtitle">${med.duration} minutes • ${med.type}</div>
+                    </div>
+                    <div class="list-item-arrow">▶️</div>
+                </div>
+            `).join('');
+        }
+
+        function renderShoppingItems() {
+            const grid = document.getElementById('shopping-items-grid');
+            grid.innerHTML = arvrSystem.shoppingItems.map(item => `
+                <div class="shopping-card" onclick="tryOnItem('${item.id}')">
+                    <div class="shopping-icon">${item.icon}</div>
+                    <div class="shopping-name">${item.name}</div>
+                    <div class="shopping-price">$${item.price}</div>
+                    <button class="btn btn-success" onclick="event.stopPropagation(); buyItem('${item.id}')" style="margin-top: 12px; padding: 8px;">Buy Now</button>
+                </div>
+            `).join('');
+        }
+
+        function renderCustomFilters() {
+            const list = document.getElementById('custom-filters-list');
+            list.innerHTML = arvrSystem.customFilters.map(filter => `
+                <div class="list-item">
+                    <div class="list-item-icon">${filter.icon}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${filter.name}</div>
+                        <div class="list-item-subtitle">Custom Filter</div>
+                    </div>
+                    <div class="list-item-arrow" onclick="deleteFilter('${filter.id}')" style="color: var(--error);">🗑️</div>
+                </div>
+            `).join('');
+        }
+
+        function renderEffects() {
+            const list = document.getElementById('effects-list');
+            list.innerHTML = arvrSystem.arEffects.map(effect => `
+                <div class="list-item" onclick="applyEffect('${effect.id}')">
+                    <div class="list-item-icon">${effect.icon}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${effect.name}</div>
+                        <div class="list-item-subtitle">${effect.type} • ${effect.intensity} intensity</div>
+                    </div>
+                    <div class="list-item-arrow">✨</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSocialSpaces() {
+            const list = document.getElementById('social-spaces-list');
+            list.innerHTML = arvrSystem.vrSocialSpaces.map(space => `
+                <div class="list-item" onclick="joinSocialSpace('${space.id}')">
+                    <div class="list-item-icon">${space.icon}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${space.name}</div>
+                        <div class="list-item-subtitle">${space.currentUsers}/${space.capacity} users • ${space.type}</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            `).join('');
+        }
+
+        function updateSharedContent() {
+            const content = arvrSystem.getSharedContent();
+            const photos = content.filter(c => c.type === 'photo').length;
+            const videos = content.filter(c => c.type === 'video').length;
+            
+            document.getElementById('total-photos').textContent = photos;
+            document.getElementById('total-videos').textContent = videos;
+
+            const list = document.getElementById('shared-content-list');
+            list.innerHTML = content.map(item => `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <div class="list-item-title">${item.type === 'photo' ? '📸 Photo' : '🎥 Video'}</div>
+                            <div class="list-item-subtitle">${new Date(item.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div class="list-item-arrow" onclick="deleteContent('${item.id}')" style="color: var(--error); cursor: pointer;">🗑️</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="shareContent('${item.id}', 'social')">📤 Share</button>
+                </div>
+            `).join('');
+        }
+
+        // Initialize everything on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            renderRooms();
+            renderGames();
+            renderMeditation();
+            renderShoppingItems();
+            renderCustomFilters();
+            renderEffects();
+            renderSocialSpaces();
+            updateSharedContent();
+        });
+    </script>
+</body>
+</html>
