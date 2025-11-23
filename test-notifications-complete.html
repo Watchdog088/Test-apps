@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ConnectHub - Notifications System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #007AFF;
+            --background: #000000;
+            --background-secondary: #1C1C1E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --border: #38383A;
+            --success: #34C759;
+            --error: #FF3B30;
+            --warning: #FF9500;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--background);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            height: 56px;
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+
+        .nav-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: var(--background-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 20px;
+            height: 20px;
+            background: var(--error);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 0 6px;
+            border: 2px solid var(--background);
+        }
+
+        /* Notifications Screen */
+        .notifications-screen {
+            margin-top: 56px;
+            padding: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-link {
+            color: var(--primary);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Notification Filters */
+        .notification-filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 4px;
+        }
+
+        .notification-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            background: var(--background-secondary);
+            border-radius: 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Notification Items */
+        .notification-item {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: var(--background-secondary);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .notification-item:active {
+            transform: scale(0.98);
+        }
+
+        .notification-item.unread {
+            background: rgba(0, 122, 255, 0.1);
+            border: 1px solid rgba(0, 122, 255, 0.3);
+        }
+
+        .notification-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-text {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .notification-text strong {
+            font-weight: 600;
+        }
+
+        .notification-time {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* In-App Notification Banner */
+        #inAppNotification {
+            position: fixed;
+            top: -100px;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--background-secondary);
+            backdrop-filter: blur(20px);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: top 0.3s ease;
+            cursor: pointer;
+        }
+
+        #inAppNotification.show {
+            top: 8px;
+        }
+
+        #inAppNotification .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 20px;
+        }
+
+        #inAppNotification .notification-content {
+            flex: 1;
+        }
+
+        #inAppNotification .notification-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        #inAppNotification .notification-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: var(--background);
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 101;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            background: var(--background-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+            text-align: center;
+        }
+
+        .modal-content {
+            padding: 16px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--background-secondary);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .toggle-switch {
+            width: 51px;
+            height: 31px;
+            background: var(--border);
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-slider {
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 14px;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+
+        /* List Items */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--background-secondary);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .list-item-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-item-arrow {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        /* Input Field */
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--background-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Test Controls */
+        .test-controls {
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            background: var(--background);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        .test-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .test-btn.secondary {
+            background: var(--background-secondary);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            height: 60px;
+            background: var(--background);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <button class="nav-btn" onclick="window.history.back()">←</button>
+            <div class="nav-title">Notifications</div>
+            <button class="nav-btn" onclick="window.notificationsSystem.openNotificationPreferences()">
+                ⚙️
+                <span class="badge" style="display: none;">3</span>
+            </button>
+        </div>
+
+        <!-- Notifications Screen -->
+        <div id="notifications-screen" class="notifications-screen">
+            <div class="section-header">
+                <div class="section-title">Recent Activity</div>
+                <div class="section-link" onclick="window.notificationsSystem.markAllAsRead()">Mark all as read</div>
+            </div>
+
+            <!-- Notification Filters -->
+            <div class="notification-filters">
+                <div class="filter-chip active" onclick="window.notificationsSystem.filterNotifications('all'); updateActiveFilter(this)">
+                    All
+                </div>
+                <div class="filter-chip" onclick="window.notificationsSystem.filterNotifications('like'); updateActiveFilter(this)">
+                    👍 Likes
+                </div>
+                <div class="filter-chip" onclick="window.notificationsSystem.filterNotifications('comment'); updateActiveFilter(this)">
+                    💬 Comments
+                </div>
+                <div class="filter-chip" onclick="window.notificationsSystem.filterNotifications('follow'); updateActiveFilter(this)">
+                    👥 Follows
+                </div>
+                <div class="filter-chip" onclick="window.notificationsSystem.filterNotifications('mention'); updateActiveFilter(this)">
+                    @ Mentions
+                </div>
+                <div class="filter-chip" onclick="window.notificationsSystem.filterNotifications('message'); updateActiveFilter(this)">
+                    💬 Messages
+                </div>
+            </div>
+
+            <!-- Notifications will be dynamically inserted here -->
+        </div>
+
+        <!-- In-App Notification Banner -->
+        <div id="inAppNotification" onclick="handleBannerClick()">
+            <div class="notification-icon" id="notificationIcon">🔔</div>
+            <div class="notification-content">
+                <div class="notification-title" id="notificationTitle">New Notification</div>
+                <div class="notification-text" id="notificationText">You have a new notification</div>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-controls">
+            <button class="test-btn" onclick="window.notificationsSystem.generateRandomNotification()">
+                📥 Test Notification
+            </button>
+            <button class="test-btn secondary" onclick="window.notificationsSystem.viewAnalytics()">
+                📊 Analytics
+            </button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">🔍</div>
+                <div class="nav-label">Explore</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">➕</div>
+                <div class="nav-label">Create</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">💬</div>
+                <div class="nav-label">Messages</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">🔔</div>
+                <div class="nav-label">Notifications</div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Notifications_System.js"></script>
+    <script>
+        // Helper functions
+        function updateActiveFilter(element) {
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        function handleBannerClick() {
+            const banner = document.getElementById('inAppNotification');
+            const notificationId = parseInt(banner.dataset.notificationId);
+            
+            if (notificationId && window.notificationsSystem) {
+                window.notificationsSystem.handleNotificationClick(notificationId);
+                banner.classList.remove('show');
+            }
+        }
+
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Global showToast function
+        window.showToast = function(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        };
+
+        // Initialize with some demo notifications
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for notifications system to initialize
+            setTimeout(() => {
+                if (window.notificationsSystem) {
+                    // Generate 5 demo notifications
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            window.notificationsSystem.generateRandomNotification();
+                        }, i * 500);
+                    }
+                    
+                    console.log('✅ Demo notifications generated');
+                }
+            }, 1000);
+        });
+
+        // Console helper
+        console.log(`
+╔═══════════════════════════════════════════════╗
+║   CONNECTHUB NOTIFICATIONS SYSTEM TEST        ║
+╠═══════════════════════════════════════════════╣
+║                                               ║
+║  🔔 Test Features:                           ║
+║  1. Click "Test Notification" for new ones   ║
+║  2. View notification analytics              ║
+║  3. Configure notification preferences       ║
+║  4. Test notification filtering              ║
+║  5. Mark notifications as read               ║
+║                                               ║
+║  📊 Check console for system logs            ║
+║                                               ║
+╚═══════════════════════════════════════════════╝
+        `);
+    </script>
+</body>
+</html>
