@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ConnectHub - Complete Menu System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            padding-bottom: 70px;
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 8px 16px;
+        }
+
+        .nav-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+
+        .nav-logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--error);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            border: 2px solid var(--bg-card);
+        }
+
+        /* Content Container */
+        .content {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .section-link {
+            font-size: 14px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* List Items */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:active {
+            transform: scale(0.98);
+        }
+
+        .list-item-icon {
+            font-size: 24px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-item-arrow {
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* Button */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error), #c81e1e);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stat-card:active {
+            transform: scale(0.98);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-content {
+            padding: 16px;
+        }
+
+        /* User Profile Section */
+        .user-profile {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-main">
+                <div class="nav-logo" onclick="openScreen('home')">ConnectHub</div>
+                <div class="nav-actions">
+                    <div class="nav-btn" onclick="openScreen('menu')">☰</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- HOME SCREEN -->
+            <div id="home-screen" class="screen active">
+                <div class="section-header">
+                    <div class="section-title">🏠 Home</div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Welcome to ConnectHub Menu System Test</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                        This is a complete test of the menu system with all features including:
+                        <ul style="margin-top: 12px; padding-left: 20px;">
+                            <li>✅ Session management with logout</li>
+                            <li>✅ Deep linking to specific screens</li>
+                            <li>✅ Menu customization (pin, hide, reorder)</li>
+                            <li>✅ Recently accessed items tracking</li>
+                            <li>✅ Dynamic menu badges</li>
+                            <li>✅ Menu personalization</li>
+                        </ul>
+                    </div>
+                    <button class="btn" onclick="openScreen('menu')">Open Menu</button>
+                </div>
+            </div>
+
+            <!-- MENU SCREEN -->
+            <div id="menu-screen" class="screen">
+                <!-- User Profile Section -->
+                <div class="user-profile">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">Demo User</div>
+                        <div class="user-email" id="user-email">demo@connecthub.com</div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="showToast('View your activity')">
+                        <div class="stat-value">1.2K</div>
+                        <div class="stat-label">Activity</div>
+                    </div>
+                    <div class="stat-card" onclick="showToast('Session active')">
+                        <div class="stat-value">24h</div>
+                        <div class="stat-label">Session</div>
+                    </div>
+                </div>
+
+                <!-- Menu Management Section -->
+                <div class="section-header">
+                    <div class="section-title">⚙️ Menu Options</div>
+                </div>
+
+                <div class="list-item" onclick="if(typeof menuSystem !== 'undefined') menuSystem.openMenuPersonalization()">
+                    <div class="list-item-icon">🎨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Personalize Menu</div>
+                        <div class="list-item-subtitle">Customize your menu layout</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showDeepLinkDemo()">
+                    <div class="list-item-icon">🔗</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Deep Link Demo</div>
+                        <div class="list-item-subtitle">Test deep linking features</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Recently Accessed Section -->
+                <div class="section-header">
+                    <div class="section-title">🕒 Recently Accessed</div>
+                    <div class="section-link" onclick="if(typeof menuSystem !== 'undefined') menuSystem.clearRecentlyAccessed()">Clear</div>
+                </div>
+
+                <div id="recently-accessed-container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <div class="empty-state-title">No Recent Items</div>
+                        <div class="empty-state-text">Your recently accessed items will appear here</div>
+                    </div>
+                </div>
+
+                <!-- All Menu Items -->
+                <div class="section-header">
+                    <div class="section-title">📱 All Features</div>
+                </div>
+
+                <div id="menu-items-container">
+                    <!-- Menu items will be dynamically rendered here by JavaScript -->
+                    <div class="list-item" onclick="openScreen('games')">
+                        <div class="list-item-icon" style="position: relative;">
+                            🎮
+                            <div class="badge" data-badge-for="games" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Games & Extras</div>
+                            <div class="list-item-subtitle">16 games available</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('marketplace')">
+                        <div class="list-item-icon" style="position: relative;">
+                            🛍️
+                            <div class="badge" data-badge-for="marketplace" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Marketplace</div>
+                            <div class="list-item-subtitle">Buy & sell items</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('business')">
+                        <div class="list-item-icon" style="position: relative;">
+                            💼
+                            <div class="badge" data-badge-for="business" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Business Tools</div>
+                            <div class="list-item-subtitle">17 tools available</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('wallet')">
+                        <div class="list-item-icon" style="position: relative;">
+                            💰
+                            <div class="badge" data-badge-for="wallet" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Wallet & Coins</div>
+                            <div class="list-item-subtitle">Manage your balance</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('analytics')">
+                        <div class="list-item-icon" style="position: relative;">
+                            📊
+                            <div class="badge" data-badge-for="analytics" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Analytics</div>
+                            <div class="list-item-subtitle">13 metrics available</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('help')">
+                        <div class="list-item-icon" style="position: relative;">
+                            💡
+                            <div class="badge" data-badge-for="help" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Help & Support</div>
+                            <div class="list-item-subtitle">12 support features</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('friends')">
+                        <div class="list-item-icon" style="position: relative;">
+                            👥
+                            <div class="badge" data-badge-for="friends" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Friends</div>
+                            <div class="list-item-subtitle">Manage connections</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('messages')">
+                        <div class="list-item-icon" style="position: relative;">
+                            💬
+                            <div class="badge" data-badge-for="messages" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Messages</div>
+                            <div class="list-item-subtitle">Chat with friends</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('notifications')">
+                        <div class="list-item-icon" style="position: relative;">
+                            🔔
+                            <div class="badge" data-badge-for="notifications" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Notifications</div>
+                            <div class="list-item-subtitle">View all notifications</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+
+                    <div class="list-item" onclick="openScreen('settings')">
+                        <div class="list-item-icon" style="position: relative;">
+                            ⚙️
+                            <div class="badge" data-badge-for="settings" style="display: none;">0</div>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Settings</div>
+                            <div class="list-item-subtitle">App preferences</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                </div>
+
+                <!-- Account Section -->
+                <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-title">👤 Account</div>
+                </div>
+
+                <div class="card">
+                    <button class="btn btn-outline" onclick="showToast('Profile settings opened')" style="margin-bottom: 12px;">
+                        Edit Profile
+                    </button>
+                    <button class="btn btn-danger" onclick="handleLogout()">
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAMES SCREEN -->
+            <div id="games-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">🎮 Games & Extras</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Games Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">16 games available to play</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- MARKETPLACE SCREEN -->
+            <div id="marketplace-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">🛍️ Marketplace</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Marketplace Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Buy & sell items</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- BUSINESS SCREEN -->
+            <div id="business-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">💼 Business Tools</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Business Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">17 business tools available</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- WALLET SCREEN -->
+            <div id="wallet-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">💰 Wallet & Coins</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Wallet Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Manage your balance</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- ANALYTICS SCREEN -->
+            <div id="analytics-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">📊 Analytics</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Analytics Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">13 metrics available</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- HELP SCREEN -->
+            <div id="help-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">💡 Help & Support</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Help Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">12 support features</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- FRIENDS SCREEN -->
+            <div id="friends-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">👥 Friends</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Friends Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Manage connections</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- MESSAGES SCREEN -->
+            <div id="messages-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">💬 Messages</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Messages Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Chat with friends</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- NOTIFICATIONS SCREEN -->
+            <div id="notifications-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">🔔 Notifications</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Notifications Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">View all notifications</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+
+            <!-- SETTINGS SCREEN -->
+            <div id="settings-screen" class="screen">
+                <div class="section-header">
+                    <div class="section-title">⚙️ Settings</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Settings Screen</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">App preferences</div>
+                </div>
+                <button class="btn" onclick="openScreen('menu')">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Include Menu System JavaScript -->
+    <script src="ConnectHub_Mobile_Design_Menu_System.js"></script>
+
+    <!-- Additional Application Logic -->
+    <script>
+        // Basic navigation function for testing
+        function openScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show target screen
+            const targetScreen = document.getElementById(screenId + '-screen');
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                
+                // If menuSystem is available, use it for navigation
+                if (typeof menuSystem !== 'undefined' && screenId !== 'home') {
+                    menuSystem.navigateToScreen(screenId);
+                }
+            }
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.textContent = message;
+                toast.className = 'toast show';
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (typeof menuSystem !== 'undefined') {
+                    menuSystem.logout();
+                } else {
+                    showToast('✓ Logged out successfully');
+                    setTimeout(() => {
+                        openScreen('home');
+                    }, 1500);
+                }
+            }
+        }
+
+        // Deep link demo function
+        function showDeepLinkDemo() {
+            const demoLinks = [
+                { name: 'Games Screen', link: '?screen=games' },
+                { name: 'Marketplace', link: '?screen=marketplace' },
+                { name: 'Wallet', link: '?screen=wallet' },
+                { name: 'Settings', link: '?screen=settings' }
+            ];
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-header">
+                    <div class="modal-close" onclick="this.parentElement.parentElement.remove()">✕</div>
+                    <div class="modal-title">Deep Link Examples</div>
+                </div>
+                <div class="modal-content">
+                    <div class="card">
+                        <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Test Deep Links</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                            Click any link below to test deep linking functionality:
+                        </div>
+                        ${demoLinks.map(item => `
+                            <div class="list-item" onclick="window.location.href='${item.link}'; this.parentElement.parentElement.parentElement.remove();">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${item.name}</div>
+                                    <div class="list-item-subtitle">${item.link}</div>
+                                </div>
+                                <div class="list-item-arrow">→</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Current URL</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); word-break: break-all;">
+                            ${window.location.href}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Initialize session for demo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create a demo session if menuSystem is available
+            if (typeof menuSystem !== 'undefined') {
+                const demoUser = {
+                    id: 'demo_user_123',
+                    name: 'Demo User',
+                    email: 'demo@connecthub.com',
+                    avatar: '👤'
+                };
+                
+                // Create session
+                menuSystem.createSession(demoUser, false);
+                
+                // Initialize default badges for demo
+                menuSystem.updateBadge('messages', 5);
+                menuSystem.updateBadge('notifications', 12);
+                menuSystem.updateBadge('friends', 3);
+                menuSystem.updateBadge('marketplace', 2);
+            }
+        });
+    </script>
+</body>
+</html>
