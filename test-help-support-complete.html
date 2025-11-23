@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support System - Complete Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg: #f9fafb;
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .test-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .test-header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .feature-item {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateX(5px);
+            background: #e0e7ff;
+        }
+
+        .feature-item-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .feature-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .search-box button {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .chat-container {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            max-width: 80%;
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+        }
+
+        .chat-message.agent, .chat-message.ai {
+            background: white;
+            color: var(--text-primary);
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input-group input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .search-results {
+            margin-top: 1rem;
+        }
+
+        .search-result-item {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-result-item:hover {
+            background: #e0e7ff;
+        }
+
+        .result-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-type.faq {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .result-type.article {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .result-type.video {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .video-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .video-thumbnail {
+            font-size: 3rem;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .video-duration {
+            display: inline-block;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .kb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .kb-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .kb-card:hover {
+            background: #e0e7ff;
+            transform: translateY(-5px);
+        }
+
+        .kb-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .kb-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .rating-stars span {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .rating-stars span:hover {
+            transform: scale(1.2);
+        }
+
+        .history-item {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .history-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .history-status.resolved {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-action {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            background: #e0e7ff;
+            transform: translateY(-5px);
+        }
+
+        .quick-action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-action-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .quick-action-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge.new {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .agent-avatar {
+            font-size: 3rem;
+        }
+
+        .agent-details h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .agent-details p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Header -->
+        <div class="test-header">
+            <h1>💬 Help & Support System</h1>
+            <p>Complete implementation with all features - Fully clickable and functional</p>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="faqCount">10</div>
+                    <div class="stat-label">FAQ Entries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="articleCount">5</div>
+                    <div class="stat-label">Help Articles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="videoCount">8</div>
+                    <div class="stat-label">Video Tutorials</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="kbCount">8</div>
+                    <div class="stat-label">KB Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">4.8/5</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="feature-card">
+            <h2>🚀 Quick Actions</h2>
+            <div class="quick-actions-grid" id="quickActionsGrid"></div>
+        </div>
+
+        <!-- Main Features Grid -->
+        <div class="features-grid">
+            <!-- FAQ Database -->
+            <div class="feature-card">
+                <h2>❓ FAQ Database</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Browse frequently asked questions</p>
+                <div id="faqList"></div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="showAllFAQs()">
+                    View All FAQs
+                </button>
+            </div>
+
+            <!-- Knowledge Base -->
+            <div class="feature-card">
+                <h2>📚 Knowledge Base</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Explore help categories</p>
+                <div class="kb-grid" id="knowledgeBaseGrid"></div>
+            </div>
+
+            <!-- Support History -->
+            <div class="feature-card">
+                <h2>📋 Support History</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Your recent support interactions</p>
+                <div id="supportHistoryList"></div>
+            </div>
+        </div>
+
+        <!-- Video Tutorials -->
+        <div class="feature-card">
+            <h2>📹 Video Tutorials</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Learn with video guides</p>
+            <div class="video-grid" id="videoTutorialsGrid"></div>
+        </div>
+
+        <!-- Popular Topics -->
+        <div class="feature-card">
+            <h2>🔥 Popular Topics</h2>
+            <div id="popularTopicsList"></div>
+        </div>
+
+        <!-- Community Forums -->
+        <div class="feature-card">
+            <h2>👥 Community Forums</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Get help from the community</p>
+            <div id="forumCategoriesList"></div>
+        </div>
+    </div>
+
+    <!-- Knowledge Base Search Modal -->
+    <div class="modal" id="searchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔍 Search Help</h2>
+                <button class="close-btn" onclick="closeModal('searchModal')">×</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search FAQs, articles, videos..." onkeyup="handleSearch(event)">
+                <button onclick="performSearch()">Search</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Live Chat Modal -->
+    <div class="modal" id="liveChatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💬 Live Chat</h2>
+                <button class="close-btn" onclick="closeModal('liveChatModal')">×</button>
+            </div>
+            <div id="agentInfo"></div>
+            <div class="chat-container" id="chatMessages"></div>
+            <div class="chat-input-group">
+                <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleChatKeypress(event)">
+                <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal" id="aiAssistantModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🤖 AI Assistant</h2>
+                <button class="close-btn" onclick="closeModal('aiAssistantModal')">×</button>
+            </div>
+            <div class="chat-container" id="aiMessages">
+                <div class="chat-message ai">
+                    Hi! I'm your ConnectHub AI assistant. How can I help you today?
+                </div>
+            </div>
+            <div class="chat-input-group">
+                <input type="text" id="aiInput" placeholder="Ask me anything..." onkeypress="handleAIKeypress(event)">
+                <button class="btn btn-primary" onclick="sendAIMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Ticket Modal -->
+    <div class="modal" id="ticketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎫 Submit Support Ticket</h2>
+                <button class="close-btn" onclick="closeModal('ticketModal')">×</button>
+            </div>
+            <form onsubmit="submitTicket(event)">
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="ticketSubject" required placeholder="Brief description of your issue">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="ticketCategory" required>
+                        <option value="">Select category</option>
+                        <option value="account">Account & Security</option>
+                        <option value="features">Features & Functionality</option>
+                        <option value="technical">Technical Issues</option>
+                        <option value="billing">Billing & Premium</option>
+                        <option value="dating">Dating Features</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="ticketPriority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ticketDescription" required placeholder="Please provide detailed information about your issue..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Ticket</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Article View Modal -->
+    <div class="modal" id="articleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="articleTitle"></h2>
+                <button class="close-btn" onclick="closeModal('articleModal')">×</button>
+            </div>
+            <div id="articleContent"></div>
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+                <p style="font-weight: 600; margin-bottom: 1rem;">Was this helpful?</p>
+                <div class="rating-stars" id="articleRating">
+                    <span onclick="rateArticle(1)">⭐</span>
+                    <span onclick="rateArticle(2)">⭐</span>
+                    <span onclick="rateArticle(3)">⭐</span>
+                    <span onclick="rateArticle(4)">⭐</span>
+                    <span onclick="rateArticle(5)">⭐</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ View Modal -->
+    <div class="modal" id="faqModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ All FAQs</h2>
+                <button class="close-btn" onclick="closeModal('faqModal')">×</button>
+            </div>
+            <div id="allFAQsList"></div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Help_Support_System.js"></script>
+    <script>
+        // Initialize the UI
+        function initializeUI() {
+            renderQuickActions();
+            renderFAQPreview();
+            renderKnowledgeBase();
+            renderSupportHistory();
+            renderVideoTutorials();
+            renderPopularTopics();
+            renderForumCategories();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('faqCount').textContent = helpSupportSystem.faqDatabase.length;
+            document.getElementById('articleCount').textContent = helpSupportSystem.helpArticles.length;
+            document.getElementById('videoCount').textContent = helpSupportSystem.videoTutorials.length;
+            document.getElementById('kbCount').textContent = helpSupportSystem.knowledgeBase.length;
+        }
+
+        function renderQuickActions() {
+            const actions = helpSupportSystem.getQuickActions();
+            const grid = document.getElementById('quickActionsGrid');
+            
+            grid.innerHTML = actions.map(action => `
+                <div class="quick-action" onclick="handleQuickAction('${action.id}')">
+                    <div class="quick-action-icon">${action.icon}</div>
+                    <div class="quick-action-title">${action.title}</div>
+                    <div class="quick-action-subtitle">${action.subtitle}</div>
+                </div>
+            `).join('');
+        }
+
+        function handleQuickAction(actionId) {
+            const actions = {
+                'chat': () => openLiveChat(),
+                'ticket': () => openModal('ticketModal'),
+                'ai': () => openModal('aiAssistantModal'),
+                'faq': () => showAllFAQs(),
+                'videos': () => document.getElementById('videoTutorialsGrid').scrollIntoView({ behavior: 'smooth' }),
+                'community': () => alert('Opening Community Forums...')
+            };
+            
+            if (actions[actionId]) actions[actionId]();
+        }
+
+        function renderFAQPreview() {
+            const faqs = helpSupportSystem.faqDatabase.slice(0, 5);
+            const list = document.getElementById('faqList');
+            
+            list.innerHTML = faqs.map(faq => `
+                <div class="feature-item" onclick='viewFAQ(${JSON.stringify(faq)})'>
+                    <div class="feature-title">${faq.question}</div>
+                    <div class="feature-stats">
+                        <span>👁️ ${faq.views.toLocaleString()} views</span>
+                        <span>👍 ${faq.helpful.toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAllFAQs() {
+            const allFAQs = helpSupportSystem.faqDatabase;
+            const list = document.getElementById('allFAQsList');
+            
+            list.innerHTML = allFAQs.map(faq => `
+                <div class="feature-item" onclick='viewFAQ(${JSON.stringify(faq)})'>
+                    <div class="badge" style="background: #dbeafe; color: #1e40af;">${faq.category}</div>
+                    <div class="feature-title" style="margin-top: 0.5rem;">${faq.question}</div>
+                    <div class="feature-subtitle" style="margin-top: 0.5rem;">${faq.answer}</div>
+                    <div class="feature-stats">
+                        <span>👁️ ${faq.views.toLocaleString()} views</span>
+                        <span>👍 ${faq.helpful.toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            openModal('faqModal');
+        }
+
+        function viewFAQ(faq) {
+            document.getElementById('articleTitle').textContent = faq.question;
+            document.getElementById('articleContent').innerHTML = `
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; margin-bottom: 1rem;">
+                    <strong>Category:</strong> ${faq.category}
+                </div>
+                <p style="line-height: 1.6; color: var(--text-primary);">${faq.answer}</p>
+                ${faq.relatedArticles ? `
+                    <div style="margin-top: 1.5rem;">
+                        <strong>Related Articles:</strong>
+                        <div style="margin-top: 0.5rem;">
+                            ${faq.relatedArticles.map(id => `<span class="badge" style="background: #dcfce7; color: #15803d;">${id}</span>`).join(' ')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            openModal('articleModal');
+        }
+
+        function renderKnowledgeBase() {
+            const kb = helpSupportSystem.knowledgeBase;
+            const grid = document.getElementById('knowledgeBaseGrid');
+            
+            grid.innerHTML = kb.map(category => `
+                <div class="kb-card" onclick='viewKBCategory(${JSON.stringify(category)})'>
+                    <div class="kb-icon">${category.icon}</div>
+                    <div class="feature-title">${category.title}</div>
+                    <div class="kb-count">${category.articles} articles</div>
+                </div>
+            `).join('');
+        }
+
+        function viewKBCategory(category) {
+            alert(`Viewing ${category.title} category with ${category.articles} articles covering: ${category.topics.join(', ')}`);
+        }
+
+        function renderSupportHistory() {
+            const history = helpSupportSystem.getSupportHistory();
+            const list = document.getElementById('supportHistoryList');
+            
+            list.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div class="history-header">
+                        <div class="history-title">${item.title}</div>
+                        <div class="history-status ${item.status}">${item.status}</div>
+                    </div>
+                    <div class="feature-stats">
+                        <span>🕒 ${item.duration}</span>
+                        <span>👤 ${item.agent}</span>
+                        <span>⭐ ${item.rating}/5</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderVideoTutorials() {
+            const videos = helpSupportSystem.videoTutorials;
+            const grid = document.getElementById('videoTutorialsGrid');
+            
+            grid.innerHTML = videos.map(video => `
+                <div class="video-card" onclick='playVideo(${JSON.stringify(video)})'>
+                    <div class="video-thumbnail">${video.thumbnail}</div>
+                    <div class="feature-title">${video.title}</div>
+                    <div class="feature-subtitle">${video.description}</div>
+                    <div class="feature-stats">
+                        <span>${video.duration}</span>
+                        <span>👁️ ${video.views.toLocaleString()}</span>
+                        <span>${video.difficulty}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function playVideo(video) {
+            alert(`Playing: ${video.title}\nDuration: ${video.duration}\nTopics: ${video.topics.join(', ')}`);
+        }
+
+        function renderPopularTopics() {
+            const topics = helpSupportSystem.getPopularTopics();
+            const list = document.getElementById('popularTopicsList');
+            
+            list.innerHTML = topics.map(topic => `
+                <div class="feature-item" onclick="searchTopic('${topic.title}')">
+                    <div class="feature-item-header">
+                        <div class="feature-icon">${topic.icon}</div>
+                        <div>
+                            <div class="feature-title">${topic.title}</div>
+                            <div class="feature-subtitle">${topic.views.toLocaleString()} views</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchTopic(topic) {
+            document.getElementById('searchInput').value = topic;
+            openModal('searchModal');
+            performSearch();
+        }
+
+        function renderForumCategories() {
+            const forums = helpSupportSystem.getCommunityForumsLink();
+            const list = document.getElementById('forumCategoriesList');
+            
+            list.innerHTML = forums.categories.map(category => `
+                <div class="feature-item" onclick="openForum('${category.name}')">
+                    <div class="feature-item-header">
+                        <div class="feature-icon">${category.icon}</div>
+                        <div>
+                            <div class="feature-title">${category.name}</div>
+                            <div class="feature-subtitle">${category.posts.toLocaleString()} posts</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openForum(category) {
+            alert(`Opening ${category} forum category...`);
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Search Functions
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+
+            const results = helpSupportSystem.searchKnowledgeBase(query);
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No results found. Try different keywords.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = results.map(result => {
+                const typeClass = result.type;
+                const typeLabel = result.type.toUpperCase();
+                
+                return `
+                    <div class="search-result-item" onclick='viewSearchResult(${JSON.stringify(result)})'>
+                        <span class="result-type ${typeClass}">${typeLabel}</span>
+                        <div class="feature-title">${result.data.title || result.data.question}</div>
+                        <div class="feature-subtitle">${result.data.description || result.data.answer || ''}</div>
+                        <div class="feature-stats">
+                            <span>Relevance: ${result.score}</span>
+                            <span>👁️ ${(result.data.views || 0).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewSearchResult(result) {
+            if (result.type === 'faq') {
+                closeModal('searchModal');
+                viewFAQ(result.data);
+            } else if (result.type === 'article') {
+                closeModal('searchModal');
+                viewArticle(result.data);
+            } else if (result.type === 'video') {
+                closeModal('searchModal');
+                playVideo(result.data);
+            }
+        }
+
+        function viewArticle(article) {
+            document.getElementById('articleTitle').textContent = article.title;
+            document.getElementById('articleContent').innerHTML = `
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; margin-bottom: 1rem;">
+                    <strong>Category:</strong> ${article.category} | 
+                    <strong>Read Time:</strong> ${article.readTime} | 
+                    <strong>Author:</strong> ${article.author}
+                </div>
+                ${article.content}
+            `;
+            openModal('articleModal');
+        }
+
+        // Live Chat Functions
+        async function openLiveChat() {
+            openModal('liveChatModal');
+            
+            const agentInfoDiv = document.getElementById('agentInfo');
+            agentInfoDiv.innerHTML = '<div class="loading">Connecting to agent...</div>';
+            
+            const agent = await helpSupportSystem.connectToLiveAgent();
+            
+            agentInfoDiv.innerHTML = `
+                <div class="agent-info">
+                    <div class="agent-avatar">${agent.avatar}</div>
+                    <div class="agent-details">
+                        <h3>${agent.name}</h3>
+                        <p>${agent.specialty} • ${agent.responseTime} response time • ⭐ ${agent.rating}/5</p>
+                    </div>
+                </div>
+            `;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="chat-message agent">
+                    Hi! I'm ${agent.name}. How can I help you today?
+                </div>
+            `;
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML += `
+                <div class="chat-message user">${message}</div>
+            `;
+
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Get response from system
+            helpSupportSystem.sendChatMessage(message, 'user');
+            
+            // Show typing indicator
+            setTimeout(() => {
+                const history = helpSupportSystem.chatHistory;
+                const lastMessage = history[history.length - 1];
+                if (lastMessage.type === 'agent') {
+                    chatMessages.innerHTML += `
+                        <div class="chat-message agent">${lastMessage.content}</div>
+                    `;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }, 1500);
+        }
+
+        // AI Assistant Functions
+        function handleAIKeypress(event) {
+            if (event.key === 'Enter') {
+                sendAIMessage();
+            }
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const aiMessages = document.getElementById('aiMessages');
+            aiMessages.innerHTML += `
+                <div class="chat-message user">${message}</div>
+            `;
+
+            input.value = '';
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+
+            // Get AI response
+            setTimeout(() => {
+                const response = helpSupportSystem.processAIQuery(message);
+                aiMessages.innerHTML += `
+                    <div class="chat-message ai">${response}</div>
+                `;
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }, 800);
+        }
+
+        // Ticket Functions
+        function submitTicket(event) {
+            event.preventDefault();
+
+            const ticketData = {
+                subject: document.getElementById('ticketSubject').value,
+                category: document.getElementById('ticketCategory').value,
+                priority: document.getElementById('ticketPriority').value,
+                description: document.getElementById('ticketDescription').value
+            };
+
+            const ticket = helpSupportSystem.createTicket(ticketData);
+
+            closeModal('ticketModal');
+            
+            // Show success message
+            alert(`✅ Ticket Created Successfully!\n\nTicket ID: ${ticket.id}\nPriority: ${ticket.priority}\n\nWe'll respond within 24 hours. You can track your ticket in Support History.`);
+
+            // Reset form
+            event.target.reset();
+            
+            // Refresh support history
+            renderSupportHistory();
+        }
+
+        // Rating Functions
+        function rateArticle(rating) {
+            const stars = document.querySelectorAll('#articleRating span');
+            stars.forEach((star, index) => {
+                star.textContent = index < rating ? '⭐' : '☆';
+            });
+            
+            setTimeout(() => {
+                alert(`Thank you for rating this article ${rating}/5 stars!`);
+            }, 300);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initializeUI);
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        console.log('✅ Help & Support Test Page Loaded');
+        console.log('All features are clickable and functional!');
+    </script>
+</body>
+</html>
