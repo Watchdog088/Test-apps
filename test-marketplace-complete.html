@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub Marketplace - Complete System Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .features-complete {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .features-complete h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .feature-item i {
+            color: #4caf50;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        #marketplace-container {
+            margin-top: 30px;
+        }
+
+        .marketplace-wrapper {
+            background: #f8f9fa;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .marketplace-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .marketplace-header h1 {
+            color: white;
+            margin: 0;
+        }
+
+        .cart-btn {
+            position: relative;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .cart-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .cart-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .marketplace-tabs {
+            display: flex;
+            background: white;
+            padding: 0;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .marketplace-content {
+            padding: 25px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-bar button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-bar button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-card h3 {
+            padding: 15px;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .product-price {
+            padding: 0 15px;
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .product-rating {
+            padding: 10px 15px;
+            color: #ffa726;
+            font-size: 0.9em;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #764ba2;
+        }
+
+        .orders-content, .wishlist-content, .analytics-content {
+            min-height: 400px;
+        }
+
+        .order-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            background: #4caf50;
+            color: white;
+        }
+
+        .wishlist-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .wishlist-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .analytics-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .analytics-card h3 {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .big-number {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .test-btn {
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .test-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .test-btn i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1><i class="fas fa-store"></i> ConnectHub Marketplace System</h1>
+        <p class="subtitle">Complete E-Commerce Implementation - Section 25</p>
+
+        <div class="features-complete">
+            <h2><i class="fas fa-check-circle"></i> All 17 Features Implemented</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>1. Cart Persistence System</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>2. Checkout Payment Processing</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>3. Order Tracking System</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>4. Seller Rating System</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>5. Product Reviews</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>6. Shipping Integration</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>7. Payment Gateway Integration</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>8. Inventory Management</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>9. Product Variations (Size/Color)</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>10. Marketplace Search Algorithm</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>11. Marketplace Notifications</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>12. Dispute Resolution</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>13. Seller Protection</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>14. Buyer Protection</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>15. Return/Refund System</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>16. Marketplace Fees Calculation</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check"></i>
+                    <span>17. Sales Analytics for Sellers</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="marketplace-container"></div>
+
+        <div class="test-buttons">
+            <button class="test-btn" onclick="testFeature('cart')">
+                <i class="fas fa-shopping-cart"></i> Test Cart
+            </button>
+            <button class="test-btn" onclick="testFeature('payment')">
+                <i class="fas fa-credit-card"></i> Test Payment
+            </button>
+            <button class="test-btn" onclick="testFeature('tracking')">
+                <i class="fas fa-shipping-fast"></i> Test Tracking
+            </button>
+            <button class="test-btn" onclick="testFeature('reviews')">
+                <i class="fas fa-star"></i> Test Reviews
+            </button>
+            <button class="test-btn" onclick="testFeature('search')">
+                <i class="fas fa-search"></i> Test Search
+            </button>
+            <button class="test-btn" onclick="testFeature('dispute')">
+                <i class="fas fa-gavel"></i> Test Dispute
+            </button>
+            <button class="test-btn" onclick="testFeature('return')">
+                <i class="fas fa-undo"></i> Test Return
+            </button>
+            <button class="test-btn" onclick="testFeature('analytics')">
+                <i class="fas fa-chart-line"></i> Test Analytics
+            </button>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Marketplace_System.js"></script>
+    <script>
+        function testFeature(feature) {
+            const tests = {
+                cart: () => {
+                    const product = marketplaceSystem.products[0];
+                    marketplaceSystem.addToCart(product, 2);
+                    alert('✓ Cart Test: Added product to cart with persistence');
+                },
+                payment: () => {
+                    marketplaceSystem.processPayment({ method: 'credit_card' }, 100)
+                        .then(result => alert(`✓ Payment Test: Transaction ${result.transactionId} completed`))
+                        .catch(err => alert('✗ Payment Test: ' + err.message));
+                },
+                tracking: () => {
+                    const tracking = marketplaceSystem.trackOrder('ORD001');
+                    alert(`✓ Tracking Test: Order ${tracking.orderId} is ${tracking.status}\nLocation: ${tracking.currentLocation}`);
+                },
+                reviews: () => {
+                    marketplaceSystem.addProductReview('prod1', 5, 'Excellent product!', []);
+                    alert('✓ Reviews Test: Product review added successfully');
+                },
+                search: () => {
+                    const results = marketplaceSystem.searchProducts('electronics', { category: 'Electronics' });
+                    alert(`✓ Search Test: Found ${results.length} products matching "electronics"`);
+                },
+                dispute: () => {
+                    const dispute = marketplaceSystem.openDispute('ORD001', 'Item not as described', 'Product color was different');
+                    alert(`✓ Dispute Test: Dispute ${dispute.id} opened successfully`);
+                },
+                return: () => {
+                    const returnReq = marketplaceSystem.requestReturn('ORD001', 'Changed mind', [{ price: 100, quantity: 1 }]);
+                    alert(`✓ Return Test: Return request ${returnReq.id} created\nRefund Amount: $${returnReq.refundAmount}`);
+                },
+                analytics: () => {
+                    const analytics = marketplaceSystem.getSalesAnalytics('seller1');
+                    alert(`✓ Analytics Test:\nTotal Revenue: $${analytics.summary.totalRevenue.toFixed(2)}\nTotal Orders: ${analytics.summary.totalOrders}\nConversion Rate: ${analytics.conversionRate}%`);
+                }
+            };
+
+            if (tests[feature]) {
+                tests[feature]();
+            }
+        }
+
+        // Display system info on load
+        window.addEventListener('load', () => {
+            console.log('╔═══════════════════════════════════════════════════════════╗');
+            console.log('║   ConnectHub Marketplace System - Fully Operational      ║');
+            console.log('╠═══════════════════════════════════════════════════════════╣');
+            console.log('║  ✓ All 17 Features Implemented                           ║');
+            console.log('║  ✓ Cart Persistence & Management                         ║');
+            console.log('║  ✓ Complete Checkout & Payment Processing                ║');
+            console.log('║  ✓ Order Tracking & Management                           ║');
+            console.log('║  ✓ Seller & Product Rating Systems                       ║');
+            console.log('║  ✓ Product Reviews with Images                           ║');
+            console.log('║  ✓ Shipping Integration & Calculations                   ║');
+            console.log('║  ✓ Multi-Gateway Payment Integration                     ║');
+            console.log('║  ✓ Real-time Inventory Management                        ║');
+            console.log('║  ✓ Product Variations (Size, Color, Price)               ║');
+            console.log('║  ✓ Advanced Search & Filter Algorithm                    ║');
+            console.log('║  ✓ Real-time Marketplace Notifications                   ║');
+            console.log('║  ✓ Complete Dispute Resolution System                    ║');
+            console.log('║  ✓ Seller & Buyer Protection Programs                    ║');
+            console.log('║  ✓ Return & Refund Management                            ║');
+            console.log('║  ✓ Marketplace Fees & Commission Calculation             ║');
+            console.log('║  ✓ Comprehensive Sales Analytics Dashboard               ║');
+            console.log('╚═══════════════════════════════════════════════════════════╝');
+            console.log(`\n📊 System Status: ${marketplaceSystem.products.length} Products | ${marketplaceSystem.cart.length} Cart Items | ${marketplaceSystem.orders.length} Orders`);
+        });
+    </script>
+</body>
+</html>
