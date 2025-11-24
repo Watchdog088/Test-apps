@@ -150,6 +150,25 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pill-nav-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.15) 50%,
+                transparent 70%
+            );
+            animation: pillRotate 2s linear infinite;
+            pointer-events: none;
         }
 
         .pill-nav-button:active {
@@ -161,6 +180,35 @@
             color: white;
             border-color: transparent;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            animation: pillGlow 2s ease-in-out infinite;
+        }
+
+        .pill-nav-button.active::before {
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 70%
+            );
+            animation: pillRotate 1.5s linear infinite;
+        }
+
+        @keyframes pillRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pillGlow {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(79, 70, 229, 0.6);
+            }
         }
 
         /* Bottom Navigation */
@@ -205,13 +253,27 @@
             color: var(--primary);
         }
 
+        .nav-item.active .nav-item-icon {
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
         .nav-item-icon {
             font-size: 24px;
+            transition: transform 0.3s ease;
         }
 
         .nav-item-label {
             font-size: 11px;
             font-weight: 600;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         /* Content Container */
@@ -1530,7 +1592,7 @@
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'trending')">Trending</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'groups')">Groups</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'live')">Live</div>
-                <div class="pill-nav-button" id="musicPillBtn" onclick="openMusicPlayer(this)">🎵 Music</div>
+                <div class="pill-nav-button" onclick="switchPillTab(this, 'musicPlayer')">🎵 Music</div>
                 <div class="pill-nav-button" onclick="switchPillTab(this, 'marketplace')">🛍️ Marketplace</div>
             </div>
         </div>
