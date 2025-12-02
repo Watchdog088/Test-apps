@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends System Enhanced - 19+ Features Complete</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-description {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        /* Search Input */
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Friend Cards */
+        .friend-search-result, .mutual-friend-card, .request-card, 
+        .blocked-user-card, .birthday-card, .activity-card, .suggestion-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .friend-search-result:hover, .mutual-friend-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .friend-avatar-large {
+            width: 80px;
+            height: 80px;
+            font-size: 40px;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            font-size: 50px;
+            margin: 0 auto 15px;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-info h4 {
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .friend-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 2px 0;
+        }
+
+        .friend-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .friend-status.online {
+            background: #28a745;
+        }
+
+        .friend-status.active {
+            background: #ffc107;
+        }
+
+        .friend-status.offline {
+            background: #6c757d;
+        }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-accept, .btn-add-friend {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-accept:hover, .btn-add-friend:hover {
+            background: #218838;
+        }
+
+        .btn-reject, .btn-cancel, .btn-remove {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-reject:hover, .btn-cancel:hover, .btn-remove:hover {
+            background: #5a6268;
+        }
+
+        .btn-confirm {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+        }
+
+        .btn-confirm:hover {
+            background: #5568d3;
+        }
+
+        .btn-block {
+            background: #dc3545;
+            color: white;
+            padding: 12px 30px;
+        }
+
+        .btn-block:hover {
+            background: #c82333;
+        }
+
+        .btn-cancel-action {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+        }
+
+        .btn-cancel-action:hover {
+            background: #5a6268;
+        }
+
+        .btn-unblock {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-wish {
+            background: #ff69b4;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .btn-wish:hover {
+            background: #ff1493;
+        }
+
+        .btn-message, .btn-view-posts, .btn-more {
+            flex: 1;
+            padding: 12px;
+            margin: 5px;
+        }
+
+        .btn-message {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-view-posts {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-more {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Tabs */
+        .requests-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #666;
+            border-radius: 8px;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Filter Options */
+        .filter-section {
+            margin-bottom: 25px;
+        }
+
+        .filter-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .filter-option, .category-option, .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-option:hover, .category-option:hover, .option-btn:hover {
+            background: #e9ecef;
+        }
+
+        .filter-option.active, .category-option.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .option-btn.danger {
+            color: #dc3545;
+        }
+
+        .option-btn.danger:hover {
+            background: #ffe5e7;
+        }
+
+        /* Confirmation Content */
+        .confirmation-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .confirmation-content h3 {
+            color: #333;
+            margin: 20px 0;
+            font-size: 22px;
+        }
+
+        .confirmation-content p {
+            color: #666;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .confirmation-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .block-list {
+            text-align: left;
+            list-style: none;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+
+        .block-list li {
+            padding: 8px 0;
+            color: #666;
+        }
+
+        .block-list li::before {
+            content: '✗';
+            color: #dc3545;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        /* Profile Styles */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-header h2 {
+            color: #333;
+            margin: 10px 0 5px;
+        }
+
+        .profile-header p {
+            color: #666;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-indicator.online {
+            background: #d4edda;
+            color: #28a745;
+        }
+
+        .status-indicator.active {
+            background: #fff3cd;
+            color: #ffc107;
+        }
+
+        .status-indicator.offline {
+            background: #f8d7da;
+            color: #6c757d;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .profile-info {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            color: #666;
+        }
+
+        .profile-info .bio {
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .profile-interests {
+            margin: 25px 0;
+        }
+
+        .profile-interests h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .interests-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .interest-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        /* Sync Styles */
+        .sync-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .sync-toggle label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sync-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .sync-platforms {
+            margin: 20px 0;
+        }
+
+        .platform-status {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-sync-now {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-sync-now:hover {
+            background: #5568d3;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .request-message {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Import Modal */
+        .import-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .import-btn {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .import-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Friends System Enhanced</h1>
+        <p class="subtitle">19+ Features with Complete Modal System</p>
+        
+        <div class="features-grid">
+            <!-- Feature 1: Friend Search -->
+            <div class="feature-card" onclick="openFriendSearchModal()">
+                <span class="feature-icon">🔍</span>
+                <div class="feature-title">Friend Search</div>
+                <div class="feature-description">Search friends by name, username, or bio</div>
+            </div>
+
+            <!-- Feature 2: Friend Requests -->
+            <div class="feature-card" onclick="openFriendRequestsModal()">
+                <span class="feature-icon">👥</span>
+                <div class="feature-title">Friend Requests</div>
+                <div class="feature-description">Manage received and sent friend requests</div>
+            </div>
+
+            <!-- Feature 3: Mutual Friends -->
+            <div class="feature-card" onclick="openMutualFriendsModal(1)">
+                <span class="feature-icon">🤝</span>
+                <div class="feature-title">Mutual Friends</div>
+                <div class="feature-description">View mutual connections with friends</div>
+            </div>
+
+            <!-- Feature 4: Filter & Sort -->
+            <div class="feature-card" onclick="openFilterSortModal()">
+                <span class="feature-icon">📊</span>
+                <div class="feature-title">Filter & Sort</div>
+                <div class="feature-description">Organize friends by categories and criteria</div>
+            </div>
+
+            <!-- Feature 5: Friend Categories -->
+            <div class="feature-card" onclick="openCategoriesModal(1)">
+                <span class="feature-icon">📋</span>
+                <div class="feature-title">Categories</div>
+                <div class="feature-description">Close friends, family, work, school</div>
+            </div>
+
+            <!-- Feature 6: Unfriend -->
+            <div class="feature-card" onclick="openUnfriendModal(1)">
+                <span class="feature-icon">😢</span>
+                <div class="feature-title">Unfriend</div>
+                <div class="feature-description">Remove friends with confirmation</div>
+            </div>
+
+            <!-- Feature 7: Block User -->
+            <div class="feature-card" onclick="openBlockUserModal(1)">
+                <span class="feature-icon">🚫</span>
+                <div class="feature-title">Block User</div>
+                <div class="feature-description">Block and manage blocked users</div>
+            </div>
+
+            <!-- Feature 8: Blocked Users List -->
+            <div class="feature-card" onclick="openBlockedUsersModal()">
+                <span class="feature-icon">🔒</span>
+                <div class="feature-title">Blocked List</div>
+                <div class="feature-description">View and unblock users</div>
+            </div>
+
+            <!-- Feature 9: Birthdays -->
+            <div class="feature-card" onclick="openBirthdaysModal()">
+                <span class="feature-icon">🎂</span>
+                <div class="feature-title">Birthdays</div>
+                <div class="feature-description">Track upcoming birthdays (30 days)</div>
+            </div>
+
+            <!-- Feature 10: Activity Feed -->
+            <div class="feature-card" onclick="openActivityModal()">
+                <span class="feature-icon">📱</span>
+                <div class="feature-title">Activity Feed</div>
+                <div class="feature-description">View friend activities and updates</div>
+            </div>
+
+            <!-- Feature 11: Suggestions -->
+            <div class="feature-card" onclick="openSuggestionsModal()">
+                <span class="feature-icon">💡</span>
+                <div class="feature-title">Suggestions</div>
+                <div class="feature-description">AI-powered friend recommendations</div>
+            </div>
+
+            <!-- Feature 12: Import Friends -->
+            <div class="feature-card" onclick="openImportModal()">
+                <span class="feature-icon">📥</span>
+                <div class="feature-title">Import Friends</div>
+                <div class="feature-description">Import from contacts & social media</div>
+            </div>
+
+            <!-- Feature 13: Sync Settings -->
+            <div class="feature-card" onclick="openSyncModal()">
+                <span class="feature-icon">🔄</span>
+                <div class="feature-title">Sync</div>
+                <div class="feature-description">Cross-platform synchronization</div>
+            </div>
+
+            <!-- Feature 14: Friend Profile -->
+            <div class="feature-card" onclick="openFriendProfileModal(1)">
+                <span class="feature-icon">👤</span>
+                <div class="feature-title">Friend Profile</div>
+                <div class="feature-description">Detailed friend information & stats</div>
+            </div>
+
+            <!-- Feature 15: Friend Options -->
+            <div class="feature-card" onclick="openFriendOptionsModal(1)">
+                <span class="feature-icon">⚙️</span>
+                <div class="feature-title">Friend Options</div>
+                <div class="feature-description">More actions for friends</div>
+            </div>
+
+            <!-- Feature 16: Send Request -->
+            <div class="feature-card" onclick="sendFriendRequestEnhanced(999, 'Test User', '🎯')">
+                <span class="feature-icon">✉️</span>
+                <div class="feature-title">Send Request</div>
+                <div class="feature-description">Send friend request to new user</div>
+            </div>
+
+            <!-- Feature 17: Accept Request -->
+            <div class="feature-card" onclick="acceptFriendRequestEnhanced(101)">
+                <span class="feature-icon">✅</span>
+                <div class="feature-title">Accept Request</div>
+                <div class="feature-description">Accept pending friend request</div>
+            </div>
+
+            <!-- Feature 18: Message Friend -->
+            <div class="feature-card" onclick="messageFriendEnhanced(1)">
+                <span class="feature-icon">💬</span>
+                <div class="feature-title">Message Friend</div>
+                <div class="feature-description">Send message to friend</div>
+            </div>
+
+            <!-- Feature 19: Poke Friend -->
+            <div class="feature-card" onclick="pokeFriendEnhanced(1)">
+                <span class="feature-icon">👋</span>
+                <div class="feature-title">Poke Friend</div>
+                <div class="feature-description">Send a poke to your friend</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- 1. Friend Search Modal -->
+    <div id="friendSearchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Search Friends</h2>
+                <button class="modal-close" onclick="closeModal('friendSearchModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="search-input" placeholder="Search by name, username, or bio..." 
+                       oninput="searchFriendsEnhanced(this.value)">
+                <div id="searchResultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Friend Requests Modal -->
+    <div id="friendRequestsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Friend Requests</h2>
+                <button class="modal-close" onclick="closeModal('friendRequestsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="friendRequestsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Mutual Friends Modal -->
+    <div id="mutualFriendsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="mutualFriendsTitle">Mutual Friends</h2>
+                <button class="modal-close" onclick="closeModal('mutualFriendsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="mutualFriendsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Filter & Sort Modal -->
+    <div id="filterSortModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Filter & Sort</h2>
+                <button class="modal-close" onclick="closeModal('filterSortModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="filterOptionsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Categories Modal -->
+    <div id="categoriesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categoriesTitle">Move to Category</h2>
+                <button class="modal-close" onclick="closeModal('categoriesModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="categoriesContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Unfriend Modal -->
+    <div id="unfriendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Unfriend</h2>
+                <button class="modal-close" onclick="closeModal('unfriendModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="unfriendContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Block User Modal -->
+    <div id="blockUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Block User</h2>
+                <button class="modal-close" onclick="closeModal('blockUserModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="blockUserContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Blocked Users Modal -->
+    <div id="blockedUsersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Blocked Users</h2>
+                <button class="modal-close" onclick="closeModal('blockedUsersModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="blockedUsersContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Birthdays Modal -->
+    <div id="birthdaysModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upcoming Birthdays</h2>
+                <button class="modal-close" onclick="closeModal('birthdaysModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="birthdaysContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Friend Activity</h2>
+                <button class="modal-close" onclick="closeModal('activityModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="activityContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Suggestions Modal -->
+    <div id="suggestionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Friend Suggestions</h2>
+                <button class="modal-close" onclick="closeModal('suggestionsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="suggestionsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Friends</h2>
+                <button class="modal-close" onclick="closeModal('importModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-options">
+                    <button class="import-btn" onclick="importFromSourceEnhanced('Contacts')">📱 Contacts</button>
+                    <button class="import-btn" onclick="importFromSourceEnhanced('Facebook')">📘 Facebook</button>
+                    <button class="import-btn" onclick="importFromSourceEnhanced('Instagram')">📸 Instagram</button>
+                    <button class="import-btn" onclick="importFromSourceEnhanced('Twitter')">🐦 Twitter</button>
+                    <button class="import-btn" onclick="importFromSourceEnhanced('Google')">📧 Google</button>
+                    <button class="import-btn" onclick="importFromSourceEnhanced('LinkedIn')">💼 LinkedIn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13. Sync Modal -->
+    <div id="syncModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sync Settings</h2>
+                <button class="modal-close" onclick="closeModal('syncModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="syncContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14. Friend Profile Modal -->
+    <div id="friendProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Friend Profile</h2>
+                <button class="modal-close" onclick="closeModal('friendProfileModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="friendProfileContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15. Friend Options Modal -->
+    <div id="friendOptionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Friend Options</h2>
+                <button class="modal-close" onclick="closeModal('friendOptionsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="friendOptionsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Load Enhanced JavaScript -->
+    <script src="ConnectHub_Mobile_Design_Friends_System_Enhanced.js"></script>
+    <script>
+        // Override showToast to use actual toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize system on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFriendsSystemEnhanced();
+            console.log('%c🎉 Friends System Enhanced - 19+ Features Ready!', 
+                       'color: #667eea; font-size: 20px; font-weight: bold;');
+            console.log('%c✅ All modals, dashboards, and features fully functional', 
+                       'color: #28a745; font-size: 14px;');
+            showToast('🎉 Friends System loaded! Click any card to test features.');
+        });
+    </script>
+</body>
+</html>
