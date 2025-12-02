@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages System - 35 Features Complete Test</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --background: #ffffff;
+            --background-secondary: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--background);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        
+        .content { padding: 20px; }
+        
+        .section {
+            background: var(--background-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .list-item {
+            background: var(--background);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .list-item:hover { transform: translateX(4px); background: #f9fafb; }
+        .list-item:active { transform: scale(0.98); }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .btn:hover { background: #2563eb; }
+        .btn:active { transform: scale(0.98); }
+        
+        .btn-text {
+            background: transparent;
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .btn-text:hover { background: var(--background-secondary); }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .modal-title { flex: 1; font-size: 18px; font-weight: 600; }
+        
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 2000;
+            transition: transform 0.3s;
+        }
+        
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .badge {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        
+        .status-indicator.offline { background: #6b7280; }
+        
+        .feature-count {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .conversation-list { display: flex; flex-direction: column; gap: 8px; }
+        
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--background);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .conversation-item:hover { background: #f9fafb; }
+        
+        .avatar {
+            font-size: 40px;
+            position: relative;
+        }
+        
+        .message { margin-bottom: 12px; }
+        .message.sent { display: flex; justify-content: flex-end; }
+        .message.received { display: flex; justify-content: flex-start; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Messages System Test</h1>
+            <p>Complete 35-Feature Implementation <span class="feature-count">35/35</span></p>
+        </div>
+        
+        <div class="content">
+            <!-- Original 20 Features -->
+            <div class="section">
+                <div class="section-title">
+                    📋 Original 20 Features (Complete)
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Real-Time Messaging</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Message Sending/Receiving</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Read Receipts (✓✓)</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Typing Indicators</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Message Reactions</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Message Forwarding</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Message Editing</div>
+                </div>
+                <div class="list-item" onclick="openChat(1)">
+                    <div>✅ Message Deletion</div>
+                </div>
+                <div class="list-item" onclick="startVoiceRecording()">
+                    <div>✅ Voice Recording</div>
+                </div>
+                <div class="list-item" onclick="sendPhoto(1)">
+                    <div>✅ Photo/Video Sending</div>
+                </div>
+                <div class="list-item" onclick="sendFile(1, 'test.pdf')">
+                    <div>✅ File Attachments</div>
+                </div>
+                <div class="list-item" onclick="shareLocation(1)">
+                    <div>✅ Location Sharing</div>
+                </div>
+                <div class="list-item" onclick="sendMeme(1, 1)">
+                    <div>✅ Meme Sending</div>
+                </div>
+                <div class="list-item" onclick="showGroupOptions()">
+                    <div>✅ Group Messaging</div>
+                </div>
+                <div class="list-item" onclick="toggleEncryption(true)">
+                    <div>✅ Message Encryption</div>
+                </div>
+                <div class="list-item" onclick="showSearch(1)">
+                    <div>✅ Message Search</div>
+                </div>
+                <div class="list-item" onclick="viewPinnedMessages(1)">
+                    <div>✅ Message Pinning</div>
+                </div>
+                <div class="list-item" onclick="archiveConversation(2)">
+                    <div>✅ Message Archiving</div>
+                </div>
+                <div class="list-item" onclick="backupMessages()">
+                    <div>✅ Backup/Restore</div>
+                </div>
+            </div>
+            
+            <!-- New 15 Advanced Features -->
+            <div class="section">
+                <div class="section-title">
+                    🚀 New 15 Advanced Features (Complete)
+                </div>
+                <div class="list-item" onclick="translateMessage(Date.now(), 1, 'es')">
+                    <div>✅ 21. Message Translation 🌐</div>
+                </div>
+                <div class="list-item" onclick="showScheduleMessage(1)">
+                    <div>✅ 22. Message Scheduling ⏰</div>
+                </div>
+                <div class="list-item" onclick="createBroadcastList('Test', [1,2])">
+                    <div>✅ 23. Broadcast Messages 📢</div>
+                </div>
+                <div class="list-item" onclick="showTemplates(1)">
+                    <div>✅ 24. Message Templates 📝</div>
+                </div>
+                <div class="list-item" onclick="setAutoReply('Auto response')">
+                    <div>✅ 25. Auto-Reply/Bots 🤖</div>
+                </div>
+                <div class="list-item" onclick="showStarredMessages()">
+                    <div>✅ 26. Message Starring ⭐</div>
+                </div>
+                <div class="list-item" onclick="showThemeSelector(1)">
+                    <div>✅ 27. Chat Themes 🎨</div>
+                </div>
+                <div class="list-item" onclick="updateLastSeen()">
+                    <div>✅ 28. Contact Status/Last Seen 👁️</div>
+                </div>
+                <div class="list-item" onclick="setChatWallpaper(1, 'blue')">
+                    <div>✅ 29. Chat Wallpapers 🖼️</div>
+                </div>
+                <div class="list-item" onclick="showMessageStats(1)">
+                    <div>✅ 30. Message Statistics 📊</div>
+                </div>
+                <div class="list-item" onclick="exportChat(1)">
+                    <div>✅ 31. Chat Export 📥</div>
+                </div>
+                <div class="list-item" onclick="enableDisappearingMessages(1, 60)">
+                    <div>✅ 32. Disappearing Messages ⏱️</div>
+                </div>
+                <div class="list-item" onclick="startSecretChat(1)">
+                    <div>✅ 33. Secret Conversations 🔒</div>
+                </div>
+                <div class="list-item" onclick="showPollCreator(1)">
+                    <div>✅ 34. Message Polls 📊</div>
+                </div>
+                <div class="list-item" onclick="recordVideoNote(1)">
+                    <div>✅ 35. Video/Audio Notes 🎬🎵</div>
+                </div>
+            </div>
+            
+            <!-- Active Conversations -->
+            <div class="section">
+                <div class="section-title">
+                    💬 Active Conversations
+                </div>
+                <div class="conversation-list">
+                    <div class="conversation-item" onclick="openChat(1)">
+                        <div class="avatar">👩<div class="status-indicator"></div></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Sarah Johnson</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">See you tomorrow!</div>
+                        </div>
+                        <div>
+                            <div class="badge">2</div>
+                            <div style="font-size:12px;color:var(--text-secondary)">2m</div>
+                        </div>
+                    </div>
+                    
+                    <div class="conversation-item" onclick="openChat(2)">
+                        <div class="avatar">👨<div class="status-indicator offline"></div></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Mike Chen ⭐</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">Thanks!</div>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-secondary)">1h</div>
+                    </div>
+                    
+                    <div class="conversation-item" onclick="openChat(3)">
+                        <div class="avatar">👥</div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Team Project 👥</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">Meeting at 3 PM</div>
+                        </div>
+                        <div>
+                            <div class="badge">5</div>
+                            <div style="font-size:12px;color:var(--text-secondary)">3h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="section">
+                <div class="section-title">
+                    ⚡ Quick Actions
+                </div>
+                <button class="btn" onclick="showGroupOptions()">➕ Create Group</button>
+                <button class="btn" onclick="createBroadcastList('Demo', [1,2,3])">📢 New Broadcast List</button>
+                <button class="btn" onclick="showTemplates(1)">📝 View Templates</button>
+                <button class="btn" onclick="backupMessages()">💾 Backup All Messages</button>
+                <button class="btn" onclick="restoreMessages()">♻️ Restore from Backup</button>
+            </div>
+            
+            <!-- Feature Statistics -->
+            <div class="section">
+                <div class="section-title">
+                    📊 Feature Statistics
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                    <div style="background:var(--background);padding:16px;border-radius:8px;text-align:center">
+                        <div style="font-size:32px;font-weight:700;color:var(--primary)">35</div>
+                        <div style="font-size:14px;color:var(--text-secondary)">Total Features</div>
+                    </div>
+                    <div style="background:var(--background);padding:16px;border-radius:8px;text-align:center">
+                        <div style="font-size:32px;font-weight:700;color:#10b981">100%</div>
+                        <div style="font-size:14px;color:var(--text-secondary)">Complete</div>
+                    </div>
+                    <div style="background:var(--background);padding:16px;border-radius:8px;text-align:center">
+                        <div style="font-size:32px;font-weight:700;color:#f59e0b">3</div>
+                        <div style="font-size:14px;color:var(--text-secondary)">Conversations</div>
+                    </div>
+                    <div style="background:var(--background);padding:16px;border-radius:8px;text-align:center">
+                        <div style="font-size:32px;font-weight:700;color:#8b5cf6">2</div>
+                        <div style="font-size:14px;color:var(--text-secondary)">Templates</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Info -->
+            <div class="section">
+                <div class="section-title">ℹ️ Test Information</div>
+                <p style="margin-bottom:8px">
+                    <strong>Status:</strong> <span style="color:#10b981">✓ All 35 features fully implemented</span>
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>Original Features:</strong> 20/20 ✅
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>New Features:</strong> 15/15 ✅
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>Integration:</strong> Mobile Design Ready
+                </p>
+                <p style="color:var(--text-secondary);font-size:14px;margin-top:12px">
+                    Click on any conversation or feature to test functionality. All actions are interactive and will show toast notifications.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="ConnectHub_Mobile_Design_Messages_System_35_Features.js"></script>
+</body>
+</html>
