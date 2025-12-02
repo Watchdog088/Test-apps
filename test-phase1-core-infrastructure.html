@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 1 Core Infrastructure Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-card: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .test-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.success {
+            background: var(--success);
+        }
+
+        .status-indicator.error {
+            background: var(--error);
+        }
+
+        .status-indicator.pending {
+            background: var(--warning);
+        }
+
+        .test-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.success {
+            color: var(--success);
+        }
+
+        .log-entry.error {
+            color: var(--error);
+        }
+
+        .log-entry.info {
+            color: var(--text-primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Phase 1: Core Infrastructure Test Dashboard</h1>
+
+    <!-- Backend Services Status -->
+    <div class="test-section">
+        <h2>🔌 Backend Services Status</h2>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="apiStatus"></span>API Service</span>
+            <button onclick="testAPI()">Test API</button>
+        </div>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="authStatus"></span>Authentication</span>
+            <button onclick="testAuth()">Test Auth</button>
+        </div>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="wsStatus"></span>WebSocket Service</span>
+            <button onclick="testWebSocket()">Test WebSocket</button>
+        </div>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="stateStatus"></span>State Management</span>
+            <button onclick="testState()">Test State</button>
+        </div>
+    </div>
+
+    <!-- System Integration -->
+    <div class="test-section">
+        <h2>🔗 System Integration</h2>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="integrationStatus"></span>Mobile App Integration</span>
+            <button onclick="testIntegration()">Test Integration</button>
+        </div>
+        <div class="test-item">
+            <span><span class="status-indicator pending" id="navigationStatus"></span>Navigation System</span>
+            <button onclick="testNavigation()">Test Navigation</button>
+        </div>
+    </div>
+
+    <!-- Feature Tests -->
+    <div class="test-section">
+        <h2>✨ Feature Tests</h2>
+        <div class="test-item">
+            <span>Create Post</span>
+            <button onclick="testCreatePost()">Test</button>
+        </div>
+        <div class="test-item">
+            <span>Send Message</span>
+            <button onclick="testSendMessage()">Test</button>
+        </div>
+        <div class="test-item">
+            <span>Like Post</span>
+            <button onclick="testLikePost()">Test</button>
+        </div>
+        <div class="test-item">
+            <span>Realtime Notifications</span>
+            <button onclick="testRealtimeNotifications()">Test</button>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="test-section">
+        <h2>📊 Connection Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="requestCount">0</div>
+                <div class="stat-label">API Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="wsMessageCount">0</div>
+                <div class="stat-label">WebSocket Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stateUpdateCount">0</div>
+                <div class="stat-label">State Updates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorCount">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Console Log -->
+    <div class="test-section">
+        <h2>📝 Test Log</h2>
+        <div class="log" id="testLog">
+            <div class="log-entry info">Waiting for tests to run...</div>
+        </div>
+        <button onclick="clearLog()" style="margin-top: 10px;">Clear Log</button>
+    </div>
+
+    <!-- Run All Tests -->
+    <div style="text-align: center; margin-top: 30px;">
+        <button onclick="runAllTests()" style="font-size: 18px; padding: 15px 40px;">
+            ▶️ Run All Tests
+        </button>
+    </div>
+
+    <script type="module">
+        import apiService from './ConnectHub-Frontend/src/services/api-service.js';
+        import authService from './ConnectHub-Frontend/src/services/auth-service.js';
+        import realtimeService from './ConnectHub-Frontend/src/services/realtime-service.js';
+        import stateService from './ConnectHub-Frontend/src/services/state-service.js';
+        import mobileApp from './ConnectHub-Frontend/src/services/mobile-app-integration.js';
+
+        // Make services globally available
+        window.apiService = apiService;
+        window.authService = authService;
+        window.realtimeService = realtimeService;
+        window.stateService = stateService;
+        window.mobileApp = mobileApp;
+
+        // Test counters
+        let requestCount = 0;
+        let wsMessageCount = 0;
+        let stateUpdateCount = 0;
+        let errorCount = 0;
+
+        // Log function
+        window.log = function(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        window.clearLog = function() {
+            document.getElementById('testLog').innerHTML = '<div class="log-entry info">Log cleared. Ready for new tests...</div>';
+        };
+
+        // Update status indicator
+        function updateStatus(id, status) {
+            const indicator = document.getElementById(id);
+            indicator.className = `status-indicator ${status}`;
+        }
+
+        // Update counter
+        function updateCounter(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        // Test API Service
+        window.testAPI = async function() {
+            log('Testing API Service...', 'info');
+            
+            try {
+                // Test health check
+                log('Checking backend health...', 'info');
+                const health = await apiService.healthCheck();
+                log(`Health check result: ${JSON.stringify(health)}`, 'success');
+                requestCount++;
+                updateCounter('requestCount', requestCount);
+                
+                // Test GET request
+                log('Testing GET request...', 'info');
+                const feed = await apiService.get('/feed');
+                log('GET request successful', 'success');
+                requestCount++;
+                updateCounter('requestCount', requestCount);
+                
+                updateStatus('apiStatus', 'success');
+                log('✓ API Service test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ API Service test failed: ${error.message}`, 'error');
+                updateStatus('apiStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Authentication
+        window.testAuth = async function() {
+            log('Testing Authentication Service...', 'info');
+            
+            try {
+                // Test login
+                log('Testing user authentication...', 'info');
+                const loginResult = await authService.login('test@example.com', 'password123');
+                log(`Login successful: ${loginResult.user?.name || 'Demo User'}`, 'success');
+                
+                // Check if authenticated
+                const isAuth = authService.isAuthenticated();
+                log(`Is authenticated: ${isAuth}`, 'success');
+                
+                // Get current user
+                const user = authService.getCurrentUser();
+                log(`Current user: ${user?.name || 'Unknown'}`, 'success');
+                
+                updateStatus('authStatus', 'success');
+                log('✓ Authentication test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Authentication test failed: ${error.message}`, 'error');
+                updateStatus('authStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test WebSocket
+        window.testWebSocket = async function() {
+            log('Testing WebSocket Service...', 'info');
+            
+            try {
+                // Connect to WebSocket
+                log('Connecting to WebSocket server...', 'info');
+                await realtimeService.connect();
+                
+                // Set up test listener
+                realtimeService.on('testEvent', (data) => {
+                    log(`Received test event: ${JSON.stringify(data)}`, 'success');
+                    wsMessageCount++;
+                    updateCounter('wsMessageCount', wsMessageCount);
+                });
+                
+                // Emit test event
+                log('Emitting test event...', 'info');
+                realtimeService.emit('testEvent', { message: 'Test from Phase 1' });
+                
+                updateStatus('wsStatus', 'success');
+                log('✓ WebSocket test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ WebSocket test failed: ${error.message}`, 'error');
+                updateStatus('wsStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test State Management
+        window.testState = function() {
+            log('Testing State Management...', 'info');
+            
+            try {
+                // Set state
+                log('Setting test state...', 'info');
+                stateService.setState('testData', { value: 'Phase 1 Test' });
+                stateUpdateCount++;
+                updateCounter('stateUpdateCount', stateUpdateCount);
+                
+                // Get state
+                const testData = stateService.getState('testData');
+                log(`Retrieved state: ${JSON.stringify(testData)}`, 'success');
+                
+                // Subscribe to changes
+                log('Setting up state subscription...', 'info');
+                stateService.subscribe('testData', (newValue) => {
+                    log(`State changed: ${JSON.stringify(newValue)}`, 'success');
+                    stateUpdateCount++;
+                    updateCounter('stateUpdateCount', stateUpdateCount);
+                });
+                
+                // Update state
+                log('Updating state...', 'info');
+                stateService.updateState('testData', { value: 'Updated Value' });
+                
+                updateStatus('stateStatus', 'success');
+                log('✓ State Management test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ State Management test failed: ${error.message}`, 'error');
+                updateStatus('stateStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Integration
+        window.testIntegration = async function() {
+            log('Testing Mobile App Integration...', 'info');
+            
+            try {
+                // Check if initialized
+                log('Checking initialization...', 'info');
+                if (!mobileApp.initialized) {
+                    log('Initializing mobile app...', 'info');
+                    await mobileApp.initialize();
+                }
+                
+                // Get connection status
+                const status = mobileApp.getConnectionStatus();
+                log(`Connection status: ${JSON.stringify(status)}`, 'success');
+                
+                // Test refresh
+                log('Testing data refresh...', 'info');
+                await mobileApp.refreshData();
+                log('Data refresh successful', 'success');
+                
+                updateStatus('integrationStatus', 'success');
+                log('✓ Integration test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Integration test failed: ${error.message}`, 'error');
+                updateStatus('integrationStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Navigation
+        window.testNavigation = function() {
+            log('Testing Navigation System...', 'info');
+            
+            try {
+                // Test screen navigation
+                log('Testing screen navigation...', 'info');
+                mobileApp.navigateToScreen('profile');
+                log('Navigated to profile', 'success');
+                
+                // Test back navigation
+                log('Testing back navigation...', 'info');
+                const previous = mobileApp.navigateBack();
+                log(`Navigated back to: ${previous}`, 'success');
+                
+                updateStatus('navigationStatus', 'success');
+                log('✓ Navigation test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Navigation test failed: ${error.message}`, 'error');
+                updateStatus('navigationStatus', 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Create Post
+        window.testCreatePost = async function() {
+            log('Testing Create Post feature...', 'info');
+            
+            try {
+                const postData = {
+                    text: 'This is a test post from Phase 1!',
+                    privacy: 'public'
+                };
+                
+                log('Creating test post...', 'info');
+                const result = await mobileApp.createPost(postData);
+                log(`Post created: ${result.post?.id || 'demo'}`, 'success');
+                requestCount++;
+                updateCounter('requestCount', requestCount);
+                
+                log('✓ Create Post test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Create Post test failed: ${error.message}`, 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Send Message
+        window.testSendMessage = async function() {
+            log('Testing Send Message feature...', 'info');
+            
+            try {
+                const messageData = {
+                    text: 'Test message from Phase 1!'
+                };
+                
+                log('Sending test message...', 'info');
+                await mobileApp.sendMessage('test-conversation-1', messageData);
+                log('Message sent successfully', 'success');
+                requestCount++;
+                updateCounter('requestCount', requestCount);
+                
+                log('✓ Send Message test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Send Message test failed: ${error.message}`, 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Like Post
+        window.testLikePost = async function() {
+            log('Testing Like Post feature...', 'info');
+            
+            try {
+                log('Liking test post...', 'info');
+                await mobileApp.likePost('test-post-1');
+                log('Post liked successfully', 'success');
+                requestCount++;
+                updateCounter('requestCount', requestCount);
+                
+                log('✓ Like Post test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Like Post test failed: ${error.message}`, 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Test Realtime Notifications
+        window.testRealtimeNotifications = function() {
+            log('Testing Realtime Notifications...', 'info');
+            
+            try {
+                // Simulate new message notification
+                log('Simulating new message notification...', 'info');
+                realtimeService.emit('newMessage', {
+                    user: { name: 'Test User' },
+                    text: 'Test notification message'
+                });
+                wsMessageCount++;
+                updateCounter('wsMessageCount', wsMessageCount);
+                
+                // Simulate match notification
+                log('Simulating new match notification...', 'info');
+                realtimeService.emit('newMatch', {
+                    user: { name: 'Test Match' }
+                });
+                wsMessageCount++;
+                updateCounter('wsMessageCount', wsMessageCount);
+                
+                log('✓ Realtime Notifications test passed!', 'success');
+                
+            } catch (error) {
+                log(`✗ Realtime Notifications test failed: ${error.message}`, 'error');
+                errorCount++;
+                updateCounter('errorCount', errorCount);
+            }
+        };
+
+        // Run all tests
+        window.runAllTests = async function() {
+            log('========================================', 'info');
+            log('STARTING COMPREHENSIVE TEST SUITE', 'info');
+            log('========================================', 'info');
+            
+            // Reset counters
+            requestCount = 0;
+            wsMessageCount = 0;
+            stateUpdateCount = 0;
+            errorCount = 0;
+            updateCounter('requestCount', 0);
+            updateCounter('wsMessageCount', 0);
+            updateCounter('stateUpdateCount', 0);
+            updateCounter('errorCount', 0);
+            
+            // Run all tests in sequence
+            await testAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAuth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testWebSocket();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testState();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testIntegration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testNavigation();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testCreatePost();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testSendMessage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testLikePost();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testRealtimeNotifications();
+            
+            log('========================================', 'info');
+            log('ALL TESTS COMPLETED', 'info');
+            log(`Total API Requests: ${requestCount}`, 'info');
+            log(`Total WebSocket Messages: ${wsMessageCount}`, 'info');
+            log(`Total State Updates: ${stateUpdateCount}`, 'info');
+            log(`Total Errors: ${errorCount}`, 'info');
+            log('========================================', 'info');
+            
+            if (errorCount === 0) {
+                log('🎉 ALL TESTS PASSED! Phase 1 is ready!', 'success');
+            } else {
+                log(`⚠️ ${errorCount} test(s) failed. Check logs above.`, 'error');
+            }
+        };
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            log('Phase 1 Test Dashboard loaded', 'info');
+            log('Click "Run All Tests" to test all services', 'info');
+            log('Or test individual components using the buttons above', 'info');
+        });
+    </script>
+</body>
+</html>
