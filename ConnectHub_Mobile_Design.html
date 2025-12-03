@@ -2645,14 +2645,14 @@
                     <div class="section-title">More Features</div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.play360Video('Nature Documentary')">🎬 360° Videos</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enterVirtualShop()">🛍️ Virtual Shop</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.launchARGame('Treasure Hunt')">🎮 AR Games</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.startVRMeditation('Forest')">🧘 VR Meditation</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="createCustomARFilter()">🎨 Custom Filter</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="connectVRHeadsetPrompt()">🥽 VR Headset</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableSpatialAudio()">🎧 Spatial Audio</button>
-                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="window.arVR.enableHandTracking()">👋 Hand Tracking</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="open360VideoLibrary()">🎬 360° Videos</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openARShoppingDashboard()">🛍️ Virtual Shop</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openARGamesDashboard()">🎮 AR Games</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openVRMeditationDashboard()">🧘 VR Meditation</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openCustomFilterCreator()">🎨 Custom Filter</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openVRHeadsetManager()">🥽 VR Headset</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openSpatialAudioConfig()">🎧 Spatial Audio</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openHandTrackingDashboard()">👋 Hand Tracking</button>
                 </div>
             </div>
 
@@ -10480,11 +10480,20 @@
     <!-- Load Dating System -->
     <script src="ConnectHub_Mobile_Design_Dating_System.js"></script>
     
+    <!-- Load Stories System -->
+    <script src="ConnectHub_Mobile_Design_Stories_System.js"></script>
+    
     <!-- Load Media Hub System -->
     <script src="ConnectHub_Mobile_Design_Media_Hub.js"></script>
     
     <!-- Load Trending System -->
     <script src="ConnectHub_Mobile_Design_Trending_System.js"></script>
+    
+    <!-- Load Friends System -->
+    <script src="ConnectHub_Mobile_Design_Friends_System.js"></script>
+    
+    <!-- Load Groups System -->
+    <script src="ConnectHub_Mobile_Design_Groups_System.js"></script>
     
     <!-- Load Events System -->
     <script src="ConnectHub_Mobile_Design_Events_System.js"></script>
@@ -10492,8 +10501,47 @@
     <!-- Load Gaming System -->
     <script src="ConnectHub_Mobile_Design_Gaming_System.js"></script>
     
+    <!-- Load Saved System -->
+    <script src="ConnectHub_Mobile_Design_Saved_System.js"></script>
+    
+    <!-- Load Profile System -->
+    <script src="ConnectHub_Mobile_Design_Profile_System.js"></script>
+    
+    <!-- Load Messages System -->
+    <script src="ConnectHub_Mobile_Design_Messages_System.js"></script>
+    
+    <!-- Load Notifications System -->
+    <script src="ConnectHub_Mobile_Design_Notifications_System.js"></script>
+    
+    <!-- Load Search System -->
+    <script src="ConnectHub_Mobile_Design_Search_System.js"></script>
+    
     <!-- Load Settings System -->
     <script src="ConnectHub_Mobile_Design_Settings_System.js"></script>
+    
+    <!-- Load Marketplace System -->
+    <script src="ConnectHub_Mobile_Design_Marketplace_System.js"></script>
+    
+    <!-- Load Live Streaming System -->
+    <script src="ConnectHub_Mobile_Design_Live_System.js"></script>
+    
+    <!-- Load Video Calls System -->
+    <script src="ConnectHub_Mobile_Design_Video_Calls_System.js"></script>
+    
+    <!-- Load AR/VR System -->
+    <script src="ConnectHub_Mobile_Design_AR_VR_System.js"></script>
+    
+    <!-- Load Business Profile System -->
+    <script src="ConnectHub_Mobile_Design_Business_Profile_System.js"></script>
+    
+    <!-- Load Creator Profile System -->
+    <script src="ConnectHub_Mobile_Design_Creator_Profile_System.js"></script>
+    
+    <!-- Load Help & Support System -->
+    <script src="ConnectHub_Mobile_Design_Help_Support_System.js"></script>
+    
+    <!-- Load Menu System -->
+    <script src="ConnectHub_Mobile_Design_Menu_System.js"></script>
     
     <script>
         let currentScreen = 'feed';
@@ -16185,6 +16233,290 @@
         function updateScheduledPost() { closeModal('editScheduledPost'); showToast('Post updated! ✓'); }
         function deleteScheduledPost() { if(confirm('Delete this post?')) { closeModal('editScheduledPost'); showToast('Post deleted'); } }
 
+        // ========== AR/VR - 8 MISSING DASHBOARD FUNCTIONS ==========
+
+        // 1. 360° Video Library Dashboard
+        function open360VideoLibrary() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="video360LibraryModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('video360Library'); const modal = document.getElementById('video360LibraryModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🎬 360° Videos</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎬</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Immersive 360° Videos</div>
+                        </div>
+                        <div class="list-item" onclick="play360Video('Nature')">
+                            <div class="list-item-icon">🌿</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Amazon Rainforest</div>
+                                <div class="list-item-subtitle">8:45 • 4K</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="play360Video('Space')">
+                            <div class="list-item-icon">🚀</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Space Station</div>
+                                <div class="list-item-subtitle">12:30 • 4K</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function play360Video(title) {
+            showToast(\`▶️ Playing: \${title}\`);
+        }
+
+        // 2. AR Shopping Dashboard
+        function openARShoppingDashboard() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="arShoppingModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('arShopping'); const modal = document.getElementById('arShoppingModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🛍️ AR Shopping</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🛍️</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Virtual Try-On</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div onclick="tryOnItem('Sunglasses')" class="card" style="text-align: center; padding: 20px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">😎</div>
+                                <div style="font-size: 14px; font-weight: 600;">Sunglasses</div>
+                                <div style="font-size: 16px; color: var(--primary);">$89</div>
+                            </div>
+                            <div onclick="tryOnItem('Hat')" class="card" style="text-align: center; padding: 20px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">🎩</div>
+                                <div style="font-size: 14px; font-weight: 600;">Hat</div>
+                                <div style="font-size: 16px; color: var(--primary);">$45</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function tryOnItem(item) {
+            showToast(\`📸 Trying on \${item}...\`);
+        }
+
+        // 3. AR Games Dashboard
+        function openARGamesDashboard() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="arGamesModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('arGames'); const modal = document.getElementById('arGamesModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🎮 AR Games</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎮</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Play AR Games</div>
+                        </div>
+                        <div class="list-item" onclick="playARGame('Treasure Hunt')">
+                            <div class="list-item-icon">🏴‍☠️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">AR Treasure Hunt</div>
+                                <div class="list-item-subtitle">Find treasures</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="playARGame('Space Invaders')">
+                            <div class="list-item-icon">👾</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Space Invaders AR</div>
+                                <div class="list-item-subtitle">Defend Earth</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function playARGame(game) {
+            showToast(\`🎮 Starting \${game}...\`);
+        }
+
+        // 4. VR Meditation Dashboard
+        function openVRMeditationDashboard() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="vrMeditationModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('vrMeditation'); const modal = document.getElementById('vrMeditationModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🧘 VR Meditation</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🧘</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">VR Meditation</div>
+                        </div>
+                        <div class="list-item" onclick="startMeditation('Forest')">
+                            <div class="list-item-icon">🌲</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Peaceful Forest</div>
+                                <div class="list-item-subtitle">10, 15, 20 min</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                        <div class="list-item" onclick="startMeditation('Beach')">
+                            <div class="list-item-icon">🏖️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tropical Beach</div>
+                                <div class="list-item-subtitle">10, 15, 20 min</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function startMeditation(env) {
+            showToast(\`🧘 Starting \${env} meditation...\`);
+        }
+
+        // 5. Custom Filter Creator Dashboard
+        function openCustomFilterCreator() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="customFilterModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('customFilter'); const modal = document.getElementById('customFilterModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🎨 Custom Filter</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎨</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Create AR Filter</div>
+                        </div>
+                        <input type="text" class="input-field" placeholder="Filter name..." />
+                        <button class="btn" onclick="createFilter()">Create Filter</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function createFilter() {
+            showToast('🎨 Filter created!');
+        }
+
+        // 6. VR Headset Manager Dashboard
+        function openVRHeadsetManager() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="vrHeadsetModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('vrHeadset'); const modal = document.getElementById('vrHeadsetModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🥽 VR Headset</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🥽</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">VR Headset Manager</div>
+                        </div>
+                        <div class="list-item" onclick="connectHeadset('Quest 3')">
+                            <div class="list-item-icon">🥽</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Meta Quest 3</div>
+                                <div class="list-item-subtitle">Available</div>
+                            </div>
+                            <button class="btn" style="padding: 8px 16px;">Connect</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function connectHeadset(device) {
+            showToast(\`🥽 Connecting to \${device}...\`);
+        }
+
+        // 7. Spatial Audio Config Dashboard
+        function openSpatialAudioConfig() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="spatialAudioModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('spatialAudio'); const modal = document.getElementById('spatialAudioModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">🎧 Spatial Audio</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎧</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">3D Spatial Audio</div>
+                        </div>
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Enable Spatial Audio</div>
+                                <div class="list-item-subtitle">3D positional audio</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="testSpatialAudio()">🔊 Test Audio</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function testSpatialAudio() {
+            showToast('🔊 Testing spatial audio...');
+        }
+
+        // 8. Hand Tracking Dashboard
+        function openHandTrackingDashboard() {
+            window.arVR = window.arVR || arvrSystem;
+            const modalHTML = `
+                <div id="handTrackingModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('handTracking'); const modal = document.getElementById('handTrackingModal'); if(modal) modal.remove();">✕</div>
+                        <div class="modal-title">👋 Hand Tracking</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">👋</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Hand Tracking</div>
+                        </div>
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Enable Hand Tracking</div>
+                                <div class="list-item-subtitle">Control with hands</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="testHandTracking()">👋 Test Tracking</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function testHandTracking() {
+            showToast('👋 Testing hand tracking...');
+        }
+
         // ========== BUSINESS PROFILE FUNCTIONS ==========
         
         // Share business profile
@@ -18205,42 +18537,917 @@
             }
         }
 
-        // ========== ENSURE ALL NAVIGATION IS WORKING ==========
+        // ========== AR/VR - 8 MISSING FEATURES DASHBOARDS ==========
 
-        // Verify all screens are accessible
-        window.verifyAllScreensAccessible = function() {
-            const screens = [
-                'feed', 'stories', 'live', 'trending', 'groups', 
-                'friends', 'dating', 'profile', 'saved', 'events',
-                'gaming', 'media', 'musicPlayer', 'liveStreaming', 'videoCalls',
-                'arVR', 'business', 'creator', 'premium', 'settings',
-                'messages', 'notifications', 'help', 'menu', 'marketplace'
-            ];
+        // 6. VR Headset Manager Dashboard
+        function openVRHeadsetManager() {
+            const modalHTML = `
+                <div id="vrHeadsetManagerModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('vrHeadsetManager')">✕</div>
+                        <div class="modal-title">🥽 VR Headset Manager</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🥽</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">VR Headset Connection</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Connect and manage your VR headset</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">Oculus Quest 2</div>
+                                <div class="stat-label">Connected Device</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">85%</div>
+                                <div class="stat-label">Battery Level</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">🔗 Connection Status</div>
+                            <div class="card" style="background: var(--success); color: white; padding: 16px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 4px;">✓ Connected</div>
+                                        <div style="font-size: 12px; opacity: 0.9;">VR Headset is ready</div>
+                                    </div>
+                                    <button class="btn" style="background: rgba(255,255,255,0.2);" onclick="disconnectVRHeadset()">Disconnect</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">⚙️ Headset Settings</div>
+                            <div class="settings-list">
+                                <div class="settings-item">
+                                    <div>
+                                        <div class="settings-label">Refresh Rate</div>
+                                        <div class="settings-sublabel">90Hz (Recommended)</div>
+                                    </div>
+                                    <select class="form-input" style="width: auto;" onchange="updateRefreshRate(this.value)">
+                                        <option value="60">60Hz</option>
+                                        <option value="72">72Hz</option>
+                                        <option value="90" selected>90Hz</option>
+                                        <option value="120">120Hz</option>
+                                    </select>
+                                </div>
+                                <div class="settings-item">
+                                    <div>
+                                        <div class="settings-label">IPD (Interpupillary Distance)</div>
+                                        <div class="settings-sublabel">63mm</div>
+                                    </div>
+                                    <input type="range" min="58" max="72" value="63" class="form-input" style="width: 150px;" oninput="updateIPD(this.value)">
+                                </div>
+                                <div class="settings-item">
+                                    <div>
+                                        <div class="settings-label">Tracking Mode</div>
+                                        <div class="settings-sublabel">6DOF (6 Degrees of Freedom)</div>
+                                    </div>
+                                    <select class="form-input" style="width: auto;">
+                                        <option value="3dof">3DOF</option>
+                                        <option value="6dof" selected>6DOF</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">📱 Available Devices</div>
+                            <div class="list-item" style="cursor: pointer;" onclick="connectHeadset('Oculus Quest 2')">
+                                <div style="font-size: 24px; margin-right: 12px;">🥽</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">Oculus Quest 2</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Connected • Battery: 85%</div>
+                                </div>
+                                <div style="color: var(--success);">●</div>
+                            </div>
+                            <div class="list-item" style="cursor: pointer; opacity: 0.5;" onclick="connectHeadset('HTC Vive Pro')">
+                                <div style="font-size: 24px; margin-right: 12px;">🥽</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">HTC Vive Pro</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Not Connected</div>
+                                </div>
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); connectHeadset('HTC Vive Pro')">Connect</button>
+                            </div>
+                            <div class="list-item" style="cursor: pointer; opacity: 0.5;" onclick="connectHeadset('PlayStation VR2')">
+                                <div style="font-size: 24px; margin-right: 12px;">🥽</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">PlayStation VR2</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Not Connected</div>
+                                </div>
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); connectHeadset('PlayStation VR2')">Connect</button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="calibrateVRHeadset()">🎯 Calibrate Headset</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 7. Spatial Audio Config Dashboard
+        function openSpatialAudioConfig() {
+            const modalHTML = `
+                <div id="spatialAudioConfigModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('spatialAudioConfig')">✕</div>
+                        <div class="modal-title">🎧 Spatial Audio Configuration</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎧</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">3D Spatial Audio</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Immersive audio positioning</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">HRTF</div>
+                                <div class="stat-label">Audio Model</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">Enabled</div>
+                                <div class="stat-label">3D Audio</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">🎚️ Audio Settings</div>
+                            <div class="settings-list">
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">Enable Spatial Audio</div>
+                                        <div class="settings-sublabel">3D positional audio</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleSpatialAudio(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">HRTF (Head-Related Transfer Function)</div>
+                                        <div class="settings-sublabel">Realistic sound positioning</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleHRTF(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">Distance Attenuation</div>
+                                        <div class="settings-sublabel">Sound fades with distance</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleDistanceAttenuation(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">🔊 Volume Controls</div>
+                            <div class="settings-item">
+                                <div style="flex: 1;">
+                                    <div class="settings-label">Master Volume</div>
+                                    <div class="settings-sublabel">Overall audio level</div>
+                                </div>
+                                <input type="range" min="0" max="100" value="75" class="form-input" style="width: 150px;" oninput="updateMasterVolume(this.value)">
+                                <span style="margin-left: 8px; min-width: 40px;">75%</span>
+                            </div>
+                            <div class="settings-item">
+                                <div style="flex: 1;">
+                                    <div class="settings-label">Ambient Volume</div>
+                                    <div class="settings-sublabel">Background sounds</div>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" class="form-input" style="width: 150px;" oninput="updateAmbientVolume(this.value)">
+                                <span style="margin-left: 8px; min-width: 40px;">50%</span>
+                            </div>
+                            <div class="settings-item">
+                                <div style="flex: 1;">
+                                    <div class="settings-label">Voice Chat Volume</div>
+                                    <div class="settings-sublabel">Other users' voices</div>
+                                </div>
+                                <input type="range" min="0" max="100" value="80" class="form-input" style="width: 150px;" oninput="updateVoiceVolume(this.value)">
+                                <span style="margin-left: 8px; min-width: 40px;">80%</span>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">🎵 Audio Presets</div>
+                            <div class="card-grid">
+                                <div class="card" style="text-align: center; padding: 16px; cursor: pointer;" onclick="applyAudioPreset('immersive')">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Immersive</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Full 3D audio</div>
+                                </div>
+                                <div class="card" style="text-align: center; padding: 16px; cursor: pointer;" onclick="applyAudioPreset('balanced')">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">⚖️</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Balanced</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Moderate 3D</div>
+                                </div>
+                                <div class="card" style="text-align: center; padding: 16px; cursor: pointer;" onclick="applyAudioPreset('performance')">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">⚡</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Performance</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Optimized</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="testSpatialAudio()">🔊 Test Spatial Audio</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 8. Hand Tracking Dashboard
+        function openHandTrackingDashboard() {
+            const modalHTML = `
+                <div id="handTrackingDashboardModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('handTrackingDashboard')">✕</div>
+                        <div class="modal-title">👋 Hand Tracking</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">👋</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Hand Tracking System</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Control VR with your hands</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">30 FPS</div>
+                                <div class="stat-label">Tracking Rate</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">21 Points</div>
+                                <div class="stat-label">Per Hand</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">✋ Tracking Status</div>
+                            <div class="card" style="background: var(--success); color: white; padding: 16px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 4px;">✓ Both Hands Detected</div>
+                                        <div style="font-size: 12px; opacity: 0.9;">Tracking active and stable</div>
+                                    </div>
+                                    <div style="font-size: 24px;">👐</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">👆 Recognized Gestures</div>
+                            <div class="card-grid">
+                                <div class="card" style="text-align: center; padding: 16px;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">👌</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Pinch</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Select items</div>
+                                </div>
+                                <div class="card" style="text-align: center; padding: 16px;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">☝️</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Point</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Navigate menus</div>
+                                </div>
+                                <div class="card" style="text-align: center; padding: 16px;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">✊</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Grab</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Hold objects</div>
+                                </div>
+                                <div class="card" style="text-align: center; padding: 16px;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">✌️</div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Peace</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Custom action</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">⚙️ Tracking Settings</div>
+                            <div class="settings-list">
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">Enable Hand Tracking</div>
+                                        <div class="settings-sublabel">Use hands instead of controllers</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleHandTracking(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">Gesture Recognition</div>
+                                        <div class="settings-sublabel">Detect hand gestures</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleGestureRecognition(this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <div style="flex: 1;">
+                                        <div class="settings-label">Tracking Sensitivity</div>
+                                        <div class="settings-sublabel">High precision mode</div>
+                                    </div>
+                                    <select class="form-input" style="width: auto;">
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high" selected>High</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 24px 0;">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">🎯 Calibration</div>
+                            <div class="card" style="padding: 16px;">
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Hand Size Calibration</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Adjust for better accuracy</div>
+                                    <input type="range" min="0" max="100" value="50" class="form-input" style="width: 100%;" oninput="calibrateHandSize(this.value)">
+                                </div>
+                                <button class="btn" style="width: 100%;" onclick="runHandCalibration()">🎯 Run Calibration</button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="startHandTrackingTest()">👋 Test Hand Tracking</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 9. AR Effects Library Dashboard (additional AR/VR features)
+        function filterEffects(category) {
+            showToast(`Filtering effects: ${category}`);
+        }
+
+        function applyAREffect(effect) {
+            showToast(`Applying ${effect} effect... ✨`);
+        }
+
+        function previewEffect(effect) {
+            showToast(`Previewing ${effect}... 👁️`);
+        }
+
+        // 1. 360° Video Library Dashboard
+        function open360VideoLibrary() {
+            const modalHTML = `
+                <div id="video360LibraryModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('video360Library')">✕</div>
+                        <div class="modal-title">🎬 360° Video Library</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎬</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Immersive 360° Videos</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Experience videos in every direction</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">24</div>
+                                <div class="stat-label">Total Videos</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Downloaded</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">4K</div>
+                                <div class="stat-label">Max Quality</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Categories</div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Categories</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                            <div onclick="filter360Category('nature')" style="text-align: center; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 32px; margin-bottom: 4px;">🌿</div>
+                                <div style="font-size: 11px; font-weight: 600;">Nature</div>
+                            </div>
+                            <div onclick="filter360Category('travel')" style="text-align: center; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 32px; margin-bottom: 4px;">✈️</div>
+                                <div style="font-size: 11px; font-weight: 600;">Travel</div>
+                            </div>
+                            <div onclick="filter360Category('space')" style="text-align: center; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 32px; margin-bottom: 4px;">🚀</div>
+                                <div style="font-size: 11px; font-weight: 600;">Space</div>
+                            </div>
+                            <div onclick="filter360Category('sports')" style="text-align: center; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 32px; margin-bottom: 4px;">⚽</div>
+                                <div style="font-size: 11px; font-weight: 600;">Sports</div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Featured Videos</div>
+                        </div>
+
+                        <div class="card" onclick="play360Video('Nature Documentary')" style="cursor: pointer; margin-bottom: 12px;">
+                            <div style="background: linear-gradient(135deg, var(--success), var(--accent)); height: 150px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 12px; position: relative;">
+                                🌿
+                                <div style="position: absolute; bottom: 8px; right: 8px; padding: 4px 12px; background: rgba(0,0,0,0.8); border-radius: 8px; font-size: 11px; font-weight: 700;">4K • 8:45</div>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Amazon Rainforest Journey</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Nature • 2.4M views</div>
+                        </div>
+
+                        <div class="card" onclick="play360Video('Space Station')" style="cursor: pointer; margin-bottom: 12px;">
+                            <div style="background: linear-gradient(135deg, var(--primary), #1e1b4b); height: 150px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 12px; position: relative;">
+                                🚀
+                                <div style="position: absolute; bottom: 8px; right: 8px; padding: 4px 12px; background: rgba(0,0,0,0.8); border-radius: 8px; font-size: 11px; font-weight: 700;">4K • 12:30</div>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">International Space Station Tour</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Space • 1.8M views</div>
+                        </div>
+
+                        <button class="btn" style="background: var(--glass);" onclick="browse All360Videos()">Browse All Videos</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 2. AR Shopping Dashboard
+        function openARShoppingDashboard() {
+            const modalHTML = `
+                <div id="arShoppingDashboardModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('arShoppingDashboard')">✕</div>
+                        <div class="modal-title">🛍️ AR Virtual Shop</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🛍️</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Try Before You Buy</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Virtual try-on with AR technology</div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Shop Categories</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                            <div onclick="openARCategory('glasses')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">👓</div>
+                                <div style="font-size: 12px; font-weight: 600;">Glasses</div>
+                            </div>
+                            <div onclick="openARCategory('hats')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">🎩</div>
+                                <div style="font-size: 12px; font-weight: 600;">Hats</div>
+                            </div>
+                            <div onclick="openARCategory('jewelry')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">💎</div>
+                                <div style="font-size: 12px; font-weight: 600;">Jewelry</div>
+                            </div>
+                            <div onclick="openARCategory('makeup')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">💄</div>
+                                <div style="font-size: 12px; font-weight: 600;">Makeup</div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Popular Items</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div onclick="tryOnARItem('Sunglasses', '$89')" style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; cursor: pointer;">
+                                <div style="font-size: 48px; text-align: center; margin-bottom: 12px;">😎</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px; text-align: center;">Designer Sunglasses</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary); text-align: center;">$89</div>
+                                <button class="btn" style="margin-top: 8px; font-size: 13px; padding: 8px;" onclick="event.stopPropagation(); startARTryOn('Sunglasses')">📸 Try On</button>
+                            </div>
+                            <div onclick="tryOnARItem('Crown', '$45')" style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; cursor: pointer;">
+                                <div style="font-size: 48px; text-align: center; margin-bottom: 12px;">👑</div>
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px; text-align: center;">Royal Crown</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--primary); text-align: center;">$45</div>
+                                <button class="btn" style="margin-top: 8px; font-size: 13px; padding: 8px;" onclick="event.stopPropagation(); startARTryOn('Crown')">📸 Try On</button>
+                            </div>
+                        </div>
+
+                        <button class="btn" style="background: var(--glass); margin-top: 16px;" onclick="openARShoppingCamera()">📷 Start AR Try-On</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 3. AR Games Dashboard
+        function openARGamesDashboard() {
+            const modalHTML = `
+                <div id="arGamesDashboardModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('arGamesDashboard')">✕</div>
+                        <div class="modal-title">🎮 AR Games</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎮</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Augmented Reality Games</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Play games in your real environment</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">Level 15</div>
+                                <div class="stat-label">Current Level</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">2,450</div>
+                                <div class="stat-label">High Score</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">45</div>
+                                <div class="stat-label">Games Played</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Achievements</div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Available Games</div>
+                        </div>
+
+                        <div class="list-item" onclick="playARGame('Treasure Hunt')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🏴‍☠️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">AR Treasure Hunt</div>
+                                <div class="list-item-subtitle">Find hidden treasures in your space • Best: 2,450</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); playARGame('Treasure Hunt')">▶️</button>
+                        </div>
+
+                        <div class="list-item" onclick="playARGame('Space Invaders')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">👾</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Space Invaders AR</div>
+                                <div class="list-item-subtitle">Defend Earth from aliens • Best: 1,890</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); playARGame('Space Invaders')">▶️</button>
+                        </div>
+
+                        <div class="list-item" onclick="playARGame('Portal Pets')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🐾</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">AR Portal Pets</div>
+                                <div class="list-item-subtitle">Care for virtual pets • Level 8</div>
+                            </div>
+                            <button class="nav-btn" onclick="event.stopPropagation(); playARGame('Portal Pets')">▶️</button>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Your Achievements</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                            <div style="aspect-ratio: 1; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏆</div>
+                            <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">⭐</div>
+                            <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💎</div>
+                            <div style="aspect-ratio: 1; background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">+9</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 4. VR Meditation Dashboard
+        function openVRMeditationDashboard() {
+            const modalHTML = `
+                <div id="vrMeditationDashboardModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('vrMeditationDashboard')">✕</div>
+                        <div class="modal-title">🧘 VR Meditation</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🧘</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Virtual Reality Meditation</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Find peace in immersive environments</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">24</div>
+                                <div class="stat-label">Sessions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">8h 45m</div>
+                                <div class="stat-label">Total Time</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">21</div>
+                                <div class="stat-label">Day Streak</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">⭐⭐⭐⭐⭐</div>
+                                <div class="stat-label">Calm Level</div>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Meditation Environments</div>
+                        </div>
+
+                        <div class="list-item" onclick="startVRMeditation('Forest', '10 min')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--success), #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🌲</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Peaceful Forest</div>
+                                <div class="list-item-subtitle">10, 15, 20 min • Breathing exercises</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+
+                        <div class="list-item" onclick="startVRMeditation('Beach', '15 min')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), #3b82f6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🏖️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Tropical Beach</div>
+                                <div class="list-item-subtitle">10, 15, 20 min • Ocean sounds</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+
+                        <div class="list-item" onclick="startVRMeditation('Mountain', '20 min')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #78716c, #a8a29e); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">⛰️</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Mountain Peak</div>
+                                <div class="list-item-subtitle">10, 15, 20, 30 min • Mindfulness</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+
+                        <div class="list-item" onclick="startVRMeditation('Space', '15 min')">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🌌</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Cosmic Space</div>
+                                <div class="list-item-subtitle">10, 15, 20 min • Deep relaxation</div>
+                            </div>
+                            <div class="list-item-arrow">→</div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Guided Sessions</div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Voice Guidance</div>
+                                <div class="list-item-subtitle">Instructor-led meditation</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div>
+                                <div class="list-item-title">Ambient Sounds</div>
+                                <div class="list-item-subtitle">Nature sounds for relaxation</div>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn" onclick="viewMeditationProgress()">📊 View Progress</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // 5. Custom Filter Creator Dashboard
+        function openCustomFilterCreator() {
+            const modalHTML = `
+                <div id="customFilterCreatorModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('customFilterCreator')">✕</div>
+                        <div class="modal-title">🎨 Custom Filter Creator</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🎨</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Design Your Own AR Filter</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Create unique face filters</div>
+                        </div>
+
+                        <div class="section-header">
+                            <div class="section-title">Filter Elements</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                            <div onclick="addFilterElement('ears')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">👂</div>
+                                <div style="font-size: 12px; font-weight: 600;">Ears</div>
+                            </div>
+                            <div onclick="addFilterElement('nose')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">👃</div>
+                                <div style="font-size: 12px; font-weight: 600;">Nose</div>
+                            </div>
+                            <div onclick="addFilterElement('eyes')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">👁️</div>
+                                <div style="font-size: 12px; font-weight: 600;">Eyes</div>
+                            </div>
+                            <div onclick="addFilterElement('sparkles')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">✨</div>
+                                <div style="font-size: 12px; font-weight: 600;">Sparkles</div>
+                            </div>
+                            <div onclick="addFilterElement('frame')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">🖼️</div>
+                                <div style="font-size: 12px; font-weight: 600;">Frame</div>
+                            </div>
+                            <div onclick="addFilterElement('text')" style="text-align: center; padding: 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">📝</div>
+                                <div style="font-size: 12px; font-weight: 600;">Text</div>
+                            </div>
+                        </div>
+
+                        <input type="text" class="input-field" placeholder="Filter name..." id="customFilterNameInput" />
+
+                        <div class="section-header">
+                            <div class="section-title">Color Options</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px;">
+                            <div onclick="selectFilterColor('#FF0000')" style="width: 100%; aspect-ratio: 1; background: #FF0000; border-radius: 8px; cursor: pointer;"></div>
+                            <div onclick="selectFilterColor('#00FF00')" style="width: 100%; aspect-ratio: 1; background: #00FF00; border-radius: 8px; cursor: pointer;"></div>
+                            <div onclick="selectFilterColor('#0000FF')" style="width: 100%; aspect-ratio: 1; background: #0000FF; border-radius: 8px; cursor: pointer;"></div>
+                            <div onclick="selectFilterColor('#FFFF00')" style="width: 100%; aspect-ratio: 1; background: #FFFF00; border-radius: 8px; cursor: pointer;"></div>
+                            <div onclick="selectFilterColor('#FF00FF')" style="width: 100%; aspect-ratio: 1; background: #FF00FF; border-radius: 8px; cursor: pointer;"></div>
+                            <div onclick="selectFilterColor('#00FFFF')" style="width: 100%; aspect-ratio: 1; background: #00FFFF; border-radius: 8px; cursor: pointer;"></div>
+                        </div>
+
+                        <button class="btn" onclick="saveCustomARFilter()">💾 Save Filter</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // AR/VR Helper Functions
+        function filter360Category(category) {
+            showToast(`Filtering by: ${category}`);
+        }
+
+        function play360Video(title) {
+            showToast(`▶️ Playing: ${title}`);
+        }
+
+        function browseAll360Videos() {
+            showToast('Loading all 360° videos...');
+        }
+
+        function openARCategory(category) {
+            showToast(`Opening ${category} category...`);
+        }
+
+        function tryOnARItem(item, price) {
+            showToast(`Try on: ${item} (${price})`);
+        }
+
+        function startARTryOn(item) {
+            showToast(`📸 Starting AR try-on for ${item}...`);
+        }
+
+        function openARShoppingCamera() {
+            showToast('Opening AR shopping camera... 🛍️');
+        }
+
+        function playARGame(game) {
+            showToast(`🎮 Starting ${game}...`);
+        }
+
+        function startVRMeditation(env, duration) {
+            showToast(`🧘 Starting ${env} meditation (${duration})...`);
+        }
+
+        function viewMeditationProgress() {
+            showToast('Loading meditation progress... 📊');
+        }
+
+        function addFilterElement(element) {
+            showToast(`Added ${element} to filter ➕`);
+        }
+
+        function selectFilterColor(color) {
+            showToast(`Color selected: ${color} 🎨`);
+        }
+
+        function saveCustomARFilter() {
+            const name = document.getElementById('customFilterNameInput')?.value;
+            if (!name || !name.trim()) {
+                showToast('Please enter a filter name');
+                return;
+            }
+            closeModal('customFilterCreator');
+            showToast(`Custom filter "${name}" created! ✓`);
+        }
+
+        function connectHeadset(device) {
+            showToast(`🥽 Connecting to ${device}...`);
+            setTimeout(() => showToast(`✓ Connected to ${device}!`), 1500);
+        }
+
+        function disconnectVRHeadset() {
+            showToast('Disconnecting VR headset...');
+        }
+
+        function updateRefreshRate(rate) {
+            showToast(`Refresh rate set to ${rate}Hz`);
+        }
+
+        function updateIPD(value) {
+            showToast(`IPD adjusted to ${value}mm`);
+        }
+
+        function calibrateVRHeadset() {
+            showToast('Starting VR headset calibration... 🎯');
+        }
+
+        function toggleSpatialAudio(enabled) {
+            showToast(enabled ? 'Spatial audio enabled 🎧' : 'Spatial audio disabled');
+        }
+
+        function toggleHRTF(enabled) {
+            showToast(enabled ? 'HRTF enabled' : 'HRTF disabled');
+        }
+
+        function toggleDistanceAttenuation(enabled) {
+            showToast(enabled ? 'Distance attenuation enabled' : 'Distance attenuation disabled');
+        }
+
+        function updateMasterVolume(value) {
+            document.querySelector('#spatialAudioConfigModal span:nth-of-type(3)').textContent = `${value}%`;
+        }
+
+        function updateAmbientVolume(value) {
+            document.querySelector('#spatialAudioConfigModal span:nth-of-type(4)').textContent = `${value}%`;
+        }
+
+        function updateVoiceVolume(value) {
+            document.querySelector('#spatialAudioConfigModal span:nth-of-type(5)').textContent = `${value}%`;
+        }
+
+        function applyAudioPreset(preset) {
+            showToast(`Applied ${preset} audio preset 🎵`);
+        }
+
+        function testSpatialAudio() {
+            showToast('🔊 Testing spatial audio...');
+            setTimeout(() => showToast('Audio test complete! ✓'), 2000);
+        }
+
+        function toggleHandTracking(enabled) {
+            showToast(enabled ? 'Hand tracking enabled 👋' : 'Hand tracking disabled');
+        }
+
+        function toggleGestureRecognition(enabled) {
+            showToast(enabled ? 'Gesture recognition enabled' : 'Gesture recognition disabled');
+        }
+
+        function calibrateHandSize(value) {
+            showToast(`Hand size: ${value}%`);
+        }
+
+        function runHandCalibration() {
+            showToast('Starting hand calibration... 🎯');
+            setTimeout(() => showToast('Calibration complete! ✓'), 2000);
+        }
+
+        function startHandTrackingTest() {
+            showToast('👋 Starting hand tracking test...');
+            setTimeout(() => showToast('Show your hands to the camera'), 1000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('ConnectHub Complete - All systems loaded');
             
-            console.log('✅ All screens verified:', screens.length);
-            return screens;
-        };
-
-        // Verify all modals are accessible
-        window.verifyAllModalsAccessible = function() {
-            const modals = document.querySelectorAll('.modal');
-            console.log('✅ Total modals available:', modals.length);
-            return modals.length;
-        };
-
-        console.log('✅ ConnectHub Mobile Design - All 10 Video Calls features implemented!');
-        console.log('✅ Video Calls Section Complete with:');
-        console.log('   1. Device Settings ⚙️');
-        console.log('   2. Audio Settings 🎧');
-        console.log('   3. Call Quality Monitor 📊');
-        console.log('   4. Recordings Library 📹');
-        console.log('   5. Waiting Room 🚪');
-        console.log('   6. Scheduled Calls List 📆');
-        console.log('   7. Group Call Settings 👥');
-        console.log('   8. Call Analytics 📈');
-        console.log('   9. Call Settings 🔧');
-        console.log('   10. Network Quality 📡');
-
+            // Initialize marketplace
+            if (typeof initializeMarketplace === 'function') {
+                initializeMarketplace();
+            }
+        });
     </script>
 </body>
 </html>
