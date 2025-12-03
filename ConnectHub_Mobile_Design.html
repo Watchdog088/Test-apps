@@ -2880,9 +2880,25 @@
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                     <button class="btn" onclick="openModal('getDirections')">🗺️ Directions</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('bookAppointment')">📅 Book</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('requestQuote')">💰 Quote</button>
-                    <button class="btn" style="background: var(--glass);" onclick="openModal('businessAnalytics')">📊 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openBookingSystem()">📅 Book</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageQuotes()">💰 Quote</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openAnalyticsDashboard()">📊 Analytics</button>
+                </div>
+
+                <!-- Business Tools Section - 8 Missing Features -->
+                <div class="section-header">
+                    <div class="section-title">🛠️ Business Tools</div>
+                    <div class="section-link" onclick="viewAllBusinessTools()">View All</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openCRM()">👥 CRM</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageInvoices()">📄 Invoices</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.setupPaymentProcessing()">💳 Payments</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.showBusinessInsights()">💡 Insights</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.analyzeCompetitors()">🔍 Competitors</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.managePromotions()">🎯 Promotions</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageCatalog()">📦 Catalog</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageReviews()">⭐ Reviews</button>
                 </div>
             </div>
 
@@ -10534,6 +10550,9 @@
     <!-- Load Business Profile System -->
     <script src="ConnectHub_Mobile_Design_Business_Profile_System.js"></script>
     
+    <!-- Load Business Tools System -->
+    <script src="ConnectHub_Mobile_Design_Business_Tools_System.js"></script>
+    
     <!-- Load Creator Profile System -->
     <script src="ConnectHub_Mobile_Design_Creator_Profile_System.js"></script>
     
@@ -16272,7 +16291,7 @@
         }
 
         function play360Video(title) {
-            showToast(\`▶️ Playing: \${title}\`);
+            showToast(`▶️ Playing: ${title}`);
         }
 
         // 2. AR Shopping Dashboard
@@ -16308,7 +16327,7 @@
         }
 
         function tryOnItem(item) {
-            showToast(\`📸 Trying on \${item}...\`);
+            showToast(`📸 Trying on ${item}...`);
         }
 
         // 3. AR Games Dashboard
@@ -16348,7 +16367,7 @@
         }
 
         function playARGame(game) {
-            showToast(\`🎮 Starting \${game}...\`);
+            showToast(`🎮 Starting ${game}...`);
         }
 
         // 4. VR Meditation Dashboard
@@ -16388,7 +16407,7 @@
         }
 
         function startMeditation(env) {
-            showToast(\`🧘 Starting \${env} meditation...\`);
+            showToast(`🧘 Starting ${env} meditation...`);
         }
 
         // 5. Custom Filter Creator Dashboard
@@ -16446,7 +16465,7 @@
         }
 
         function connectHeadset(device) {
-            showToast(\`🥽 Connecting to \${device}...\`);
+            showToast(`🥽 Connecting to ${device}...`);
         }
 
         // 7. Spatial Audio Config Dashboard
@@ -17816,6 +17835,39 @@
             document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
         
+        // View All Business Tools - Dashboard for all 8 tools
+        function viewAllBusinessTools() {
+            const modalHTML = `
+                <div id="viewAllBusinessToolsModal" class="modal show">
+                    <div class="modal-header">
+                        <div class="modal-close" onclick="closeModal('viewAllBusinessTools')">✕</div>
+                        <div class="modal-title">🛠️ Business Tools</div>
+                    </div>
+                    <div class="modal-content">
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="font-size: 64px; margin-bottom: 16px;">🛠️</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Complete Business Toolkit</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">8 powerful tools to grow your business</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.openCRM()">👥 CRM</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageInvoices()">📄 Invoices</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.setupPaymentProcessing()">💳 Payments</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.showBusinessInsights()">💡 Insights</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.analyzeCompetitors()">🔍 Competitors</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.managePromotions()">🎯 Promotions</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageCatalog()">📦 Catalog</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageReviews()">⭐ Reviews</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            showToast('Opening Business Tools dashboard... 🛠️');
+        }
+
         // Helper functions for Business Profile
         function changeBusinessLogo() { showToast('Opening logo picker... 🏢'); }
         function saveBusinessProfile() { closeModal('editBusinessProfile'); showToast('Business profile updated! ✓'); }
