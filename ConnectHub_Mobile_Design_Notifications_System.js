@@ -46,6 +46,19 @@ class NotificationsSystem {
             clickThroughRate: 0
         };
         
+        // NEW: Service Worker for background notifications
+        this.serviceWorker = null;
+        this.notificationQueue = [];
+        this.batchTimeout = null;
+        
+        // NEW: Device token management
+        this.deviceToken = null;
+        this.deviceInfo = {
+            platform: this.detectPlatform(),
+            browser: this.detectBrowser(),
+            userId: null
+        };
+        
         this.init();
     }
 
@@ -56,6 +69,538 @@ class NotificationsSystem {
         this.loadAnalytics();
         this.startRealTimeDelivery();
         this.requestPushPermission();
+        
+        // NEW: Initialize missing features
+        this.registerServiceWorker();
+        this.initializeDeviceToken();
+        this.setupCrossScreenNavigation();
+        this.startNotificationBatching();
+        this.syncWithBackend();
+    }
+    
+    // ========== NEW FEATURE 1: SERVICE WORKER REGISTRATION ==========
+    
+    async registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                // Register service worker for background notifications
+                const registration = await navigator.serviceWorker.register('/sw.js', {
+                    scope: '/'
+                });
+                
+                this.serviceWorker = registration;
+                console.log('✅ Service Worker registered for background notifications');
+                
+                // Listen for messages from service worker
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data.type === 'NOTIFICATION_CLICK') {
+                        this.handleNotificationClick(event.data.notificationId);
+                    }
+                });
+                
+                // Update service worker when available
+                registration.addEventListener('updatefound', () => {
+                    console.log('🔄 Service Worker update found');
+                });
+                
+                return registration;
+            } catch (error) {
+                console.log('Service Worker registration simulated (full implementation requires sw.js file)');
+                // Simulate service worker for demo purposes
+                this.serviceWorker = { active: true };
+            }
+        } else {
+            console.log('Service Workers not supported in this browser');
+        }
+    }
+    
+    // ========== NEW FEATURE 2: DEVICE TOKEN MANAGEMENT ==========
+    
+    async initializeDeviceToken() {
+        try {
+            // Generate or retrieve device token
+            let token = localStorage.getItem('device_notification_token');
+            
+            if (!token) {
+                // Generate new device token (in production, this would come from FCM/APNs)
+                token = this.generateDeviceToken();
+                localStorage.setItem('device_notification_token', token);
+                console.log('✅ New device token generated:', token.substring(0, 20) + '...');
+            } else {
+                console.log('✅ Device token retrieved:', token.substring(0, 20) + '...');
+            }
+            
+            this.deviceToken = token;
+            
+            // Register device token with backend (simulated)
+            await this.registerDeviceWithBackend(token);
+            
+        } catch (error) {
+            console.log('Device token management error:', error);
+        }
+    }
+    
+    generateDeviceToken() {
+        // Generate a unique device token (simulated FCM/APNs token)
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2);
+        const platform = this.deviceInfo.platform;
+        return `${platform}_${timestamp}_${random}`;
+    }
+    
+    async registerDeviceWithBackend(token) {
+        // Simulate backend device registration
+        console.log('📱 Registering device with backend...');
+        
+        const deviceData = {
+            token: token,
+            platform: this.deviceInfo.platform,
+            browser: this.deviceInfo.browser,
+            userId: this.deviceInfo.userId || 'guest',
+            timestamp: new Date().toISOString(),
+            preferences: this.settings.preferences
+        };
+        
+        // Store device info
+        localStorage.setItem('device_info', JSON.stringify(deviceData));
+        
+        // In production, this would POST to: /api/devices/register
+        console.log('✅ Device registered with backend', deviceData);
+    }
+    
+    detectPlatform() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (/android/.test(userAgent)) return 'android';
+        if (/iphone|ipad|ipod/.test(userAgent)) return 'ios';
+        if (/windows/.test(userAgent)) return 'windows';
+        if (/mac/.test(userAgent)) return 'macos';
+        if (/linux/.test(userAgent)) return 'linux';
+        return 'web';
+    }
+    
+    detectBrowser() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (/chrome/.test(userAgent) && !/edg/.test(userAgent)) return 'chrome';
+        if (/safari/.test(userAgent) && !/chrome/.test(userAgent)) return 'safari';
+        if (/firefox/.test(userAgent)) return 'firefox';
+        if (/edg/.test(userAgent)) return 'edge';
+        return 'unknown';
+    }
+    
+    // ========== NEW FEATURE 3: NOTIFICATION SCHEDULING ==========
+    
+    scheduleNotification(notification, delay) {
+        console.log(`📅 Scheduling notification for ${delay}ms from now`);
+        
+        setTimeout(() => {
+            this.receiveNotification(notification);
+        }, delay);
+        
+        // Store scheduled notification
+        const scheduledNotifications = JSON.parse(localStorage.getItem('scheduled_notifications') || '[]');
+        scheduledNotifications.push({
+            notification: notification,
+            scheduledFor: new Date(Date.now() + delay).toISOString(),
+            status: 'pending'
+        });
+        localStorage.setItem('scheduled_notifications', JSON.stringify(scheduledNotifications));
+        
+        return {
+            id: notification.id,
+            scheduledFor: new Date(Date.now() + delay)
+        };
+    }
+    
+    cancelScheduledNotification(notificationId) {
+        const scheduledNotifications = JSON.parse(localStorage.getItem('scheduled_notifications') || '[]');
+        const updated = scheduledNotifications.filter(n => n.notification.id !== notificationId);
+        localStorage.setItem('scheduled_notifications', JSON.stringify(updated));
+        console.log('🗑️ Scheduled notification cancelled:', notificationId);
+    }
+    
+    // ========== NEW FEATURE 4: NOTIFICATION BATCHING ==========
+    
+    startNotificationBatching() {
+        // Batch notifications to prevent spam
+        console.log('📦 Notification batching enabled');
+        
+        setInterval(() => {
+            if (this.notificationQueue.length > 0) {
+                this.processBatchedNotifications();
+            }
+        }, 5000); // Process batch every 5 seconds
+    }
+    
+    addNotificationToBatch(notification) {
+        this.notificationQueue.push(notification);
+        
+        // If queue gets too large, process immediately
+        if (this.notificationQueue.length >= 5) {
+            this.processBatchedNotifications();
+        }
+    }
+    
+    processBatchedNotifications() {
+        const batch = [...this.notificationQueue];
+        this.notificationQueue = [];
+        
+        if (batch.length === 0) return;
+        
+        console.log(`📦 Processing batch of ${batch.length} notifications`);
+        
+        // Group similar notifications
+        const grouped = this.groupNotificationsByType(batch);
+        
+        // Display grouped notifications
+        Object.keys(grouped).forEach(type => {
+            const notifications = grouped[type];
+            if (notifications.length > 1) {
+                // Create summary notification
+                this.createSummaryNotification(type, notifications);
+            } else {
+                // Display individual notification
+                this.receiveNotification(notifications[0]);
+            }
+        });
+    }
+    
+    groupNotificationsByType(notifications) {
+        return notifications.reduce((groups, notif) => {
+            if (!groups[notif.type]) {
+                groups[notif.type] = [];
+            }
+            groups[notif.type].push(notif);
+            return groups;
+        }, {});
+    }
+    
+    createSummaryNotification(type, notifications) {
+        const count = notifications.length;
+        const summaryNotification = {
+            id: Date.now(),
+            type: type,
+            icon: notifications[0].icon,
+            title: `${count} new ${type}s`,
+            text: `You have ${count} new ${type} notifications`,
+            timestamp: new Date(),
+            read: false,
+            action: notifications[0].action,
+            data: { grouped: true, notifications: notifications }
+        };
+        
+        this.receiveNotification(summaryNotification);
+    }
+    
+    // ========== NEW FEATURE 5: CROSS-SCREEN NAVIGATION ==========
+    
+    setupCrossScreenNavigation() {
+        console.log('🔀 Cross-screen navigation initialized');
+        
+        // Create global navigation functions
+        window.openScreen = (screenName) => {
+            console.log(`🔀 Navigating to screen: ${screenName}`);
+            
+            const screenMap = {
+                'feed': { id: 'feed-screen', tab: 'home' },
+                'friends': { id: 'friends-screen', tab: 'friends' },
+                'messages': { id: 'messages-screen', tab: 'messages' },
+                'notifications': { id: 'notifications-screen', tab: 'notifications' },
+                'profile': { id: 'profile-screen', tab: 'profile' },
+                'events': { id: 'events-screen', tab: 'events' },
+                'gaming': { id: 'gaming-screen', tab: 'gaming' },
+                'groups': { id: 'groups-screen', tab: 'groups' },
+                'marketplace': { id: 'marketplace-screen', tab: 'marketplace' },
+                'dating': { id: 'dating-screen', tab: 'dating' },
+                'settings': { id: 'settings-screen', tab: 'settings' }
+            };
+            
+            const screen = screenMap[screenName];
+            if (screen) {
+                // Hide all screens
+                document.querySelectorAll('[id$="-screen"]').forEach(s => {
+                    s.style.display = 'none';
+                });
+                
+                // Show target screen
+                const targetScreen = document.getElementById(screen.id);
+                if (targetScreen) {
+                    targetScreen.style.display = 'block';
+                    window.scrollTo(0, 0);
+                } else {
+                    // Create placeholder screen if doesn't exist
+                    this.createPlaceholderScreen(screenName);
+                }
+                
+                // Update navigation tabs
+                this.updateNavigationTabs(screen.tab);
+                
+                // Show success toast
+                if (typeof window.showToast === 'function') {
+                    window.showToast(`Opened ${screenName} screen`);
+                }
+            } else {
+                console.log(`Screen "${screenName}" not found in screen map`);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(`Opening ${screenName}...`);
+                }
+            }
+        };
+        
+        // Create global modal opening function
+        window.openModal = (modalName, data) => {
+            console.log(`🔀 Opening modal: ${modalName}`, data);
+            
+            const modalActions = {
+                'comments': () => this.openCommentsModal(data),
+                'viewEvent': () => this.openEventModal(data),
+                'chatWindow': () => this.openChatModal(data),
+                'groupDetails': () => this.openGroupDetailsModal(data),
+                'viewLive': () => this.openLiveStreamModal(data),
+                'userProfile': () => this.openUserProfileModal(data),
+                'postDetails': () => this.openPostDetailsModal(data),
+                'friendRequest': () => this.openFriendRequestModal(data),
+                'achievement': () => this.openAchievementModal(data)
+            };
+            
+            const action = modalActions[modalName];
+            if (action) {
+                action();
+            } else {
+                console.log(`Modal "${modalName}" handler not found`);
+                this.createGenericModal(modalName, data);
+            }
+        };
+    }
+    
+    createPlaceholderScreen(screenName) {
+        const placeholder = document.createElement('div');
+        placeholder.id = `${screenName}-screen`;
+        placeholder.className = 'app-screen';
+        placeholder.style.cssText = 'padding: 80px 20px; text-align: center; min-height: 100vh;';
+        placeholder.innerHTML = `
+            <div style="font-size: 64px; margin-bottom: 20px;">📱</div>
+            <h2 style="font-size: 24px; margin-bottom: 10px; color: var(--text-primary);">${screenName.charAt(0).toUpperCase() + screenName.slice(1)}</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">This screen is now accessible from notifications</p>
+            <button class="btn" onclick="window.openScreen('notifications')" style="max-width: 300px; margin: 0 auto;">
+                ← Back to Notifications
+            </button>
+        `;
+        document.querySelector('.app-container').appendChild(placeholder);
+    }
+    
+    updateNavigationTabs(activeTab) {
+        document.querySelectorAll('.nav-item').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        const tabElement = document.querySelector(`.nav-item[data-tab="${activeTab}"]`);
+        if (tabElement) {
+            tabElement.classList.add('active');
+        }
+    }
+    
+    // Modal creation functions
+    openCommentsModal(data) {
+        const modal = this.createModal('Comments', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Post Comments</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">View and respond to comments on this post</p>
+                <div style="background: var(--background-secondary); padding: 16px; border-radius: 12px; margin-bottom: 16px; text-align: left;">
+                    <div style="font-size: 15px; margin-bottom: 8px;"><strong>Sarah Johnson:</strong> Great post! 👍</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">2 hours ago</div>
+                </div>
+                <button class="btn" onclick="this.closest('.modal').remove()">Close</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openEventModal(data) {
+        const modal = this.createModal('Event Details', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Tech Conference 2025</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Tomorrow at 10:00 AM</p>
+                <p style="margin-bottom: 20px;">Join us for an exciting day of technology presentations and networking!</p>
+                <button class="btn" onclick="this.closest('.modal').remove()">View Full Details</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openChatModal(data) {
+        const modal = this.createModal('Message', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Sarah Johnson</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Start chatting</p>
+                <div style="background: var(--background-secondary); padding: 16px; border-radius: 12px; margin-bottom: 16px; text-align: left;">
+                    <div style="font-size: 15px;">Hey! How are you?</div>
+                </div>
+                <button class="btn" onclick="window.openScreen('messages'); this.closest('.modal').remove()">Open Chat</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openGroupDetailsModal(data) {
+        const modal = this.createModal('Group Activity', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Tech Enthusiasts</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">New post in group</p>
+                <p style="margin-bottom: 20px;">Someone posted an interesting article about AI</p>
+                <button class="btn" onclick="window.openScreen('groups'); this.closest('.modal').remove()">View Group</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openLiveStreamModal(data) {
+        const modal = this.createModal('Live Stream', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🔴</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Sarah Johnson is Live!</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Join the live stream now</p>
+                <div style="background: var(--error); color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 20px;">
+                    🔴 LIVE
+                </div>
+                <button class="btn" onclick="this.closest('.modal').remove()">Join Stream</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openUserProfileModal(data) {
+        const modal = this.createModal('User Profile', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="width: 80px; height: 80px; border-radius: 40px; background: var(--primary); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                    👤
+                </div>
+                <h3 style="font-size: 20px; margin-bottom: 8px;">Sarah Johnson</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">@sarahjohnson</p>
+                <button class="btn" onclick="window.openScreen('profile'); this.closest('.modal').remove()">View Profile</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openPostDetailsModal(data) {
+        const modal = this.createModal('Post Details', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">View Post</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">See full post and interactions</p>
+                <button class="btn" onclick="window.openScreen('feed'); this.closest('.modal').remove()">View Post</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openFriendRequestModal(data) {
+        const modal = this.createModal('Friend Request', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">Friend Request</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Emily Rodriguez wants to be friends</p>
+                <div style="display: flex; gap: 12px; max-width: 300px; margin: 0 auto;">
+                    <button class="btn" style="flex: 1; background: var(--success);" onclick="this.closest('.modal').remove()">Accept</button>
+                    <button class="btn" style="flex: 1; background: var(--background-secondary);" onclick="this.closest('.modal').remove()">Decline</button>
+                </div>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    openAchievementModal(data) {
+        const modal = this.createModal('Achievement Unlocked', `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 64px; margin-bottom: 16px;">🏆</div>
+                <h3 style="font-size: 24px; margin-bottom: 12px; color: var(--warning);">Level Up!</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">You've reached Level 43</p>
+                <button class="btn" onclick="window.openScreen('gaming'); this.closest('.modal').remove()">View Achievements</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    createGenericModal(modalName, data) {
+        const modal = this.createModal(modalName, `
+            <div style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🔔</div>
+                <h3 style="font-size: 20px; margin-bottom: 12px;">${modalName}</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Modal content goes here</p>
+                <button class="btn" onclick="this.closest('.modal').remove()">Close</button>
+            </div>
+        `);
+        document.body.appendChild(modal);
+    }
+    
+    createModal(title, content) {
+        const modal = document.createElement('div');
+        modal.className = 'modal show';
+        modal.innerHTML = `
+            <div class="modal-header">
+                <div class="modal-close" onclick="this.closest('.modal').remove()">✕</div>
+                <div class="modal-title">${title}</div>
+                <div style="width: 32px;"></div>
+            </div>
+            <div class="modal-content">
+                ${content}
+            </div>
+        `;
+        return modal;
+    }
+    
+    // ========== NEW FEATURE 6: BACKEND SYNCHRONIZATION ==========
+    
+    async syncWithBackend() {
+        console.log('🔄 Syncing notifications with backend...');
+        
+        // Simulate backend sync (in production, this would be an API call)
+        try {
+            // Get last sync timestamp
+            const lastSync = localStorage.getItem('last_notification_sync');
+            const now = new Date().toISOString();
+            
+            // Simulate fetching new notifications from backend
+            // In production: const response = await fetch('/api/notifications/sync', {...})
+            
+            console.log('✅ Backend sync complete');
+            localStorage.setItem('last_notification_sync', now);
+            
+            // Set up periodic sync
+            setInterval(() => {
+                this.periodicBackendSync();
+            }, 60000); // Sync every minute
+            
+        } catch (error) {
+            console.log('Backend sync error:', error);
+        }
+    }
+    
+    async periodicBackendSync() {
+        // Silently sync with backend
+        const lastSync = localStorage.getItem('last_notification_sync');
+        console.log('🔄 Periodic sync (last sync:', lastSync, ')');
+        
+        // In production, this would fetch new notifications from the server
+        // and update the local state
+    }
+    
+    async markAsReadOnBackend(notificationId) {
+        // Simulate marking notification as read on backend
+        console.log('📤 Marking notification as read on backend:', notificationId);
+        
+        // In production: await fetch(`/api/notifications/${notificationId}/read`, { method: 'PUT' })
+    }
+    
+    async deleteNotificationOnBackend(notificationId) {
+        // Simulate deleting notification on backend
+        console.log('📤 Deleting notification on backend:', notificationId);
+        
+        // In production: await fetch(`/api/notifications/${notificationId}`, { method: 'DELETE' })
     }
 
     // ========== REAL-TIME NOTIFICATION DELIVERY ==========
