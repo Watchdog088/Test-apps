@@ -497,10 +497,14 @@
 
         // Feature 7: Live Updates
         function testLiveUpdates() {
-            eventsSystem.postEventUpdate(1, 'Test update');
+            eventsSystem.openLiveUpdates(1);
             setTimeout(() => {
-                markFeatureTested(7);
-                showToast('✓ Live updates work!');
+                const modal = document.getElementById('liveUpdatesModal');
+                if (modal) {
+                    markFeatureTested(7);
+                    showToast('✓ Live updates work!');
+                    modal.remove();
+                }
             }, 500);
         }
 
@@ -553,10 +557,14 @@
 
         // Feature 13: Co-Hosts
         function testCoHosts() {
-            eventsSystem.addCoHost(1, 'Test User');
+            eventsSystem.manageCoHosts(1);
             setTimeout(() => {
-                markFeatureTested(13);
-                showToast('✓ Co-hosts work!');
+                const modal = document.getElementById('coHostsModal');
+                if (modal) {
+                    markFeatureTested(13);
+                    showToast('✓ Co-hosts work!');
+                    modal.remove();
+                }
             }, 500);
         }
 
