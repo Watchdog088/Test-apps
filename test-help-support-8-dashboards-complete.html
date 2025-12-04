@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support - 8 Complete Dashboards</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --success: #10b981;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg: #f9fafb;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .mobile-container {
+            max-width: 430px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 1.5rem 1rem 1rem;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .header-subtitle {
+            opacity: 0.9;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .content {
+            padding: 1rem 1rem 80px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .dashboard-card:active {
+            transform: scale(0.98);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .card-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        .dashboard-main {
+            display: none;
+        }
+        .dashboard-main.active {
+            display: block;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+        .list-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .list-item:active {
+            transform: translateX(5px);
+            background: #e0e7ff;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+        .item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .item-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .item-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .item-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+        }
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .stat-card-label {
+            opacity: 0.9;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .category-card {
+            background: var(--bg);
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-card:active {
+            transform: scale(0.95);
+            background: #e0e7ff;
+        }
+        .category-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .category-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        .category-count {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .action-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-card:active {
+            transform: scale(0.95);
+        }
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .action-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .video-card {
+            background: var(--bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .video-card:active {
+            transform: scale(0.98);
+        }
+        .video-thumbnail {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            position: relative;
+        }
+        .video-duration {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+        .video-info {
+            padding: 1rem;
+        }
+        .video-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .video-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .search-bar {
+            background: var(--bg);
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .faq-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .faq-item:active {
+            background: #e0e7ff;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .faq-answer {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .chat-preview {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .chat-agent {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .agent-avatar {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .agent-info {
+            flex: 1;
+        }
+        .agent-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .agent-status {
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Main Dashboard -->
+        <div id="mainDashboard" class="dashboard-main active">
+            <div class="header">
+                <div class="header-top">
+                    <button class="back-btn" onclick="alert('← Going back to main menu')">←</button>
+                    <div style="opacity: 0; width: 40px;"></div>
+                </div>
+                <div class="header-title">Help & Support</div>
+                <div class="header-subtitle">We're here to help you 24/7</div>
+            </div>
+            <div class="content">
+                <div class="stat-card">
+                    <div class="stat-card-value">4.8/5</div>
+                    <div class="stat-card-label">Customer Satisfaction Rating</div>
+                </div>
+                <div class="section-title">Get Help - 8 Support Options</div>
+                
+                <!-- Dashboard 1: Live Chat -->
+                <div class="dashboard-card" onclick="showDashboard('liveChatDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">💬</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">1. Live Chat</div>
+                            <div class="card-subtitle">Chat with support agents</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">&lt;2min</div><div class="stat-label">Avg Response</div></div>
+                        <div class="stat"><div class="stat-value">24</div><div class="stat-label">Agents Online</div></div>
+                        <div class="stat"><div class="stat-value">4.9★</div><div class="stat-label">Rating</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 2: AI Assistant -->
+                <div class="dashboard-card" onclick="showDashboard('aiAssistantDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">🤖</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">2. AI Assistant</div>
+                            <div class="card-subtitle">Get instant AI-powered answers</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">Instant</div><div class="stat-label">Response</div></div>
+                        <div class="stat"><div class="stat-value">24/7</div><div class="stat-label">Available</div></div>
+                        <div class="stat"><div class="stat-value">Smart</div><div class="stat-label">NLP Powered</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 3: Submit Ticket -->
+                <div class="dashboard-card" onclick="showDashboard('ticketDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">🎫</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">3. Submit Ticket</div>
+                            <div class="card-subtitle">Email support requests</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">94%</div><div class="stat-label">Resolution</div></div>
+                        <div class="stat"><div class="stat-value">24h</div><div class="stat-label">Response</div></div>
+                        <div class="stat"><div class="stat-value">15.8K</div><div class="stat-label">Resolved</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 4: FAQs -->
+                <div class="dashboard-card" onclick="showDashboard('faqDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">❓</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">4. FAQs</div>
+                            <div class="card-subtitle">Common questions answered</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">100+</div><div class="stat-label">Questions</div></div>
+                        <div class="stat"><div class="stat-value">66K</div><div class="stat-label">Views</div></div>
+                        <div class="stat"><div class="stat-value">91%</div><div class="stat-label">Helpful</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 5: Knowledge Base -->
+                <div class="dashboard-card" onclick="showDashboard('knowledgeBaseDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">📚</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">5. Knowledge Base</div>
+                            <div class="card-subtitle">Browse help articles</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">8</div><div class="stat-label">Categories</div></div>
+                        <div class="stat"><div class="stat-value">184</div><div class="stat-label">Articles</div></div>
+                        <div class="stat"><div class="stat-value">122K</div><div class="stat-label">Views</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 6: Video Tutorials -->
+                <div class="dashboard-card" onclick="showDashboard('videoDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">📹</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">6. Video Tutorials</div>
+                            <div class="card-subtitle">Learn with step-by-step videos</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">50+</div><div class="stat-label">Videos</div></div>
+                        <div class="stat"><div class="stat-value">353K</div><div class="stat-label">Views</div></div>
+                        <div class="stat"><div class="stat-value">All</div><div class="stat-label">Levels</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 7: Community Forums -->
+                <div class="dashboard-card" onclick="showDashboard('communityDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">👥</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">7. Community Forums</div>
+                            <div class="card-subtitle">Ask the community</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">7</div><div class="stat-label">Categories</div></div>
+                        <div class="stat"><div class="stat-value">4.4K</div><div class="stat-label">Posts</div></div>
+                        <div class="stat"><div class="stat-value">Active</div><div class="stat-label">Community</div></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard 8: Support History -->
+                <div class="dashboard-card" onclick="showDashboard('historyDashboard')">
+                    <div class="card-header">
+                        <div class="card-icon">📋</div>
+                        <div style="flex: 1;">
+                            <div class="card-title">8. Support History</div>
+                            <div class="card-subtitle">Your past interactions</div>
+                        </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat"><div class="stat-value">3</div><div class="stat-label">Recent</div></div>
+                        <div class="stat"><div class="stat-value">100%</div><div class="stat-label">Resolved</div></div>
+                        <div class="stat"><div class="stat-value">5★</div><div class="stat-label">Your Rating</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Live Chat Dashboard -->
+        <div id="liveChatDashboard" class="dashboard-main">
+            <div class="header">
+                <div class="header-top">
+                    <button class="back-btn" onclick="showDashboard('mainDashboard')">←</button>
+                    <div style="opacity: 0; width: 40px;"></div>
+                </div>
+                <div class="header-title">💬 Live Chat</div>
+                <div class="header-subtitle">Connect with our support team</div>
+            </div>
+            <div class="content">
+                <div class="chat-preview">
+                    <div class="chat-agent">
+                        <div class="agent-avatar">👨‍💼</div>
+                        <div class="agent-info">
+                            <div class="agent-name">24 Agents Available Now</div>
+                            <div class="agent-status">● Online - &lt;2 min response time</div>
+                        </div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Connect with Sarah M., Mike J., Emma W., David L., or Lisa K. for personalized support.
+                    </div>
+                    <button class="btn-primary" onclick="alert('🎉 Connecting to live agent...\n\n✓ Agent: Sarah M.\n✓ Specialty: General Support\n✓ Rating: 4.9/5 ⭐\n✓ Response time: < 1 min\n\nYour chat session will begin shortly!')">
+                        Start Live Chat Now
+                    </button>
+                </div>
+
+                <div class="section-title">Recent Chat History</div>
+                <div class="list-item" onclick="alert('💬 Chat Details:\n\nAgent: Sarah M.\nTopic: Account Security\nDuration: 12 minutes\nStatus: Resolved ✅\nYour Rating: 5/5 ⭐\nDate: 2 days ago\n\nTranscript available in Support History.')">
+                    <div class="item-header">
+                        <div class="item-title">Chat with Sarah M.</div>
+                        <div class="item-badge" style="background: #10b981;">Resolved</div>
+                    </div>
+                    <div class="item-description">Account Security Questions</div>
+                    <div class="item-meta">
+                        <span>🕒 12 minutes</span>
+                        <span>⭐ 5/5</span>
+                        <span>2 days ago</span>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="alert('💬 Chat Details:\n\nAgent: Mike J.\nTopic: Feature Questions\nDuration: 8 minutes\nStatus: Resolved ✅\nYour Rating: 4/5 ⭐\nDate: 1 week ago')">
+                    <div class="item-header">
+                        <div class="item-title">Chat with Mike J.</div>
+                        <div class="item-badge" style="background: #10b981;">Resolved</div>
+                    </div>
+                    <div class="item-description">Feature Questions</div>
+                    <div class="item-meta">
+                        <span>🕒 8 minutes</span>
+                        <span>⭐ 4/5</span>
+                        <span>1 week ago</span>
+                    </div>
+                </div>
+
+                <div class="section-title">Why Choose Live Chat?</div>
+                <div class="action-grid">
+                    <div class="action-card" onclick="alert('⚡ Fast Response:\n\nAverage response time: Less than 2 minutes\n24 agents online now\nReal-time problem solving')">
+                        <div class="action-icon">⚡</div>
+                        <div class="action-title">Fast</div>
+                        <div class="action-subtitle">&lt;2min response</div>
+                    </div>
+                    <div class="action-card" onclick="alert('👤 Personal Touch:\n\nReal human agents\nPersonalized solutions\nEmpathetic support\nProfessional expertise')">
+                        <div class="action-icon">👤</div>
+                        <div class="action-title">Personal</div>
+                        <div class="action-subtitle">Real agents</div>
+                    </div>
+                    <div class="action-card" onclick="alert('🌐 Available 24/7:\n\nNo waiting for business hours\nGlobal coverage\nMulti-language support\nAlways here for you')">
+                        <div class="action-icon">🌐</div>
+                        <div class="action-title">24/7</div>
+                        <div class="action-subtitle">Always available</div>
+                    </div>
+                    <div class="action-card" onclick="alert('📊 High Satisfaction:\n\n4.9/5 star rating\n94% issue resolution\nThousands of happy users\nTrusted support')">
+                        <div class="action-icon">⭐</div>
+                        <div class="action-title">Rated 4.9/5</div>
+                        <div class="action-subtitle">Top quality</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. AI Assistant Dashboard -->
+        <div id="aiAssistantDashboard" class="dashboard-main">
+            <div class="header">
+                <div class="header-top">
+                    <button class="back-btn" onclick="showDashboard('mainDashboard')">←</button>
+                    <div style="opacity: 0; width: 40px;"></div>
+                </div>
+                <div class="header-title">🤖 AI Assistant</div>
+                <div class="header-subtitle">Instant AI-powered answers</div>
+            </div>
+            <div class="content">
+                <div class="chat-preview">
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🤖</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">AI Assistant Ready</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Powered by Natural Language Processing for instant, intelligent responses
+                        </p>
+                    </div>
+                    <button class="btn-primary" onclick="alert('🤖 AI Assistant Activated!\n\nAsk me anything:\n• How do I reset my password?\n• How does matching work?\n• What are Premium benefits?\n• How do I go live?\n• Privacy settings help\n• Technical issues\n• And much more!\n\nType your question to get instant AI-powered answers.')">
+                        Start AI Chat
+                    </button>
+                </div>
+
+                <div class="section-title">Popular AI Queries</div>
+                <div class="list-item" onclick="alert('🤖 AI Response:\n\nHow to reset password?\n\n✓ Go to Settings > Account Security > Change Password\n✓ You can also use Forgot Password on login screen\n✓ Verify identity via email or SMS\n✓ Create strong password (12+ characters)\n\nNeed more help? Connect with live agent.')">
+                    <div class="item-title">How do I reset my password?</div>
+                    <div class="item-meta">
+                        <span>🔒 Security</span>
+                        <span>👁️ 5,420 views</span>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="alert('🤖 AI Response:\n\nDating matching algorithm:\n\n✓ AI considers your interests\n✓ Location-based suggestions\n✓ Activity pattern analysis\n✓ Preference matching\n✓ Learns from your swipes\n\nThe more you use it, the better it gets!')">
+                    <div class="item-title">How does matching work?</div>
+                    <div class="item-meta">
+                        <span>💕 Dating</span>
+                        <span>👁️ 9,870 views</span>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="alert('🤖 AI Response:\n\nPremium Benefits:\n\n✓ Unlimited likes\n✓ See who liked you\n✓ Priority support\n✓ Advanced filters\n✓ Read receipts\n✓ Verified badge\n✓ Ad-free experience\n\n$9.99/month or $99.99/year')">
+                    <div class="item-title">What are Premium benefits?</div>
+                    <div class="item-meta">
+                        <span>⭐ Premium</span>
+                        <span>👁️ 15,320 views</span>
+                    </div>
+                </div>
+
+                <div class="section-title">AI Capabilities</div>
+                <div class="action-grid">
+                    <div class="action-card">
+                        <div class="action-icon">🧠</div>
+                        <div class="action-title">Smart NLP</div>
+                        <div class="action-subtitle">Understands context</div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">⚡</div>
+                        <div class="action-title">Instant</div>
+                        <div class="action-subtitle">No wait time</div>
+                    </div>
