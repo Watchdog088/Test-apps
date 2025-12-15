@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Complete with Persistence & Privacy Controls</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --background: #ffffff;
+            --background-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .settings-page {
+            background: var(--background);
+            min-height: 100vh;
+        }
+
+        .settings-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .settings-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .settings-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .persistence-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .settings-grid {
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .setting-category {
+            background: var(--background);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .category-header {
+            padding: 12px 16px;
+            background: var(--background-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-item {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--background-secondary);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item:hover {
+            background: var(--background-secondary);
+        }
+
+        .setting-item:active {
+            transform: scale(0.98);
+        }
+
+        .setting-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-secondary);
+            border-radius: 10px;
+        }
+
+        .setting-content {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .setting-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .setting-arrow {
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .dashboard {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background: var(--background);
+            z-index: 1000;
+            overflow-y: auto;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%) translateX(-50%); }
+            to { transform: translateX(-50%); }
+        }
+
+        .dashboard-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .dashboard-header h2 {
+            font-size: 20px;
+            flex: 1;
+        }
+
+        .dashboard-content {
+            padding: 16px;
+        }
+
+        .dashboard-section {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .setting-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .setting-card-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-secondary);
+            border-radius: 12px;
+        }
+
+        .setting-card-content {
+            flex: 1;
+        }
+
+        .setting-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .setting-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .setting-card-arrow {
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-btn {
+            width: 51px;
+            height: 31px;
+            background: var(--secondary);
+            border-radius: 31px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+            outline: none;
+        }
+
+        .toggle-btn.active {
+            background: var(--success);
+        }
+
+        .toggle-slider {
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-btn.active .toggle-slider {
+            transform: translateX(20px);
+        }
+
+        .toggle-btn.small {
+            width: 40px;
+            height: 24px;
+        }
+
+        .toggle-btn.small .toggle-slider {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toggle-btn.small.active .toggle-slider {
+            transform: translateX(16px);
+        }
+
+        .chip-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .chip {
+            padding: 10px 16px;
+            background: var(--background-secondary);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .chip:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .list-item {
+            padding: 16px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            background: var(--background-secondary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .storage-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .storage-summary {
+            margin-bottom: 16px;
+        }
+
+        .storage-used {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .storage-total {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .storage-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .storage-breakdown {
+            display: grid;
+            gap: 8px;
+        }
+
+        .storage-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .notification-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .notification-item {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+        }
+
+        .notification-label {
+            font-size: 13px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .device-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .device-icon {
+            font-size: 32px;
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .device-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .badge-error {
+            background: var(--error);
+            color: white;
+        }
+
+        .backup-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .backup-code {
+            background: var(--background-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .alert-card {
+            background: var(--background);
+            border-left: 4px solid var(--info);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .alert-card.warning {
+            border-left-color: var(--warning);
+            background: #fff3cd;
+        }
+
+        .alert-card.error {
+            border-left-color: var(--error);
+            background: #f8d7da;
+        }
+
+        .alert-card.success {
+            border-left-color: var(--success);
+            background: #d4edda;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .alert-title {
+            font-weight: 600;
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .alert-message {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .settings-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: none;
+            z-index: 3000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 90%;
+            text-align: center;
+            animation: toastSlideUp 0.3s ease-out forwards;
+        }
+
+        .settings-toast.show {
+            display: block;
+        }
+
+        .settings-toast.success {
+            background: var(--success);
+        }
+
+        .settings-toast.error {
+            background: var(--error);
+        }
+
+        @keyframes toastSlideUp {
+            to {
+                bottom: 20px;
+            }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--background);
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--background-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--border);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-page" id="mainSettings">
+        <div class="settings-header">
+            <h1>⚙️ Settings</h1>
+            <p>Manage your account and preferences</p>
+            <div class="persistence-badge">✓ Settings Persistence Enabled</div>
+        </div>
+
+        <div class="settings-grid">
+            <!-- Account & Security -->
+            <div class="setting-category">
+                <div class="category-header">🔐 Account & Security</div>
+                <div class="setting-item" onclick="openAccountSecurityDashboard()">
+                    <div class="setting-icon">🔑</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Account Security</div>
+                        <div class="setting-desc">Password, 2FA, login alerts</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+                <div class="setting-item" onclick="openDeviceManagementDashboard()">
+                    <div class="setting-icon">📱</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Device Management</div>
+                        <div class="setting-desc">Manage your devices</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+                <div class="setting-item" onclick="openLoginHistoryDashboard()">
+                    <div class="setting-icon">📋</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Login History & Sessions</div>
+                        <div class="setting-desc">View activity and active sessions</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="setting-category">
+                <div class="category-header">🔒 Privacy</div>
+                <div class="setting-item" onclick="openPrivacyControlsDashboard()">
+                    <div class="setting-icon">🔐</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Privacy Controls</div>
+                        <div class="setting-desc">Who can see your profile and activity</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+                <div class="setting-item" onclick="openBlockedUsersDashboard()">
+                    <div class="setting-icon">🚫</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Blocked Users</div>
+                        <div class="setting-desc">Manage blocked accounts</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="setting-category">
+                <div class="category-header">🔔 Notifications</div>
+                <div class="setting-item" onclick="openNotificationPreferencesDashboard()">
+                    <div class="setting-icon">🔔</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Notification Preferences</div>
+                        <div class="setting-desc">Control what you get notified about</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+
+            <!-- Data & Storage -->
+            <div class="setting-category">
+                <div class="category-header">📦 Data & Storage</div>
+                <div class="setting-item" onclick="openDataStorageDashboard()">
+                    <div class="setting-icon">💾</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Data & Storage</div>
+                        <div class="setting-desc">Manage storage and export data</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+
+            <!-- Appearance & Preferences -->
+            <div class="setting-category">
+                <div class="category-header">🎨 Appearance</div>
+                <div class="setting-item" onclick="openAppearancePreferencesDashboard()">
+                    <div class="setting-icon">🌈</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Appearance & Preferences</div>
+                        <div class="setting-desc">Theme, language, timezone</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+
+            <!-- Account Management -->
+            <div class="setting-category">
+                <div class="category-header">⚙️ Account</div>
+                <div class="setting-item" onclick="openAccountManagementDashboard()">
+                    <div class="setting-icon">👤</div>
+                    <div class="setting-content">
+                        <div class="setting-title">Account Management</div>
+                        <div class="setting-desc">Deactivate or delete account</div>
+                    </div>
+                    <div class="setting-arrow">›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Settings_System_Enhanced.js"></script>
+    <script>
+        console.log('✅ Settings System with Persistence & Privacy Controls Loaded');
+        console.log('📱 All dashboards are clickable and fully functional');
+        console.log('💾 Settings persist in localStorage');
+        console.log('🔐 Complete privacy controls implemented');
+        
+        // Show initial load message
+        setTimeout(() => {
+            showToast('Settings system loaded! All changes will be saved automatically.', 'success');
+        }, 500);
+    </script>
+</body>
+</html>
