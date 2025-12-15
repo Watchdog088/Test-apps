@@ -19,6 +19,11 @@ class ConnectHubDatingSystem {
         this.superLikes = 3; // Daily super likes
         this.preferences = this.loadPreferences();
         this.datingProfile = this.loadDatingProfile();
+        
+        // Enhanced swipe persistence
+        this.swipeHistory = this.loadSwipeHistory();
+        this.matchingScores = new Map(); // Cache for matching scores
+        
         this.init();
     }
 
@@ -33,7 +38,7 @@ class ConnectHubDatingSystem {
 
     /**
      * Feature 1: Swipe Right (Like)
-     * Registers a like and checks for match
+     * Registers a like and checks for match with persistence
      */
     swipeRight() {
         if (!this.currentProfile) {
@@ -44,6 +49,17 @@ class ConnectHubDatingSystem {
         const profile = this.currentProfile;
         this.likes.push(profile.id);
         this.saveLikes();
+
+        // Save swipe to history with full details
+        this.saveSwipeToHistory({
+            profileId: profile.id,
+            profileName: profile.name,
+            action: 'like',
+            timestamp: new Date().toISOString(),
+            compatibilityScore: this.calculateCompatibility(profile),
+            distance: profile.distance,
+            matchingFactors: this.getMatchingFactors(profile)
+        });
 
         // Animate card swiping right
         this.animateCardSwipe('right');
@@ -63,7 +79,7 @@ class ConnectHubDatingSystem {
 
     /**
      * Feature 2: Swipe Left (Pass)
-     * Passes on a profile
+     * Passes on a profile with persistence
      */
     swipeLeft() {
         if (!this.currentProfile) {
@@ -74,6 +90,17 @@ class ConnectHubDatingSystem {
         const profile = this.currentProfile;
         this.passes.push(profile.id);
         this.savePasses();
+
+        // Save swipe to history with full details
+        this.saveSwipeToHistory({
+            profileId: profile.id,
+            profileName: profile.name,
+            action: 'pass',
+            timestamp: new Date().toISOString(),
+            compatibilityScore: this.calculateCompatibility(profile),
+            distance: profile.distance,
+            reason: 'user_pass'
+        });
 
         // Animate card swiping left
         this.animateCardSwipe('left');
@@ -152,24 +179,86 @@ class ConnectHubDatingSystem {
     }
 
     /**
-     * Feature 6: Match Algorithm
-     * Generates compatible profiles based on preferences
+     * Feature 6: Enhanced Match Algorithm
+     * Advanced matching with multiple factors and scoring
      */
     generateProfileQueue() {
         // Generate mock profiles based on user preferences
         const profiles = [
-            { id: 1, name: 'Sarah', age: 26, distance: 3, bio: 'Love hiking and photography', avatar: '😊', interests: ['Coffee', 'Hiking', 'Photography'] },
-            { id: 2, name: 'Emma', age: 24, distance: 5, bio: 'Artist and designer', avatar: '🎨', interests: ['Art', 'Design', 'Travel'] },
-            { id: 3, name: 'Jessica', age: 28, distance: 2, bio: 'Foodie and traveler', avatar: '✨', interests: ['Food', 'Travel', 'Music'] },
-            { id: 4, name: 'Amanda', age: 25, distance: 7, bio: 'Fitness enthusiast', avatar: '💪', interests: ['Fitness', 'Yoga', 'Wellness'] },
-            { id: 5, name: 'Olivia', age: 27, distance: 4, bio: 'Book lover and writer', avatar: '📚', interests: ['Books', 'Writing', 'Coffee'] },
-            { id: 6, name: 'Sophia', age: 23, distance: 6, bio: 'Music and concerts', avatar: '🎵', interests: ['Music', 'Concerts', 'Dance'] },
-            { id: 7, name: 'Mia', age: 29, distance: 3, bio: 'Tech professional', avatar: '💻', interests: ['Tech', 'Gaming', 'Innovation'] },
-            { id: 8, name: 'Charlotte', age: 26, distance: 8, bio: 'Nature enthusiast', avatar: '🌿', interests: ['Nature', 'Camping', 'Environment'] }
+            { 
+                id: 1, name: 'Sarah', age: 26, distance: 3, 
+                bio: 'Love hiking and photography', avatar: '😊', 
+                interests: ['Coffee', 'Hiking', 'Photography'],
+                education: 'College Graduate', lifestyle: { smoking: 'No', drinking: 'Socially' },
+                height: 165, religion: 'Spiritual'
+            },
+            { 
+                id: 2, name: 'Emma', age: 24, distance: 5, 
+                bio: 'Artist and designer', avatar: '🎨', 
+                interests: ['Art', 'Design', 'Travel'],
+                education: 'College Graduate', lifestyle: { smoking: 'No', drinking: 'No' },
+                height: 168, religion: 'Agnostic'
+            },
+            { 
+                id: 3, name: 'Jessica', age: 28, distance: 2, 
+                bio: 'Foodie and traveler', avatar: '✨', 
+                interests: ['Food', 'Travel', 'Music'],
+                education: 'Masters Degree', lifestyle: { smoking: 'No', drinking: 'Socially' },
+                height: 170, religion: 'Christian'
+            },
+            { 
+                id: 4, name: 'Amanda', age: 25, distance: 7, 
+                bio: 'Fitness enthusiast', avatar: '💪', 
+                interests: ['Fitness', 'Yoga', 'Wellness'],
+                education: 'College Graduate', lifestyle: { smoking: 'No', drinking: 'No' },
+                height: 172, religion: 'Non-religious'
+            },
+            { 
+                id: 5, name: 'Olivia', age: 27, distance: 4, 
+                bio: 'Book lover and writer', avatar: '📚', 
+                interests: ['Books', 'Writing', 'Coffee'],
+                education: 'Masters Degree', lifestyle: { smoking: 'No', drinking: 'Rarely' },
+                height: 163, religion: 'Jewish'
+            },
+            { 
+                id: 6, name: 'Sophia', age: 23, distance: 6, 
+                bio: 'Music and concerts', avatar: '🎵', 
+                interests: ['Music', 'Concerts', 'Dance'],
+                education: 'College Student', lifestyle: { smoking: 'No', drinking: 'Socially' },
+                height: 167, religion: 'Non-religious'
+            },
+            { 
+                id: 7, name: 'Mia', age: 29, distance: 3, 
+                bio: 'Tech professional', avatar: '💻', 
+                interests: ['Tech', 'Gaming', 'Innovation'],
+                education: 'Masters Degree', lifestyle: { smoking: 'No', drinking: 'Socially' },
+                height: 169, religion: 'Agnostic'
+            },
+            { 
+                id: 8, name: 'Charlotte', age: 26, distance: 8, 
+                bio: 'Nature enthusiast', avatar: '🌿', 
+                interests: ['Nature', 'Camping', 'Environment'],
+                education: 'College Graduate', lifestyle: { smoking: 'No', drinking: 'No' },
+                height: 171, religion: 'Buddhist'
+            }
         ];
 
-        // Filter based on preferences
-        this.profileQueue = this.filterByPreferences(profiles);
+        // Enhanced filtering and scoring
+        let filteredProfiles = this.filterByPreferences(profiles);
+        
+        // Calculate matching scores for each profile
+        filteredProfiles = filteredProfiles.map(profile => {
+            const score = this.calculateAdvancedMatchScore(profile);
+            this.matchingScores.set(profile.id, score);
+            return { ...profile, matchScore: score };
+        });
+
+        // Sort by match score (highest first)
+        filteredProfiles.sort((a, b) => b.matchScore - a.matchScore);
+
+        // Exclude already swiped profiles
+        const swipedIds = this.swipeHistory.map(h => h.profileId);
+        this.profileQueue = filteredProfiles.filter(p => !swipedIds.includes(p.id));
     }
 
     /**
@@ -205,13 +294,99 @@ class ConnectHubDatingSystem {
     }
 
     /**
-     * Feature 10: Compatibility Score
-     * Calculates compatibility based on shared interests
+     * Feature 10: Enhanced Compatibility Score
+     * Multi-factor compatibility calculation
      */
     calculateCompatibility(profile) {
         const userInterests = this.datingProfile.interests || [];
         const sharedInterests = profile.interests?.filter(i => userInterests.includes(i)) || [];
-        return Math.min(100, (sharedInterests.length / userInterests.length) * 100);
+        const interestScore = userInterests.length > 0 ? (sharedInterests.length / userInterests.length) * 100 : 50;
+        return Math.min(100, Math.round(interestScore));
+    }
+
+    /**
+     * Advanced Match Score Calculation
+     * Considers multiple factors: interests, distance, age, education, lifestyle
+     */
+    calculateAdvancedMatchScore(profile) {
+        let totalScore = 0;
+        let factors = 0;
+
+        // Interest compatibility (40% weight)
+        const interestScore = this.calculateCompatibility(profile);
+        totalScore += interestScore * 0.4;
+        factors++;
+
+        // Distance score (20% weight)
+        const maxDistance = this.preferences.maxDistance || 50;
+        const distanceScore = Math.max(0, 100 - (profile.distance / maxDistance) * 100);
+        totalScore += distanceScore * 0.2;
+        factors++;
+
+        // Age proximity (15% weight)
+        const userAge = this.datingProfile.age || 25;
+        const ageDiff = Math.abs(profile.age - userAge);
+        const ageScore = Math.max(0, 100 - ageDiff * 5);
+        totalScore += ageScore * 0.15;
+        factors++;
+
+        // Education compatibility (10% weight)
+        if (this.preferences.education && profile.education) {
+            const educationMatch = this.preferences.education.includes(profile.education) ? 100 : 50;
+            totalScore += educationMatch * 0.1;
+            factors++;
+        }
+
+        // Lifestyle compatibility (10% weight)
+        if (this.preferences.lifestyle && profile.lifestyle) {
+            let lifestyleScore = 100;
+            if (this.preferences.lifestyle.smoking !== profile.lifestyle.smoking) lifestyleScore -= 30;
+            if (this.preferences.lifestyle.drinking !== profile.lifestyle.drinking) lifestyleScore -= 20;
+            totalScore += Math.max(0, lifestyleScore) * 0.1;
+            factors++;
+        }
+
+        // Height preference (5% weight)
+        if (this.preferences.heightRange && profile.height) {
+            const heightInRange = profile.height >= this.preferences.heightRange.min && 
+                                 profile.height <= this.preferences.heightRange.max;
+            totalScore += (heightInRange ? 100 : 50) * 0.05;
+            factors++;
+        }
+
+        return Math.round(totalScore);
+    }
+
+    /**
+     * Get matching factors breakdown for a profile
+     */
+    getMatchingFactors(profile) {
+        const factors = {};
+        
+        // Shared interests
+        const userInterests = this.datingProfile.interests || [];
+        factors.sharedInterests = profile.interests?.filter(i => userInterests.includes(i)) || [];
+        
+        // Distance
+        factors.distance = profile.distance;
+        factors.distanceScore = Math.max(0, 100 - (profile.distance / (this.preferences.maxDistance || 50)) * 100);
+        
+        // Age proximity
+        const userAge = this.datingProfile.age || 25;
+        factors.ageDifference = Math.abs(profile.age - userAge);
+        
+        // Education match
+        factors.educationMatch = this.preferences.education?.includes(profile.education) || false;
+        
+        // Lifestyle compatibility
+        if (profile.lifestyle) {
+            factors.lifestyleMatch = {
+                smoking: this.preferences.lifestyle?.smoking === profile.lifestyle.smoking,
+                drinking: this.preferences.lifestyle?.drinking === profile.lifestyle.drinking
+            };
+        }
+        
+        return factors;
     }
 
     /**
@@ -921,6 +1096,107 @@ class ConnectHubDatingSystem {
         }
     }
 
+    // ========== SWIPE PERSISTENCE METHODS ==========
+
+    /**
+     * Load swipe history from storage
+     */
+    loadSwipeHistory() {
+        const stored = localStorage.getItem('datingSwipeHistory');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    /**
+     * Save swipe to history with full details
+     */
+    saveSwipeToHistory(swipeData) {
+        this.swipeHistory.push(swipeData);
+        
+        // Keep only last 1000 swipes to prevent storage bloat
+        if (this.swipeHistory.length > 1000) {
+            this.swipeHistory = this.swipeHistory.slice(-1000);
+        }
+        
+        localStorage.setItem('datingSwipeHistory', JSON.stringify(this.swipeHistory));
+        
+        // Update analytics
+        this.updateSwipeAnalytics();
+    }
+
+    /**
+     * Get swipe statistics
+     */
+    getSwipeStatistics() {
+        const today = new Date().toDateString();
+        const todaySwipes = this.swipeHistory.filter(s => 
+            new Date(s.timestamp).toDateString() === today
+        );
+
+        return {
+            totalSwipes: this.swipeHistory.length,
+            todaySwipes: todaySwipes.length,
+            likes: this.swipeHistory.filter(s => s.action === 'like').length,
+            passes: this.swipeHistory.filter(s => s.action === 'pass').length,
+            superLikes: this.swipeHistory.filter(s => s.action === 'superlike').length,
+            averageCompatibility: this.getAverageCompatibility(),
+            swipeRate: this.calculateSwipeRate()
+        };
+    }
+
+    /**
+     * Calculate average compatibility of liked profiles
+     */
+    getAverageCompatibility() {
+        const likes = this.swipeHistory.filter(s => s.action === 'like');
+        if (likes.length === 0) return 0;
+        
+        const sum = likes.reduce((acc, s) => acc + (s.compatibilityScore || 0), 0);
+        return Math.round(sum / likes.length);
+    }
+
+    /**
+     * Calculate swipe rate (likes vs total swipes)
+     */
+    calculateSwipeRate() {
+        if (this.swipeHistory.length === 0) return 0;
+        const likes = this.swipeHistory.filter(s => s.action === 'like').length;
+        return Math.round((likes / this.swipeHistory.length) * 100);
+    }
+
+    /**
+     * Update swipe analytics in real-time
+     */
+    updateSwipeAnalytics() {
+        const stats = this.getSwipeStatistics();
+        
+        // Dispatch event for UI updates
+        document.dispatchEvent(new CustomEvent('swipeAnalyticsUpdated', { 
+            detail: stats 
+        }));
+    }
+
+    /**
+     * Get swipe history for a specific profile
+     */
+    getProfileSwipeHistory(profileId) {
+        return this.swipeHistory.filter(s => s.profileId === profileId);
+    }
+
+    /**
+     * Clear old swipe history (older than 90 days)
+     */
+    clearOldSwipeHistory() {
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        
+        this.swipeHistory = this.swipeHistory.filter(s => 
+            new Date(s.timestamp) > ninetyDaysAgo
+        );
+        
+        localStorage.setItem('datingSwipeHistory', JSON.stringify(this.swipeHistory));
+        this.showDatingToast('Old swipe history cleared');
+    }
+
     // Storage methods
     loadPreferences() {
         const stored = localStorage.getItem('datingPreferences');
@@ -928,7 +1204,10 @@ class ConnectHubDatingSystem {
             ageRange: { min: 22, max: 35 },
             maxDistance: 50,
             genderPreference: [],
-            interests: []
+            interests: [],
+            education: ['College Graduate', 'Masters Degree'],
+            lifestyle: { smoking: 'No', drinking: 'Socially' },
+            heightRange: { min: 150, max: 190 }
         };
     }
 
@@ -937,8 +1216,12 @@ class ConnectHubDatingSystem {
         return stored ? JSON.parse(stored) : {
             photos: [],
             bio: '',
+            age: 25,
             interests: ['Coffee', 'Hiking', 'Photography'],
-            prompts: []
+            prompts: [],
+            education: 'College Graduate',
+            height: 170,
+            lifestyle: { smoking: 'No', drinking: 'Socially' }
         };
     }
 
