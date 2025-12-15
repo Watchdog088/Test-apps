@@ -1,8 +1,12 @@
 // ========== COMPLETE FEED/POSTS SYSTEM - ALL 30 FEATURES IMPLEMENTED ==========
 // This file provides all missing Feed/Posts features with full clickable functionality
+// Integrated with Feed API Service for backend functionality
 
 (function() {
     'use strict';
+
+    // Import API service
+    const feedAPI = window.feedAPIService;
 
     // ========== ENHANCED FEED STATE MANAGEMENT ==========
     
@@ -45,6 +49,7 @@
             this.shares = data.shares || 0;
             this.views = data.views || 0;
             this.isLiked = data.isLiked || false;
+            this.likedBy = data.likedBy || [];
             this.isEdited = data.isEdited || false;
             this.isSaved = data.isSaved || false;
             this.isPinned = data.isPinned || false;
@@ -159,7 +164,8 @@
             this.setupInfiniteScroll();
             this.setupRefreshMechanism();
             this.startTimestampUpdates();
-            console.log('✓ Complete Feed System with 30 features initialized');
+            this.subscribeToRealTimeUpdates();
+            console.log('✓ Complete Feed System with 30 features + API integration initialized');
         },
 
         // ========== FEATURE 1-5: POST CREATION WITH MEDIA ==========
@@ -168,18 +174,34 @@
             window.openModal('createPost');
         },
 
-        createPost: function(postData) {
-            const newPost = new Post({
-                ...postData,
-                author: 'John Doe',
-                authorAvatar: '👤',
-                timestamp: new Date(),
-                views: Math.floor(Math.random() * 100)
-            });
-            FeedState.posts.unshift(newPost);
-            this.renderPost(newPost);
-            window.showToast('✓ Post published successfully!');
-            return newPost.id;
+        createPost: async function(postData) {
+            try {
+                // Use API service to create post with compression and storage
+                if (feedAPI) {
+                    const newPost = await feedAPI.createPost(postData);
+                    FeedState.posts.unshift(new Post(newPost));
+                    this.renderPost(new Post(newPost));
+                    window.showToast('✓ Post published successfully!');
+                    return newPost.id;
+                } else {
+                    // Fallback to local creation
+                    const newPost = new Post({
+                        ...postData,
+                        author: 'John Doe',
+                        authorAvatar: '👤',
+                        timestamp: new Date(),
+                        views: Math.floor(Math.random() * 100)
+                    });
+                    FeedState.posts.unshift(newPost);
+                    this.renderPost(newPost);
+                    window.showToast('✓ Post published successfully!');
+                    return newPost.id;
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                window.showToast('❌ Failed to create post');
+                throw error;
+            }
         },
 
         renderPost: function(post) {
@@ -199,30 +221,57 @@
         viewPhotos: function(postId) {
             const post = FeedState.posts.find(p => p.id === postId);
             if (post) {
+                // Increment view count via API
+                if (feedAPI) {
+                    feedAPI.incrementViews(postId);
+                }
                 window.showToast(`📷 Viewing ${post.photos.length} photos`);
                 window.openModal('photoViewer');
             }
         },
 
         playVideo: function(postId) {
+            // Increment view count via API
+            if (feedAPI) {
+                feedAPI.incrementViews(postId);
+            }
             window.showToast('🎥 Playing video...');
             window.openModal('videoPlayer');
         },
 
-        toggleReaction: function(postId, element) {
-            const post = FeedState.posts.find(p => p.id === postId);
-            if (!post) return;
-            
-            post.isLiked = !post.isLiked;
-            post.likes += post.isLiked ? 1 : -1;
-            
-            const icon = element.querySelector('span');
-            icon.textContent = post.isLiked ? '❤️' : '👍';
-            
-            element.style.transform = 'scale(1.2)';
-            setTimeout(() => element.style.transform = 'scale(1)', 200);
-            
-            window.showToast(post.isLiked ? '❤️ Liked!' : 'Like removed');
+        toggleReaction: async function(postId, element) {
+            try {
+                // Use API service for persistent like
+                if (feedAPI) {
+                    const result = await feedAPI.toggleLike(postId);
+                    
+                    const icon = element.querySelector('span');
+                    icon.textContent = result.isLiked ? '❤️' : '👍';
+                    
+                    element.style.transform = 'scale(1.2)';
+                    setTimeout(() => element.style.transform = 'scale(1)', 200);
+                    
+                    window.showToast(result.isLiked ? '❤️ Liked!' : 'Like removed');
+                } else {
+                    // Fallback to local toggle
+                    const post = FeedState.posts.find(p => p.id === postId);
+                    if (!post) return;
+                    
+                    post.isLiked = !post.isLiked;
+                    post.likes += post.isLiked ? 1 : -1;
+                    
+                    const icon = element.querySelector('span');
+                    icon.textContent = post.isLiked ? '❤️' : '👍';
+                    
+                    element.style.transform = 'scale(1.2)';
+                    setTimeout(() => element.style.transform = 'scale(1)', 200);
+                    
+                    window.showToast(post.isLiked ? '❤️ Liked!' : 'Like removed');
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+                window.showToast('❌ Failed to update like');
+            }
         },
 
         showReactionPicker: function(postId, event) {
@@ -232,12 +281,42 @@
 
         // ========== FEATURE 11-15: COMMENTS & SHARING ==========
         
-        openComments: function(postId) {
-            const post = FeedState.posts.find(p => p.id === postId);
-            if (post) {
-                window.currentPostForComments = postId;
-                window.openModal('comments');
-                window.showToast(`💬 ${post.comments.length} comments`);
+        openComments: async function(postId) {
+            try {
+                const post = FeedState.posts.find(p => p.id === postId);
+                if (post) {
+                    window.currentPostForComments = postId;
+                    
+                    // Load comments from API
+                    if (feedAPI) {
+                        const comments = await feedAPI.getComments(postId);
+                        post.comments = comments;
+                    }
+                    
+                    window.openModal('comments');
+                    window.showToast(`💬 ${post.comments.length} comments`);
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        },
+
+        addComment: async function(postId, text) {
+            try {
+                if (feedAPI) {
+                    const comment = await feedAPI.addComment(postId, {
+                        text: text,
+                        author: 'Current User',
+                        authorAvatar: '👤'
+                    });
+                    
+                    window.showToast('✓ Comment added!');
+                    this.renderFeed(); // Refresh to show new comment count
+                    return comment;
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                window.showToast('❌ Failed to add comment');
             }
         },
 
@@ -328,21 +407,44 @@
             }
         },
 
-        updatePost: function(postId, newData) {
-            const post = FeedState.posts.find(p => p.id === postId);
-            if (post) {
-                Object.assign(post, newData, { isEdited: true });
-                this.renderFeed();
-                window.showToast('✓ Post updated!');
+        updatePost: async function(postId, newData) {
+            try {
+                if (feedAPI) {
+                    const updatedPost = await feedAPI.updatePost(postId, newData);
+                    const index = FeedState.posts.findIndex(p => p.id === postId);
+                    if (index !== -1) {
+                        FeedState.posts[index] = new Post(updatedPost);
+                    }
+                    this.renderFeed();
+                    window.showToast('✓ Post updated!');
+                } else {
+                    const post = FeedState.posts.find(p => p.id === postId);
+                    if (post) {
+                        Object.assign(post, newData, { isEdited: true });
+                        this.renderFeed();
+                        window.showToast('✓ Post updated!');
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating post:', error);
+                window.showToast('❌ Failed to update post');
             }
         },
 
-        deletePost: function(postId) {
+        deletePost: async function(postId) {
             if (confirm('🗑️ Delete this post?')) {
-                FeedState.posts = FeedState.posts.filter(p => p.id !== postId);
-                this.renderFeed();
-                window.closeModal('postOptions');
-                window.showToast('🗑️ Post deleted');
+                try {
+                    if (feedAPI) {
+                        await feedAPI.deletePost(postId);
+                    }
+                    FeedState.posts = FeedState.posts.filter(p => p.id !== postId);
+                    this.renderFeed();
+                    window.closeModal('postOptions');
+                    window.showToast('🗑️ Post deleted');
+                } catch (error) {
+                    console.error('Error deleting post:', error);
+                    window.showToast('❌ Failed to delete post');
+                }
             }
         },
 
@@ -463,6 +565,19 @@
             window.closeModal('postOptions');
         },
 
+        // ========== REAL-TIME UPDATES ==========
+        
+        subscribeToRealTimeUpdates: function() {
+            if (feedAPI) {
+                feedAPI.subscribeToPostUpdates((posts) => {
+                    if (Array.isArray(posts)) {
+                        FeedState.posts = posts.map(p => new Post(p));
+                        this.renderFeed();
+                    }
+                });
+            }
+        },
+
         // ========== FEED RENDERING & UTILITY ==========
         
         renderFeed: function() {
@@ -548,30 +663,47 @@
             });
         },
 
-        loadMorePosts: function() {
+        loadMorePosts: async function() {
             if (FeedState.isLoading) return;
             
             FeedState.isLoading = true;
             window.showToast('Loading more posts... 📄');
 
-            setTimeout(() => {
-                const morePosts = [
-                    new Post({
-                        author: 'New User',
-                        content: 'More content here!',
-                        timestamp: new Date(Date.now() - 86400000),
-                        likes: Math.floor(Math.random() * 50),
-                        views: Math.floor(Math.random() * 200)
-                    })
-                ];
-                
-                FeedState.posts.push(...morePosts);
-                morePosts.forEach(post => this.renderPost(post));
-                
-                if (FeedState.currentPage >= 3) FeedState.hasMore = false;
-                FeedState.currentPage++;
+            try {
+                if (feedAPI) {
+                    // Use API service for pagination
+                    const morePosts = await feedAPI.loadMorePosts();
+                    morePosts.forEach(post => {
+                        FeedState.posts.push(new Post(post));
+                        this.renderPost(new Post(post));
+                    });
+                    FeedState.hasMore = feedAPI.pagination.hasMore;
+                } else {
+                    // Fallback to mock loading
+                    setTimeout(() => {
+                        const morePosts = [
+                            new Post({
+                                author: 'New User',
+                                content: 'More content here!',
+                                timestamp: new Date(Date.now() - 86400000),
+                                likes: Math.floor(Math.random() * 50),
+                                views: Math.floor(Math.random() * 200)
+                            })
+                        ];
+                        
+                        FeedState.posts.push(...morePosts);
+                        morePosts.forEach(post => this.renderPost(post));
+                        
+                        if (FeedState.currentPage >= 3) FeedState.hasMore = false;
+                        FeedState.currentPage++;
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error loading more posts:', error);
+                window.showToast('❌ Failed to load more posts');
+            } finally {
                 FeedState.isLoading = false;
-            }, 1000);
+            }
         },
 
         setupRefreshMechanism: function() {
@@ -589,14 +721,21 @@
             }, {passive: true});
         },
 
-        refreshFeed: function() {
+        refreshFeed: async function() {
             window.showToast('🔄 Refreshing feed...');
             FeedState.lastRefresh = new Date();
             
-            setTimeout(() => {
+            try {
+                if (feedAPI) {
+                    const result = await feedAPI.getFeedPosts(1, FeedState.postsPerPage);
+                    FeedState.posts = result.posts.map(p => new Post(p));
+                }
                 this.renderFeed();
                 window.showToast('✓ Feed refreshed!');
-            }, 1000);
+            } catch (error) {
+                console.error('Error refreshing feed:', error);
+                window.showToast('❌ Failed to refresh feed');
+            }
         },
 
         startTimestampUpdates: function() {
