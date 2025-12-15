@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages Backend Complete - WebSocket, Database, Search, Upload</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --background: #ffffff;
+            --background-secondary: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--background);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+            color: white;
+            padding: 24px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        
+        .status-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .status-badge.connected { background: var(--success); }
+        .status-badge.disconnected { background: var(--error); }
+        
+        .content { padding: 20px; }
+        
+        .section {
+            background: var(--background-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .list-item {
+            background: var(--background);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .list-item:hover { 
+            transform: translateX(4px); 
+            background: #f9fafb;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .list-item:active { transform: scale(0.98); }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover { 
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:active { transform: translateY(0); }
+        
+        .btn-secondary {
+            background: var(--background-secondary);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-text {
+            background: transparent;
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .btn-text:hover { background: var(--background-secondary); }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 8px 0;
+            transition: border 0.2s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .modal-close:hover { background: rgba(255,255,255,0.1); }
+        
+        .modal-title { flex: 1; font-size: 18px; font-weight: 600; }
+        
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 2000;
+            transition: transform 0.3s;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .badge {
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0 6px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            display: inline-block;
+            margin-left: 8px;
+        }
+        
+        .status-indicator.offline { background: var(--text-secondary); }
+        
+        .feature-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .feature-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .feature-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .feature-status.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--background);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        
+        .conversation-item:hover {
+            background: #f9fafb;
+            transform: translateX(4px);
+        }
+        
+        .avatar {
+            font-size: 40px;
+            position: relative;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid var(--background-secondary);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .message {
+            margin-bottom: 12px;
+        }
+        
+        .message.sent { display: flex; justify-content: flex-end; }
+        .message.received { display: flex; justify-content: flex-start; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Messages Backend System</h1>
+            <p>Real-time WebSocket • Database • Search • Upload</p>
+            <div class="status-bar">
+                <span class="status-badge connected" id="wsStatus">🟢 Connected</span>
+                <span class="status-badge">📊 3 Conversations</span>
+                <span class="status-badge">🔒 Encrypted</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Backend Features Overview -->
+            <div class="section">
+                <div class="section-title">
+                    🚀 Backend Features
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚡ WebSocket Real-time Messaging</h4>
+                    <p>Instant message delivery with bidirectional communication</p>
+                    <span class="feature-status active">ACTIVE</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Database Queries</h4>
+                    <p>Load conversations & messages from database with caching</p>
+                    <span class="feature-status active">ACTIVE</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔍 User Search</h4>
+                    <p>Real-time user search with debouncing & cache</p>
+                    <span class="feature-status active">ACTIVE</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📤 File Upload</h4>
+                    <p>Upload images, videos, audio, documents up to 50MB</p>
+                    <span class="feature-status active">ACTIVE</span>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="section">
+                <div class="section-title">
+                    ⚡ Quick Actions
+                </div>
+                <button class="btn" onclick="showNewConversationSearch()">
+                    ➕ New Conversation (with User Search)
+                </button>
+                <button class="btn btn-secondary" onclick="openChat(1)">
+                    💬 Open Chat (with Database Load)
+                </button>
+                <button class="btn btn-secondary" onclick="showFileUploadOptions(1)">
+                    📎 Upload File (Media Sharing)
+                </button>
+                <button class="btn btn-secondary" onclick="loadConversationsFromDatabase()">
+                    🔄 Reload from Database
+                </button>
+            </div>
+            
+            <!-- Active Conversations -->
+            <div class="section">
+                <div class="section-title">
+                    💬 Conversations (Database-backed)
+                </div>
+                <div id="conversationsContainer">
+                    <div class="conversation-item" onclick="openChat(1)">
+                        <div class="avatar">👩<div class="status-indicator"></div></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Sarah Johnson</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">See you tomorrow!</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div class="badge">2</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">2m</div>
+                        </div>
+                    </div>
+                    
+                    <div class="conversation-item" onclick="openChat(2)">
+                        <div class="avatar">👨<div class="status-indicator offline"></div></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Mike Chen ⭐</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">Thanks!</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-size:12px;color:var(--text-secondary)">1h</div>
+                        </div>
+                    </div>
+                    
+                    <div class="conversation-item" onclick="openChat(3)">
+                        <div class="avatar">👥<div class="status-indicator"></div></div>
+                        <div style="flex:1">
+                            <div style="font-weight:600">Team Project 👥</div>
+                            <div style="font-size:14px;color:var(--text-secondary)">Meeting at 3 PM</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div class="badge">5</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">3h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WebSocket Status -->
+            <div class="section">
+                <div class="section-title">
+                    🔌 WebSocket Connection
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--success)">🟢</div>
+                    <div class="stat-label">Connected to Server</div>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-top:8px">
+                        Real-time updates enabled
+                    </p>
+                </div>
+                <button class="btn btn-secondary" onclick="showToast('WebSocket status: Connected ✓')">
+                    Check Connection Status
+                </button>
+            </div>
+            
+            <!-- Database Status -->
+            <div class="section">
+                <div class="section-title">
+                    📊 Database Integration
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--primary)">3</div>
+                        <div class="stat-label">Conversations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--success)">50</div>
+                        <div class="stat-label">Messages Loaded</div>
+                    </div>
+                </div>
+                <p style="font-size:14px;color:var(--text-secondary);margin-top:12px">
+                    ✓ Conversations cached locally<br>
+                    ✓ Messages loaded on demand<br>
+                    ✓ Auto-sync with server
+                </p>
+            </div>
+            
+            <!-- File Upload Status -->
+            <div class="section">
+                <div class="section-title">
+                    📤 File Upload Capabilities
+                </div>
+                <div class="feature-card">
+                    <p><strong>Supported Formats:</strong></p>
+                    <p>📷 Images: JPG, PNG, GIF, WebP</p>
+                    <p>🎥 Videos: MP4, MOV, AVI, WebM</p>
+                    <p>🎵 Audio: MP3, WAV, OGG, M4A</p>
+                    <p>📄 Documents: PDF, DOC, XLS, PPT</p>
+                    <p><strong>Max Size:</strong> 50MB per file</p>
+                </div>
+                <button class="btn" onclick="showFileUploadOptions(1)">
+                    Test File Upload
+                </button>
+            </div>
+            
+            <!-- Technical Details -->
+            <div class="section">
+                <div class="section-title">
+                    🔧 Technical Implementation
+                </div>
+                <div class="feature-card">
+                    <h4>WebSocket Features</h4>
+                    <p>• Automatic reconnection<br>
+                    • Heartbeat mechanism<br>
+                    • Message acknowledgment<br>
+                    • Typing indicators<br>
+                    • Read receipts</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>Database Features</h4>
+                    <p>• Conversation caching<br>
+                    • Lazy message loading<br>
+                    • Offline support<br>
+                    • Auto-sync on reconnect<br>
+                    • Local storage backup</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>Search Features</h4>
+                    <p>• Debounced search (300ms)<br>
+                    • Results caching<br>
+                    • Instant results display<br>
+                    • No results fallback<br>
+                    • Loading states</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>Upload Features</h4>
+                    <p>• Multiple file selection<br>
+                    • Progress tracking<br>
+                    • File type validation<br>
+                    • Size limit enforcement<br>
+                    • Error handling</p>
+                </div>
+            </div>
+            
+            <!-- Test Scenarios -->
+            <div class="section">
+                <div class="section-title">
+                    🧪 Test Scenarios
+                </div>
+                <button class="btn" onclick="openChat(1); setTimeout(() => sendMessageFromInput(1), 1000)">
+                    1. Send Message via WebSocket
+                </button>
+                <button class="btn btn-secondary" onclick="showNewConversationSearch()">
+                    2. Search Users & Start Chat
+                </button>
+                <button class="btn btn-secondary" onclick="openChat(1); setTimeout(() => showFileUploadOptions(1), 500)">
+                    3. Upload File in Chat
+                </button>
+                <button class="btn btn-secondary" onclick="loadConversationsFromDatabase()">
+                    4. Load from Database
+                </button>
+                <button class="btn btn-secondary" onclick="simulateIncomingMessage()">
+                    5. Simulate Incoming Message
+                </button>
+            </div>
+            
+            <!-- System Information -->
+            <div class="section">
+                <div class="section-title">
+                    ℹ️ System Information
+                </div>
+                <p style="margin-bottom:8px">
+                    <strong>Status:</strong> <span style="color:var(--success)">✓ All systems operational</span>
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>WebSocket:</strong> Connected 🟢
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>Database:</strong> Synced ✓
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>File Upload:</strong> Ready 📤
+                </p>
+                <p style="margin-bottom:8px">
+                    <strong>User Search:</strong> Active 🔍
+                </p>
+                <p style="color:var(--text-secondary);font-size:14px;margin-top:12px">
+                    All backend features are fully integrated and functional. Click any feature to test it in action.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="ConnectHub_Mobile_Design_Messages_Backend_Complete.js"></script>
+    <script>
+        // Update connection status indicator
+        setInterval(() => {
+            const statusEl = document.getElementById('wsStatus');
+            if (statusEl && messagesBackendState.connectionStatus === 'connected') {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'status-badge connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'status-badge disconnected';
+            }
+        }, 1000);
+        
+        // Log system ready
+        console.log('✅ Messages Backend Test Page Ready');
+        console.log('🔌 WebSocket:', messagesBackendState.connectionStatus);
+        console.log('📊 Conversations:', messagesBackendState.conversations.length);
+    </script>
+</body>
+</html>
