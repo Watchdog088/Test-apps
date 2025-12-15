@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ConnectHub - Search System (Backend Integrated)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* Top Search Bar */
+        .search-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 12px 16px;
+        }
+
+        .search-bar-container {
+            position: relative;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 12px 16px;
+            transition: all 0.3s;
+        }
+
+        .search-bar.focused {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-clear {
+            font-size: 18px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+        }
+
+        .search-clear.show {
+            display: block;
+        }
+
+        .voice-search {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            background: var(--bg-primary);
+            position: sticky;
+            top: 64px;
+            z-index: 90;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+        }
+
+        .filter-tab:active {
+            transform: scale(0.95);
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            z-index: 200;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: var(--glass);
+        }
+
+        .autocomplete-icon {
+            font-size: 24px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .autocomplete-content {
+            flex: 1;
+        }
+
+        .autocomplete-text {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .autocomplete-subtext {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Content Area */
+        .content {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-link {
+            font-size: 14px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* List Items */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .list-item-icon {
+            font-size: 24px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-item-action {
+            font-size: 18px;
+            color: var(--text-muted);
+            padding: 8px;
+        }
+
+        /* Result Cards */
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-card:active {
+            transform: scale(0.98);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .result-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .result-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-verified {
+            background: rgba(79, 70, 229, 0.2);
+            color: var(--primary);
+        }
+
+        .badge-trending {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            max-width: 90%;
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-content {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Chips */
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Loading Indicator */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Search Header -->
+        <div class="search-header">
+            <div class="search-bar-container">
+                <div class="search-bar" id="searchBar">
+                    <div class="search-icon">🔍</div>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput"
+                        placeholder="Search ConnectHub..."
+                        autocomplete="off"
+                    >
+                    <div class="search-clear" id="searchClear">✕</div>
+                    <div class="voice-search" id="voiceSearch">🎤</div>
+                </div>
+
+                <!-- Autocomplete Dropdown -->
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs" id="filterTabs">
+            <div class="filter-tab active" data-filter="all">All</div>
+            <div class="filter-tab" data-filter="users">👤 People</div>
+            <div class="filter-tab" data-filter="posts">📝 Posts</div>
+            <div class="filter-tab" data-filter="groups">👥 Groups</div>
+            <div class="filter-tab" data-filter="events">📅 Events</div>
+            <div class="filter-tab" data-filter="marketplace">🛍️ Shop</div>
+            <div class="filter-tab" data-filter="hashtags">#️⃣ Tags</div>
+            <div class="filter-tab" data-filter="locations">📍 Places</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Search Analytics -->
+            <div id="searchAnalytics" style="display: none;">
+                <div class="section-header">
+                    <div class="section-title">📊 Search Analytics</div>
+                    <div class="section-link" id="hideAnalytics">Close</div>
+                </div>
+                <div class="stats-grid" id="analyticsStats"></div>
+            </div>
+
+            <!-- Default View (No Search) -->
+            <div id="defaultView">
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+
+                <div class="list-item" id="openAdvancedSearch">
+                    <div class="list-item-icon">🔧</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Advanced Search</div>
+                        <div class="list-item-subtitle">Use filters & criteria</div>
+                    </div>
+                    <div class="list-item-action">→</div>
+                </div>
+
+                <div class="list-item" id="showSavedSearches">
+                    <div class="list-item-icon">💾</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Saved Searches</div>
+                        <div class="list-item-subtitle" id="savedSearchCount">0 saved</div>
+                    </div>
+                    <div class="list-item-action">→</div>
+                </div>
+
+                <div class="list-item" id="viewAnalytics">
+                    <div class="list-item-icon">📊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Search Analytics</div>
+                        <div class="list-item-subtitle">View your search stats</div>
+                    </div>
+                    <div class="list-item-action">→</div>
+                </div>
+
+                <div class="list-item" id="searchNearby">
+                    <div class="list-item-icon">📍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Search Nearby</div>
+                        <div class="list-item-subtitle">Find things around you</div>
+                    </div>
+                    <div class="list-item-action">→</div>
+                </div>
+
+                <!-- Recent Searches -->
+                <div class="section-header">
+                    <div class="section-title">🕐 Recent Searches</div>
+                    <div class="section-link" id="clearAllHistory">Clear All</div>
+                </div>
+                <div id="recentSearches"></div>
+
+                <!-- Trending Searches -->
+                <div class="section-header">
+                    <div class="section-title">🔥 Trending Searches</div>
+                </div>
+                <div id="trendingSearches"></div>
+            </div>
+
+            <!-- Search Results View -->
+            <div id="searchResults" style="display: none;">
+                <div class="section-header">
+                    <div class="section-title" id="resultsTitle">Results</div>
+                    <div class="section-link" id="saveCurrentSearch">💾 Save</div>
+                </div>
+                <div id="resultsContainer"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" style="display: none;">
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">No results found</div>
+                    <div class="empty-subtitle">Try different keywords or filters</div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" style="display: none;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 12px;">Searching...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Search Modal -->
+        <div class="modal" id="advancedSearchModal">
+            <div class="modal-header">
+                <div class="modal-close" id="closeAdvancedSearch">✕</div>
+                <div class="modal-title">Advanced Search</div>
+                <div class="section-link" id="applyAdvancedSearch">Apply</div>
+            </div>
+            <div class="modal-content">
+                <div class="form-group">
+                    <label class="form-label">Search Query</label>
+                    <input type="text" class="form-input" id="advancedQuery" placeholder="Enter keywords...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Content Type</label>
+                    <div class="chips-container" id="typeChips">
+                        <div class="chip active" data-type="all">All</div>
+                        <div class="chip" data-type="users">People</div>
+                        <div class="chip" data-type="posts">Posts</div>
+                        <div class="chip" data-type="groups">Groups</div>
+                        <div class="chip" data-type="events">Events</div>
+                        <div class="chip" data-type="marketplace">Marketplace</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="advancedLocation" placeholder="Enter location...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sort By</label>
+                    <div class="chips-container" id="sortChips">
+                        <div class="chip active" data-sort="relevance">Relevance</div>
+                        <div class="chip" data-sort="recent">Most Recent</div>
+                        <div class="chip" data-sort="popular">Most Popular</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Distance (km)</label>
+                    <input type="number" class="form-input" id="advancedRadius" placeholder="25" value="25">
+                </div>
+
+                <button class="btn" id="applyAdvancedSearchBtn">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Saved Searches Modal -->
+        <div class="modal" id="savedSearchesModal">
+            <div class="modal-header">
+                <div class="modal-close" id="closeSavedSearches">✕</div>
+                <div class="modal-title">Saved Searches</div>
+            </div>
+            <div class="modal-content" id="savedSearchesContent"></div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <!-- Load API Service First -->
+    <script src="ConnectHub-Frontend/src/services/search-api-service.js"></script>
+    
+    <!-- Load Backend-Integrated Search System -->
+    <script src="ConnectHub_Mobile_Design_Search_System_Backend_Complete.js"></script>
+
+    <!-- UI Controller -->
+    <script>
+        // Global UI functions
+        window.showToast = function(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        };
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing Search UI...');
+            
+            // Setup search input
+            setupSearchInput();
+            
+            // Setup filter tabs
+            setupFilterTabs();
+            
+            // Setup quick actions
+            setupQuickActions();
+            
+            // Setup advanced search chips
+            setupAdvancedSearchChips();
+            
+            // Load initial data
+            await loadInitialData();
+            
+            console.log('✅ Search UI Ready');
+        });
+
+        // Search Input Setup
+        function setupSearchInput() {
+            const input = document.getElementById('searchInput');
+            const searchBar = document.getElementById('searchBar');
+            const clearBtn = document.getElementById('searchClear');
+            let searchTimeout = null;
+
+            input.addEventListener('focus', () => {
+                searchBar.classList.add('focused');
+            });
+
+            input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    searchBar.classList.remove('focused');
+                    document.getElementById('autocompleteDropdown').classList.remove('show');
+                }, 200);
+            });
+
+            input.addEventListener('input', (e) => {
+                const query = e.target.value;
+                
+                clearBtn.classList.toggle('show', query.length > 0);
+
+                clearTimeout(searchTimeout);
+
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        showAutocomplete(query);
+                    }, 300);
+                } else {
+                    document.getElementById('autocompleteDropdown').classList.remove('show');
+                    if (query.length === 0) {
+                        showDefaultView();
+                    }
+                }
+            });
+
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch(input.value);
+                }
+            });
+
+            clearBtn.addEventListener('click', clearSearch);
+            document.getElementById('voiceSearch').addEventListener('click', voiceSearch);
+        }
+
+        // Autocomplete
+        async function showAutocomplete(query) {
+            const suggestions = await window.searchSystemBackend.getAutocompleteSuggestions(query);
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            if (suggestions.length === 0) {
+                dropdown.classList.remove('show');
+                return;
+            }
+
+            dropdown.innerHTML = suggestions.map(item => `
+                <div class="autocomplete-item" onclick="selectAutocomplete('${item.text.replace(/'/g, "\\'")}', '${item.type}')">
+                    <div class="autocomplete-icon">${item.icon}</div>
+                    <div class="autocomplete-content">
+                        <div class="autocomplete-text">${item.text}</div>
+                        <div class="autocomplete-subtext">${item.subtext}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            dropdown.classList.add('show');
+        }
+
+        function selectAutocomplete(text, type) {
+            document.getElementById('searchInput').value = text;
+            document.getElementById('autocompleteDropdown').classList.remove('show');
+            performSearch(text);
+        }
+
+        // Search Functions
+        async function performSearch(query) {
+            if (!query || query.length < 2) {
+                showDefaultView();
+                return;
+            }
+
+            showLoadingState();
+            
+            const results = await window.searchSystemBackend.performSearch(query);
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+            const title = document.getElementById('resultsTitle');
+            
+            hideLoadingState();
+            document.getElementById('defaultView').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'block';
+
+            title.textContent = `${results.total} Results`;
+
+            if (results.total === 0) {
+                document.getElementById('searchResults').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+
+            let html = '';
+
+            // Display Users
+            if (results.users && results.users.length > 0) {
+                html += '<div class="section-header"><div class="section-title">👤 People</div></div>';
+                results.users.forEach(user => {
+                    html += `
+                        <div class="result-card" onclick="window.searchSystemBackend.navigationHandlers.openUserProfile(${user.id})">
+                            <div class="result-header">
+                                <div class="result-avatar">👤</div>
+                                <div class="result-info">
+                                    <div class="result-name">
+                                        ${user.name}
+                                        ${user.verified ? '<span class="result-badge badge-verified">✓ Verified</span>' : ''}
+                                    </div>
+                                    <div class="result-meta">${user.username} • ${user.location}</div>
+                                    <div class="result-stats">
+                                        <span>${user.followers.toLocaleString()} followers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Posts
+            if (results.posts && results.posts.length > 0) {
+                html += '<div class="section-header"><div class="section-title">📝 Posts</div></div>';
+                results.posts.forEach(post => {
+                    html += `
+                        <div class="result-card" onclick="window.searchSystemBackend.navigationHandlers.openPost(${post.id})">
+                            <div class="result-info">
+                                <div class="result-name">${post.text}</div>
+                                <div class="result-stats">
+                                    <span>❤️ ${post.likes} likes</span>
+                                    <span>${post.hashtags.map(t => '#' + t).join(' ')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Groups
+            if (results.groups && results.groups.length > 0) {
+                html += '<div class="section-header"><div class="section-title">👥 Groups</div></div>';
+                results.groups.forEach(group => {
+                    html += `
+                        <div class="result-card" onclick="window.searchSystemBackend.navigationHandlers.openGroup(${group.id})">
+                            <div class="result-header">
+                                <div class="result-avatar">👥</div>
+                                <div class="result-info">
+                                    <div class="result-name">${group.name}</div>
+                                    <div class="result-meta">${group.description}</div>
+                                    <div class="result-stats">
+                                        <span>${group.members.toLocaleString()} members</span>
+                                        <span>${group.category}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Events
+            if (results.events && results.events.length > 0) {
+                html += '<div class="section-header"><div class="section-title">📅 Events</div></div>';
+                results.events.forEach(event => {
+                    html += `
+                        <div class="result-card" onclick="window.searchSystemBackend.navigationHandlers.openEvent(${event.id})">
+                            <div class="result-header">
+                                <div class="result-avatar">📅</div>
+                                <div class="result-info">
+                                    <div class="result-name">${event.name}</div>
+                                    <div class="result-meta">${event.location} • ${event.date}</div>
+                                    <div class="result-stats">
+                                        <span>${event.attendees.toLocaleString()} attending</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Marketplace
+            if (results.marketplace && results.marketplace.length > 0) {
+                html += '<div class="section-header"><div class="section-title">🛍️ Marketplace</div></div>';
+                results.marketplace.forEach(item => {
+                    html += `
+                        <div class="result-card" onclick="window.searchSystemBackend.navigationHandlers.openMarketplace(${item.id})">
+                            <div class="result-header">
+                                <div class="result-avatar">🛍️</div>
+                                <div class="result-info">
+                                    <div class="result-name">${item.title}</div>
+                                    <div class="result-meta">$${item.price} • ${item.location}</div>
+                                    <div class="result-stats">
+                                        <span>⭐ ${item.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Hashtags
+            if (results.hashtags && results.hashtags.length > 0) {
+                html += '<div class="section-header"><div class="section-title">#️⃣ Hashtags</div></div>';
+                results.hashtags.forEach(hashtag => {
+                    html += `
+                        <div class="list-item" onclick="window.searchSystemBackend.navigationHandlers.searchHashtag('${hashtag.tag}')">
+                            <div class="list-item-icon">#️⃣</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">#${hashtag.tag}</div>
+                                <div class="list-item-subtitle">${hashtag.count.toLocaleString()} posts</div>
+                            </div>
+                            ${hashtag.trending ? '<div class="result-badge badge-trending">🔥 Trending</div>' : ''}
+                            <div class="list-item-action">→</div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display Locations
+            if (results.locations && results.locations.length > 0) {
+                html += '<div class="section-header"><div class="section-title">📍 Locations</div></div>';
+                results.locations.forEach(location => {
+                    html += `
+                        <div class="list-item" onclick="window.searchSystemBackend.navigationHandlers.searchLocation('${location.name}')">
+                            <div class="list-item-icon">📍</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">${location.name}</div>
+                                <div class="list-item-subtitle">${location.country}</div>
+                            </div>
+                            <div class="list-item-action">→</div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // View Management
+        function showDefaultView() {
+            document.getElementById('defaultView').style.display = 'block';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('searchAnalytics').style.display = 'none';
+        }
+
+        function showLoadingState() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('defaultView').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function hideLoadingState() {
+            document.getElementById('loadingState').style.display = 'none';
+        }
+
+        // Filter Functions
+        function setupFilterTabs() {
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', async (e) => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    const filter = e.target.dataset.filter;
+                    const query = document.getElementById('searchInput').value;
+                    
+                    if (query.length >= 2) {
+                        showLoadingState();
+                        const results = await window.searchSystemBackend.performSearch(query, { type: filter });
+                        displayResults(results);
+                    }
+                });
+            });
+        }
+
+        // Clear Search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchClear').classList.remove('show');
+            document.getElementById('autocompleteDropdown').classList.remove('show');
+            showDefaultView();
+        }
+
+        // Voice Search
+        function voiceSearch() {
+            showToast('🎤 Voice search coming soon!');
+        }
+
+        // Quick Actions Setup
+        function setupQuickActions() {
+            document.getElementById('openAdvancedSearch').addEventListener('click', () => {
+                document.getElementById('advancedSearchModal').classList.add('show');
+            });
+
+            document.getElementById('closeAdvancedSearch').addEventListener('click', () => {
+                document.getElementById('advancedSearchModal').classList.remove('show');
+            });
+
+            document.getElementById('showSavedSearches').addEventListener('click', async () => {
+                await loadSavedSearches();
+                document.getElementById('savedSearchesModal').classList.add('show');
+            });
+
+            document.getElementById('closeSavedSearches').addEventListener('click', () => {
+                document.getElementById('savedSearchesModal').classList.remove('show');
+            });
+
+            document.getElementById('viewAnalytics').addEventListener('click', async () => {
+                await window.searchSystemBackend.displayAnalytics();
+            });
+
+            document.getElementById('hideAnalytics').addEventListener('click', () => {
+                document.getElementById('searchAnalytics').style.display = 'none';
+                showDefaultView();
+            });
+
+            document.getElementById('searchNearby').addEventListener('click', () => {
+                window.searchSystemBackend.navigationHandlers.searchNearby();
+            });
+
+            document.getElementById('clearAllHistory').addEventListener('click', async () => {
+                await window.searchSystemBackend.clearSearchHistory();
+                await loadRecentSearches();
+                showToast('✅ Search history cleared');
+            });
+
+            document.getElementById('saveCurrentSearch').addEventListener('click', async () => {
+                const query = window.searchSystemBackend.state.currentQuery;
+                if (!query) {
+                    showToast('❌ No active search to save');
+                    return;
+                }
+                await window.searchSystemBackend.saveSearch(query, window.searchSystemBackend.state.currentFilters);
+                showToast('✅ Search saved successfully');
+            });
+
+            document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
+            document.getElementById('applyAdvancedSearchBtn').addEventListener('click', applyAdvancedSearch);
+        }
+
+        // Advanced Search
+        function setupAdvancedSearchChips() {
+            document.querySelectorAll('#typeChips .chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('#sortChips .chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('#sortChips .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                });
+            });
+        }
+
+        async function applyAdvancedSearch() {
+            const query = document.getElementById('advancedQuery').value;
+            const type = document.querySelector('#typeChips .chip.active').dataset.type;
+            const location = document.getElementById('advancedLocation').value;
+            const sortBy = document.querySelector('#sortChips .chip.active').dataset.sort;
+            const radius = parseInt(document.getElementById('advancedRadius').value) || 25;
+
+            if (!query || query.length < 2) {
+                showToast('❌ Please enter a search query');
+                return;
+            }
+
+            const criteria = {
+                query,
+                type,
+                location: location || null,
+                sortBy,
+                radius
+            };
+
+            document.getElementById('advancedSearchModal').classList.remove('show');
+            document.getElementById('searchInput').value = query;
+            
+            showLoadingState();
+            const results = await window.searchSystemBackend.performAdvancedSearch(criteria);
+            displayResults(results);
+            showToast('✅ Applied advanced search');
+        }
+
+        // Load Initial Data
+        async function loadInitialData() {
+            await loadRecentSearches();
+            await loadTrendingSearches();
+            await updateSavedSearchCount();
+        }
+
+        async function loadRecentSearches() {
+            const history = await window.searchSystemBackend.getSearchHistory();
+            const container = document.getElementById('recentSearches');
+
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-subtitle">No recent searches</div></div>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => `
+                <div class="list-item" onclick="performSearch('${item.query.replace(/'/g, "\\'")}')">
+                    <div class="list-item-icon">🕐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${item.query}</div>
+                        <div class="list-item-subtitle">${new Date(item.timestamp).toLocaleDateString()}</div>
+                    </div>
+                    <div class="list-item-action" onclick="event.stopPropagation(); deleteHistoryItem('${item.query.replace(/'/g, "\\'")}')">✕</div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteHistoryItem(query) {
+            await window.searchSystemBackend.deleteSearchHistoryItem(query);
+            await loadRecentSearches();
+            showToast('✅ Item removed');
+        }
+
+        async function loadTrendingSearches() {
+            const trending = await window.searchSystemBackend.getTrendingSearches();
+            const container = document.getElementById('trendingSearches');
+
+            if (!trending || trending.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-subtitle">No trending searches</div></div>';
+                return;
+            }
+
+            container.innerHTML = trending.map(item => `
+                <div class="list-item" onclick="performSearch('${item.query.replace(/'/g, "\\'")}')">
+                    <div class="list-item-icon">🔥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${item.query}</div>
+                        <div class="list-item-subtitle">${item.count.toLocaleString()} searches</div>
+                    </div>
+                    ${item.trending ? '<div class="result-badge badge-trending">🔥 Trending</div>' : ''}
+                    <div class="list-item-action">→</div>
+                </div>
+            `).join('');
+        }
+
+        async function updateSavedSearchCount() {
+            const saved = await window.searchSystemBackend.getSavedSearches();
+            document.getElementById('savedSearchCount').textContent = `${saved.length} saved`;
+        }
+
+        async function loadSavedSearches() {
+            const saved = await window.searchSystemBackend.getSavedSearches();
+            const container = document.getElementById('savedSearchesContent');
+
+            if (!saved || saved.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-subtitle">No saved searches</div></div>';
+                return;
+            }
+
+            container.innerHTML = saved.map(search => `
+                <div class="list-item" onclick="loadSavedSearch(${search.id})">
+                    <div class="list-item-icon">💾</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${search.query}</div>
+                        <div class="list-item-subtitle">${new Date(search.timestamp).toLocaleDateString()}</div>
+                    </div>
+                    <div class="list-item-action" onclick="event.stopPropagation(); toggleNotifications(${search.id})">
+                        ${search.notificationsEnabled ? '🔔' : '🔕'}
+                    </div>
+                    <div class="list-item-action" onclick="event.stopPropagation(); deleteSavedSearch(${search.id})">✕</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadSavedSearch(searchId) {
+            const saved = (await window.searchSystemBackend.getSavedSearches()).find(s => s.id === searchId);
+            if (saved) {
+                document.getElementById('searchInput').value = saved.query;
+                showLoadingState();
+                const results = await window.searchSystemBackend.performSearch(saved.query, saved.filters);
+                displayResults(results);
+                document.getElementById('savedSearchesModal').classList.remove('show');
+            }
+        }
+
+        async function deleteSavedSearch(searchId) {
+            await window.searchSystemBackend.deleteSavedSearch(searchId);
+            await updateSavedSearchCount();
+            await loadSavedSearches();
+            showToast('✅ Saved search deleted');
+        }
+
+        async function toggleNotifications(searchId) {
+            const result = await window.searchSystemBackend.toggleSearchNotifications(searchId);
+            await loadSavedSearches();
+            showToast(result.message);
+        }
+    </script>
+</body>
+</html>
