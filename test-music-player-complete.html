@@ -550,14 +550,17 @@
                 <button class="btn btn-primary" onclick="musicPlayer.getRecommendations()">🎯 Recommendations</button>
                 <button class="btn btn-primary" onclick="musicPlayer.toggleCrossfade()">🔄 Toggle Crossfade</button>
                 <button class="btn btn-secondary" onclick="musicPlayer.showEqualizerModal()">🎛️ Equalizer</button>
-                <button class="btn btn-secondary" onclick="setSleepTimerUI()">⏰ Sleep Timer</button>
-                <button class="btn btn-primary" onclick="musicPlayer.syncLibrary()">☁️ Sync Library</button>
+                <button class="btn btn-secondary" onclick="openSleepTimerDashboard()">⏰ Sleep Timer Dashboard</button>
+                <button class="btn btn-primary" onclick="openCrossfadeDashboard()">🔄 Crossfade Dashboard</button>
+                <button class="btn btn-primary" onclick="openLibrarySyncDashboard()">☁️ Library Sync Dashboard</button>
+                <button class="btn btn-primary" onclick="musicPlayer.syncLibrary()">☁️ Quick Sync</button>
                 <button class="btn btn-primary" onclick="musicPlayer.showRecentlyPlayed()">⏮️ Recently Played</button>
             </div>
         </div>
     </div>
 
     <script src="ConnectHub_Mobile_Design_Media_Hub_Complete.js"></script>
+    <script src="ConnectHub_Music_Player_Dashboards_Complete.js"></script>
     <script>
         // Toast notification system
         function showToast(message) {

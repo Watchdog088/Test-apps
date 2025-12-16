@@ -1463,7 +1463,7 @@ class VideoCallsSystem {
 }
 
 // Initialize the system
-let videoCallsSystem;
+window.videoCallsSystem = null;
 document.addEventListener('DOMContentLoaded', () => {
-    videoCallsSystem = new VideoCallsSystem();
+    window.videoCallsSystem = new VideoCallsSystem();
 });
