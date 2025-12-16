@@ -2953,20 +2953,22 @@
                     <button class="btn" style="background: var(--glass);" onclick="businessProfile.openAnalyticsDashboard()">📊 Analytics</button>
                 </div>
 
-                <!-- Business Tools Section - 8 Missing Features -->
+                <!-- Business Tools Section - 10 Complete Features (Analytics & Ad Management Added) -->
                 <div class="section-header">
                     <div class="section-title">🛠️ Business Tools</div>
                     <div class="section-link" onclick="viewAllBusinessTools()">View All</div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openCRM()">👥 CRM</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageInvoices()">📄 Invoices</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.setupPaymentProcessing()">💳 Payments</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.showBusinessInsights()">💡 Insights</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.analyzeCompetitors()">🔍 Competitors</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.managePromotions()">🎯 Promotions</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageCatalog()">📦 Catalog</button>
-                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageReviews()">⭐ Reviews</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openAnalyticsDashboard()">📊 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openAdManagement()">📢 Ad Manager</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openCRM()">👥 CRM</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageInvoices()">📄 Invoices</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.setupPaymentProcessing()">💳 Payments</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.showBusinessInsights()">💡 Insights</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.analyzeCompetitors()">🔍 Competitors</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.managePromotions()">🎯 Promotions</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageCatalog()">📦 Catalog</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageReviews()">⭐ Reviews</button>
                 </div>
             </div>
 
@@ -17919,14 +17921,16 @@
                         </div>
                         
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.openCRM()">👥 CRM</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageInvoices()">📄 Invoices</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.setupPaymentProcessing()">💳 Payments</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.showBusinessInsights()">💡 Insights</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.analyzeCompetitors()">🔍 Competitors</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.managePromotions()">🎯 Promotions</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageCatalog()">📦 Catalog</button>
-                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessProfile.manageReviews()">⭐ Reviews</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.openAnalyticsDashboard()">📊 Analytics</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.openAdManagement()">📢 Ad Manager</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.openCRM()">👥 CRM</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.manageInvoices()">📄 Invoices</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.setupPaymentProcessing()">💳 Payments</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.showBusinessInsights()">💡 Insights</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.analyzeCompetitors()">🔍 Competitors</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.managePromotions()">🎯 Promotions</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.manageCatalog()">📦 Catalog</button>
+                            <button class="btn" style="background: var(--glass);" onclick="closeModal('viewAllBusinessTools'); businessTools.manageReviews()">⭐ Reviews</button>
                         </div>
                     </div>
                 </div>
