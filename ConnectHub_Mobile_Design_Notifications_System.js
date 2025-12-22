@@ -311,7 +311,21 @@ class NotificationsSystem {
                 'groups': { id: 'groups-screen', tab: 'groups' },
                 'marketplace': { id: 'marketplace-screen', tab: 'marketplace' },
                 'dating': { id: 'dating-screen', tab: 'dating' },
-                'settings': { id: 'settings-screen', tab: 'settings' }
+                'settings': { id: 'settings-screen', tab: 'settings' },
+                'menu': { id: 'menu-screen', tab: 'menu' },
+                'saved': { id: 'saved-screen', tab: 'saved' },
+                'trending': { id: 'trending-screen', tab: 'trending' },
+                'stories': { id: 'stories-screen', tab: 'stories' },
+                'live': { id: 'live-screen', tab: 'live' },
+                'media': { id: 'media-screen', tab: 'media' },
+                'musicPlayer': { id: 'musicPlayer-screen', tab: 'musicPlayer' },
+                'liveStreaming': { id: 'liveStreaming-screen', tab: 'liveStreaming' },
+                'videoCalls': { id: 'videoCalls-screen', tab: 'videoCalls' },
+                'arVR': { id: 'arVR-screen', tab: 'arVR' },
+                'business': { id: 'business-screen', tab: 'business' },
+                'creator': { id: 'creator-screen', tab: 'creator' },
+                'premium': { id: 'premium-screen', tab: 'premium' },
+                'help': { id: 'help-screen', tab: 'help' }
             };
             
             const screen = screenMap[screenName];
@@ -346,10 +360,20 @@ class NotificationsSystem {
             }
         };
         
-        // Create global modal opening function
+        // Create global modal opening function that works with HTML's existing modals
         window.openModal = (modalName, data) => {
             console.log(`🔀 Opening modal: ${modalName}`, data);
             
+            // First, try to find the modal in the HTML
+            const modalElement = document.getElementById(modalName + 'Modal');
+            if (modalElement) {
+                // Use the HTML's existing modal
+                modalElement.classList.add('show');
+                console.log(`✓ Opened HTML modal: ${modalName}Modal`);
+                return;
+            }
+            
+            // If not found in HTML, use custom modal handlers
             const modalActions = {
                 'comments': () => this.openCommentsModal(data),
                 'viewEvent': () => this.openEventModal(data),
@@ -366,8 +390,8 @@ class NotificationsSystem {
             if (action) {
                 action();
             } else {
-                console.log(`Modal "${modalName}" handler not found`);
-                this.createGenericModal(modalName, data);
+                console.log(`Modal "${modalName}" not found - attempting to use HTML function`);
+                // Don't create generic modal - the HTML has its own system
             }
         };
     }
