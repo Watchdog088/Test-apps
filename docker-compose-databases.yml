@@ -1,0 +1,207 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PostgreSQL - Relational Database (Primary Data Store)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: connecthub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: connecthub
+      POSTGRES_PASSWORD: connecthub_secure_password_2024
+      POSTGRES_DB: connecthub
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./ConnectHub-Backend/prisma:/prisma
+    networks:
+      - connecthub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U connecthub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # MongoDB - Document/NoSQL Database (Analytics & Flexible Data)
+  # ============================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: connecthub-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: connecthub
+      MONGO_INITDB_ROOT_PASSWORD: connecthub_mongo_password_2024
+      MONGO_INITDB_DATABASE: connecthub
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - connecthub-network
+    command: mongod --auth
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/connecthub --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Neo4j - Graph Database (Social Connections & Relationships)
+  # ============================================================================
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: connecthub-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/connecthub_neo4j_password_2024
+      NEO4J_dbms_memory_pagecache_size: 1G
+      NEO4J_dbms.memory.heap.initial_size: 1G
+      NEO4J_dbms_memory_heap_max__size: 2G
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_whitelist: apoc.*
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    networks:
+      - connecthub-network
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p connecthub_neo4j_password_2024 'RETURN 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Redis - In-Memory Key-Value Store (Caching & Real-time)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: connecthub-redis
+    restart: unless-stopped
+    command: redis-server --requirepass connecthub_redis_password_2024 --maxmemory 2gb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - connecthub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # LocalStack - AWS S3 Local Development (Blob Storage)
+  # ============================================================================
+  localstack:
+    image: localstack/localstack:latest
+    container_name: connecthub-localstack
+    restart: unless-stopped
+    environment:
+      SERVICES: s3
+      DEBUG: 1
+      DATA_DIR: /tmp/localstack/data
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"  # LocalStack Gateway
+      - "4571:4571"  # S3
+    volumes:
+      - localstack_data:/tmp/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - connecthub-network
+
+  # ============================================================================
+  # PgAdmin - PostgreSQL Management UI
+  # ============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: connecthub-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@connecthub.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - connecthub-network
+    depends_on:
+      - postgres
+
+  # ============================================================================
+  # Mongo Express - MongoDB Management UI
+  # ============================================================================
+  mongo-express:
+    image: mongo-express:latest
+    container_name: connecthub-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: connecthub
+      ME_CONFIG_MONGODB_ADMINPASSWORD: connecthub_mongo_password_2024
+      ME_CONFIG_MONGODB_URL: mongodb://connecthub:connecthub_mongo_password_2024@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    networks:
+      - connecthub-network
+    depends_on:
+      - mongodb
+
+  # ============================================================================
+  # Redis Commander - Redis Management UI
+  # ============================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: connecthub-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:connecthub_redis_password_2024
+    ports:
+      - "8082:8081"
+    networks:
+      - connecthub-network
+    depends_on:
+      - redis
+
+networks:
+  connecthub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+  redis_data:
+    driver: local
+  localstack_data:
+    driver: local
+  pgadmin_data:
+    driver: local

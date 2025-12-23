@@ -1,0 +1,703 @@
+// Enhanced PostgreSQL Schema for ConnectHub - Production Ready
+// Relational Database: PostgreSQL with Prisma ORM
+// This handles structured transactional data with ACID compliance
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// SECURITY & AUTHENTICATION MODELS
+// ============================================================================
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  username          String   @unique
+  password          String   // Bcrypt hashed
+  firstName         String?
+  lastName          String?
+  phoneNumber       String?  @unique
+  dateOfBirth       DateTime?
+  gender            String?
+  
+  // Security Fields
+  emailVerified     Boolean  @default(false)
+  phoneVerified     Boolean  @default(false)
+  twoFactorEnabled  Boolean  @default(false)
+  twoFactorSecret   String?
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+  
+  // Account Status
+  isActive          Boolean  @default(true)
+  isSuspended       Boolean  @default(false)
+  isDeleted         Boolean  @default(false)
+  deletedAt         DateTime?
+  suspendedAt       DateTime?
+  suspendedReason   String?
+  
+  // Profile Fields
+  bio               String?
+  avatar            String?
+  coverPhoto        String?
+  location          String?
+  website           String?
+  occupation        String?
+  education         String?
+  
+  // Privacy Settings
+  profileVisibility String   @default("public") // public, friends, private
+  onlineStatus      Boolean  @default(true)
+  showLastSeen      Boolean  @default(true)
+  
+  // Premium Features
+  isPremium         Boolean  @default(false)
+  premiumExpiry     DateTime?
+  isVerified        Boolean  @default(false)
+  verifiedAt        DateTime?
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  posts             Post[]
+  comments          Comment[]
+  likes             Like[]
+  messages          Message[] @relation("UserMessages")
+  sentMessages      Message[] @relation("SentMessages")
+  followers         Follow[]  @relation("Following")
+  following         Follow[]  @relation("Followers")
+  stories           Story[]
+  groups            GroupMember[]
+  events            EventAttendee[]
+  datingProfile     DatingProfile?
+  businessProfile   BusinessProfile?
+  creatorProfile    CreatorProfile?
+  sessions          Session[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  savedPosts        SavedPost[]
+  reportsMade       Report[]  @relation("Reporter")
+  reportsReceived   Report[]  @relation("Reported")
+  
+  @@index([email])
+  @@index([username])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Session {
+  id                String   @id @default(uuid())
+  userId            String
+  token             String   @unique
+  deviceInfo        String?
+  ipAddress         String?
+  userAgent         String?
+  location          String?
+  isActive          Boolean  @default(true)
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+  lastActivityAt    DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditLog {
+  id                String   @id @default(uuid())
+  userId            String?
+  action            String   // login, logout, create_post, etc.
+  entityType        String?  // user, post, message, etc.
+  entityId          String?
+  ipAddress         String?
+  userAgent         String?
+  metadata          Json?
+  severity          String   @default("info") // info, warning, error, critical
+  createdAt         DateTime @default(now())
+  
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([severity])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// SOCIAL MEDIA MODELS
+// ============================================================================
+
+model Post {
+  id                String   @id @default(uuid())
+  userId            String
+  content           String?
+  mediaUrls         String[] // Array of media URLs
+  mediaType         String?  // photo, video, mixed
+  location          String?
+  privacy           String   @default("public") // public, friends, private, custom
+  isSponsored       Boolean  @default(false)
+  
+  // Engagement Metrics (cached from MongoDB)
+  likesCount        Int      @default(0)
+  commentsCount     Int      @default(0)
+  sharesCount       Int      @default(0)
+  viewsCount        Int      @default(0)
+  
+  // Status
+  isDeleted         Boolean  @default(false)
+  isReported        Boolean  @default(false)
+  isHidden          Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments          Comment[]
+  likes             Like[]
+  savedPosts        SavedPost[]
+  reports           Report[]
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([privacy])
+  @@map("posts")
+}
+
+model Comment {
+  id                String   @id @default(uuid())
+  postId            String
+  userId            String
+  content           String
+  parentId          String?  // For nested comments
+  
+  isDeleted         Boolean  @default(false)
+  isEdited          Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  post              Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent            Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies           Comment[] @relation("CommentReplies")
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Like {
+  id                String   @id @default(uuid())
+  postId            String
+  userId            String
+  createdAt         DateTime @default(now())
+  
+  post              Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("likes")
+}
+
+model Follow {
+  id                String   @id @default(uuid())
+  followerId        String
+  followingId       String
+  createdAt         DateTime @default(now())
+  
+  follower          User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following         User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model Story {
+  id                String   @id @default(uuid())
+  userId            String
+  mediaUrl          String
+  mediaType         String   // photo, video
+  caption           String?
+  viewsCount        Int      @default(0)
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("stories")
+}
+
+model SavedPost {
+  id                String   @id @default(uuid())
+  userId            String
+  postId            String
+  collectionName    String?
+  createdAt         DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post              Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("saved_posts")
+}
+
+// ============================================================================
+// MESSAGING MODELS
+// ============================================================================
+
+model Message {
+  id                String   @id @default(uuid())
+  senderId          String
+  receiverId        String
+  content           String?
+  mediaUrl          String?
+  messageType       String   @default("text") // text, image, video, voice, file
+  
+  isRead            Boolean  @default(false)
+  isDeleted         Boolean  @default(false)
+  deletedBySender   Boolean  @default(false)
+  deletedByReceiver Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  readAt            DateTime?
+  
+  sender            User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver          User     @relation("UserMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ============================================================================
+// GROUPS & COMMUNITIES MODELS
+// ============================================================================
+
+model Group {
+  id                String   @id @default(uuid())
+  name              String
+  description       String?
+  avatar            String?
+  coverPhoto        String?
+  privacy           String   @default("public") // public, private
+  category          String?
+  
+  membersCount      Int      @default(0)
+  postsCount        Int      @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  members           GroupMember[]
+  
+  @@index([name])
+  @@index([category])
+  @@index([createdAt])
+  @@map("groups")
+}
+
+model GroupMember {
+  id                String   @id @default(uuid())
+  groupId           String
+  userId            String
+  role              String   @default("member") // admin, moderator, member
+  joinedAt          DateTime @default(now())
+  
+  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+// ============================================================================
+// EVENTS MODELS
+// ============================================================================
+
+model Event {
+  id                String   @id @default(uuid())
+  title             String
+  description       String?
+  location          String?
+  address           String?
+  virtualLink       String?
+  isVirtual         Boolean  @default(false)
+  
+  startDate         DateTime
+  endDate           DateTime?
+  capacity          Int?
+  ticketPrice       Float?
+  
+  coverPhoto        String?
+  category          String?
+  
+  attendingCount    Int      @default(0)
+  interestedCount   Int      @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  attendees         EventAttendee[]
+  
+  @@index([startDate])
+  @@index([category])
+  @@index([createdAt])
+  @@map("events")
+}
+
+model EventAttendee {
+  id                String   @id @default(uuid())
+  eventId           String
+  userId            String
+  status            String   // going, interested, maybe, not_going
+  ticketId          String?
+  checkedIn         Boolean  @default(false)
+  checkedInAt       DateTime?
+  
+  createdAt         DateTime @default(now())
+  
+  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_attendees")
+}
+
+// ============================================================================
+// DATING MODELS
+// ============================================================================
+
+model DatingProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  displayName       String
+  age               Int
+  gender            String
+  interestedIn      String[] // Array of genders
+  bio               String?
+  
+  // Physical Attributes
+  height            Int?     // in cm
+  bodyType          String?
+  ethnicity         String?
+  
+  // Lifestyle
+  drinking          String?
+  smoking           String?
+  exercise          String?
+  diet              String?
+  occupation        String?
+  education         String?
+  religion          String?
+  
+  // Preferences
+  minAge            Int      @default(18)
+  maxAge            Int      @default(50)
+  maxDistance       Int      @default(50) // in miles
+  
+  // Verification
+  isVerified        Boolean  @default(false)
+  verifiedPhotos    String[]
+  
+  // Matching Settings
+  showMe            String   @default("everyone")
+  relationshipGoal  String?
+  interests         String[]
+  dealbreakers      String[]
+  
+  // Metrics
+  profileViews      Int      @default(0)
+  matchesCount      Int      @default(0)
+  superLikesLeft    Int      @default(3)
+  
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches           Match[]  @relation("UserMatches")
+  matchedWith       Match[]  @relation("MatchedUserMatches")
+  
+  @@index([userId])
+  @@index([gender])
+  @@index([age])
+  @@map("dating_profiles")
+}
+
+model Match {
+  id                String   @id @default(uuid())
+  userId            String
+  matchedUserId     String
+  matchType         String   @default("like") // like, super_like
+  isMatched         Boolean  @default(false)
+  matchedAt         DateTime?
+  
+  createdAt         DateTime @default(now())
+  
+  userProfile       DatingProfile @relation("UserMatches", fields: [userId], references: [id], onDelete: Cascade)
+  matchedProfile    DatingProfile @relation("MatchedUserMatches", fields: [matchedUserId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, matchedUserId])
+  @@index([userId])
+  @@index([matchedUserId])
+  @@index([isMatched])
+  @@map("matches")
+}
+
+// ============================================================================
+// BUSINESS & CREATOR PROFILES
+// ============================================================================
+
+model BusinessProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  businessName      String
+  category          String
+  description       String?
+  logo              String?
+  coverPhoto        String?
+  
+  // Contact Info
+  email             String?
+  phone             String?
+  website           String?
+  address           String?
+  
+  // Business Hours
+  hoursJson         Json?
+  
+  // Verification
+  isVerified        Boolean  @default(false)
+  verifiedAt        DateTime?
+  
+  // Metrics
+  rating            Float    @default(0)
+  reviewsCount      Int      @default(0)
+  followersCount    Int      @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([category])
+  @@map("business_profiles")
+}
+
+model CreatorProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  creatorName       String
+  category          String?
+  
+  // Verification
+  isVerified        Boolean  @default(false)
+  isPremium         Boolean  @default(false)
+  isPartner         Boolean  @default(false)
+  verifiedAt        DateTime?
+  
+  // Metrics
+  followersCount    Int      @default(0)
+  viewsCount        Int      @default(0)
+  engagementRate    Float    @default(0)
+  
+  // Monetization
+  subscriptionsCount Int     @default(0)
+  monthlyRevenue    Float    @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([category])
+  @@map("creator_profiles")
+}
+
+// ============================================================================
+// NOTIFICATIONS & REPORTS
+// ============================================================================
+
+model Notification {
+  id                String   @id @default(uuid())
+  userId            String
+  type              String   // like, comment, follow, message, etc.
+  title             String
+  message           String
+  relatedEntityType String?
+  relatedEntityId   String?
+  isRead            Boolean  @default(false)
+  readAt            DateTime?
+  createdAt         DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Report {
+  id                String   @id @default(uuid())
+  reporterId        String
+  reportedUserId    String?
+  reportedPostId    String?
+  reportType        String   // user, post, comment, message
+  reason            String   // spam, harassment, inappropriate, etc.
+  description       String?
+  status            String   @default("pending") // pending, reviewed, resolved, dismissed
+  
+  reviewedAt        DateTime?
+  reviewedBy        String?
+  resolution        String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  reporter          User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser      User?    @relation("Reported", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  reportedPost      Post?    @relation(fields: [reportedPostId], references: [id], onDelete: SetNull)
+  
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+// ============================================================================
+// PAYMENTS & MONETIZATION
+// ============================================================================
+
+model Transaction {
+  id                String   @id @default(uuid())
+  userId            String
+  type              String   // subscription, tip, purchase, payout
+  amount            Float
+  currency          String   @default("USD")
+  status            String   @default("pending") // pending, completed, failed, refunded
+  
+  paymentMethod     String?
+  paymentProvider   String?  // stripe, paypal, etc.
+  transactionId     String?  // External transaction ID
+  
+  metadata          Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+// ============================================================================
+// SECURITY & MODERATION
+// ============================================================================
+
+model BlockedUser {
+  id                String   @id @default(uuid())
+  blockerId         String
+  blockedId         String
+  reason            String?
+  createdAt         DateTime @default(now())
+  
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocked_users")
+}
+
+model SecurityAlert {
+  id                String   @id @default(uuid())
+  userId            String?
+  alertType         String   // suspicious_login, multiple_failed_attempts, etc.
+  severity          String   // low, medium, high, critical
+  description       String
+  ipAddress         String?
+  location          String?
+  deviceInfo        String?
+  
+  isResolved        Boolean  @default(false)
+  resolvedAt        DateTime?
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([userId])
+  @@index([alertType])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("security_alerts")
+}
+
+model RateLimitLog {
+  id                String   @id @default(uuid())
+  ipAddress         String
+  endpoint          String
+  requestCount      Int      @default(1)
+  windowStart       DateTime @default(now())
+  isBlocked         Boolean  @default(false)
+  
+  @@index([ipAddress])
+  @@index([endpoint])
+  @@index([windowStart])
+  @@map("rate_limit_logs")
+}
+
+// ============================================================================
+// ANALYTICS & METRICS (Aggregated Data)
+// ============================================================================
+
+model DailyMetrics {
+  id                String   @id @default(uuid())
+  date              DateTime @unique
+  
+  newUsers          Int      @default(0)
+  activeUsers       Int      @default(0)
+  postsCreated      Int      @default(0)
+  messagesS ent      Int      @default(0)
+  matchesMade       Int      @default(0)
+  
+  revenue           Float    @default(0)
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([date])
+  @@map("daily_metrics")
+}
