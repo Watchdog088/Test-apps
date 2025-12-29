@@ -4404,27 +4404,33 @@
             </div>
         </div>
 
-        <!-- Create Post Modal -->
+        <!-- Create Post Modal - ENHANCED WITH ACTUAL FILE UPLOAD -->
         <div id="createPostModal" class="modal">
             <div class="modal-header">
                 <div class="modal-close" onclick="closeModal('createPost')">✕</div>
                 <div class="modal-title">Create Post</div>
-                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="publishPost()">Post</button>
+                <button class="btn" style="width: auto; padding: 8px 20px;" onclick="submitActualPost()">Post</button>
             </div>
             <div class="modal-content">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
                     <div class="post-avatar">👤</div>
                     <div>
                         <div class="post-author">John Doe</div>
-                        <div class="post-meta" id="postPrivacy" onclick="openModal('selectPrivacy')">🌍 Public</div>
+                        <div class="post-meta" id="postPrivacy" onclick="openModal('selectPrivacy')" style="cursor: pointer;">🌍 Public</div>
                     </div>
                 </div>
                 <textarea class="input-field textarea-field" id="postTextContent" placeholder="What's on your mind?"></textarea>
                 
+                <!-- ACTUAL FILE INPUT FOR PHOTOS -->
+                <input type="file" id="photoFileInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event)">
+                
+                <!-- ACTUAL FILE INPUT FOR VIDEOS -->
+                <input type="file" id="videoFileInput" accept="video/*" style="display: none;" onchange="handleVideoUpload(event)">
+                
                 <!-- Selected Photo Preview -->
                 <div id="selectedPhotoPreview" style="display: none; margin-bottom: 12px;">
                     <div style="position: relative;">
-                        <div class="post-image" id="photoPreview">📷</div>
+                        <img id="photoPreviewImg" style="width: 100%; height: auto; max-height: 300px; object-fit: cover; border-radius: 12px;" />
                         <div onclick="removeSelectedPhoto()" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">✕</div>
                     </div>
                 </div>
@@ -4432,7 +4438,7 @@
                 <!-- Selected Video Preview -->
                 <div id="selectedVideoPreview" style="display: none; margin-bottom: 12px;">
                     <div style="position: relative;">
-                        <div class="post-image" id="videoPreview">🎥</div>
+                        <video id="videoPreviewVid" controls style="width: 100%; max-height: 300px; border-radius: 12px;"></video>
                         <div onclick="removeSelectedVideo()" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">✕</div>
                     </div>
                 </div>
@@ -4458,10 +4464,10 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <div class="create-action" onclick="addPhotoToPost()">
+                    <div class="create-action" onclick="document.getElementById('photoFileInput').click()">
                         📷 Photo
                     </div>
-                    <div class="create-action" onclick="addVideoToPost()">
+                    <div class="create-action" onclick="document.getElementById('videoFileInput').click()">
                         🎥 Video
                     </div>
                     <div class="create-action" onclick="addLocationToPost()">
@@ -4609,14 +4615,14 @@
             </div>
         </div>
 
-        <!-- Comments Modal -->
+        <!-- Comments Modal - ENHANCED WITH ACTUAL COMMENT SUBMISSION -->
         <div id="commentsModal" class="modal">
             <div class="modal-header">
                 <div class="modal-close" onclick="closeModal('comments')">✕</div>
                 <div class="modal-title">Comments</div>
             </div>
             <div class="modal-content">
-                <div style="margin-bottom: 16px;">
+                <div id="commentsContainer" style="margin-bottom: 16px;">
                     <div style="display: flex; gap: 12px; margin-bottom: 16px;">
                         <div class="post-avatar" style="width: 32px; height: 32px; font-size: 14px;">😊</div>
                         <div style="flex: 1;">
@@ -4625,8 +4631,8 @@
                                 <div style="font-size: 14px;">This is amazing! 🎉</div>
                             </div>
                             <div style="padding: 0 14px; font-size: 12px; color: var(--text-muted); display: flex; gap: 12px;">
-                                <span onclick="showToast('Liked')" style="cursor: pointer;">Like</span>
-                                <span onclick="showToast('Reply added')" style="cursor: pointer;">Reply</span>
+                                <span onclick="likeComment(this)" style="cursor: pointer;">Like</span>
+                                <span onclick="replyToComment('Mike Chen')" style="cursor: pointer;">Reply</span>
                                 <span>2h</span>
                             </div>
                         </div>
@@ -4640,16 +4646,16 @@
                                 <div style="font-size: 14px;">Love it! Keep it up!</div>
                             </div>
                             <div style="padding: 0 14px; font-size: 12px; color: var(--text-muted); display: flex; gap: 12px;">
-                                <span onclick="showToast('Liked')" style="cursor: pointer;">Like</span>
-                                <span onclick="showToast('Reply added')" style="cursor: pointer;">Reply</span>
+                                <span onclick="likeComment(this)" style="cursor: pointer;">Like</span>
+                                <span onclick="replyToComment('Emily')" style="cursor: pointer;">Reply</span>
                                 <span>5h</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div style="position: sticky; bottom: 0; background: var(--bg-primary); padding: 16px 0; display: flex; gap: 10px;">
-                    <input type="text" class="input-field" style="margin-bottom: 0;" placeholder="Write a comment..." />
-                    <button class="chat-send-btn" onclick="showToast('Comment posted')">➤</button>
+                    <input type="text" id="commentInputField" class="input-field" style="margin-bottom: 0;" placeholder="Write a comment..." onkeypress="if(event.key==='Enter') submitComment()" />
+                    <button class="chat-send-btn" onclick="submitComment()">➤</button>
                 </div>
             </div>
         </div>
@@ -4882,13 +4888,21 @@
             </div>
         </div>
 
-        <!-- More modals for all other functionality -->
+        <!-- Post Options Modal - ENHANCED WITH ANALYTICS OPTION -->
         <div id="postOptionsModal" class="modal">
             <div class="modal-header">
                 <div class="modal-close" onclick="closeModal('postOptions')">✕</div>
                 <div class="modal-title">Post Options</div>
             </div>
             <div class="modal-content">
+                <div class="list-item" onclick="viewPostAnalytics()">
+                    <div class="list-item-icon">📊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">View Analytics</div>
+                        <div class="list-item-subtitle">See post performance</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
                 <div class="list-item" onclick="editPostFromMenu()">
                     <div class="list-item-icon">✏️</div>
                     <div class="list-item-content">
@@ -4910,6 +4924,14 @@
                     <div class="list-item-content">
                         <div class="list-item-title">Save Post</div>
                         <div class="list-item-subtitle">Add to saved items</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="closeModal('postOptions'); openModal('sharePost')">
+                    <div class="list-item-icon">🔄</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share Post</div>
+                        <div class="list-item-subtitle">Share with others</div>
                     </div>
                     <div class="list-item-arrow">→</div>
                 </div>
@@ -5087,6 +5109,198 @@
                 </div>
                 <button class="btn" style="margin-top: 16px;" onclick="closeModal('contentPreferences'); showToast('Preferences saved')">
                     Save Preferences
+                </button>
+            </div>
+        </div>
+
+        <!-- SHARE POST MODAL - NEW FEATURE -->
+        <div id="sharePostModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sharePost')">✕</div>
+                <div class="modal-title">Share Post</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔄</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Share This Post</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Choose how to share</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Share Options</div>
+                </div>
+                
+                <div class="list-item" onclick="shareToMyTimeline()">
+                    <div class="list-item-icon">📝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Your Timeline</div>
+                        <div class="list-item-subtitle">Post on your profile</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="shareToFriend()">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to a Friend</div>
+                        <div class="list-item-subtitle">Send in a message</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="shareToGroup()">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to a Group</div>
+                        <div class="list-item-subtitle">Post in a group</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="shareToStory()">
+                    <div class="list-item-icon">⭐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Your Story</div>
+                        <div class="list-item-subtitle">Add to your story</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">External Sharing</div>
+                </div>
+                
+                <div class="list-item" onclick="shareViaWhatsApp()">
+                    <div class="list-item-icon">💬</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">WhatsApp</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="shareViaTwitter()">
+                    <div class="list-item-icon">🐦</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Twitter</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="shareViaFacebook()">
+                    <div class="list-item-icon">📘</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Facebook</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="copyPostLink()">
+                    <div class="list-item-icon">🔗</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Copy Link</div>
+                        <div class="list-item-subtitle">Share link anywhere</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POST ANALYTICS MODAL - NEW FEATURE -->
+        <div id="postAnalyticsModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('postAnalytics')">✕</div>
+                <div class="modal-title">📊 Post Analytics</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Post Performance</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">How your post is doing</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total Reach</div>
+                    <div style="font-size: 48px; font-weight: 800; margin-bottom: 4px;">2,456</div>
+                    <div style="font-size: 13px; opacity: 0.9;">People reached</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">234</div>
+                        <div class="stat-label">Views</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">45</div>
+                        <div class="stat-label">Likes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Comments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Shares</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">18.7%</div>
+                        <div class="stat-label">Engagement Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">Clicks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">23</div>
+                        <div class="stat-label">Saves</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2.4K</div>
+                        <div class="stat-label">Impressions</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Audience Demographics</div>
+                </div>
+                
+                <div class="list-item">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Age Range</div>
+                        <div class="list-item-subtitle">Mostly 18-34 (68%)</div>
+                    </div>
+                </div>
+                
+                <div class="list-item">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Top Locations</div>
+                        <div class="list-item-subtitle">San Francisco, New York, LA</div>
+                    </div>
+                </div>
+                
+                <div class="list-item">
+                    <div class="list-item-icon">⏰</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Peak Engagement</div>
+                        <div class="list-item-subtitle">2-4 PM (32% of views)</div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Performance Insights</div>
+                </div>
+                
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--success);">✓ Above Average Performance</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        • 23% more engagement than your average<br>
+                        • Best performing post this week<br>
+                        • Recommended posting time: 2-4 PM
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: var(--glass);" onclick="exportPostAnalytics()">
+                    📥 Export Full Report
                 </button>
             </div>
         </div>
@@ -10571,6 +10785,9 @@
 
     <!-- Load Feed System -->
     <script src="ConnectHub_Mobile_Design_Feed_System.js"></script>
+    
+    <!-- Load Enhanced Feed System - MISSING FEATURES COMPLETE -->
+    <script src="ConnectHub_Mobile_Design_Feed_Enhanced.js"></script>
     
     <!-- Load Dating System -->
     <script src="ConnectHub_Mobile_Design_Dating_System.js"></script>
