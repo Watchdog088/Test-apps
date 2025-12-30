@@ -814,8 +814,23 @@ class VideoCallsService {
 class MarketplaceService {
     constructor() {
         this.baseURL = 'https://api.connecthub.com/v1/marketplace';
+        this.stripePublicKey = 'pk_test_51Sk8Oy0KjUYqNrgS5nyWDOJXxZJ1vdohdURwZVmFWM9LiFZ6ZW33Nf7L8lnqY6KCZIQrBWvg64cFDIKzSFXcrlvc00mq4V5Cfv';
         this.cart = this.loadCart();
         this.orders = this.loadOrders();
+        this.stripe = null;
+        this.initializeStripe();
+    }
+
+    /**
+     * Initialize Stripe with test public key
+     */
+    async initializeStripe() {
+        if (typeof Stripe !== 'undefined') {
+            this.stripe = Stripe(this.stripePublicKey);
+            console.log('✓ Stripe initialized with test keys');
+        } else {
+            console.warn('Stripe.js not loaded. Include: <script src="https://js.stripe.com/v3/"></script>');
+        }
     }
 
     /**
