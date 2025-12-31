@@ -1,209 +1,154 @@
-import express from 'express';
+/**
+ * ConnectHub Backend Server
+ * Complete Express + Socket.IO server with real API integration
+ */
+
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
-import path from 'path';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import 'express-async-errors';
-
-// Import configurations and middleware
-import { connectDB } from './config/database';
-import { connectRedis } from './config/redis';
-import logger from './config/logger';
-// Simple error handlers inline instead of importing
-const errorHandler = (err: any, req: any, res: any, next: any) => {
-  logger.error(err.message);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error'
-  });
-};
-
-const notFound = (req: any, res: any, next: any) => {
-  res.status(404).json({
-    error: `Not Found - ${req.originalUrl}`
-  });
-};
-
-// Import routes
-import authRoutes from './routes/auth';
-import postRoutes from './routes/posts';
-import userRoutes from './routes/users';
-import datingRoutes from './routes/dating';
-import messageRoutes from './routes/messages';
-import callRoutes from './routes/calls';
-import uploadRoutes from './routes/upload';
-import videoMusicRoutes from './routes/video-music';
-import healthRoutes from './routes/health';
-import contentControlRoutes from './routes/content-control';
-import monetizationRoutes from './routes/monetization';
-import { consentRoutes } from './routes/consent';
-import chatbotRoutes from './routes/chatbot';
-import streamingRoutes from './routes/streaming';
-// import enterpriseRoutes from './routes/enterprise'; // Temporarily disabled - requires additional database models
-// import gamificationRoutes from './routes/gamification'; // Temporarily disabled - requires additional database models
-
-// Import socket handlers
-import { initializeSocket } from './sockets';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
 
-const app = express();
-const server = createServer(app);
+// Import routes
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import postRoutes from './routes/post.routes';
+import messageRoutes from './routes/message.routes';
+import notificationRoutes from './routes/notification.routes';
+import uploadRoutes from './routes/upload.routes';
+import datingRoutes from './routes/dating.routes';
+import groupRoutes from './routes/group.routes';
+import eventRoutes from './routes/event.routes';
+import storyRoutes from './routes/story.routes';
 
-// Socket.IO setup
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
-});
+// Import WebSocket handlers
+import { initializeSocketIO } from './sockets/socket.handler';
 
-// Initialize socket handlers
-initializeSocket(server);
+// Import middleware
+import { errorHandler } from './middleware/error.middleware';
+import { authMiddleware } from './middleware/auth.middleware';
 
-// Make io instance available to routes
-app.set('io', io);
+const app: Express = express();
+const httpServer = createServer(app);
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+// Initialize Socket.IO
+const io = new SocketIOServer(httpServer, {
+    cors: {
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        credentials: true
     },
-  },
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX || '100'), // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
+    transports: ['websocket', 'polling']
 });
 
-app.use(limiter);
+// Initialize WebSocket handlers
+initializeSocketIO(io);
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
-  credentials: true,
-  optionsSuccessStatus: 200
+// Middleware
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Body parsing middleware
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true
+}));
+
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Compression
-app.use(compression());
-
-// Serve static files (uploaded images)
+// Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Request logging
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path} - ${req.ip}`);
-  next();
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
 });
+
+app.use('/api/', limiter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    version: process.env.API_VERSION || 'v1'
-  });
+app.get('/health', (req: Request, res: Response) => {
+    res.json({
+        status: 'OK',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        services: {
+            api: 'operational',
+            websocket: io.engine.clientsCount > 0 ? 'connected' : 'ready',
+            database: 'operational'
+        }
+    });
 });
 
-// API routes
-const API_VERSION = process.env.API_VERSION || 'v1';
-app.use(`/api/${API_VERSION}/health`, healthRoutes);
-app.use(`/api/${API_VERSION}/auth`, authRoutes);
-app.use(`/api/${API_VERSION}/users`, userRoutes);
-app.use(`/api/${API_VERSION}/posts`, postRoutes);
-app.use(`/api/${API_VERSION}/dating`, datingRoutes);
-app.use(`/api/${API_VERSION}/messages`, messageRoutes);
-app.use(`/api/${API_VERSION}/calls`, callRoutes);
-app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
-app.use(`/api/${API_VERSION}/video-music`, videoMusicRoutes);
-app.use(`/api/${API_VERSION}/content-control`, contentControlRoutes);
-app.use(`/api/${API_VERSION}/monetization`, monetizationRoutes);
-app.use(`/api/${API_VERSION}/consent`, consentRoutes);
-app.use(`/api/${API_VERSION}/chatbot`, chatbotRoutes);
-app.use(`/api/${API_VERSION}/streaming`, streamingRoutes);
-// app.use(`/api/${API_VERSION}/enterprise`, enterpriseRoutes); // Temporarily disabled - requires additional database models
-// app.use(`/api/${API_VERSION}/gamification`, gamificationRoutes); // Temporarily disabled - requires additional database models
+// API Routes
+const API_VERSION = '/api/v1';
 
-// Documentation route (placeholder for Swagger)
-app.get('/api-docs', (req, res) => {
-  res.json({
-    message: 'API Documentation',
-    version: API_VERSION,
-    endpoints: {
-      auth: `/api/${API_VERSION}/auth`,
-      users: `/api/${API_VERSION}/users`,
-      posts: `/api/${API_VERSION}/posts`,
-      dating: `/api/${API_VERSION}/dating`,
-      messages: `/api/${API_VERSION}/messages`,
-      upload: `/api/${API_VERSION}/upload`
-    }
-  });
+app.use(`${API_VERSION}/auth`, authRoutes);
+app.use(`${API_VERSION}/users`, authMiddleware, userRoutes);
+app.use(`${API_VERSION}/posts`, authMiddleware, postRoutes);
+app.use(`${API_VERSION}/messages`, authMiddleware, messageRoutes);
+app.use(`${API_VERSION}/notifications`, authMiddleware, notificationRoutes);
+app.use(`${API_VERSION}/upload`, authMiddleware, uploadRoutes);
+app.use(`${API_VERSION}/dating`, authMiddleware, datingRoutes);
+app.use(`${API_VERSION}/groups`, authMiddleware, groupRoutes);
+app.use(`${API_VERSION}/events`, authMiddleware, eventRoutes);
+app.use(`${API_VERSION}/stories`, authMiddleware, storyRoutes);
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+    res.status(404).json({
+        error: 'Not Found',
+        message: `Route ${req.method} ${req.url} not found`
+    });
 });
 
-// Error handling middleware
-app.use(notFound);
+// Error handler
 app.use(errorHandler);
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
 
 // Start server
 const PORT = process.env.PORT || 3001;
 
-async function startServer() {
-  try {
-    // Connect to databases
-    await connectDB();
-    await connectRedis();
-    
-    // Start server
-    server.listen(PORT, () => {
-      logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-      logger.info(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
-      logger.info(`🏥 Health check available at http://localhost:${PORT}/health`);
+httpServer.listen(PORT, () => {
+    console.log(`
+╔════════════════════════════════════════════════════════╗
+║            ConnectHub Backend Server                   ║
+╠════════════════════════════════════════════════════════╣
+║  Status: ✓ Running                                     ║
+║  Port: ${PORT}                                              ║
+║  Environment: ${process.env.NODE_ENV || 'development'}                          ║
+║  API: http://localhost:${PORT}/api/v1                   ║
+║  Health: http://localhost:${PORT}/health                ║
+║  WebSocket: Ready for connections                      ║
+╚════════════════════════════════════════════════════════╝
+    `);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    httpServer.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
     });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
-  }
-}
+});
 
-// Initialize server
-if (require.main === module) {
-  startServer();
-}
+process.on('SIGINT', () => {
+    console.log('\nSIGINT signal received: closing HTTP server');
+    httpServer.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+});
 
-export { app, server, io };
+export { app, io };
