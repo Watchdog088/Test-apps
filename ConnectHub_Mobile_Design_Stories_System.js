@@ -220,19 +220,92 @@ function closeStoryEditor() {
 }
 
 function addTextToStory() {
-    showToast('✍️ Text tool activated!');
+    const modalHTML = `
+        <div id="textToolModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeTextTool()">✕</div>
+                <div class="modal-title">Aa Text Tool</div>
+                <div class="nav-btn" onclick="applyTextToStory()">✓</div>
+            </div>
+            <div class="modal-content">
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 200px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <textarea id="storyTextInput" placeholder="Type your text..." style="background: transparent; border: none; color: white; font-size: 24px; font-weight: 700; text-align: center; width: 90%; height: 90%; resize: none; outline: none;"></textarea>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Font Style</div>
+                    <div style="display: flex; gap: 8px; overflow-x: auto;">
+                        ${['Classic', 'Modern', 'Neon', 'Typewriter', 'Strong'].map(font => `
+                            <div onclick="selectFont('${font}')" style="padding: 8px 16px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer;">${font}</div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Text Color</div>
+                    <div style="display: flex; gap: 8px;">
+                        ${['#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'].map(color => `
+                            <div onclick="selectTextColor('${color}')" style="width: 40px; height: 40px; background: ${color}; border-radius: 8px; cursor: pointer; border: 2px solid var(--glass-border);"></div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeTextTool() {
+    const modal = document.getElementById('textToolModal');
+    if (modal) modal.remove();
+}
+
+function selectFont(font) {
+    showToast('Font: ' + font);
+}
+
+function selectTextColor(color) {
+    showToast('Color applied');
+}
+
+function applyTextToStory() {
+    closeTextTool();
+    showToast('✅ Text added!');
 }
 
 function addStickerToStory() {
-    showToast('🎨 Sticker panel opened!');
+    const modalHTML = `
+        <div id="stickerPanelModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeStickerPanel()">✕</div>
+                <div class="modal-title">🎨 Stickers</div>
+            </div>
+            <div class="modal-content">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+                    ${['😀', '😍', '🥳', '🔥', '⭐', '❤️', '👍', '💯', '✨', '🎉', '🎈', '🎁', '🌟', '💫', '⚡'].map(sticker => `
+                        <div onclick="addStickerToCanvas('${sticker}')" style="aspect-ratio: 1; background: var(--glass); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; cursor: pointer;">${sticker}</div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeStickerPanel() {
+    const modal = document.getElementById('stickerPanelModal');
+    if (modal) modal.remove();
+}
+
+function addStickerToCanvas(sticker) {
+    closeStickerPanel();
+    showToast('Added ' + sticker);
 }
 
 function addMusicToStory() {
-    showToast('🎵 Music library opened!');
+    openMusicLibrary();
 }
 
 function addPollToStory() {
-    showToast('📊 Creating poll...');
+    createStoryPoll();
 }
 
 function shareStoryWithPrivacy() {
