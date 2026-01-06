@@ -92,11 +92,24 @@ const StoriesSystem = {
     }
 };
 
-// ========== STORY CREATION ==========
+// ========== STORY CREATION WITH BACKEND ==========
 
-function openStoryCamera() {
+async function openStoryCamera() {
     closeModal('createStory');
     showToast('Opening camera... 📷');
+    
+    // Request real camera access
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } },
+            audio: false
+        });
+        StoriesSystem.cameraStream = stream;
+    } catch (error) {
+        console.error('Camera access denied:', error);
+        showToast('❌ Camera access denied');
+        return;
+    }
     
     const modalHTML = `
         <div id="storyCameraModal" class="modal show">
