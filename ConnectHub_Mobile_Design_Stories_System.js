@@ -522,6 +522,34 @@ function showStoryOptions() {
                     <div class="list-item-title">Add to Highlight</div>
                 </div>
             </div>
+            <div class="list-item" onclick="saveStoryToFavorites()">
+                <div class="list-item-icon">🔖</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Save to Favorites</div>
+                    <div class="list-item-subtitle">Bookmark this story</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="copyStoryLink()">
+                <div class="list-item-icon">🔗</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Copy Link</div>
+                    <div class="list-item-subtitle">Share link to this story</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="muteUserStories()">
+                <div class="list-item-icon">🔇</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Mute ${StoriesSystem.currentStory.user}'s Stories</div>
+                    <div class="list-item-subtitle">Stop seeing their stories</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="reportStory()">
+                <div class="list-item-icon">🚩</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Report Story</div>
+                    <div class="list-item-subtitle">Report inappropriate content</div>
+                </div>
+            </div>
             <div class="list-item" onclick="downloadStory()">
                 <div class="list-item-icon">⬇️</div>
                 <div class="list-item-content">
@@ -1538,6 +1566,409 @@ function closeShareFriendList() {
 function sendStoryToFriend(friendName) {
     closeShareFriendList();
     showToast('✅ Story sent to ' + friendName);
+}
+
+// ========== MISSING STORY INTERACTIONS FEATURES ==========
+
+// Feature 1: Save Story to Favorites
+function saveStoryToFavorites() {
+    closeStoryOptions();
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="saveFavoritesModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeSaveFavorites()">✕</div>
+                <div class="modal-title">🔖 Save to Favorites</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔖</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Bookmark This Story</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Save ${story.user}'s story to your favorites collection for easy access later</div>
+                </div>
+                <div class="list-item" onclick="addToFavorites('Recent')">
+                    <div class="list-item-icon">📌</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Recent Favorites</div>
+                        <div class="list-item-subtitle">Quick access collection</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="addToFavorites('Inspirational')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Inspirational</div>
+                        <div class="list-item-subtitle">Motivational stories</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="addToFavorites('Friends')">
+                    <div class="list-item-icon">👥</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Friends' Stories</div>
+                        <div class="list-item-subtitle">Stories from friends</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="createNewFavoriteCollection()">
+                    <div class="list-item-icon">+</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Create New Collection</div>
+                        <div class="list-item-subtitle">Organize your favorites</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeSaveFavorites() {
+    const modal = document.getElementById('saveFavoritesModal');
+    if (modal) modal.remove();
+}
+
+function addToFavorites(collection) {
+    closeSaveFavorites();
+    showToast(`✅ Story saved to ${collection} collection!`);
+}
+
+function createNewFavoriteCollection() {
+    closeSaveFavorites();
+    const modalHTML = `
+        <div id="newCollectionModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeNewCollection()">✕</div>
+                <div class="modal-title">Create Collection</div>
+            </div>
+            <div class="modal-content">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Collection Name</label>
+                    <input type="text" id="collectionNameInput" placeholder="e.g., Travel, Food, Fitness" style="width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; font-size: 14px;" />
+                </div>
+                <button class="btn" onclick="saveNewCollection()">Create & Save Story</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeNewCollection() {
+    const modal = document.getElementById('newCollectionModal');
+    if (modal) modal.remove();
+}
+
+function saveNewCollection() {
+    const input = document.getElementById('collectionNameInput');
+    if (input && input.value.trim()) {
+        closeNewCollection();
+        showToast(`✅ Collection "${input.value}" created and story saved!`);
+    } else {
+        showToast('⚠️ Please enter a collection name');
+    }
+}
+
+// Feature 2: Copy Story Link
+function copyStoryLink() {
+    closeStoryOptions();
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    const storyLink = `https://connecthub.app/stories/${story.user.toLowerCase().replace(' ', '')}/${story.id}`;
+    
+    // Copy to clipboard
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(storyLink).then(() => {
+            showLinkCopiedDashboard(storyLink);
+        }).catch(() => {
+            showLinkCopiedDashboard(storyLink);
+        });
+    } else {
+        showLinkCopiedDashboard(storyLink);
+    }
+}
+
+function showLinkCopiedDashboard(link) {
+    const modalHTML = `
+        <div id="linkCopiedModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeLinkCopied()">✕</div>
+                <div class="modal-title">🔗 Story Link</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Link Copied!</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">The story link has been copied to your clipboard</div>
+                    <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; word-break: break-all; font-size: 13px; font-family: monospace; margin-bottom: 16px;">${link}</div>
+                </div>
+                <div class="list-item" onclick="shareLink('WhatsApp')">
+                    <div class="list-item-icon">💬</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share via WhatsApp</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="shareLink('Email')">
+                    <div class="list-item-icon">📧</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share via Email</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="shareLink('SMS')">
+                    <div class="list-item-icon">📱</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share via SMS</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeLinkCopied()">Done</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeLinkCopied() {
+    const modal = document.getElementById('linkCopiedModal');
+    if (modal) modal.remove();
+}
+
+function shareLink(platform) {
+    closeLinkCopied();
+    showToast(`📤 Opening ${platform}...`);
+}
+
+// Feature 3: Mute User Stories
+function muteUserStories() {
+    closeStoryOptions();
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="muteUserModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeMuteUser()">✕</div>
+                <div class="modal-title">🔇 Mute Stories</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 16px;">${story.avatar}</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">${story.user}</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Choose how long to mute their stories</div>
+                </div>
+                <div class="list-item" onclick="muteUserFor('24h')">
+                    <div class="list-item-icon">⏰</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mute for 24 Hours</div>
+                        <div class="list-item-subtitle">Temporarily hide stories</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="muteUserFor('7d')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mute for 7 Days</div>
+                        <div class="list-item-subtitle">Hide for a week</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="muteUserFor('permanent')">
+                    <div class="list-item-icon">🔇</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mute Permanently</div>
+                        <div class="list-item-subtitle">Hide all future stories</div>
+                    </div>
+                </div>
+                <div style="padding: 16px; background: var(--glass); border-radius: 12px; margin-top: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">ℹ️ About Muting</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+                        • You'll stop seeing their stories<br/>
+                        • They won't be notified<br/>
+                        • You can unmute anytime in settings<br/>
+                        • You'll still see their posts in feed
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeMuteUser()">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeMuteUser() {
+    const modal = document.getElementById('muteUserModal');
+    if (modal) modal.remove();
+}
+
+function muteUserFor(duration) {
+    const story = StoriesSystem.currentStory;
+    closeMuteUser();
+    
+    const durationText = duration === '24h' ? '24 hours' : duration === '7d' ? '7 days' : 'permanently';
+    showToast(`✅ ${story.user}'s stories muted ${durationText}`);
+}
+
+// Feature 4: Report Story
+function reportStory() {
+    closeStoryOptions();
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="reportStoryModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeReportStory()">✕</div>
+                <div class="modal-title">🚩 Report Story</div>
+            </div>
+            <div class="modal-content">
+                <div style="padding: 16px; background: var(--glass); border-radius: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Why are you reporting this story?</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Your report is anonymous. We'll review this story and take appropriate action.</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('spam')">
+                    <div class="list-item-icon">📢</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Spam</div>
+                        <div class="list-item-subtitle">Misleading or repetitive content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('inappropriate')">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Inappropriate Content</div>
+                        <div class="list-item-subtitle">Nudity, violence, or hate speech</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('harassment')">
+                    <div class="list-item-icon">😠</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Harassment or Bullying</div>
+                        <div class="list-item-subtitle">Targeting or intimidating someone</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('false_info')">
+                    <div class="list-item-icon">❌</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">False Information</div>
+                        <div class="list-item-subtitle">Fake news or misinformation</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('scam')">
+                    <div class="list-item-icon">💰</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Scam or Fraud</div>
+                        <div class="list-item-subtitle">Deceptive or fraudulent content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="selectReportReason('other')">
+                    <div class="list-item-icon">📝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Something Else</div>
+                        <div class="list-item-subtitle">Other reason not listed</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeReportStory() {
+    const modal = document.getElementById('reportStoryModal');
+    if (modal) modal.remove();
+}
+
+function selectReportReason(reason) {
+    closeReportStory();
+    
+    const reasonText = {
+        'spam': 'Spam',
+        'inappropriate': 'Inappropriate Content',
+        'harassment': 'Harassment or Bullying',
+        'false_info': 'False Information',
+        'scam': 'Scam or Fraud',
+        'other': 'Other Reason'
+    }[reason] || reason;
+    
+    const modalHTML = `
+        <div id="reportConfirmModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeReportConfirm()">✕</div>
+                <div class="modal-title">🚩 Submit Report</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🚩</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Report: ${reasonText}</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Add more details to help us understand the issue better (optional)</div>
+                    <textarea id="reportDetails" placeholder="Provide additional context..." style="width: 100%; min-height: 100px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; font-size: 14px; resize: vertical; margin-bottom: 20px;"></textarea>
+                    <button class="btn" onclick="submitReport('${reason}')" style="background: var(--error);">Submit Report</button>
+                    <button class="btn" onclick="closeReportConfirm()" style="background: var(--glass); margin-top: 12px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeReportConfirm() {
+    const modal = document.getElementById('reportConfirmModal');
+    if (modal) modal.remove();
+}
+
+function submitReport(reason) {
+    const details = document.getElementById('reportDetails');
+    const additionalInfo = details ? details.value : '';
+    
+    closeReportConfirm();
+    
+    // Show thank you dashboard
+    const modalHTML = `
+        <div id="reportThanksModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeReportThanks()">✕</div>
+                <div class="modal-title">Thank You</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 80px; margin-bottom: 16px;">✅</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Report Submitted</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+                        Thank you for helping keep ConnectHub safe. Our team will review this content and take appropriate action if needed.
+                    </div>
+                    <div style="background: var(--glass); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: left;">
+                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">What happens next?</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+                            • We'll review within 24 hours<br/>
+                            • You may receive an update<br/>
+                            • The story may be removed<br/>
+                            • Further action may be taken
+                        </div>
+                    </div>
+                    <button class="btn" onclick="closeReportThanks()">Done</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeReportThanks() {
+    const modal = document.getElementById('reportThanksModal');
+    if (modal) modal.remove();
+    showToast('✅ Your report has been submitted');
 }
 
 // ========== ADDITIONAL HELPER FUNCTIONS ==========
