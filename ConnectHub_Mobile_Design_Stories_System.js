@@ -672,8 +672,271 @@ function closeStoryArchive() {
 }
 
 function viewArchivedStory(storyId) {
+    closeStoryArchive();
     const story = StoriesSystem.archivedStories.find(s => s.id === storyId);
-    if (story) viewStory(storyId);
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="viewArchivedStoryModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeViewArchivedStory()">✕</div>
+                <div class="modal-title">📦 Archived Story</div>
+                <div class="nav-btn" onclick="archivedStoryOptions(${storyId})">⋮</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 16px;">${story.avatar}</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">${story.user}</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Archived ${getTimeAgo(story.archivedAt)}</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">${story.views} views • ${story.slides.length} slides</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px;">
+                    ${story.slides.map((slide, i) => `
+                        <div onclick="playArchivedStory(${storyId})" style="aspect-ratio: 9/16; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">
+                            ${slide.content}
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button class="btn" onclick="restoreArchivedStory(${storyId})">📤 Restore</button>
+                    <button class="btn" style="background: var(--glass);" onclick="downloadArchivedStory(${storyId})">⬇️ Download</button>
+                </div>
+                <button class="btn" style="background: var(--error); margin-top: 12px;" onclick="deleteArchivedStory(${storyId})">🗑️ Delete Permanently</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeViewArchivedStory() {
+    const modal = document.getElementById('viewArchivedStoryModal');
+    if (modal) modal.remove();
+}
+
+function playArchivedStory(storyId) {
+    const story = StoriesSystem.archivedStories.find(s => s.id === storyId);
+    if (story) {
+        closeViewArchivedStory();
+        StoriesSystem.currentStory = story;
+        StoriesSystem.currentSlideIndex = 0;
+        openStoryViewerModal(story);
+    }
+}
+
+function archivedStoryOptions(storyId) {
+    const story = StoriesSystem.archivedStories.find(s => s.id === storyId);
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="archivedStoryOptionsModal" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); border-radius: 24px 24px 0 0; padding: 20px; z-index: 250;">
+            <div style="font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 20px;">Archive Options</div>
+            <div class="list-item" onclick="restoreArchivedStory(${storyId})">
+                <div class="list-item-icon">📤</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Restore to Stories</div>
+                    <div class="list-item-subtitle">Share again as new story</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="addArchivedToHighlight(${storyId})">
+                <div class="list-item-icon">⭐</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Add to Highlight</div>
+                    <div class="list-item-subtitle">Save to highlights</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="downloadArchivedStory(${storyId})">
+                <div class="list-item-icon">⬇️</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Download</div>
+                    <div class="list-item-subtitle">Save to device</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="shareArchivedStory(${storyId})">
+                <div class="list-item-icon">🔗</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Share</div>
+                    <div class="list-item-subtitle">Share with friends</div>
+                </div>
+            </div>
+            <div class="list-item" onclick="deleteArchivedStory(${storyId})">
+                <div class="list-item-icon">🗑️</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Delete Permanently</div>
+                    <div class="list-item-subtitle">Cannot be undone</div>
+                </div>
+            </div>
+            <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="closeArchivedStoryOptions()">Cancel</button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeArchivedStoryOptions() {
+    const modal = document.getElementById('archivedStoryOptionsModal');
+    if (modal) modal.remove();
+}
+
+function restoreArchivedStory(storyId) {
+    closeArchivedStoryOptions();
+    closeViewArchivedStory();
+    const storyIndex = StoriesSystem.archivedStories.findIndex(s => s.id === storyId);
+    if (storyIndex !== -1) {
+        const story = StoriesSystem.archivedStories[storyIndex];
+        const modalHTML = `
+            <div id="restoreStoryModal" class="modal show">
+                <div class="modal-header">
+                    <div class="modal-close" onclick="closeRestoreStory()">✕</div>
+                    <div class="modal-title">📤 Restore Story</div>
+                </div>
+                <div class="modal-content">
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📤</div>
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Restore to Stories?</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                            This will share the story again. It will be visible for 24 hours with a "Restored" label.
+                        </div>
+                        <button class="btn" onclick="confirmRestoreStory(${storyId})" style="margin-bottom: 12px;">Restore Story</button>
+                        <button class="btn" style="background: var(--glass);" onclick="closeRestoreStory()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+}
+
+function closeRestoreStory() {
+    const modal = document.getElementById('restoreStoryModal');
+    if (modal) modal.remove();
+}
+
+function confirmRestoreStory(storyId) {
+    const storyIndex = StoriesSystem.archivedStories.findIndex(s => s.id === storyId);
+    if (storyIndex !== -1) {
+        const story = StoriesSystem.archivedStories.splice(storyIndex, 1)[0];
+        story.timestamp = Date.now();
+        story.expiresAt = Date.now() + 24 * 3600000;
+        story.restored = true;
+        StoriesSystem.userStories.push(story);
+        closeRestoreStory();
+        showToast('✅ Story restored! Visible for 24 hours');
+        openStoryArchive();
+    }
+}
+
+function addArchivedToHighlight(storyId) {
+    closeArchivedStoryOptions();
+    closeViewArchivedStory();
+    showToast('⭐ Adding to highlight...');
+    createStoryHighlight();
+}
+
+function downloadArchivedStory(storyId) {
+    closeArchivedStoryOptions();
+    closeViewArchivedStory();
+    const story = StoriesSystem.archivedStories.find(s => s.id === storyId);
+    if (story) {
+        const modalHTML = `
+            <div id="downloadArchiveModal" class="modal show">
+                <div class="modal-header">
+                    <div class="modal-close" onclick="closeDownloadArchive()">✕</div>
+                    <div class="modal-title">⬇️ Download Story</div>
+                </div>
+                <div class="modal-content">
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">⬇️</div>
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Download Options</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Choose download quality</div>
+                    </div>
+                    <div class="list-item" onclick="confirmDownloadArchive('high')">
+                        <div class="list-item-icon">⚡</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">High Quality</div>
+                            <div class="list-item-subtitle">1080p • ~${story.slides.length * 5}MB</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="confirmDownloadArchive('standard')">
+                        <div class="list-item-icon">📱</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Standard Quality</div>
+                            <div class="list-item-subtitle">720p • ~${story.slides.length * 2}MB</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="confirmDownloadArchive('low')">
+                        <div class="list-item-icon">💾</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Data Saver</div>
+                            <div class="list-item-subtitle">480p • ~${story.slides.length}MB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+}
+
+function closeDownloadArchive() {
+    const modal = document.getElementById('downloadArchiveModal');
+    if (modal) modal.remove();
+}
+
+function confirmDownloadArchive(quality) {
+    closeDownloadArchive();
+    showToast(`✅ Downloading in ${quality} quality...`);
+}
+
+function shareArchivedStory(storyId) {
+    closeArchivedStoryOptions();
+    closeViewArchivedStory();
+    showToast('🔗 Opening share options...');
+    shareStoryExternal();
+}
+
+function deleteArchivedStory(storyId) {
+    closeArchivedStoryOptions();
+    closeViewArchivedStory();
+    const story = StoriesSystem.archivedStories.find(s => s.id === storyId);
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="deleteArchiveModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeDeleteArchive()">✕</div>
+                <div class="modal-title">Delete Story</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Delete Permanently?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                        This will permanently delete this archived story. This action cannot be undone. The story will be removed from your archive forever.
+                    </div>
+                    <button class="btn" style="background: var(--error); margin-bottom: 12px;" onclick="confirmDeleteArchive(${storyId})">Delete Forever</button>
+                    <button class="btn" style="background: var(--glass);" onclick="closeDeleteArchive()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeDeleteArchive() {
+    const modal = document.getElementById('deleteArchiveModal');
+    if (modal) modal.remove();
+}
+
+function confirmDeleteArchive(storyId) {
+    const storyIndex = StoriesSystem.archivedStories.findIndex(s => s.id === storyId);
+    if (storyIndex !== -1) {
+        const story = StoriesSystem.archivedStories.splice(storyIndex, 1)[0];
+        closeDeleteArchive();
+        showToast(`✅ Story deleted permanently`);
+        openStoryArchive();
+    }
 }
 
 // ========== STORY HIGHLIGHTS ==========
@@ -775,7 +1038,167 @@ function saveHighlight() {
 }
 
 function viewHighlight(index) {
-    showToast('Opening highlight...');
+    closeHighlightsManager();
+    const highlight = StoriesSystem.highlightedStories[index];
+    if (!highlight) return;
+    
+    const modalHTML = `
+        <div id="viewHighlightModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeViewHighlight()">✕</div>
+                <div class="modal-title">${highlight.icon} ${highlight.name}</div>
+                <div class="nav-btn" onclick="editHighlight(${index})">✏️</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="font-size: 64px; margin-bottom: 16px;">${highlight.icon}</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">${highlight.name}</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">${highlight.stories} stories • Created ${getTimeAgo(highlight.createdAt)}</div>
+                </div>
+                ${highlight.stories === 0 ? `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📖</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Stories Yet</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">Add stories to this highlight from story options</div>
+                    </div>
+                ` : `
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px;">
+                        ${Array.from({length: highlight.stories}, (_, i) => `
+                            <div onclick="viewHighlightStory(${index}, ${i})" style="aspect-ratio: 9/16; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; cursor: pointer;">
+                                ${['🏖️', '🌅', '🎨', '✈️', '🍕', '🎉'][i % 6]}
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+                <button class="btn" style="background: var(--error); margin-top: 12px;" onclick="deleteHighlight(${index})">Delete Highlight</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeViewHighlight() {
+    const modal = document.getElementById('viewHighlightModal');
+    if (modal) modal.remove();
+}
+
+function viewHighlightStory(highlightIndex, storyIndex) {
+    closeViewHighlight();
+    showToast('📖 Opening highlight story...');
+    // Integrate with viewStory() function
+}
+
+function editHighlight(index) {
+    closeViewHighlight();
+    const highlight = StoriesSystem.highlightedStories[index];
+    if (!highlight) return;
+    
+    const modalHTML = `
+        <div id="editHighlightModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeEditHighlight()">✕</div>
+                <div class="modal-title">Edit Highlight</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="font-size: 64px; margin-bottom: 16px;" id="editHighlightIcon">${highlight.icon}</div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Highlight Name</label>
+                    <input type="text" id="editHighlightNameInput" value="${highlight.name}" style="width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; font-size: 14px;" />
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Change Icon</label>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                        ${['🏖️', '🌅', '🎨', '✈️', '🍕', '🎉', '💼', '🎮', '🏃', '📸', '❤️', '⭐', '🔥', '✨', '🌟'].map(icon => `
+                            <div onclick="selectEditIcon('${icon}', ${index})" style="aspect-ratio: 1; background: var(--glass); border: 2px solid ${highlight.icon === icon ? 'var(--primary)' : 'var(--glass-border)'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">
+                                ${icon}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button class="btn" onclick="saveHighlightEdits(${index})">Save Changes</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeEditHighlight() {
+    const modal = document.getElementById('editHighlightModal');
+    if (modal) modal.remove();
+}
+
+function selectEditIcon(icon, index) {
+    const iconDisplay = document.getElementById('editHighlightIcon');
+    if (iconDisplay) iconDisplay.textContent = icon;
+    StoriesSystem.selectedHighlightIcon = icon;
+    
+    // Update border colors
+    const allIcons = document.querySelectorAll('#editHighlightModal [style*="aspect-ratio: 1"]');
+    allIcons.forEach(el => {
+        el.style.border = '2px solid var(--glass-border)';
+    });
+    event.target.closest('[style*="aspect-ratio: 1"]').style.border = '2px solid var(--primary)';
+}
+
+function saveHighlightEdits(index) {
+    const nameInput = document.getElementById('editHighlightNameInput');
+    if (nameInput && nameInput.value.trim()) {
+        StoriesSystem.highlightedStories[index].name = nameInput.value.trim();
+        if (StoriesSystem.selectedHighlightIcon) {
+            StoriesSystem.highlightedStories[index].icon = StoriesSystem.selectedHighlightIcon;
+        }
+        closeEditHighlight();
+        showToast('✅ Highlight updated!');
+        openHighlightsManager();
+    } else {
+        showToast('⚠️ Please enter a name');
+    }
+}
+
+function deleteHighlight(index) {
+    const highlight = StoriesSystem.highlightedStories[index];
+    if (!highlight) return;
+    
+    closeViewHighlight();
+    
+    const modalHTML = `
+        <div id="deleteHighlightModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeDeleteHighlight()">✕</div>
+                <div class="modal-title">Delete Highlight</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Delete "${highlight.name}"?</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                        This will permanently delete this highlight and remove all ${highlight.stories} stories from it. The stories will still be available in your archive.
+                    </div>
+                    <button class="btn" style="background: var(--error); margin-bottom: 12px;" onclick="confirmDeleteHighlight(${index})">Delete Highlight</button>
+                    <button class="btn" style="background: var(--glass);" onclick="closeDeleteHighlight()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeDeleteHighlight() {
+    const modal = document.getElementById('deleteHighlightModal');
+    if (modal) modal.remove();
+}
+
+function confirmDeleteHighlight(index) {
+    const highlight = StoriesSystem.highlightedStories[index];
+    StoriesSystem.highlightedStories.splice(index, 1);
+    closeDeleteHighlight();
+    showToast(`✅ "${highlight.name}" deleted`);
+    openHighlightsManager();
 }
 
 // ========== PRIVACY SETTINGS ==========
