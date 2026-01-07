@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Status System - 5 Features Complete</title>
+    <style>
+        :root {
+            --primary: #007AFF;
+            --background: #ffffff;
+            --background-secondary: #f5f5f7;
+            --text-primary: #000000;
+            --text-secondary: #6e6e73;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .feature-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-text {
+            background: none;
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal > div {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--background-secondary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--background-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 16px;
+            background: var(--background-secondary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 10000;
+            transition: transform 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-section h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .status-sent {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-delivered {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-read {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .message-demo {
+            background: var(--background-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--background-secondary);
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📬 Message Status System</h1>
+            <p>5 Complete Features: Sent, Delivered, Read, Read Receipts Dashboard & Status Analytics</p>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="feature-grid">
+            <div class="feature-card" onclick="showFeature1Demo()">
+                <div class="icon">✓</div>
+                <h3>Message Sent Status</h3>
+                <p>Track when messages are successfully sent with real-time status updates</p>
+            </div>
+
+            <div class="feature-card" onclick="showFeature2Demo()">
+                <div class="icon">✓✓</div>
+                <h3>Message Delivered Status</h3>
+                <p>Monitor message delivery with timing analytics and confirmation</p>
+            </div>
+
+            <div class="feature-card" onclick="showFeature3Demo()">
+                <div class="icon">👁️</div>
+                <h3>Message Read Status</h3>
+                <p>Know exactly when recipients read your messages with timestamps</p>
+            </div>
+
+            <div class="feature-card" onclick="openReadReceiptsDashboard()">
+                <div class="icon">📬</div>
+                <h3>Read Receipts Dashboard</h3>
+                <p>Comprehensive dashboard showing all message receipts and details</p>
+            </div>
+
+            <div class="feature-card" onclick="openStatusAnalytics()">
+                <div class="icon">📊</div>
+                <h3>Status Analytics</h3>
+                <p>Advanced analytics with delivery rates, read rates, and performance metrics</p>
+            </div>
+        </div>
+
+        <!-- Interactive Testing Section -->
+        <div class="test-section">
+            <h2>🧪 Interactive Testing</h2>
+            <p style="margin-bottom:20px;color:var(--text-secondary)">Send test messages and watch the status change from Sent → Delivered → Read</p>
+            
+            <div class="input-field" contenteditable="true" id="testMessageInput" placeholder="Type a test message...">Hello! This is a test message.</div>
+            
+            <button class="btn" onclick="sendTestMessage()">
+                📤 Send Test Message
+            </button>
+            
+            <button class="btn" onclick="testMessageStatusSystem()" style="background:#10b981">
+                🧪 Run Automated Test Suite
+            </button>
+            
+            <button class="btn" onclick="sendMultipleTestMessages()" style="background:#f59e0b">
+                🚀 Send 5 Test Messages
+            </button>
+        </div>
+
+        <!-- Recent Messages Section -->
+        <div class="test-section">
+            <h2>📨 Recent Message Status</h2>
+            <div id="recentMessages">
+                <p style="text-align:center;color:var(--text-secondary);padding:40px">Send some test messages to see their status here</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="test-section">
+            <h2>⚡ Quick Actions</h2>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                <button class="btn" onclick="openReadReceiptsDashboard()">
+                    📬 View Read Receipts
+                </button>
+                <button class="btn" onclick="openStatusAnalytics()">
+                    📊 View Analytics
+                </button>
+                <button class="btn" onclick="openDeliveryReports()">
+                    📈 Delivery Reports
+                </button>
+                <button class="btn" onclick="viewSystemStatus()">
+                    🔍 System Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Documentation -->
+        <div class="test-section">
+            <h2>📖 Feature Documentation</h2>
+            <div style="background:var(--background-secondary);padding:20px;border-radius:12px">
+                <h4 style="margin-bottom:12px">✓ Feature 1: Message Sent Status</h4>
+                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+                    Tracks when a message is successfully sent from sender to server. Automatically transitions to "delivered" status after 1-3 seconds.
+                </p>
+
+                <h4 style="margin-bottom:12px">✓✓ Feature 2: Message Delivered Status</h4>
+                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+                    Confirms message delivery to recipient's device. Calculates and stores delivery time from sent to delivered.
+                </p>
+
+                <h4 style="margin-bottom:12px">👁️ Feature 3: Message Read Status</h4>
+                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+                    Indicates when recipient opens and reads the message. Creates read receipt with detailed timing information.
+                </p>
+
+                <h4 style="margin-bottom:12px">📬 Feature 4: Read Receipts Dashboard</h4>
+                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+                    Interactive dashboard displaying all read receipts with summary stats, timeline view, and export functionality.
+                </p>
+
+                <h4 style="margin-bottom:12px">📊 Feature 5: Status Analytics Dashboard</h4>
+                <p style="font-size:14px;color:var(--text-secondary)">
+                    Comprehensive analytics showing delivery rates, read rates, average times, performance metrics, and status history.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the Message Status System -->
+    <script src="ConnectHub_Message_Status_System_5_Features.js"></script>
+
+    <script>
+        // Demo functions for feature cards
+        function showFeature1Demo() {
+            const messageId = Date.now();
+            updateMessageStatusToSent(messageId, 1);
+            showToast('✓ Feature 1: Message sent successfully!');
+            updateRecentMessages();
+        }
+
+        function showFeature2Demo() {
+            const messageId = Date.now();
+            updateMessageStatusToSent(messageId, 1);
+            setTimeout(() => {
+                updateMessageStatusToDelivered(messageId);
+                showToast('✓✓ Feature 2: Message delivered!');
+                updateRecentMessages();
+            }, 1500);
+        }
+
+        function showFeature3Demo() {
+            const messageId = Date.now();
+            updateMessageStatusToSent(messageId, 1);
+            setTimeout(() => {
+                updateMessageStatusToDelivered(messageId);
+                setTimeout(() => {
+                    updateMessageStatusToRead(messageId);
+                    showToast('👁️ Feature 3: Message read!');
+                    updateRecentMessages();
+                }, 2000);
+            }, 1500);
+        }
+
+        function sendTestMessage() {
+            const input = document.getElementById('testMessageInput');
+            const text = input.textContent.trim() || 'Test message';
+            const messageId = Date.now();
+            
+            updateMessageStatusToSent(messageId, 1);
+            showToast('📤 Sending: ' + text);
+            
+            // Update display
+            setTimeout(() => updateRecentMessages(), 500);
+            setTimeout(() => updateRecentMessages(), 3000);
+            setTimeout(() => updateRecentMessages(), 8000);
+        }
+
+        function sendMultipleTestMessages() {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const messageId = Date.now() + i;
+                    updateMessageStatusToSent(messageId, i + 1);
+                    if (i === 4) {
+                        showToast('🚀 Sent 5 test messages!');
+                        setTimeout(() => updateRecentMessages(), 10000);
+                    }
+                }, i * 1000);
+            }
+            setTimeout(() => updateRecentMessages(), 500);
+        }
+
+        function updateRecentMessages() {
+            const messages = getAllMessageStatuses();
+            const container = document.getElementById('recentMessages');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:40px">Send some test messages to see their status here</p>';
+                return;
+            }
+            
+            container.innerHTML = messages.slice(-5).reverse().map(msg => `
+                <div class="message-demo">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <strong>Message ${msg.id.toString().slice(-8)}</strong>
+                        <span class="status-${msg.status}">${msg.status.toUpperCase()}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary)">
+                        <div>✓ Sent: ${new Date(msg.sentAt).toLocaleTimeString()}</div>
+                        ${msg.deliveredAt ? `<div>✓✓ Delivered: ${new Date(msg.deliveredAt).toLocaleTimeString()} (${((msg.deliveredAt - msg.sentAt) / 1000).toFixed(2)}s)</div>` : ''}
+                        ${msg.readAt ? `<div>👁️ Read: ${new Date(msg.readAt).toLocaleTimeString()} (${((msg.readAt - msg.deliveredAt) / 1000).toFixed(2)}s)</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewSystemStatus() {
+            const stats = messageStatusState.statusAnalytics;
+            const messages = getAllMessageStatuses();
+            
+            alert(`
+📊 Message Status System Status
+
+Total Messages: ${messages.length}
+Total Sent: ${stats.totalSent}
+Total Delivered: ${stats.totalDelivered}
+Total Read: ${stats.totalRead}
+
+Average Delivery Time: ${stats.averageDeliveryTime}s
+Average Read Time: ${stats.averageReadTime}s
+
+Delivery Rate: ${stats.totalSent > 0 ? ((stats.totalDelivered / stats.totalSent) * 100).toFixed(1) : 0}%
+Read Rate: ${stats.totalSent > 0 ? ((stats.totalRead / stats.totalSent) * 100).toFixed(1) : 0}%
+
+System Status: ✅ Fully Operational
+            `.trim());
+        }
+
+        // Auto-update recent messages every 2 seconds
+        setInterval(updateRecentMessages, 2000);
+
+        // Welcome message
+        setTimeout(() => {
+            showToast('👋 Welcome! Try sending test messages to see the status system in action.');
+        }, 1000);
+    </script>
+</body>
+</html>
