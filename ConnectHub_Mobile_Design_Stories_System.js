@@ -382,18 +382,19 @@ function openStoryViewerModal(story) {
             <div style="background: #000; height: 100vh; position: relative;">
                 <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 20;">
                     ${story.slides.map((s, i) => `
-                        <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px;">
-                            <div style="width: ${i < StoriesSystem.currentSlideIndex ? '100' : i === StoriesSystem.currentSlideIndex ? '50' : '0'}%; height: 100%; background: white;"></div>
+                        <div onclick="jumpToStorySlide(${i})" style="flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; cursor: pointer;">
+                            <div id="storyProgress${i}" style="width: ${i < StoriesSystem.currentSlideIndex ? '100' : i === StoriesSystem.currentSlideIndex ? '50' : '0'}%; height: 100%; background: white; transition: width 0.1s;"></div>
                         </div>
                     `).join('')}
                 </div>
                 
                 <div style="position: absolute; top: 25px; left: 10px; right: 10px; display: flex; align-items: center; gap: 12px; z-index: 20; padding: 10px;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; border: 2px solid white;">${story.avatar}</div>
-                    <div style="flex: 1;">
+                    <div onclick="openStoryUserProfile()" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; border: 2px solid white; cursor: pointer;">${story.avatar}</div>
+                    <div onclick="openStoryUserProfile()" style="flex: 1; cursor: pointer;">
                         <div style="font-size: 15px; font-weight: 700; color: white;">${story.user}</div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.8);">${getTimeAgo(story.timestamp)}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.8);" onclick="event.stopPropagation(); viewStoryViewers()">${story.views} views • ${getTimeAgo(story.timestamp)}</div>
                     </div>
+                    <div class="nav-btn" onclick="shareCurrentStory()" style="background: rgba(0,0,0,0.4);">📤</div>
                     <div class="nav-btn" onclick="showStoryOptions()" style="background: rgba(0,0,0,0.4);">⋮</div>
                     <div class="nav-btn" onclick="closeStoryViewer()" style="background: rgba(0,0,0,0.4);">✕</div>
                 </div>
@@ -546,7 +547,57 @@ function viewStoryViewers() {
 
 function createStoryHighlight() {
     closeStoryOptions();
-    showToast('⭐ Adding to highlights...');
+    
+    const modalHTML = `
+        <div id="addToHighlightModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeAddToHighlight()">✕</div>
+                <div class="modal-title">⭐ Add to Highlight</div>
+                <div class="nav-btn" onclick="createNewHighlight()">+</div>
+            </div>
+            <div class="modal-content">
+                <div style="margin-bottom: 16px; color: var(--text-secondary); font-size: 13px;">
+                    Save this story to a highlight
+                </div>
+                ${StoriesSystem.highlightedStories.length === 0 ? `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">⭐</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Highlights Yet</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Create your first highlight</div>
+                        <button class="btn" onclick="createNewHighlight()">Create Highlight</button>
+                    </div>
+                ` : `
+                    ${StoriesSystem.highlightedStories.map((highlight, i) => `
+                        <div class="list-item" onclick="addStoryToHighlight(${i})">
+                            <div class="list-item-icon">${highlight.icon}</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">${highlight.name}</div>
+                                <div class="list-item-subtitle">${highlight.stories} stories</div>
+                            </div>
+                            <div class="list-item-arrow">+</div>
+                        </div>
+                    `).join('')}
+                    <button class="btn" onclick="createNewHighlight()" style="background: var(--glass); margin-top: 12px;">
+                        Create New Highlight
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeAddToHighlight() {
+    const modal = document.getElementById('addToHighlightModal');
+    if (modal) modal.remove();
+}
+
+function addStoryToHighlight(highlightIndex) {
+    if (StoriesSystem.highlightedStories[highlightIndex]) {
+        StoriesSystem.highlightedStories[highlightIndex].stories++;
+        closeAddToHighlight();
+        showToast('✅ Added to ' + StoriesSystem.highlightedStories[highlightIndex].name);
+    }
 }
 
 function downloadStory() {
@@ -1282,6 +1333,211 @@ function closeCreatePoll() {
 function savePoll() {
     closeCreatePoll();
     showToast('📊 Poll added to story!');
+}
+
+// ========== NEW STORY VIEWING FEATURES ==========
+
+// Feature 1: Jump to Specific Slide (Clickable Progress Bars)
+function jumpToStorySlide(slideIndex) {
+    const story = StoriesSystem.currentStory;
+    if (!story || slideIndex < 0 || slideIndex >= story.slides.length) return;
+    
+    StoriesSystem.currentSlideIndex = slideIndex;
+    const slide = story.slides[slideIndex];
+    
+    // Update slide content
+    const content = document.getElementById('storySlideContent');
+    if (content) content.innerHTML = slide.content;
+    
+    // Update all progress bars
+    story.slides.forEach((s, i) => {
+        const progressBar = document.getElementById('storyProgress' + i);
+        if (progressBar) {
+            if (i < slideIndex) {
+                progressBar.style.width = '100%';
+            } else if (i === slideIndex) {
+                progressBar.style.width = '50%';
+            } else {
+                progressBar.style.width = '0%';
+            }
+        }
+    });
+    
+    showToast('Jumped to slide ' + (slideIndex + 1));
+}
+
+// Feature 2: Open User Profile from Story
+function openStoryUserProfile() {
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    closeStoryViewer();
+    
+    const modalHTML = `
+        <div id="storyUserProfileModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeStoryUserProfile()">✕</div>
+                <div class="modal-title">User Profile</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 16px; border: 4px solid var(--primary);">${story.avatar}</div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${story.user}</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">@${story.user.toLowerCase().replace(' ', '')}</div>
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700;">248</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Posts</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700;">2.4K</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Followers</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700;">892</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Following</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <button class="btn">Follow</button>
+                        <button class="btn" style="background: var(--glass);" onclick="sendMessageToUser()">Message</button>
+                    </div>
+                </div>
+                <div class="list-item" onclick="viewUserStories()">
+                    <div class="list-item-icon">📖</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">View Stories</div>
+                        <div class="list-item-subtitle">${story.slides.length} active stories</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="viewUserHighlights()">
+                    <div class="list-item-icon">⭐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Story Highlights</div>
+                        <div class="list-item-subtitle">View saved highlights</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="viewUserProfile()">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Full Profile</div>
+                        <div class="list-item-subtitle">View complete profile</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeStoryUserProfile() {
+    const modal = document.getElementById('storyUserProfileModal');
+    if (modal) modal.remove();
+}
+
+function sendMessageToUser() {
+    closeStoryUserProfile();
+    showToast('💬 Opening messages...');
+}
+
+function viewUserStories() {
+    closeStoryUserProfile();
+    showToast('📖 Loading user stories...');
+}
+
+function viewUserHighlights() {
+    closeStoryUserProfile();
+    showToast('⭐ Opening highlights...');
+}
+
+function viewUserProfile() {
+    closeStoryUserProfile();
+    showToast('👤 Opening full profile...');
+}
+
+// Feature 3: Share Current Story
+function shareCurrentStory() {
+    const story = StoriesSystem.currentStory;
+    if (!story) return;
+    
+    const modalHTML = `
+        <div id="shareCurrentStoryModal" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); border-radius: 24px 24px 0 0; padding: 20px; z-index: 250;">
+            <div style="font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 20px;">📤 Share Story</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+                ${['📱', '💬', '📧', '🔗'].map((icon, i) => `
+                    <div onclick="shareStoryTo('${['SMS', 'WhatsApp', 'Email', 'Copy Link'][i]}')" style="text-align: center; cursor: pointer;">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--glass); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 8px;">${icon}</div>
+                        <div style="font-size: 11px; color: white;">${['SMS', 'WhatsApp', 'Email', 'Copy Link'][i]}</div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="list-item" onclick="shareToFriend()" style="margin-bottom: 12px;">
+                <div class="list-item-icon">👥</div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Send to Friend</div>
+                    <div class="list-item-subtitle">Share via ConnectHub</div>
+                </div>
+                <div class="list-item-arrow">→</div>
+            </div>
+            <button class="btn" style="background: var(--glass);" onclick="closeShareCurrentStory()">Cancel</button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeShareCurrentStory() {
+    const modal = document.getElementById('shareCurrentStoryModal');
+    if (modal) modal.remove();
+}
+
+function shareStoryTo(platform) {
+    closeShareCurrentStory();
+    showToast('📤 Sharing to ' + platform);
+}
+
+function shareToFriend() {
+    closeShareCurrentStory();
+    
+    const modalHTML = `
+        <div id="shareFriendListModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeShareFriendList()">✕</div>
+                <div class="modal-title">Send to Friends</div>
+            </div>
+            <div class="modal-content">
+                <div style="margin-bottom: 16px;">
+                    <input type="text" placeholder="Search friends..." style="width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; font-size: 14px;" />
+                </div>
+                ${['Sarah Johnson', 'Mike Chen', 'Emily Davis', 'Alex Thompson', 'Jessica Lee'].map((name, i) => `
+                    <div class="list-item" onclick="sendStoryToFriend('${name}')">
+                        <div class="list-item-icon">${['👤', '😊', '🎨', '🚀', '🌟'][i]}</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">${name}</div>
+                            <div class="list-item-subtitle">Send story</div>
+                        </div>
+                        <div class="list-item-arrow">➤</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeShareFriendList() {
+    const modal = document.getElementById('shareFriendListModal');
+    if (modal) modal.remove();
+}
+
+function sendStoryToFriend(friendName) {
+    closeShareFriendList();
+    showToast('✅ Story sent to ' + friendName);
 }
 
 // ========== ADDITIONAL HELPER FUNCTIONS ==========
