@@ -1,6 +1,6 @@
 // ========================================
-// CONNECTHUB MOBILE DESIGN - GROUPS SYSTEM COMPLETE
-// Full Groups System with Creation, Management, and Chat
+// CONNECTHUB MOBILE DESIGN - GROUPS SYSTEM
+// Complete Groups Management System
 // ========================================
 
 // Groups State Management
@@ -14,18 +14,12 @@ const groupsState = {
     groupInvitations: [],
     groupCategories: ['Technology', 'Arts & Culture', 'Sports & Fitness', 'Education', 'Business', 'Entertainment', 'Gaming', 'Travel', 'Food & Dining', 'Health & Wellness'],
     currentGroup: null,
-    groupNotificationSettings: {},
-    groupChatMessages: {},
-    discoveryGroups: [
-        { id: 4, name: 'Photography Masters', emoji: '📸', members: 3421, category: 'Arts & Culture', privacy: 'Public', gradient: 'linear-gradient(135deg, #667eea, #764ba2)' },
-        { id: 5, name: 'Fitness Warriors', emoji: '💪', members: 5621, category: 'Sports & Fitness', privacy: 'Public', gradient: 'linear-gradient(135deg, #f093fb, #f5576c)' },
-        { id: 6, name: 'Entrepreneurs Hub', emoji: '💼', members: 2845, category: 'Business', privacy: 'Private', gradient: 'linear-gradient(135deg, #4facfe, #00f2fe)' }
-    ]
+    groupNotificationSettings: {}
 };
 
 // Initialize Groups System
 function initializeGroupsSystem() {
-    console.log('Groups System Complete Initialized');
+    console.log('Groups System Initialized');
     
     // Sample groups data
     groupsState.userGroups = [
@@ -150,23 +144,9 @@ function initializeGroupsSystem() {
             { id: 1, title: 'Monthly Book Discussion', date: '2024-12-28', time: '20:00', location: 'Online', attendees: 23 }
         ]
     };
-    
-    // Sample group chat messages
-    groupsState.groupChatMessages = {
-        1: [
-            { id: 1, sender: 'Sarah Johnson', emoji: '👤', message: 'Hey everyone! Excited for the upcoming meetup!', timestamp: '10:30 AM', isOwn: false },
-            { id: 2, sender: 'You', emoji: '😊', message: 'Me too! Can\'t wait to see everyone.', timestamp: '10:32 AM', isOwn: true },
-            { id: 3, sender: 'Mike Chen', emoji: '😊', message: 'Should we prepare any topics for discussion?', timestamp: '10:35 AM', isOwn: false },
-            { id: 4, sender: 'David Kim', emoji: '🚀', message: 'I can share some insights on the latest frameworks', timestamp: '10:40 AM', isOwn: false }
-        ],
-        2: [
-            { id: 1, sender: 'Emily Rodriguez', emoji: '🎨', message: 'New design challenge posted!', timestamp: '2:15 PM', isOwn: false }
-        ],
-        3: [
-            { id: 1, sender: 'Sarah Johnson', emoji: '👤', message: 'Everyone ready for our book discussion?', timestamp: 'Yesterday', isOwn: false }
-        ]
-    };
 }
+
+// ========== OPEN GROUP DETAILS (Updated to use dashboard) ==========
 
 // Override the original openModal function for 'groupDetails'
 if (typeof window !== 'undefined') {
@@ -185,248 +165,26 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// Helper Functions
-function getFileIcon(type) {
-    const icons = {
-        'pdf': '📄',
-        'doc': '📝',
-        'zip': '📦',
-        'figma': '🎨',
-        'image': '🖼️',
-        'video': '🎥',
-        'audio': '🎵'
-    };
-    return icons[type] || '📁';
-}
-
-function showToastHelper(message) {
-    if (typeof showToast === 'function') {
-        showToast(message);
-    } else {
-        console.log('Toast:', message);
-    }
-}
-
-function closeModal(modalName) {
-    const modal = document.getElementById(modalName + 'Modal');
-    if (modal) modal.remove();
-}
-
-// ========================================
-// GROUP CREATION
-// ========================================
-
-function openCreateGroupDashboard() {
-    const modalHTML = `
-        <div id="createGroupModal" class="modal show">
-            <div class="modal-header">
-                <div class="modal-close" onclick="closeModal('createGroup')">✕</div>
-                <div class="modal-title">Create Group</div>
-            </div>
-            <div class="modal-content">
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
-                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Create New Group</div>
-                    <div style="font-size: 14px; color: var(--text-secondary);">Build your community</div>
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Group Name*</label>
-                    <input type="text" id="groupName" class="search-input" placeholder="Enter group name..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary);" />
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Choose Emoji*</label>
-                    <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;" id="emojiGrid">
-                        ${['💻', '🎨', '📚', '🎮', '🏃', '🎵', '🍔', '✈️', '💼', '🔬', '📷', '🎭', '⚽', '🎸', '🎬', '💡'].map(emoji => 
-                            `<div onclick="selectGroupEmoji('${emoji}')" style="width: 40px; height: 40px; font-size: 24px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 2px solid var(--glass-border); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;" class="emoji-option">${emoji}</div>`
-                        ).join('')}
-                    </div>
-                    <input type="hidden" id="selectedEmoji" />
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Description*</label>
-                    <textarea id="groupDescription" class="search-input" placeholder="What's your group about?" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); min-height: 80px; resize: vertical;"></textarea>
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Category*</label>
-                    <select id="groupCategory" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 14px;">
-                        <option value="">Select a category</option>
-                        ${groupsState.groupCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                    </select>
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Privacy*</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div onclick="selectGroupPrivacy('Public')" class="privacy-option" data-privacy="Public" style="padding: 16px; background: var(--surface); border: 2px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
-                            <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
-                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Public</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Anyone can join</div>
-                        </div>
-                        <div onclick="selectGroupPrivacy('Private')" class="privacy-option" data-privacy="Private" style="padding: 16px; background: var(--surface); border: 2px solid var(--glass-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
-                            <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
-                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Private</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Approval required</div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="selectedPrivacy" />
-                </div>
-                
-                <button class="btn" onclick="createNewGroup()" style="margin-top: 20px;">
-                    ✓ Create Group
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    showToastHelper('Opening group creation... 👥');
-}
-
-function selectGroupEmoji(emoji) {
-    document.getElementById('selectedEmoji').value = emoji;
-    document.querySelectorAll('.emoji-option').forEach(el => {
-        el.style.borderColor = 'var(--glass-border)';
-        el.style.background = 'var(--surface)';
-    });
-    event.target.style.borderColor = 'var(--primary)';
-    event.target.style.background = 'rgba(79, 70, 229, 0.2)';
-}
-
-function selectGroupPrivacy(privacy) {
-    document.getElementById('selectedPrivacy').value = privacy;
-    document.querySelectorAll('.privacy-option').forEach(el => {
-        el.style.borderColor = 'var(--glass-border)';
-    });
-    document.querySelector(`[data-privacy="${privacy}"]`).style.borderColor = 'var(--primary)';
-}
-
-function createNewGroup() {
-    const name = document.getElementById('groupName').value.trim();
-    const emoji = document.getElementById('selectedEmoji').value;
-    const description = document.getElementById('groupDescription').value.trim();
-    const category = document.getElementById('groupCategory').value;
-    const privacy = document.getElementById('selectedPrivacy').value;
-    
-    if (!name || !emoji || !description || !category || !privacy) {
-        showToastHelper('Please fill all required fields ❗');
-        return;
-    }
-    
-    const newGroup = {
-        id: groupsState.userGroups.length + 1,
-        name: name,
-        emoji: emoji,
-        description: description,
-        members: 1,
-        privacy: privacy,
-        category: category,
-        joined: true,
-        isAdmin: true,
-        gradient: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-        rules: ['Be respectful', 'No spam', 'Stay on topic'],
-        settings: {
-            allowPosts: true,
-            allowFiles: true,
-            allowEvents: true,
-            moderationLevel: 'medium'
-        }
-    };
-    
-    groupsState.userGroups.push(newGroup);
-    groupsState.groupMembers[newGroup.id] = [
-        { id: 1, name: 'You', emoji: '😊', role: 'Admin', joinedDate: new Date().toISOString().split('T')[0], active: true }
-    ];
-    groupsState.groupPosts[newGroup.id] = [];
-    groupsState.groupFiles[newGroup.id] = [];
-    groupsState.groupEvents[newGroup.id] = [];
-    groupsState.groupChatMessages[newGroup.id] = [];
-    
-    closeModal('createGroup');
-    showToastHelper(`Group "${name}" created successfully! 🎉`);
-    
-    setTimeout(() => {
-        openGroupDetailsDashboard(newGroup.id);
-    }, 1000);
-}
-
-// ========================================
-// MAIN GROUP DASHBOARD
-// ========================================
+// ========== FULL GROUP DETAILS DASHBOARD ==========
 
 function openGroupDetailsDashboard(groupId) {
     const group = groupsState.userGroups.find(g => g.id === groupId) || groupsState.userGroups[0];
     groupsState.currentGroup = group;
     
-    const modalHTML = `
-        <div id="groupDetailsDashboardModal" class="modal show">
-            <div class="modal-header">
-                <div class="modal-close" onclick="closeGroupDetailsDashboard()">✕</div>
-                <div class="modal-title">${group.name}</div>
-                <button class="nav-btn" onclick="openGroupSettingsMenu(${group.id})">⚙️</button>
-            </div>
-            <div class="modal-content">
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="width: 120px; height: 120px; border-radius: 20px; background: ${group.gradient}; display: flex; align-items: center; justify-content: center; font-size: 60px; margin: 0 auto 16px; border: 4px solid var(--glass-border);">${group.emoji}</div>
-                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${group.name}</div>
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">${group.description}</div>
-                    <div style="display: inline-block; padding: 6px 16px; background: rgba(79, 70, 229, 0.2); border-radius: 16px; font-size: 12px; font-weight: 700; color: var(--primary);">${group.privacy} • ${group.category}</div>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card" onclick="openGroupMembersManager(${group.id})">
-                        <div class="stat-value">${group.members}</div>
-                        <div class="stat-label">Members</div>
-                    </div>
-                    <div class="stat-card" onclick="openGroupPostFeed(${group.id})">
-                        <div class="stat-value">${(groupsState.groupPosts[group.id] || []).length}</div>
-                        <div class="stat-label">Posts</div>
-                    </div>
-                    <div class="stat-card" onclick="openGroupFileSharing(${group.id})">
-                        <div class="stat-value">${(groupsState.groupFiles[group.id] || []).length}</div>
-                        <div class="stat-label">Files</div>
-                    </div>
-                    <div class="stat-card" onclick="openGroupEvents(${group.id})">
-                        <div class="stat-value">${(groupsState.groupEvents[group.id] || []).length}</div>
-                        <div class="stat-label">Events</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 8px; margin: 20px 0; overflow-x: auto; scrollbar-width: none;">
-                    <div class="pill-nav-button active" onclick="switchGroupTab(this, 'feed', ${group.id})">Feed</div>
-                    <div class="pill-nav-button" onclick="switchGroupTab(this, 'members', ${group.id})">Members</div>
-                    <div class="pill-nav-button" onclick="switchGroupTab(this, 'files', ${group.id})">Files</div>
-                    <div class="pill-nav-button" onclick="switchGroupTab(this, 'events', ${group.id})">Events</div>
-                    ${group.isAdmin ? `<div class="pill-nav-button" onclick="switchGroupTab(this, 'admin', ${group.id})">Admin</div>` : ''}
-                </div>
-                
-                <div id="groupTabContent">${getGroupFeedContent(group.id)}</div>
-                
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px;">
-                    ${group.joined ? `
-                        <button class="btn" onclick="openGroupChat(${group.id})">💬 Group Chat</button>
-                        <button class="btn" style="background: var(--glass);" onclick="openCreateGroupPost(${group.id})">📝 Post</button>
-                        <button class="btn" style="background: var(--glass);" onclick="inviteToGroup(${group.id})">👥 Invite</button>
-                        <button class="btn" style="background: var(--glass);" onclick="shareGroup(${group.id})">🔗 Share</button>
-                    ` : `
-                        <button class="btn" onclick="joinGroup(${group.id})" style="grid-column: span 2;">Join Group</button>
-                    `}
-                </div>
-            </div>
-        </div>
-    `;
+    const modalHTML = '<div id="groupDetailsDashboardModal" class="modal show"><div class="modal-header"><div class="modal-close" onclick="closeGroupDetailsDashboard()">✕</div><div class="modal-title">' + group.name + '</div><button class="nav-btn" onclick="openGroupSettingsMenu(' + group.id + ')">⚙️</button></div><div class="modal-content"><div style="text-align: center; margin: 20px 0;"><div style="width: 120px; height: 120px; border-radius: 20px; background: ' + group.gradient + '; display: flex; align-items: center; justify-content: center; font-size: 60px; margin: 0 auto 16px; border: 4px solid var(--glass-border);">' + group.emoji + '</div><div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">' + group.name + '</div><div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">' + group.description + '</div><div style="display: inline-block; padding: 6px 16px; background: rgba(79, 70, 229, 0.2); border-radius: 16px; font-size: 12px; font-weight: 700; color: var(--primary);">' + group.privacy + ' • ' + group.category + '</div></div><div class="stats-grid"><div class="stat-card" onclick="openGroupMembersManager(' + group.id + ')"><div class="stat-value">' + group.members + '</div><div class="stat-label">Members</div></div><div class="stat-card" onclick="openGroupPostFeed(' + group.id + ')"><div class="stat-value">' + (groupsState.groupPosts[group.id] || []).length + '</div><div class="stat-label">Posts</div></div><div class="stat-card" onclick="openGroupFileSharing(' + group.id + ')"><div class="stat-value">' + (groupsState.groupFiles[group.id] || []).length + '</div><div class="stat-label">Files</div></div><div class="stat-card" onclick="openGroupEvents(' + group.id + ')"><div class="stat-value">' + (groupsState.groupEvents[group.id] || []).length + '</div><div class="stat-label">Events</div></div></div><div style="display: flex; gap: 8px; margin: 20px 0; overflow-x: auto; scrollbar-width: none;"><div class="pill-nav-button active" onclick="switchGroupTab(this, \'feed\', ' + group.id + ')">Feed</div><div class="pill-nav-button" onclick="switchGroupTab(this, \'members\', ' + group.id + ')">Members</div><div class="pill-nav-button" onclick="switchGroupTab(this, \'files\', ' + group.id + ')">Files</div><div class="pill-nav-button" onclick="switchGroupTab(this, \'events\', ' + group.id + ')">Events</div>' + (group.isAdmin ? '<div class="pill-nav-button" onclick="switchGroupTab(this, \'admin\', ' + group.id + ')">Admin</div>' : '') + '</div><div id="groupTabContent">' + getGroupFeedContent(group.id) + '</div><div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px;">' + (group.joined ? '<button class="btn" onclick="openGroupChat(' + group.id + ')">💬 Group Chat</button><button class="btn" style="background: var(--glass);" onclick="openCreateGroupPost(' + group.id + ')">📝 Post</button><button class="btn" style="background: var(--glass);" onclick="inviteToGroup(' + group.id + ')">👥 Invite</button><button class="btn" style="background: var(--glass);" onclick="shareGroup(' + group.id + ')">🔗 Share</button>' : '<button class="btn" onclick="joinGroup(' + group.id + ')" style="grid-column: span 2;">Join Group</button>') + '</div></div></div>';
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    showToastHelper(`Opening ${group.name}... 👥`);
+    if (typeof showToast === 'function') {
+        showToast('Opening ' + group.name + '... 👥');
+    }
 }
 
 function closeGroupDetailsDashboard() {
     const modal = document.getElementById('groupDetailsDashboardModal');
     if (modal) modal.remove();
 }
+
+// ========== GROUP TAB SWITCHING ==========
 
 function switchGroupTab(element, tab, groupId) {
     element.parentElement.querySelectorAll('.pill-nav-button').forEach(btn => btn.classList.remove('active'));
@@ -454,327 +212,113 @@ function switchGroupTab(element, tab, groupId) {
     }
 }
 
+// ========== GROUP FEED CONTENT ==========
+
 function getGroupFeedContent(groupId) {
     const posts = groupsState.groupPosts[groupId] || [];
     
     if (posts.length === 0) {
-        return `
-            <div style="text-align: center; padding: 60px 20px;">
-                <div style="font-size: 64px; margin-bottom: 16px;">📝</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Posts Yet</div>
-                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Be the first to share something!</div>
-                <button class="btn" onclick="openCreateGroupPost(${groupId})">📝 Create Post</button>
-            </div>
-        `;
+        return '<div style="text-align: center; padding: 60px 20px;"><div style="font-size: 64px; margin-bottom: 16px;">📝</div><div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Posts Yet</div><div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Be the first to share something!</div><button class="btn" onclick="openCreateGroupPost(' + groupId + ')">📝 Create Post</button></div>';
     }
     
-    let html = `<div class="section-header"><div class="section-title">Recent Posts</div><div class="section-link" onclick="openCreateGroupPost(${groupId})">+ Post</div></div>`;
+    let html = '<div class="section-header"><div class="section-title">Recent Posts</div><div class="section-link" onclick="openCreateGroupPost(' + groupId + ')">+ Post</div></div>';
     
     posts.forEach(post => {
-        html += `
-            <div class="post-card">
-                <div class="post-header">
-                    <div class="post-avatar">${post.emoji}</div>
-                    <div class="post-header-info">
-                        <div class="post-author">${post.author}</div>
-                        <div class="post-meta">${post.timestamp}</div>
-                    </div>
-                    <div class="post-menu" onclick="openGroupPostOptions(${post.id}, ${groupId})">⋯</div>
-                </div>
-                <div class="post-content">${post.content}</div>
-                <div class="post-actions">
-                    <div class="post-action" onclick="likeGroupPost(${post.id}, ${groupId}, this)">
-                        <span>👍</span> ${post.likes}
-                    </div>
-                    <div class="post-action" onclick="openGroupPostComments(${post.id}, ${groupId})">
-                        <span>💬</span> ${post.comments}
-                    </div>
-                    <div class="post-action" onclick="shareGroupPost(${post.id}, ${groupId})">
-                        <span>🔄</span> Share
-                    </div>
-                </div>
-            </div>
-        `;
+        html += '<div class="post-card"><div class="post-header"><div class="post-avatar">' + post.emoji + '</div><div class="post-header-info"><div class="post-author">' + post.author + '</div><div class="post-meta">' + post.timestamp + '</div></div><div class="post-menu" onclick="openGroupPostOptions(' + post.id + ', ' + groupId + ')">⋯</div></div><div class="post-content">' + post.content + '</div><div class="post-actions"><div class="post-action" onclick="likeGroupPost(' + post.id + ', ' + groupId + ', this)"><span>👍</span> ' + post.likes + '</div><div class="post-action" onclick="openGroupPostComments(' + post.id + ', ' + groupId + ')"><span>💬</span> ' + post.comments + '</div><div class="post-action" onclick="shareGroupPost(' + post.id + ', ' + groupId + ')"><span>🔄</span> Share</div></div></div>';
     });
     
     return html;
 }
 
+// ========== GROUP MEMBERS CONTENT ==========
+
 function getGroupMembersContent(groupId) {
     const members = groupsState.groupMembers[groupId] || [];
     const group = groupsState.userGroups.find(g => g.id === groupId);
     
-    let html = `
-        <div class="search-bar">
-            <span>🔍</span>
-            <input type="text" class="search-input" placeholder="Search members..." oninput="searchGroupMembers(this.value, ${groupId})" />
-        </div>
-        <div class="section-header">
-            <div class="section-title">Members (${members.length})</div>
-            ${group.isAdmin ? `<div class="section-link" onclick="openPendingMemberRequests(${groupId})">Pending</div>` : ''}
-        </div>
-        <div id="groupMembersList">
-    `;
+    let html = '<div class="search-bar"><span>🔍</span><input type="text" class="search-input" placeholder="Search members..." oninput="searchGroupMembers(this.value, ' + groupId + ')" /></div><div class="section-header"><div class="section-title">Members (' + members.length + ')</div>' + (group.isAdmin ? '<div class="section-link" onclick="openPendingMemberRequests(' + groupId + ')">Pending</div>' : '') + '</div><div id="groupMembersList">';
     
     members.forEach(member => {
-        html += `
-            <div class="friend-card" onclick="openGroupMemberProfile(${member.id}, ${groupId})">
-                <div class="friend-avatar">${member.emoji}</div>
-                <div class="friend-info">
-                    <div class="friend-name">${member.name}</div>
-                    <div class="friend-mutual">${member.role}${member.active ? ' • Active' : ' • Offline'}</div>
-                </div>
-                <button class="friend-btn secondary" onclick="event.stopPropagation(); messageGroupMember(${member.id}, '${member.name}')">💬</button>
-            </div>
-        `;
+        html += '<div class="friend-card" onclick="openGroupMemberProfile(' + member.id + ', ' + groupId + ')"><div class="friend-avatar">' + member.emoji + '</div><div class="friend-info"><div class="friend-name">' + member.name + '</div><div class="friend-mutual">' + member.role + (member.active ? ' • Active' : ' • Offline') + '</div></div><button class="friend-btn secondary" onclick="event.stopPropagation(); messageGroupMember(' + member.id + ', \'' + member.name + '\')">💬</button></div>';
     });
     
     html += '</div>';
     return html;
 }
 
+// ========== GROUP FILES CONTENT ==========
+
 function getGroupFilesContent(groupId) {
     const files = groupsState.groupFiles[groupId] || [];
     
-    let html = `<div class="section-header"><div class="section-title">Shared Files</div><div class="section-link" onclick="uploadGroupFile(${groupId})">+ Upload</div></div>`;
+    let html = '<div class="section-header"><div class="section-title">Shared Files</div><div class="section-link" onclick="uploadGroupFile(' + groupId + ')">+ Upload</div></div>';
     
     if (files.length === 0) {
-        html += `
-            <div style="text-align: center; padding: 60px 20px;">
-                <div style="font-size: 64px; margin-bottom: 16px;">📁</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Files Yet</div>
-                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Share documents, images, and more</div>
-                <button class="btn" onclick="uploadGroupFile(${groupId})">📤 Upload File</button>
-            </div>
-        `;
+        html += '<div style="text-align: center; padding: 60px 20px;"><div style="font-size: 64px; margin-bottom: 16px;">📁</div><div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Files Yet</div><div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Share documents, images, and more</div><button class="btn" onclick="uploadGroupFile(' + groupId + ')">📤 Upload File</button></div>';
     } else {
-        html += `<div class="search-bar"><span>🔍</span><input type="text" class="search-input" placeholder="Search files..." /></div>`;
+        html += '<div class="search-bar"><span>🔍</span><input type="text" class="search-input" placeholder="Search files..." /></div>';
         files.forEach(file => {
-            html += `
-                <div class="list-item" onclick="openGroupFile(${file.id}, ${groupId})">
-                    <div class="list-item-icon">${getFileIcon(file.type)}</div>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${file.name}</div>
-                        <div class="list-item-subtitle">${file.uploader} • ${file.size} • ${file.uploadDate}</div>
-                    </div>
-                    <button class="nav-btn" onclick="event.stopPropagation(); downloadGroupFile(${file.id}, ${groupId})">⬇️</button>
-                </div>
-            `;
+            html += '<div class="list-item" onclick="openGroupFile(' + file.id + ', ' + groupId + ')"><div class="list-item-icon">' + getFileIcon(file.type) + '</div><div class="list-item-content"><div class="list-item-title">' + file.name + '</div><div class="list-item-subtitle">' + file.uploader + ' • ' + file.size + ' • ' + file.uploadDate + '</div></div><button class="nav-btn" onclick="event.stopPropagation(); downloadGroupFile(' + file.id + ', ' + groupId + ')">⬇️</button></div>';
         });
     }
     
     return html;
 }
+
+// ========== GROUP EVENTS CONTENT ==========
 
 function getGroupEventsContent(groupId) {
     const events = groupsState.groupEvents[groupId] || [];
     const group = groupsState.userGroups.find(g => g.id === groupId);
     
-    let html = `<div class="section-header"><div class="section-title">Group Events</div>${group.isAdmin ? `<div class="section-link" onclick="createGroupEvent(${groupId})">+ Create</div>` : ''}</div>`;
+    let html = '<div class="section-header"><div class="section-title">Group Events</div>' + (group.isAdmin ? '<div class="section-link" onclick="createGroupEvent(' + groupId + ')">+ Create</div>' : '') + '</div>';
     
     if (events.length === 0) {
-        html += `
-            <div style="text-align: center; padding: 60px 20px;">
-                <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Events Scheduled</div>
-                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Create events for group members</div>
-                ${group.isAdmin ? `<button class="btn" onclick="createGroupEvent(${groupId})">📅 Create Event</button>` : ''}
-            </div>
-        `;
+        html += '<div style="text-align: center; padding: 60px 20px;"><div style="font-size: 64px; margin-bottom: 16px;">📅</div><div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Events Scheduled</div><div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Create events for group members</div>' + (group.isAdmin ? '<button class="btn" onclick="createGroupEvent(' + groupId + ')">📅 Create Event</button>' : '') + '</div>';
     } else {
         events.forEach(event => {
             const date = new Date(event.date);
             const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
             const day = date.getDate();
-            html += `
-                <div class="event-card" onclick="viewGroupEventDetails(${event.id}, ${groupId})">
-                    <div class="event-date">
-                        <div class="event-date-box">
-                            <div class="event-month">${month}</div>
-                            <div class="event-day">${day}</div>
-                        </div>
-                        <div>
-                            <div class="event-title">${event.title}</div>
-                            <div class="event-details">📍 ${event.location} • ${event.time}</div>
-                            <div class="event-details">👥 ${event.attendees} attending</div>
-                        </div>
-                    </div>
-                    <button class="btn" style="margin-top: 12px;" onclick="event.stopPropagation(); rsvpGroupEvent(${event.id}, ${groupId})">✓ RSVP</button>
-                </div>
-            `;
+            html += '<div class="event-card" onclick="viewGroupEventDetails(' + event.id + ', ' + groupId + ')"><div class="event-date"><div class="event-date-box"><div class="event-month">' + month + '</div><div class="event-day">' + day + '</div></div><div><div class="event-title">' + event.title + '</div><div class="event-details">📍 ' + event.location + ' • ' + event.time + '</div><div class="event-details">👥 ' + event.attendees + ' attending</div></div></div><button class="btn" style="margin-top: 12px;" onclick="event.stopPropagation(); rsvpGroupEvent(' + event.id + ', ' + groupId + ')">✓ RSVP</button></div>';
         });
     }
     
     return html;
 }
 
+// ========== GROUP ADMIN CONTENT ==========
+
 function getGroupAdminContent(groupId) {
     const group = groupsState.userGroups.find(g => g.id === groupId);
     
-    return `
-        <div style="text-align: center; margin: 30px 0;">
-            <div style="font-size: 64px; margin-bottom: 16px;">🛡️</div>
-            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Admin Panel</div>
-            <div style="font-size: 14px; color: var(--text-secondary);">Manage group settings and members</div>
-        </div>
-        
-        <div class="section-header">
-            <div class="section-title">Admin Tools</div>
-        </div>
-        
-        <div class="list-item" onclick="showToastHelper('Opening moderation panel...')">
-            <div class="list-item-icon">🛡️</div>
-            <div class="list-item-content">
-                <div class="list-item-title">Moderation Panel</div>
-                <div class="list-item-subtitle">Manage posts and members</div>
-            </div>
-            <div class="list-item-arrow">→</div>
-        </div>
-        
-        <div class="list-item" onclick="showToastHelper('Managing roles...')">
-            <div class="list-item-icon">👥</div>
-            <div class="list-item-content">
-                <div class="list-item-title">Roles & Permissions</div>
-                <div class="list-item-subtitle">Manage member roles</div>
-            </div>
-            <div class="list-item-arrow">→</div>
-        </div>
-        
-        <div class="section-header" style="margin-top: 20px;">
-            <div class="section-title">Group Settings</div>
-        </div>
-        
-        <div class="toggle-container">
-            <div>
-                <div class="list-item-title">Allow Member Posts</div>
-                <div class="list-item-subtitle">Members can create posts</div>
-            </div>
-            <div class="toggle-switch ${group.settings.allowPosts ? 'active' : ''}" onclick="toggleGroupSetting(${groupId}, 'allowPosts', this)">
-                <div class="toggle-slider"></div>
-            </div>
-        </div>
-        
-        <div class="toggle-container">
-            <div>
-                <div class="list-item-title">Allow File Sharing</div>
-                <div class="list-item-subtitle">Members can share files</div>
-            </div>
-            <div class="toggle-switch ${group.settings.allowFiles ? 'active' : ''}" onclick="toggleGroupSetting(${groupId}, 'allowFiles', this)">
-                <div class="toggle-slider"></div>
-            </div>
-        </div>
-    `;
+    return '<div style="text-align: center; margin: 30px 0;"><div style="font-size: 64px; margin-bottom: 16px;">🛡️</div><div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Admin Panel</div><div style="font-size: 14px; color: var(--text-secondary);">Manage group settings and members</div></div><div class="section-header"><div class="section-title">Admin Tools</div></div><div class="list-item" onclick="openGroupModerationPanel(' + groupId + ')"><div class="list-item-icon">🛡️</div><div class="list-item-content"><div class="list-item-title">Moderation Panel</div><div class="list-item-subtitle">Manage posts and members</div></div><div class="list-item-arrow">→</div></div><div class="list-item" onclick="openGroupRolesPermissions(' + groupId + ')"><div class="list-item-icon">👥</div><div class="list-item-content"><div class="list-item-title">Roles & Permissions</div><div class="list-item-subtitle">Manage member roles</div></div><div class="list-item-arrow">→</div></div><div class="list-item" onclick="openGroupRulesEditor(' + groupId + ')"><div class="list-item-icon">📋</div><div class="list-item-content"><div class="list-item-title">Group Rules</div><div class="list-item-subtitle">Edit guidelines</div></div><div class="list-item-arrow">→</div></div><div class="list-item" onclick="openGroupAnalyticsPanel(' + groupId + ')"><div class="list-item-icon">📊</div><div class="list-item-content"><div class="list-item-title">Analytics</div><div class="list-item-subtitle">View group insights</div></div><div class="list-item-arrow">→</div></div><div class="list-item" onclick="openPendingMemberRequests(' + groupId + ')"><div class="list-item-icon">⏳</div><div class="list-item-content"><div class="list-item-title">Pending Requests</div><div class="list-item-subtitle">Member join requests</div></div><div class="list-item-arrow">→</div></div><div class="list-item" onclick="manageSubgroups(' + groupId + ')"><div class="list-item-icon">🔀</div><div class="list-item-content"><div class="list-item-title">Subgroups</div><div class="list-item-subtitle">Create and manage subgroups</div></div><div class="list-item-arrow">→</div></div><div class="section-header"><div class="section-title">Group Settings</div></div><div class="toggle-container"><div><div class="list-item-title">Allow Member Posts</div><div class="list-item-subtitle">Members can create posts</div></div><div class="toggle-switch ' + (group.settings.allowPosts ? 'active' : '') + '" onclick="toggleGroupSetting(' + groupId + ', \'allowPosts\', this)"><div class="toggle-slider"></div></div></div><div class="toggle-container"><div><div class="list-item-title">Allow File Sharing</div><div class="list-item-subtitle">Members can share files</div></div><div class="toggle-switch ' + (group.settings.allowFiles ? 'active' : '') + '" onclick="toggleGroupSetting(' + groupId + ', \'allowFiles\', this)"><div class="toggle-slider"></div></div></div><div class="toggle-container"><div><div class="list-item-title">Allow Event Creation</div><div class="list-item-subtitle">Members can create events</div></div><div class="toggle-switch ' + (group.settings.allowEvents ? 'active' : '') + '" onclick="toggleGroupSetting(' + groupId + ', \'allowEvents\', this)"><div class="toggle-slider"></div></div></div><div class="list-item" onclick="openGroupPrivacySettings(' + groupId + ')"><div class="list-item-icon">🔐</div><div class="list-item-content"><div class="list-item-title">Privacy Settings</div><div class="list-item-subtitle">' + group.privacy + ' group</div></div><div class="list-item-arrow">→</div></div><button class="btn" style="background: var(--error); margin-top: 20px;" onclick="deleteGroupConfirm(' + groupId + ')">🗑️ Delete Group</button>';
 }
 
-// ========================================
-// GROUP CHAT SYSTEM - FULL IMPLEMENTATION
-// ========================================
+// ========== HELPER FUNCTIONS ==========
 
-function openGroupChat(groupId) {
-    const group = groupsState.userGroups.find(g => g.id === groupId);
-    const messages = groupsState.groupChatMessages[groupId] || [];
-    
-    const modalHTML = `
-        <div id="groupChatModal" class="modal show">
-            <div class="modal-header">
-                <div class="modal-close" onclick="closeModal('groupChat')">✕</div>
-                <div class="modal-title">${group.emoji} ${group.name} Chat</div>
-                <button class="nav-btn" onclick="showToastHelper('Chat settings...')">⋮</button>
-            </div>
-            <div class="modal-content" style="padding: 0; display: flex; flex-direction: column; height: calc(100vh - 80px);">
-                <div style="padding: 12px; background: var(--glass); border-bottom: 1px solid var(--glass-border); text-align: center;">
-                    <div style="font-size: 12px; color: var(--text-secondary);">${group.members} members • ${messages.length} messages</div>
-                </div>
-                
-                <div id="chatMessages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                    ${messages.length === 0 ? `
-                        <div style="text-align: center; padding: 60px 20px;">
-                            <div style="font-size: 48px; margin-bottom: 12px;">💬</div>
-                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Start the Conversation</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Be the first to send a message!</div>
-                        </div>
-                    ` : messages.map(msg => `
-                        <div style="display: flex; ${msg.isOwn ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}">
-                            ${!msg.isOwn ? `<div class="friend-avatar" style="width: 32px; height: 32px; font-size: 16px; margin-right: 8px;">${msg.emoji}</div>` : ''}
-                            <div style="max-width: 70%;">
-                                ${!msg.isOwn ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">${msg.sender}</div>` : ''}
-                                <div style="padding: 12px 16px; background: ${msg.isOwn ? 'var(--primary)' : 'var(--surface)'}; border-radius: ${msg.isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px'}; border: 1px solid var(--glass-border);">
-                                    <div style="font-size: 14px; line-height: 1.5;">${msg.message}</div>
-                                </div>
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; ${msg.isOwn ? 'text-align: right;' : 'text-align: left;'}">${msg.timestamp}</div>
-                            </div>
-                            ${msg.isOwn ? `<div class="friend-avatar" style="width: 32px; height: 32px; font-size: 16px; margin-left: 8px;">${msg.emoji}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div style="padding: 16px; background: var(--glass); border-top: 1px solid var(--glass-border);">
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button class="nav-btn" onclick="showToastHelper('Attaching files...')">📎</button>
-                        <button class="nav-btn" onclick="showToastHelper('Sending emoji...')">😊</button>
-                        <input type="text" id="chatMessageInput" placeholder="Type a message..." style="flex: 1; padding: 12px 16px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 24px; color: var(--text-primary); font-size: 14px;" onkeypress="if(event.key === 'Enter') sendGroupChatMessage(${groupId})" />
-                        <button class="nav-btn" onclick="sendGroupChatMessage(${groupId})" style="background: var(--primary); width: 44px; height: 44px; font-size: 20px;">➤</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    showToastHelper(`Opening ${group.name} chat... 💬`);
-    
-    // Scroll to bottom
-    setTimeout(() => {
-        const chatDiv = document.getElementById('chatMessages');
-        if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
-    }, 100);
-}
-
-function sendGroupChatMessage(groupId) {
-    const input = document.getElementById('chatMessageInput');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    const newMessage = {
-        id: (groupsState.groupChatMessages[groupId] || []).length + 1,
-        sender: 'You',
-        emoji: '😊',
-        message: message,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        isOwn: true
+function getFileIcon(type) {
+    const icons = {
+        'pdf': '📄',
+        'doc': '📝',
+        'zip': '📦',
+        'figma': '🎨',
+        'image': '🖼️',
+        'video': '🎥',
+        'audio': '🎵'
     };
-    
-    if (!groupsState.groupChatMessages[groupId]) {
-        groupsState.groupChatMessages[groupId] = [];
-    }
-    groupsState.groupChatMessages[groupId].push(newMessage);
-    
-    // Add message to chat UI
-    const chatDiv = document.getElementById('chatMessages');
-    if (chatDiv) {
-        const msgHTML = `
-            <div style="display: flex; justify-content: flex-end;">
-                <div style="max-width: 70%;">
-                    <div style="padding: 12px 16px; background: var(--primary); border-radius: 16px 16px 4px 16px; border: 1px solid var(--glass-border);">
-                        <div style="font-size: 14px; line-height: 1.5;">${message}</div>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-align: right;">${newMessage.timestamp}</div>
-                </div>
-                <div class="friend-avatar" style="width: 32px; height: 32px; font-size: 16px; margin-left: 8px;">😊</div>
-            </div>
-        `;
-        chatDiv.insertAdjacentHTML('beforeend', msgHTML);
-        chatDiv.scrollTop = chatDiv.scrollHeight;
-    }
-    
-    input.value = '';
-    showToastHelper('Message sent! ✓');
+    return icons[type] || '📁';
 }
 
-// ========================================
-// GROUP ACTION FUNCTIONS
-// ========================================
+function showToastHelper(message) {
+    if (typeof showToast === 'function') {
+        showToast(message);
+    } else {
+        console.log('Toast:', message);
+    }
+}
+
+// ========== GROUP ACTION FUNCTIONS ==========
 
 function joinGroup(groupId) {
     const group = groupsState.userGroups.find(g => g.id === groupId);
@@ -784,42 +328,65 @@ function joinGroup(groupId) {
     group.members++;
     
     closeGroupDetailsDashboard();
-    showToastHelper(`Joined ${group.name}! 🎉`);
+    showToastHelper('Joined ' + group.name + '! 🎉');
     
-    setTimeout(() => {
-        openGroupDetailsDashboard(groupId);
+    setTimeout(function() {
+        showToastHelper('Welcome to the community!');
+    }, 1500);
+}
+
+function leaveGroup(groupId) {
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    if (confirm('Are you sure you want to leave this group?')) {
+        group.joined = false;
+        group.members--;
+        
+        closeGroupDetailsDashboard();
+        showToastHelper('Left ' + group.name);
+    }
+}
+
+function openGroupChat(groupId) {
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    closeGroupDetailsDashboard();
+    
+    showToastHelper('Opening group chat for ' + group.name + '... 💬');
+    
+    setTimeout(function() {
+        showToastHelper('Group chat with ' + group.members + ' members');
     }, 1000);
 }
 
 function openCreateGroupPost(groupId) {
-    showToastHelper('Creating post... 📝');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
     
-    setTimeout(() => {
-        const newPost = {
-            id: (groupsState.groupPosts[groupId] || []).length + 1,
-            author: 'You',
-            emoji: '😊',
-            content: 'Just shared something amazing!',
-            timestamp: 'Just now',
-            likes: 0,
-            comments: 0
-        };
-        
-        if (!groupsState.groupPosts[groupId]) {
-            groupsState.groupPosts[groupId] = [];
-        }
-        groupsState.groupPosts[groupId].unshift(newPost);
-        
-        showToastHelper('Post created! ✓');
-    }, 1000);
+    showToastHelper('Creating post in ' + group.name + '... 📝');
+    
+    setTimeout(function() {
+        showToastHelper('Post created in group!');
+    }, 1500);
 }
 
 function inviteToGroup(groupId) {
-    showToastHelper('Opening invite friends... 👥');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    
+    showToastHelper('Sending invitations to ' + group.name + '... 👥');
+    
+    setTimeout(function() {
+        showToastHelper('Invitations sent successfully!');
+    }, 1500);
 }
 
 function shareGroup(groupId) {
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    
     showToastHelper('Group link copied! 🔗');
+    
+    setTimeout(function() {
+        showToastHelper('Share ' + group.name + ' with friends!');
+    }, 1000);
 }
 
 function likeGroupPost(postId, groupId, element) {
@@ -848,37 +415,28 @@ function openGroupPostOptions(postId, groupId) {
 
 function searchGroupMembers(query, groupId) {
     if (query.trim().length > 0) {
-        showToastHelper(`Searching members: ${query}`);
+        showToastHelper('Searching members: ' + query);
     }
 }
 
 function openGroupMemberProfile(memberId, groupId) {
-    showToastHelper('Opening member profile... 👤');
+    const members = groupsState.groupMembers[groupId] || [];
+    const member = members.find(m => m.id === memberId);
+    
+    if (member) {
+        showToastHelper('Opening ' + member.name + ' profile... 👤');
+    }
 }
 
 function messageGroupMember(memberId, name) {
-    showToastHelper(`Opening chat with ${name}... 💬`);
+    showToastHelper('Opening chat with ' + name + '... 💬');
 }
 
 function uploadGroupFile(groupId) {
     showToastHelper('Opening file picker... 📤');
     
-    setTimeout(() => {
-        const newFile = {
-            id: (groupsState.groupFiles[groupId] || []).length + 1,
-            name: 'NewDocument.pdf',
-            uploader: 'You',
-            size: '1.2 MB',
-            uploadDate: 'Just now',
-            type: 'pdf'
-        };
-        
-        if (!groupsState.groupFiles[groupId]) {
-            groupsState.groupFiles[groupId] = [];
-        }
-        groupsState.groupFiles[groupId].unshift(newFile);
-        
-        showToastHelper('File uploaded! ✓');
+    setTimeout(function() {
+        showToastHelper('File uploaded to group! ✓');
     }, 2000);
 }
 
@@ -889,31 +447,13 @@ function openGroupFile(fileId, groupId) {
 function downloadGroupFile(fileId, groupId) {
     showToastHelper('Downloading file... ⬇️');
     
-    setTimeout(() => {
+    setTimeout(function() {
         showToastHelper('File downloaded! ✓');
     }, 1500);
 }
 
 function createGroupEvent(groupId) {
     showToastHelper('Creating group event... 📅');
-    
-    setTimeout(() => {
-        const newEvent = {
-            id: (groupsState.groupEvents[groupId] || []).length + 1,
-            title: 'New Group Event',
-            date: '2024-12-31',
-            time: '18:00',
-            location: 'TBD',
-            attendees: 1
-        };
-        
-        if (!groupsState.groupEvents[groupId]) {
-            groupsState.groupEvents[groupId] = [];
-        }
-        groupsState.groupEvents[groupId].push(newEvent);
-        
-        showToastHelper('Event created! ✓');
-    }, 1000);
 }
 
 function viewGroupEventDetails(eventId, groupId) {
@@ -924,38 +464,486 @@ function rsvpGroupEvent(eventId, groupId) {
     showToastHelper('RSVP confirmed! ✓');
 }
 
-function openGroupSettingsMenu(groupId) {
-    showToastHelper('Opening group settings... ⚙️');
-}
+// ========== ADMIN PANEL FUNCTIONS (FULL DASHBOARDS) ==========
 
-function openPendingMemberRequests(groupId) {
-    showToastHelper('Opening pending requests... ⏳');
-}
-
-function toggleGroupSetting(groupId, setting, element) {
-    element.classList.toggle('active');
-    const group = groupsState.userGroups.find(g => g.id === groupId);
-    if (group && group.settings) {
-        group.settings[setting] = element.classList.contains('active');
-        showToastHelper(`Setting updated! ✓`);
-    }
-}
-
+// 1. Group Members Manager - Full Dashboard
 function openGroupMembersManager(groupId) {
-    showToastHelper('Opening members manager... 👥');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    const members = groupsState.groupMembers[groupId] || [];
+    
+    const modalHTML = `
+        <div id="groupMembersManagerModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupMembersManager')">✕</div>
+                <div class="modal-title">Members Manager</div>
+                <button class="nav-btn" onclick="inviteToGroup(${groupId})">+</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Manage Members</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">${members.length} total members</div>
+                </div>
+                
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search members..." oninput="searchGroupMembers(this.value, ${groupId})" />
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">All Members</div>
+                    ${group.isAdmin ? '<div class="section-link" onclick="openPendingMemberRequests(' + groupId + ')">Pending</div>' : ''}
+                </div>
+                
+                ${members.map(member => `
+                    <div class="friend-card" onclick="openGroupMemberProfile(${member.id}, ${groupId})">
+                        <div class="friend-avatar">${member.emoji}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${member.name}</div>
+                            <div class="friend-mutual">${member.role}${member.active ? ' • Active' : ' • Offline'}</div>
+                        </div>
+                        <button class="friend-btn secondary" onclick="event.stopPropagation(); messageGroupMember(${member.id}, '${member.name}')">💬</button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('Members manager opened 👥');
 }
 
+// 2. Group Post Feed - Standalone Dashboard
 function openGroupPostFeed(groupId) {
-    showToastHelper('Opening post feed... 📝');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    const posts = groupsState.groupPosts[groupId] || [];
+    
+    const modalHTML = `
+        <div id="groupPostFeedModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupPostFeed')">✕</div>
+                <div class="modal-title">Group Posts</div>
+                <button class="nav-btn" onclick="openCreateGroupPost(${groupId})">+</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📝</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Group Posts</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">${posts.length} total posts</div>
+                </div>
+                
+                ${posts.length === 0 ? `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Posts Yet</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Be the first to post!</div>
+                        <button class="btn" onclick="openCreateGroupPost(${groupId})">Create Post</button>
+                    </div>
+                ` : posts.map(post => `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">${post.emoji}</div>
+                            <div class="post-header-info">
+                                <div class="post-author">${post.author}</div>
+                                <div class="post-meta">${post.timestamp}</div>
+                            </div>
+                            <div class="post-menu" onclick="openGroupPostOptions(${post.id}, ${groupId})">⋯</div>
+                        </div>
+                        <div class="post-content">${post.content}</div>
+                        <div class="post-actions">
+                            <div class="post-action" onclick="likeGroupPost(${post.id}, ${groupId}, this)">
+                                <span>👍</span> ${post.likes}
+                            </div>
+                            <div class="post-action" onclick="openGroupPostComments(${post.id}, ${groupId})">
+                                <span>💬</span> ${post.comments}
+                            </div>
+                            <div class="post-action" onclick="shareGroupPost(${post.id}, ${groupId})">
+                                <span>🔄</span> Share
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('Post feed opened 📝');
 }
 
+// 3. Group File Sharing - Standalone Dashboard
 function openGroupFileSharing(groupId) {
-    showToastHelper('Opening file sharing... 📁');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    const files = groupsState.groupFiles[groupId] || [];
+    
+    const modalHTML = `
+        <div id="groupFileSharingModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupFileSharing')">✕</div>
+                <div class="modal-title">File Sharing</div>
+                <button class="nav-btn" onclick="uploadGroupFile(${groupId})">+</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Shared Files</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">${files.length} files shared</div>
+                </div>
+                
+                ${files.length > 0 ? `
+                    <div class="search-bar">
+                        <span>🔍</span>
+                        <input type="text" class="search-input" placeholder="Search files..." />
+                    </div>
+                ` : ''}
+                
+                ${files.length === 0 ? `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📂</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Files Yet</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Share documents and media</div>
+                        <button class="btn" onclick="uploadGroupFile(${groupId})">Upload File</button>
+                    </div>
+                ` : files.map(file => `
+                    <div class="list-item" onclick="openGroupFile(${file.id}, ${groupId})">
+                        <div class="list-item-icon">${getFileIcon(file.type)}</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">${file.name}</div>
+                            <div class="list-item-subtitle">${file.uploader} • ${file.size} • ${file.uploadDate}</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); downloadGroupFile(${file.id}, ${groupId})">⬇️</button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('File sharing opened 📁');
 }
 
+// 4. Group Events - Standalone Dashboard
 function openGroupEvents(groupId) {
-    showToastHelper('Opening events... 📅');
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    const events = groupsState.groupEvents[groupId] || [];
+    
+    const modalHTML = `
+        <div id="groupEventsModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupEvents')">✕</div>
+                <div class="modal-title">Group Events</div>
+                ${group.isAdmin ? '<button class="nav-btn" onclick="createGroupEvent(' + groupId + ')">+</button>' : ''}
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📅</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Upcoming Events</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">${events.length} scheduled events</div>
+                </div>
+                
+                ${events.length === 0 ? `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🗓️</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Events Scheduled</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Create events for your group</div>
+                        ${group.isAdmin ? '<button class="btn" onclick="createGroupEvent(' + groupId + ')">Create Event</button>' : ''}
+                    </div>
+                ` : events.map(event => {
+                    const date = new Date(event.date);
+                    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                    const day = date.getDate();
+                    return `
+                        <div class="event-card" onclick="viewGroupEventDetails(${event.id}, ${groupId})">
+                            <div class="event-date">
+                                <div class="event-date-box">
+                                    <div class="event-month">${month}</div>
+                                    <div class="event-day">${day}</div>
+                                </div>
+                                <div>
+                                    <div class="event-title">${event.title}</div>
+                                    <div class="event-details">📍 ${event.location} • ${event.time}</div>
+                                    <div class="event-details">👥 ${event.attendees} attending</div>
+                                </div>
+                            </div>
+                            <button class="btn" style="margin-top: 12px;" onclick="event.stopPropagation(); rsvpGroupEvent(${event.id}, ${groupId})">✓ RSVP</button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('Events dashboard opened 📅');
 }
+
+// 5. Group Settings Menu - Full Dashboard
+function openGroupSettingsMenu(groupId) {
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    
+    const modalHTML = `
+        <div id="groupSettingsMenuModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupSettingsMenu')">✕</div>
+                <div class="modal-title">Group Settings</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">⚙️</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Settings</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Manage group preferences</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">General</div>
+                </div>
+                
+                <div class="list-item" onclick="openGroupNotificationSettings(${groupId})">
+                    <div class="list-item-icon">🔔</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Notifications</div>
+                        <div class="list-item-subtitle">Manage group alerts</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="openGroupPrivacySettings(${groupId})">
+                    <div class="list-item-icon">🔐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Privacy</div>
+                        <div class="list-item-subtitle">${group.privacy} group</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                ${group.isAdmin ? `
+                    <div class="section-header" style="margin-top: 20px;">
+                        <div class="section-title">Admin Tools</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="openGroupModerationPanel(${groupId})">
+                        <div class="list-item-icon">🛡️</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Moderation</div>
+                            <div class="list-item-subtitle">Manage content & members</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="openGroupRolesPermissions(${groupId})">
+                        <div class="list-item-icon">👥</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Roles & Permissions</div>
+                            <div class="list-item-subtitle">Manage member roles</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    
+                    <div class="list-item" onclick="openGroupAnalyticsPanel(${groupId})">
+                        <div class="list-item-icon">📊</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Analytics</div>
+                            <div class="list-item-subtitle">View group insights</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                ` : ''}
+                
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title">Actions</div>
+                </div>
+                
+                <div class="list-item" onclick="shareGroup(${groupId})">
+                    <div class="list-item-icon">🔗</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share Group</div>
+                        <div class="list-item-subtitle">Invite others</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                ${group.joined && !group.isAdmin ? `
+                    <button class="btn" style="background: var(--error); margin-top: 20px;" onclick="leaveGroup(${groupId})">
+                        🚪 Leave Group
+                    </button>
+                ` : ''}
+                
+                ${group.isAdmin ? `
+                    <button class="btn" style="background: var(--error); margin-top: 20px;" onclick="deleteGroupConfirm(${groupId})">
+                        🗑️ Delete Group
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('Settings opened ⚙️');
+}
+
+// 6. Group Moderation Panel - Full Dashboard
+function openGroupModerationPanel(groupId) {
+    const group = groupsState.userGroups.find(g => g.id === groupId);
+    
+    const modalHTML = `
+        <div id="groupModerationPanelModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupModerationPanel')">✕</div>
+                <div class="modal-title">Moderation Panel</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🛡️</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Moderation</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Manage content and members</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Quick Actions</div>
+                </div>
+                
+                <div class="list-item" onclick="openPendingMemberRequests(${groupId})">
+                    <div class="list-item-icon">⏳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Pending Requests</div>
+                        <div class="list-item-subtitle">3 members waiting approval</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="showToastHelper('Reviewing reported posts...')">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Reported Content</div>
+                        <div class="list-item-subtitle">2 posts flagged for review</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="list-item" onclick="showToastHelper('Opening member reports...')">
+                    <div class="list-item-icon">🚫</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Member Reports</div>
+                        <div class="list-item-subtitle">1 member under review</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title">Moderation Tools</div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Post Approval Required</div>
+                        <div class="list-item-subtitle">Review posts before publishing</div>
+                    </div>
+                    <div class="toggle-switch" onclick="toggleGroupSetting(${groupId}, 'postApproval', this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Auto-Moderate Links</div>
+                        <div class="list-item-subtitle">Automatically filter suspicious links</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleGroupSetting(${groupId}, 'autoModerate', this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Spam Filter</div>
+                        <div class="list-item-subtitle">Block spam and repetitive content</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleGroupSetting(${groupId}, 'spamFilter', this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="openGroupRulesEditor(${groupId})">
+                    <div class="list-item-icon">📋</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Edit Group Rules</div>
+                        <div class="list-item-subtitle">Manage community guidelines</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    showToastHelper('Moderation panel opened 🛡️');
+}
+
+// 7. Roles & Permissions - Full Dashboard
+function openGroupRolesPermissions(groupId) {
+    const members = groupsState.groupMembers[groupId] || [];
+    const admins = members.filter(m => m.role === 'Admin');
+    const moderators = members.filter(m => m.role === 'Moderator');
+    const regularMembers = members.filter(m => m.role === 'Member');
+    
+    const modalHTML = `
+        <div id="groupRolesPermissionsModal" class="modal show">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('groupRolesPermissions')">✕</div>
+                <div class="modal-title">Roles & Permissions</div>
+            </div>
+            <div class="modal-content">
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Manage Roles</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Assign member permissions</div>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title">Admins (${admins.length})</div>
+                </div>
+                ${admins.map(member => `
+                    <div class="friend-card">
+                        <div class="friend-avatar">${member.emoji}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${member.name}</div>
+                            <div class="friend-mutual">Full permissions</div>
+                        </div>
+                        <button class="friend-btn secondary" onclick="showToastHelper('Managing ${member.name} role...')">Edit</button>
+                    </div>
+                `).join('')}
+                
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title">Moderators (${moderators.length})</div>
+                    <div class="section-link" onclick="showToastHelper('Adding moderator...')">+ Add</div>
+                </div>
+                ${moderators.map(member => `
+                    <div class="friend-card">
+                        <div class="friend-avatar">${member.emoji}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${member.name}</div>
+                            <div class="friend-mutual">Can moderate content</div>
+                        </div>
+                        <button class="friend-btn secondary" onclick="showToastHelper('Managing ${member.name} role...')">Edit</button>
+                    </div>
+                `).join('')}
+                
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title">Members (${regularMembers.length})</div>
+                </div>
+                ${regularMembers.slice(0, 3).map(member => `
+                    <div class="friend-card">
+                        <div class="friend-avatar">${member.emoji}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${member.name}</div>
+                            <div class="friend-mutual">Standard permissions</div>
+                        </div>
+                        <button class="friend-btn secondary" onclick="showToastHelper('Promoting ${member.name}...')">Promote</button>
+                    </div>
+                `).join('')}
+                
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title">Permission Settings</div>
 
 // Export functions for use in main app
 if (typeof window !== 'undefined') {
@@ -963,12 +951,6 @@ if (typeof window !== 'undefined') {
     window.initializeGroupsSystem = initializeGroupsSystem;
     window.openGroupDetailsDashboard = openGroupDetailsDashboard;
     window.closeGroupDetailsDashboard = closeGroupDetailsDashboard;
-    window.openCreateGroupDashboard = openCreateGroupDashboard;
-    window.openGroupChat = openGroupChat;
-    window.sendGroupChatMessage = sendGroupChatMessage;
-    window.selectGroupEmoji = selectGroupEmoji;
-    window.selectGroupPrivacy = selectGroupPrivacy;
-    window.createNewGroup = createNewGroup;
 }
 
-console.log('✓ ConnectHub Groups System Complete Loaded');
+console.log('✓ ConnectHub Groups System Loaded');
