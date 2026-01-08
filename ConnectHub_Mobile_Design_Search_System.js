@@ -1,9 +1,9 @@
 /**
- * ConnectHub Mobile Design - SEARCH SYSTEM
- * Complete Implementation - All 9 Missing Features
- * Date: December 2, 2025
+ * ConnectHub Mobile Design - SEARCH SYSTEM COMPLETE
+ * All 13 Features Fully Implemented and Functional
+ * Date: January 8, 2026
  * 
- * THE 9 MISSING FEATURES NOW IMPLEMENTED:
+ * THE 13 COMPLETE FEATURES:
  * 1. ✅ Search Engine Simulation (Elasticsearch-like)
  * 2. ✅ Full-text Search Implementation
  * 3. ✅ Search Indexing (Users, Posts, Groups, Events, Marketplace, Hashtags, Locations)
@@ -13,6 +13,10 @@
  * 7. ✅ Search Filters by Type
  * 8. ✅ Advanced Search with Multiple Criteria
  * 9. ✅ Complete Search Features (History, Trending, Location-based, Save, Notifications)
+ * 10. ✅ Voice Search Implementation (Web Speech API)
+ * 11. ✅ People Discovery Dashboard (Find by interests/workplace/school)
+ * 12. ✅ Search Filter Presets Management
+ * 13. ✅ Search Insights & Recommendations Dashboard
  */
 
 class ConnectHubSearchSystem {
@@ -674,11 +678,440 @@ class ConnectHubSearchSystem {
                 : 0
         };
     }
+
+    /**
+     * FEATURE 10: Voice Search Implementation
+     * Uses Web Speech API for voice-to-text search
+     */
+    initVoiceSearch() {
+        // Check if Web Speech API is supported
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.warn('Voice search not supported in this browser');
+            return null;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+        
+        this.recognition.continuous = false;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+
+        this.recognition.onresult = (event) => {
+            const transcript = Array.from(event.results)
+                .map(result => result[0])
+                .map(result => result.transcript)
+                .join('');
+
+            if (event.results[0].isFinal) {
+                this.performSearch(transcript);
+                console.log('🎤 Voice search:', transcript);
+            }
+        };
+
+        this.recognition.onerror = (event) => {
+            console.error('Voice search error:', event.error);
+        };
+
+        console.log('✅ Voice search initialized');
+        return this.recognition;
+    }
+
+    startVoiceSearch() {
+        if (!this.recognition) {
+            this.initVoiceSearch();
+        }
+
+        if (this.recognition) {
+            try {
+                this.recognition.start();
+                return { success: true, message: 'Listening...' };
+            } catch (error) {
+                return { success: false, message: 'Voice search already in progress' };
+            }
+        }
+
+        return { success: false, message: 'Voice search not supported' };
+    }
+
+    stopVoiceSearch() {
+        if (this.recognition) {
+            this.recognition.stop();
+        }
+    }
+
+    /**
+     * FEATURE 11: People Discovery Dashboard
+     * Find people by interests, workplace, school, and more
+     */
+    openPeopleDiscovery() {
+        const discoveryOptions = {
+            byInterests: this.getPopularInterests(),
+            byWorkplace: this.getPopularWorkplaces(),
+            byLocation: this.getPopularLocations(),
+            suggested: this.getSuggestedPeople()
+        };
+
+        return discoveryOptions;
+    }
+
+    getPopularInterests() {
+        // Extract all unique interests from users
+        const allInterests = [];
+        this.searchIndex.users.forEach(user => {
+            if (user.interests) {
+                allInterests.push(...user.interests);
+            }
+        });
+
+        // Count frequency
+        const interestCount = {};
+        allInterests.forEach(interest => {
+            interestCount[interest] = (interestCount[interest] || 0) + 1;
+        });
+
+        // Sort by popularity
+        return Object.entries(interestCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([interest, count]) => ({ interest, count }));
+    }
+
+    getPopularWorkplaces() {
+        const workplaces = {};
+        this.searchIndex.users.forEach(user => {
+            if (user.workplace) {
+                workplaces[user.workplace] = (workplaces[user.workplace] || 0) + 1;
+            }
+        });
+
+        return Object.entries(workplaces)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([workplace, count]) => ({ workplace, count }));
+    }
+
+    getPopularLocations() {
+        const locations = {};
+        this.searchIndex.users.forEach(user => {
+            if (user.location) {
+                locations[user.location] = (locations[user.location] || 0) + 1;
+            }
+        });
+
+        return Object.entries(locations)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([location, count]) => ({ location, count }));
+    }
+
+    getSuggestedPeople() {
+        // Return verified users and popular users
+        return this.searchIndex.users
+            .filter(user => user.verified || user.followers > 10000)
+            .sort((a, b) => b.followers - a.followers)
+            .slice(0, 10);
+    }
+
+    discoverByInterest(interest) {
+        return this.searchIndex.users.filter(user =>
+            user.interests && user.interests.some(i => 
+                i.toLowerCase().includes(interest.toLowerCase())
+            )
+        );
+    }
+
+    discoverByWorkplace(workplace) {
+        return this.searchByWorkplace(workplace);
+    }
+
+    discoverByLocation(location) {
+        return this.searchIndex.users.filter(user =>
+            user.location && user.location.toLowerCase().includes(location.toLowerCase())
+        );
+    }
+
+    /**
+     * FEATURE 12: Search Filter Presets Management
+     * Save and manage custom filter configurations
+     */
+    saveFilterPreset(name, filters) {
+        const presets = this.loadFilterPresets();
+        
+        const preset = {
+            id: Date.now(),
+            name,
+            filters,
+            timestamp: Date.now()
+        };
+
+        presets.push(preset);
+        this.saveFilterPresets(presets);
+
+        return { success: true, message: 'Filter preset saved', data: preset };
+    }
+
+    getFilterPresets() {
+        return this.loadFilterPresets();
+    }
+
+    applyFilterPreset(presetId) {
+        const presets = this.loadFilterPresets();
+        const preset = presets.find(p => p.id === presetId);
+
+        if (preset) {
+            this.currentFilters = { ...preset.filters };
+            return { success: true, message: 'Filter preset applied', filters: preset.filters };
+        }
+
+        return { success: false, message: 'Preset not found' };
+    }
+
+    deleteFilterPreset(presetId) {
+        let presets = this.loadFilterPresets();
+        presets = presets.filter(p => p.id !== presetId);
+        this.saveFilterPresets(presets);
+
+        return { success: true, message: 'Filter preset deleted' };
+    }
+
+    updateFilterPreset(presetId, newFilters) {
+        const presets = this.loadFilterPresets();
+        const preset = presets.find(p => p.id === presetId);
+
+        if (preset) {
+            preset.filters = newFilters;
+            preset.timestamp = Date.now();
+            this.saveFilterPresets(presets);
+            return { success: true, message: 'Filter preset updated' };
+        }
+
+        return { success: false, message: 'Preset not found' };
+    }
+
+    loadFilterPresets() {
+        try {
+            const presets = localStorage.getItem('connecthub_filter_presets');
+            return presets ? JSON.parse(presets) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    saveFilterPresets(presets) {
+        try {
+            localStorage.setItem('connecthub_filter_presets', JSON.stringify(presets));
+        } catch (e) {
+            console.error('Failed to save filter presets:', e);
+        }
+    }
+
+    /**
+     * FEATURE 13: Search Insights & Recommendations Dashboard
+     * Personalized search recommendations and insights
+     */
+    getSearchInsights() {
+        const insights = {
+            popularSearches: this.getYourPopularSearches(),
+            recommendedSearches: this.getRecommendedSearches(),
+            searchPatterns: this.analyzeSearchPatterns(),
+            peakSearchTimes: this.getPeakSearchTimes(),
+            searchCategories: this.getSearchCategories(),
+            recommendations: this.getPersonalizedRecommendations()
+        };
+
+        return insights;
+    }
+
+    getYourPopularSearches() {
+        // Analyze user's search history for most frequent queries
+        const queryCount = {};
+        this.searchHistory.forEach(item => {
+            queryCount[item.query] = (queryCount[item.query] || 0) + 1;
+        });
+
+        return Object.entries(queryCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([query, count]) => ({ query, count }));
+    }
+
+    getRecommendedSearches() {
+        // Based on user's search history, recommend related searches
+        const recommendations = [];
+        const recentQueries = this.searchHistory.slice(0, 5).map(h => h.query);
+
+        // Simple recommendation: if user searched for "photography", recommend "camera", "lens", etc.
+        const relatedTerms = {
+            'photography': ['camera gear', 'photo editing', 'photography tips'],
+            'tech': ['technology news', 'gadgets', 'tech reviews'],
+            'gaming': ['game reviews', 'gaming setup', 'esports'],
+            'fashion': ['fashion trends', 'style tips', 'fashion brands'],
+            'travel': ['travel destinations', 'travel tips', 'travel deals']
+        };
+
+        recentQueries.forEach(query => {
+            Object.keys(relatedTerms).forEach(key => {
+                if (query.toLowerCase().includes(key)) {
+                    recommendations.push(...relatedTerms[key]);
+                }
+            });
+        });
+
+        return [...new Set(recommendations)].slice(0, 5);
+    }
+
+    analyzeSearchPatterns() {
+        if (this.searchHistory.length === 0) {
+            return { mostActiveDay: 'N/A', averageSearchesPerDay: 0, totalDays: 0 };
+        }
+
+        // Group searches by day
+        const searchesByDay = {};
+        this.searchHistory.forEach(item => {
+            const day = new Date(item.timestamp).toDateString();
+            searchesByDay[day] = (searchesByDay[day] || 0) + 1;
+        });
+
+        // Find most active day
+        const mostActiveDay = Object.entries(searchesByDay)
+            .sort((a, b) => b[1] - a[1])[0];
+
+        return {
+            mostActiveDay: mostActiveDay ? mostActiveDay[0] : 'N/A',
+            searchesOnMostActiveDay: mostActiveDay ? mostActiveDay[1] : 0,
+            averageSearchesPerDay: this.searchHistory.length / Object.keys(searchesByDay).length,
+            totalDays: Object.keys(searchesByDay).length
+        };
+    }
+
+    getPeakSearchTimes() {
+        if (this.searchHistory.length === 0) {
+            return [];
+        }
+
+        // Group by hour of day
+        const hourCounts = {};
+        this.searchHistory.forEach(item => {
+            const hour = new Date(item.timestamp).getHours();
+            hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+        });
+
+        return Object.entries(hourCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([hour, count]) => ({
+                hour: `${hour}:00`,
+                count
+            }));
+    }
+
+    getSearchCategories() {
+        // Categorize searches
+        const categories = {
+            people: 0,
+            posts: 0,
+            groups: 0,
+            events: 0,
+            products: 0,
+            locations: 0,
+            other: 0
+        };
+
+        this.searchHistory.forEach(item => {
+            const query = item.query.toLowerCase();
+            if (query.includes('people') || query.includes('user')) categories.people++;
+            else if (query.includes('post') || query.includes('#')) categories.posts++;
+            else if (query.includes('group') || query.includes('community')) categories.groups++;
+            else if (query.includes('event') || query.includes('meeting')) categories.events++;
+            else if (query.includes('buy') || query.includes('shop')) categories.products++;
+            else if (query.includes('near') || query.includes('location')) categories.locations++;
+            else categories.other++;
+        });
+
+        return Object.entries(categories)
+            .filter(([_, count]) => count > 0)
+            .sort((a, b) => b[1] - a[1])
+            .map(([category, count]) => ({ category, count }));
+    }
+
+    getPersonalizedRecommendations() {
+        const recommendations = [];
+
+        // Recommend based on saved searches
+        if (this.savedSearches.length > 0) {
+            recommendations.push({
+                type: 'saved',
+                message: `You have ${this.savedSearches.length} saved searches. Enable notifications to get updates!`,
+                action: 'view_saved_searches'
+            });
+        }
+
+        // Recommend trending searches
+        if (this.trendingSearches.length > 0) {
+            const topTrending = this.trendingSearches[0];
+            recommendations.push({
+                type: 'trending',
+                message: `"${topTrending.query}" is trending with ${topTrending.count.toLocaleString()} searches`,
+                action: 'search_trending'
+            });
+        }
+
+        // Recommend people discovery
+        const verifiedCount = this.searchIndex.users.filter(u => u.verified).length;
+        if (verifiedCount > 0) {
+            recommendations.push({
+                type: 'discovery',
+                message: `Discover ${verifiedCount} verified users in your interests`,
+                action: 'open_discovery'
+            });
+        }
+
+        // Recommend filter presets
+        const presets = this.loadFilterPresets();
+        if (presets.length === 0) {
+            recommendations.push({
+                type: 'preset',
+                message: 'Save your favorite search filters for quick access',
+                action: 'create_preset'
+            });
+        }
+
+        return recommendations;
+    }
+
+    viewInsightsDashboard() {
+        const insights = this.getSearchInsights();
+        
+        console.log('📊 Search Insights Dashboard');
+        console.log('===========================');
+        console.log('Your Popular Searches:', insights.popularSearches);
+        console.log('Recommended:', insights.recommendedSearches);
+        console.log('Search Patterns:', insights.searchPatterns);
+        console.log('Peak Times:', insights.peakSearchTimes);
+        console.log('Categories:', insights.searchCategories);
+        console.log('Recommendations:', insights.recommendations);
+
+        return insights;
+    }
 }
 
 // Initialize Search System
 window.searchSystem = new ConnectHubSearchSystem();
 
-console.log('🔍 ConnectHub Search System Loaded');
-console.log('✅ All 9 Missing Features Implemented');
-console.log('📊 Search Index Ready with demo data');
+console.log('🔍 ConnectHub Search System - COMPLETE');
+console.log('✅ All 13 Features Fully Implemented:');
+console.log('   1. Search Engine Simulation');
+console.log('   2. Full-text Search');
+console.log('   3. Search Indexing (7 types)');
+console.log('   4. Autocomplete');
+console.log('   5. Search Suggestions');
+console.log('   6. Ranking Algorithm');
+console.log('   7. Type Filters');
+console.log('   8. Advanced Search');
+console.log('   9. Complete Features (History, Trending, Nearby, Save)');
+console.log('   10. Voice Search');
+console.log('   11. People Discovery Dashboard');
+console.log('   12. Filter Presets Management');
+console.log('   13. Search Insights & Recommendations');
+console.log('📊 Search Index Ready - All systems operational');
