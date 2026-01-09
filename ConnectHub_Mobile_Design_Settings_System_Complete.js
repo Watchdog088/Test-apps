@@ -705,4 +705,458 @@ function openDeviceManagementDashboard() {
     closeAllDashboards();
     
     const dashboard = document.createElement('div');
-    dashboard.className = '
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>📱 Device Management</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>Active Devices</h3>
+                ${settingsState.devices.map(device => `
+                    <div class="device-card">
+                        <div class="device-icon">${device.type}</div>
+                        <div class="device-info">
+                            <div class="device-name">${device.name}${device.current ? ' (This Device)' : ''}</div>
+                            <div class="device-details">${device.os} • ${device.lastActive}</div>
+                            <div class="device-details">${device.location}</div>
+                        </div>
+                        ${!device.current ? `<button class="btn btn-small" onclick="removeDevice(${device.id})">Remove</button>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+function removeDevice(deviceId) {
+    if (confirm('Remove this device? You will need to log in again on that device.')) {
+        settingsState.devices = settingsState.devices.filter(d => d.id !== deviceId);
+        saveSettings();
+        openDeviceManagementDashboard();
+        showToast('Device removed successfully', 'success');
+    }
+}
+
+// ========== FEATURE 16: ACCESSIBILITY SETTINGS ==========
+function openAccessibilityDashboard() {
+    closeAllDashboards();
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>♿ Accessibility</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>Display Settings</h3>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Font Size</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">${settingsState.preferences.fontSize}</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">High Contrast Mode</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Improve visibility</div>
+                    </div>
+                    <button class="toggle-btn small ${settingsState.preferences.highContrast ? 'active' : ''}" 
+                            onclick="toggleAccessibility('highContrast')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Reduce Motion</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Minimize animations</div>
+                    </div>
+                    <button class="toggle-btn small ${!settingsState.preferences.animations ? 'active' : ''}" 
+                            onclick="toggleAccessibility('animations')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Audio Settings</h3>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Screen Reader</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Enable voice feedback</div>
+                    </div>
+                    <button class="toggle-btn small ${settingsState.preferences.screenReader ? 'active' : ''}" 
+                            onclick="toggleAccessibility('screenReader')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Captions</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Auto-display captions</div>
+                    </div>
+                    <button class="toggle-btn small ${settingsState.preferences.captions ? 'active' : ''}" 
+                            onclick="toggleAccessibility('captions')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+function toggleAccessibility(setting) {
+    if (setting === 'animations') {
+        settingsState.preferences.animations = !settingsState.preferences.animations;
+    } else {
+        settingsState.preferences[setting] = !settingsState.preferences[setting];
+    }
+    saveSettings();
+    openAccessibilityDashboard();
+}
+
+// ========== FEATURE 17: APP PERMISSIONS ==========
+function openAppPermissionsDashboard() {
+    closeAllDashboards();
+    
+    const permissions = settingsState.permissions || {
+        camera: true,
+        microphone: true,
+        location: false,
+        photos: true,
+        notifications: true,
+        contacts: false,
+        storage: true
+    };
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>🔐 App Permissions</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>Device Permissions</h3>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">📷 Camera</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Take photos and videos</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.camera ? 'active' : ''}" 
+                            onclick="togglePermission('camera')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">🎤 Microphone</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Record audio</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.microphone ? 'active' : ''}" 
+                            onclick="togglePermission('microphone')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">📍 Location</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Access your location</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.location ? 'active' : ''}" 
+                            onclick="togglePermission('location')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">📸 Photos</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Access photo library</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.photos ? 'active' : ''}" 
+                            onclick="togglePermission('photos')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">👥 Contacts</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Access contacts</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.contacts ? 'active' : ''}" 
+                            onclick="togglePermission('contacts')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">💾 Storage</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Access device storage</div>
+                    </div>
+                    <button class="toggle-btn small ${permissions.storage ? 'active' : ''}" 
+                            onclick="togglePermission('storage')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+function togglePermission(permission) {
+    if (!settingsState.permissions) {
+        settingsState.permissions = {
+            camera: true, microphone: true, location: false,
+            photos: true, notifications: true, contacts: false, storage: true
+        };
+    }
+    settingsState.permissions[permission] = !settingsState.permissions[permission];
+    saveSettings();
+    openAppPermissionsDashboard();
+}
+
+// ========== FEATURE 18: CONNECTED APPS ==========
+function openConnectedAppsDashboard() {
+    closeAllDashboards();
+    
+    const connectedApps = settingsState.connectedApps || [
+        { id: 1, name: 'Instagram', icon: '📷', connected: '2024-01-15', permissions: ['Profile', 'Photos'] },
+        { id: 2, name: 'Spotify', icon: '🎵', connected: '2024-01-10', permissions: ['Music', 'Listening History'] },
+        { id: 3, name: 'Google Drive', icon: '📁', connected: '2024-01-05', permissions: ['File Storage'] }
+    ];
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>🔗 Connected Apps</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>Third-Party Apps</h3>
+                ${connectedApps.map(app => `
+                    <div class="device-card">
+                        <div class="device-icon">${app.icon}</div>
+                        <div class="device-info">
+                            <div class="device-name">${app.name}</div>
+                            <div class="device-details">Connected: ${app.connected}</div>
+                            <div class="device-details">Permissions: ${app.permissions.join(', ')}</div>
+                        </div>
+                        <button class="btn btn-small" onclick="disconnectApp(${app.id})">Disconnect</button>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="dashboard-section">
+                <button class="btn" onclick="showToast('Connect new app feature coming soon!', 'default')">+ Connect New App</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+function disconnectApp(appId) {
+    if (confirm('Disconnect this app? It will lose access to your account.')) {
+        if (!settingsState.connectedApps) {
+            settingsState.connectedApps = [];
+        }
+        settingsState.connectedApps = settingsState.connectedApps.filter(app => app.id !== appId);
+        saveSettings();
+        openConnectedAppsDashboard();
+        showToast('App disconnected', 'success');
+    }
+}
+
+// ========== FEATURE 19: DOWNLOAD SETTINGS ==========
+function openDownloadSettingsDashboard() {
+    closeAllDashboards();
+    
+    const downloadSettings = settingsState.downloadSettings || {
+        autoDownload: true,
+        wifiOnly: true,
+        videoQuality: 'HD',
+        downloadLocation: 'Internal Storage'
+    };
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>⬇️ Download Settings</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>Auto-Download</h3>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Auto-Download Media</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Automatically download shared media</div>
+                    </div>
+                    <button class="toggle-btn small ${downloadSettings.autoDownload ? 'active' : ''}" 
+                            onclick="toggleDownloadSetting('autoDownload')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">WiFi Only</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">Download only on WiFi</div>
+                    </div>
+                    <button class="toggle-btn small ${downloadSettings.wifiOnly ? 'active' : ''}" 
+                            onclick="toggleDownloadSetting('wifiOnly')">
+                        <div class="toggle-slider"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Quality & Storage</h3>
+                <div class="list-item" onclick="showVideoQualityModal()">
+                    <div>
+                        <div style="font-weight:600">Video Quality</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">${downloadSettings.videoQuality}</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+                <div class="list-item" onclick="showDownloadLocationModal()">
+                    <div>
+                        <div style="font-weight:600">Download Location</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">${downloadSettings.downloadLocation}</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+function toggleDownloadSetting(setting) {
+    if (!settingsState.downloadSettings) {
+        settingsState.downloadSettings = {
+            autoDownload: true, wifiOnly: true,
+            videoQuality: 'HD', downloadLocation: 'Internal Storage'
+        };
+    }
+    settingsState.downloadSettings[setting] = !settingsState.downloadSettings[setting];
+    saveSettings();
+    openDownloadSettingsDashboard();
+}
+
+function showVideoQualityModal() {
+    showToast('Video quality selection coming soon!', 'default');
+}
+
+function showDownloadLocationModal() {
+    showToast('Download location selection coming soon!', 'default');
+}
+
+// ========== FEATURE 20: ABOUT & LEGAL ==========
+function openAboutLegalDashboard() {
+    closeAllDashboards();
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'dashboard';
+    dashboard.innerHTML = `
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="closeAllDashboards()">← Back</button>
+            <h2>ℹ️ About & Legal</h2>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-section">
+                <h3>App Information</h3>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Version</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">1.0.0</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <div style="font-weight:600">Build Number</div>
+                        <div style="font-size:13px;color:var(--text-secondary)">2024.01.20</div>
+                    </div>
+                </div>
+                <div class="setting-card" onclick="showToast('Checking for updates...', 'default')">
+                    <div class="setting-card-icon">🔄</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Check for Updates</div>
+                        <div class="setting-card-desc">You're on the latest version</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Legal</h3>
+                <div class="setting-card" onclick="showToast('Loading Terms of Service...', 'default')">
+                    <div class="setting-card-icon">📄</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Terms of Service</div>
+                        <div class="setting-card-desc">Read our terms</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+                <div class="setting-card" onclick="showToast('Loading Privacy Policy...', 'default')">
+                    <div class="setting-card-icon">🔒</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Privacy Policy</div>
+                        <div class="setting-card-desc">How we protect your data</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+                <div class="setting-card" onclick="showToast('Loading Licenses...', 'default')">
+                    <div class="setting-card-icon">⚖️</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Open Source Licenses</div>
+                        <div class="setting-card-desc">Third-party software</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Support</h3>
+                <div class="setting-card" onclick="showToast('Opening Help Center...', 'default')">
+                    <div class="setting-card-icon">❓</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Help Center</div>
+                        <div class="setting-card-desc">Get support</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+                <div class="setting-card" onclick="showToast('Opening Feedback form...', 'default')">
+                    <div class="setting-card-icon">💬</div>
+                    <div class="setting-card-content">
+                        <div class="setting-card-title">Send Feedback</div>
+                        <div class="setting-card-desc">Help us improve</div>
+                    </div>
+                    <div class="setting-card-arrow">›</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">
+                    <div>© 2024 ConnectHub</div>
+                    <div style="margin-top:8px;">Made with ❤️ for connecting people</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dashboard);
+}
+
+// Initialize default values for new features
+if (!settingsState.preferences.highContrast) settingsState.preferences.highContrast = false;
+if (!settingsState.preferences.screenReader) settingsState.preferences.screenReader = false;
+if (!settingsState.preferences.captions) settingsState.preferences.captions = false;

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings System - 20 Features Complete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #1877f2;
+            --success: #42b72a;
+            --danger: #f02849;
+            --warning: #ffc107;
+            --text-primary: #050505;
+            --text-secondary: #65676b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f2f5;
+            --border: #dddfe2;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-secondary);
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .feature-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        .feature-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .feature-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .dashboard {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            background: var(--bg-primary);
+            box-shadow: -2px 0 8px rgba(0,0,0,0.15);
+            transition: right 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .dashboard.show {
+            right: 0;
+        }
+        .dashboard-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px 12px;
+            margin-right: 10px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .dashboard-header h2 {
+            font-size: 20px;
+            color: var(--text-primary);
+        }
+        .dashboard-content {
+            padding: 20px;
+        }
+        .dashboard-section {
+            margin-bottom: 24px;
+        }
+        .dashboard-section h3 {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .setting-card {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .setting-card:hover {
+            background: var(--border);
+        }
+        .setting-card-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .setting-card-content {
+            flex: 1;
+        }
+        .setting-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .setting-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .setting-card-arrow {
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .toggle-btn {
+            width: 48px;
+            height: 28px;
+            background: var(--border);
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .toggle-btn.active {
+            background: var(--primary);
+        }
+        .toggle-slider {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        .toggle-btn.active .toggle-slider {
+            left: 22px;
+        }
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        .chip-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .device-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .device-icon {
+            font-size: 32px;
+            margin-right: 12px;
+        }
+        .device-info {
+            flex: 1;
+        }
+        .device-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .device-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .storage-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .storage-summary {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .storage-used {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .storage-total {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .storage-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .storage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transition: width 0.3s;
+        }
+        .storage-breakdown {
+            display: grid;
+            gap: 8px;
+        }
+        .storage-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .settings-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: bottom 0.3s;
+            z-index: 2000;
+        }
+        .settings-toast.show {
+            bottom: 20px;
+        }
+        .settings-toast.success {
+            background: var(--success);
+        }
+        .settings-toast.error {
+            background: var(--danger);
+        }
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .backup-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .backup-code {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        .alert-card {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--border);
+        }
+        .alert-card.info {
+            background: #e7f3ff;
+            border-left-color: var(--primary);
+        }
+        .alert-card.warning {
+            background: #fff3cd;
+            border-left-color: var(--warning);
+        }
+        .alert-card.success {
+            background: #d4edda;
+            border-left-color: var(--success);
+        }
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .alert-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .alert-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .alert-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .notification-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+        .notification-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .notification-label {
+            flex: 1;
+            font-weight: 500;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .dashboard {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Settings System - 20 Features Complete</h1>
+        <p class="subtitle">All features are clickable and fully functional with localStorage persistence</p>
+        
+        <div class="feature-grid">
+            <!-- Feature 1-4: Account Security Dashboard -->
+            <div class="feature-card" onclick="openAccountSecurityDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">🔑</span>
+                    <span class="feature-title">1. Account Security</span>
+                </div>
+                <p class="feature-desc">Password, Email, 2FA, Security Alerts</p>
+            </div>
+
+            <!-- Feature 5-9: Privacy Controls Dashboard -->
+            <div class="feature-card" onclick="openPrivacyControlsDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">🔐</span>
+                    <span class="feature-title">2. Privacy Controls</span>
+                </div>
+                <p class="feature-desc">Profile visibility, Activity status, Interaction controls</p>
+            </div>
+
+            <!-- Feature 10-13: Notification Preferences -->
+            <div class="feature-card" onclick="openNotificationPreferencesDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">🔔</span>
+                    <span class="feature-title">3. Notifications</span>
+                </div>
+                <p class="feature-desc">Push, Email, SMS, Activity notifications</p>
+            </div>
+
+            <!-- Feature 14: Data & Storage -->
+            <div class="feature-card" onclick="openDataStorageDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">💾</span>
+                    <span class="feature-title">4. Data & Storage</span>
+                </div>
+                <p class="feature-desc">Storage usage, Cache clearing, Data export</p>
+            </div>
+
+            <!-- Feature 15: Device Management -->
+            <div class="feature-card" onclick="openDeviceManagementDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">📱</span>
+                    <span class="feature-title">5. Device Management</span>
+                </div>
+                <p class="feature-desc">Active devices, Remove devices</p>
+            </div>
+
+            <!-- Feature 16: Accessibility -->
+            <div class="feature-card" onclick="openAccessibilityDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">♿</span>
+                    <span class="feature-title">6. Accessibility</span>
+                </div>
+                <p class="feature-desc">Font size, High contrast, Screen reader</p>
+            </div>
+
+            <!-- Feature 17: App Permissions -->
+            <div class="feature-card" onclick="openAppPermissionsDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">🔐</span>
+                    <span class="feature-title">7. App Permissions</span>
+                </div>
+                <p class="feature-desc">Camera, Microphone, Location, Photos</p>
+            </div>
+
+            <!-- Feature 18: Connected Apps -->
+            <div class="feature-card" onclick="openConnectedAppsDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">🔗</span>
+                    <span class="feature-title">8. Connected Apps</span>
+                </div>
+                <p class="feature-desc">Third-party integrations, Disconnect apps</p>
+            </div>
+
+            <!-- Feature 19: Download Settings -->
+            <div class="feature-card" onclick="openDownloadSettingsDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">⬇️</span>
+                    <span class="feature-title">9. Download Settings</span>
+                </div>
+                <p class="feature-desc">Auto-download, WiFi only, Video quality</p>
+            </div>
+
+            <!-- Feature 20: About & Legal -->
+            <div class="feature-card" onclick="openAboutLegalDashboard()">
+                <div class="feature-card-header">
+                    <span class="feature-icon">ℹ️</span>
+                    <span class="feature-title">10. About & Legal</span>
+                </div>
+                <p class="feature-desc">App info, Terms, Privacy policy, Support</p>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px;">
+            <h3 style="margin-bottom: 12px;">✅ Complete Feature List (20 Features):</h3>
+            <ol style="padding-left: 20px; line-height: 1.8; color: var(--text-secondary);">
+                <li><strong>Password Change</strong> - Update password with validation</li>
+                <li><strong>Email Change</strong> - Change email with verification</li>
+                <li><strong>Two-Factor Authentication</strong> - Enable/disable 2FA with backup codes</li>
+                <li><strong>Security Preferences</strong> - Login alerts, suspicious activity monitoring</li>
+                <li><strong>Profile Visibility</strong> - Public, Friends Only, Private modes</li>
+                <li><strong>Activity Status</strong> - Last seen, read receipts, online status</li>
+                <li><strong>Interaction Controls</strong> - Who can tag, mention, message, call</li>
+                <li><strong>Data Privacy</strong> - Data sharing, location, contact sync</li>
+                <li><strong>Blocked Words</strong> - Filter unwanted content</li>
+                <li><strong>Push Notifications</strong> - Mobile, Email, SMS channels</li>
+                <li><strong>Activity Notifications</strong> - Likes, comments, follows, mentions</li>
+                <li><strong>Communication Notifications</strong> - Messages, live streams, posts</li>
+                <li><strong>Group/Event Notifications</strong> - Group activity, event reminders</li>
+                <li><strong>Storage Management</strong> - View usage, clear cache, data export</li>
+                <li><strong>Device Management</strong> - View and remove logged-in devices</li>
+                <li><strong>Accessibility</strong> - Font size, high contrast, screen reader</li>
+                <li><strong>App Permissions</strong> - Camera, microphone, location, photos</li>
+                <li><strong>Connected Apps</strong> - Manage third-party app integrations</li>
+                <li><strong>Download Settings</strong> - Auto-download, WiFi only, quality</li>
+                <li><strong>About & Legal</strong> - Version info, terms, privacy, support</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="ConnectHub_Mobile_Design_Settings_System_Complete.js"></script>
+</body>
+</html>
