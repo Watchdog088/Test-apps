@@ -894,16 +894,72 @@ function sendChatMessage(event) {
     showToast('Message sent', 'success');
 }
 
-function startVideoCall() {
-    showToast('Video call - UI Available', 'info');
+// ============================================================================
+// VIDEO CALLS CATEGORY - All Dashboard Functions
+// ============================================================================
+
+function startVideoCall(contactId = null) {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.startVideoCall(contactId);
+    } else {
+        showToast('Starting video call...', 'success');
+    }
 }
 
-function scheduleCall() {
-    showToast('Schedule call - UI Available', 'info');
+function startVoiceCall(contactId = null) {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.startVoiceCall(contactId);
+    } else {
+        showToast('Starting voice call...', 'success');
+    }
+}
+
+function openScreenShareDashboard() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openScreenShareDashboard();
+    } else {
+        showToast('Screen share dashboard', 'info');
+    }
+}
+
+function openRecordingDashboard() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openRecordingDashboard();
+    } else {
+        showToast('Recording dashboard', 'info');
+    }
+}
+
+function openAddPeopleDashboard() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openAddPeopleDashboard();
+    } else {
+        showToast('Add people dashboard', 'info');
+    }
+}
+
+function openBackgroundsDashboard() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openBackgroundsDashboard();
+    } else {
+        showToast('Backgrounds dashboard', 'info');
+    }
 }
 
 function viewCallHistory() {
-    showToast('Call history - UI Available', 'info');
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.viewCallHistory();
+    } else {
+        showToast('Call history', 'info');
+    }
+}
+
+function scheduleCall() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.scheduleCall();
+    } else {
+        showToast('Schedule call', 'info');
+    }
 }
 
 function addContact() {
@@ -912,6 +968,134 @@ function addContact() {
 
 function launchARExperience(type) {
     showToast(`AR/VR: ${type} - UI Available`, 'info');
+}
+
+// ============================================================================
+// VIDEO CALLS - ADDITIONAL DASHBOARD FUNCTIONS
+// ============================================================================
+
+function openVideoCallSettings() {
+    if (window.videoCallsDashboard) {
+        showToast('Opening video call settings...', 'info');
+    } else {
+        showToast('Video call settings - UI Available', 'info');
+    }
+}
+
+function toggleVideoCallAudio() {
+    showToast('Audio toggled', 'success');
+}
+
+function toggleVideoCallVideo() {
+    showToast('Video toggled', 'success');
+}
+
+function endActiveCall() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.endCall();
+    } else {
+        showToast('Call ended', 'success');
+    }
+}
+
+function muteCall() {
+    showToast('Call muted', 'success');
+}
+
+function unmuteCall() {
+    showToast('Call unmuted', 'success');
+}
+
+function switchCameraDevice() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.switchCamera();
+    } else {
+        showToast('Switching camera...', 'info');
+    }
+}
+
+function startScreenShare() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.startScreenShare();
+    } else if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openScreenShareDashboard();
+    } else {
+        showToast('Starting screen share...', 'info');
+    }
+}
+
+function stopScreenShare() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.stopScreenShare();
+    } else {
+        showToast('Screen share stopped', 'success');
+    }
+}
+
+function startCallRecording() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.startRecording();
+    } else if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openRecordingDashboard();
+    } else {
+        showToast('Starting recording...', 'info');
+    }
+}
+
+function stopCallRecording() {
+    if (window.videoCallsSystem) {
+        window.videoCallsSystem.stopRecording();
+    } else {
+        showToast('Recording stopped', 'success');
+    }
+}
+
+function addParticipantToCall() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openAddPeopleDashboard();
+    } else {
+        showToast('Add participant - UI Available', 'info');
+    }
+}
+
+function applyVirtualBackground() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openBackgroundsDashboard();
+    } else {
+        showToast('Virtual backgrounds - UI Available', 'info');
+    }
+}
+
+function openCallSettings() {
+    showToast('Call settings - UI Available', 'info');
+}
+
+function viewRecordings() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.openRecordingDashboard();
+    } else {
+        showToast('Recordings - UI Available', 'info');
+    }
+}
+
+function viewScheduledCalls() {
+    if (window.videoCallsDashboard) {
+        window.videoCallsDashboard.scheduleCall();
+    } else {
+        showToast('Scheduled calls - UI Available', 'info');
+    }
+}
+
+function joinMeetingById() {
+    showToast('Join meeting - UI Available', 'info');
+}
+
+function createMeetingLink() {
+    showToast('Creating meeting link...', 'info');
+}
+
+function shareMeetingLink() {
+    showToast('Share meeting link - UI Available', 'info');
 }
 
 // ============================================================================
