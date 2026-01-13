@@ -1,7 +1,7 @@
 {
-  "name": "ConnectHub - Social Media & Dating App",
-  "short_name": "ConnectHub",
-  "description": "Connect, Share, and Date - A comprehensive social media and dating platform",
+  "name": "Lynkapp - Social Media & Dating App",
+  "short_name": "Lynkapp",
+  "description": "Connect Your World - A comprehensive social media and dating platform with AI-powered features",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
