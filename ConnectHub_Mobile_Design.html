@@ -66,12 +66,62 @@
         }
 
         .nav-logo {
-            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .nav-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .nav-logo-sparkle {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 12px;
+        }
+
+        .nav-logo-text {
+            font-size: 24px;
             font-weight: 800;
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             letter-spacing: -0.5px;
+        }
+
+        /* Watermark */
+        .lynkapp-watermark {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            font-size: 10px;
+            font-weight: 700;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 50;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .nav-actions {
@@ -1577,7 +1627,16 @@
         <!-- Top Navigation -->
         <div class="top-nav">
             <div class="nav-main">
-                <div class="nav-logo">ConnectHub</div>
+                <div class="nav-logo">
+                    <div class="nav-logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                        <span class="nav-logo-sparkle">✨</span>
+                    </div>
+                    <div class="nav-logo-text">Lynkapp</div>
+                </div>
                 <div class="nav-actions">
                     <div class="nav-btn" onclick="authOnboarding.showLoginScreen()" title="Login">👤</div>
                     <div class="nav-btn" onclick="openModal('createNew')">➕</div>
@@ -4198,6 +4257,9 @@
 
         <!-- Toast -->
         <div id="toast" class="toast"></div>
+
+        <!-- Lynkapp Watermark -->
+        <div class="lynkapp-watermark">Lynkapp</div>
 
         <!-- In-App Notification Banner -->
         <div id="inAppNotification" class="in-app-notification" onclick="handleInAppNotificationClick()">

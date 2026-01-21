@@ -525,7 +525,18 @@
         <!-- Top Navigation -->
         <div class="top-nav">
             <div class="nav-main">
-                <div class="nav-logo" onclick="adManager.showInterstitial(); setTimeout(() => navigateTo('home'), 500);">ConnectHub</div>
+                <div class="nav-logo" onclick="adManager.showInterstitial(); setTimeout(() => navigateTo('home'), 500);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; position: relative;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: white; stroke-width: 2.5; fill: none;">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                            <span style="position: absolute; top: -3px; right: -3px; font-size: 10px;">✨</span>
+                        </div>
+                        <span style="font-size: 22px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Lynkapp</span>
+                    </div>
+                </div>
                 <div class="nav-actions">
                     <div class="nav-btn" onclick="navigateTo('notifications')">
                         🔔
