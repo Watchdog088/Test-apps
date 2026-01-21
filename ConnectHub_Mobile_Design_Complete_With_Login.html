@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lynkapp - Mobile App with Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           LOGIN SCREEN STYLES
+           ============================================ */
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 24px;
+        }
+
+        .login-logo-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .login-logo-box {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.4);
+        }
+
+        .login-app-name {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .login-tagline {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .login-tabs {
+            display: flex;
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 32px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .login-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0 16px;
+            transition: all 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .input-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 16px 0;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-toggle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glass-border);
+            border-radius: 4px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .forgot-link {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .divider-text {
+            padding: 0 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .social-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .social-button:active {
+            transform: scale(0.95);
+        }
+
+        .login-footer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .login-footer-link {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preferences-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .preferences-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-toggle {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .feature-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* ============================================
+           MAIN APP STYLES (SHOWN AFTER LOGIN)
+           ============================================ */
+        .app-container {
+            display: none;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            padding-bottom: 70px;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 8px 16px;
+        }
+
+        .nav-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .content {
+            padding: 16px;
+        }
+
+        .welcome-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .feature-card:active {
+            transform: scale(0.95);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-label {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            padding: 8px 16px 12px;
+            z-index: 100;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item-icon {
+            font-size: 24px;
+        }
+
+        .nav-item-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-logo-section">
+            <div class="login-logo-box">🔗</div>
+            <div class="login-app-name">Lynkapp</div>
+            <div class="login-tagline">Connect • Date • Discover</div>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="login-tabs">
+            <div class="login-tab active" onclick="switchTab('login')">Sign In</div>
+            <div class="login-tab" onclick="switchTab('register')">Sign Up</div>
+        </div>
+
+        <!-- Login Form -->
+        <div class="login-form active" id="loginForm">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" class="input-field" placeholder="Email address" id="loginEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field" placeholder="Password" id="loginPassword">
+                    <span class="input-toggle" onclick="togglePassword('loginPassword')">👁️</span>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <div class="checkbox-wrapper" onclick="toggleCheckbox('rememberMe')">
+                    <div class="checkbox" id="rememberMe"></div>
+                    <span class="checkbox-label">Remember me</span>
+                </div>
+                <span class="forgot-link">Forgot password?</span>
+            </div>
+
+            <button class="login-button" onclick="handleLogin()">Sign In</button>
+        </div>
+
+        <!-- Register Form -->
+        <div class="login-form" id="registerForm">
+            <div class="input-row">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input-field" placeholder="First name">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input-field" placeholder="Last name">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">@</span>
+                    <input type="text" class="input-field" placeholder="Username">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" class="input-field" placeholder="Email address">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field" placeholder="Password" id="registerPassword">
+                    <span class="input-toggle" onclick="togglePassword('registerPassword')">👁️</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field" placeholder="Confirm password">
+                </div>
+            </div>
+
+            <div class="preferences-section">
+                <div class="preferences-title">Account Preferences</div>
+                <div class="feature-toggle">
+                    <div class="checkbox checked" id="datingEnabled" onclick="toggleCheckbox('datingEnabled')"></div>
+                    <div class="feature-info">
+                        <div class="feature-title">Enable Dating Features</div>
+                        <div class="feature-description">Access matching, dating profiles, and find meaningful connections</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="login-button" onclick="handleRegister()">Create Account</button>
+        </div>
+
+        <!-- Social Login -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-text">or continue with</div>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="social-buttons">
+            <div class="social-button" onclick="socialLogin('Google')">G</div>
+            <div class="social-button" onclick="socialLogin('Facebook')">f</div>
+            <div class="social-button" onclick="socialLogin('Apple')">🍎</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <span id="footerText">Don't have an account? </span>
+            <span class="login-footer-link" onclick="switchTab('register')" id="footerLink">Sign up</span>
+        </div>
+    </div>
+
+    <!-- MAIN APP (SHOWN AFTER LOGIN) -->
+    <div class="app-container" id="mainApp">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-main">
+                <div class="nav-logo">Lynkapp</div>
+                <div style="font-size: 20px; cursor: pointer;" onclick="logout()">🚪</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="welcome-card">
+                <div class="welcome-title">Welcome to Lynkapp! 🎉</div>
+                <div class="welcome-text">
+                    You've successfully logged in! Explore all the amazing features and connect with people around you.
+                </div>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💕</div>
+                    <div class="feature-label">Dating</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-label">Stories</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔴</div>
+                    <div class="feature-label">Live</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <div class="feature-label">Games</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛍️</div>
+                    <div class="feature-label">Market</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-label">Messages</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active">
+                    <div class="nav-item-icon">🏠</div>
+                    <div class="nav-item-label">Home</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-item-icon">🔍</div>
+                    <div class="nav-item-label">Explore</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-item-icon">💕</div>
+                    <div class="nav-item-label">Dating</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-item-icon">👤</div>
+                    <div class="nav-item-label">Profile</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tab) {
+            const loginTab = document.querySelectorAll('.login-tab')[0];
+            const registerTab = document.querySelectorAll('.login-tab')[1];
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const footerText = document.getElementById('footerText');
+            const footerLink = document.getElementById('footerLink');
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                footerText.textContent = "Don't have an account? ";
+                footerLink.textContent = "Sign up";
+                footerLink.onclick = () => switchTab('register');
+            } else {
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+                footerText.textContent = "Already have an account? ";
+                footerLink.textContent = "Sign in";
+                footerLink.onclick = () => switchTab('login');
+            }
+        }
+
+        // Toggle Password Visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Toggle Checkbox
+        function toggleCheckbox(checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            checkbox.classList.toggle('checked');
+        }
+
+        // Handle Login
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Simulate login
+            console.log('Logging in:', email);
+            showApp();
+        }
+
+        // Handle Register
+        function handleRegister() {
+            console.log('Registering new user');
+            showApp();
+        }
+
+        // Social Login
+        function socialLogin(provider) {
+            console.log('Social login with:', provider);
+            showApp();
+        }
+
+        // Show Main App
+        function showApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.remove('active');
+                // Reset forms
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
