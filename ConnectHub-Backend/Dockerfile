@@ -1,7 +1,9 @@
-# Backend Production Dockerfile
+# ConnectHub Backend Dockerfile
+# Multi-stage build for optimized production image
+
+# Stage 1: Build
 FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -9,53 +11,52 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production && \
+    npm install -D typescript @types/node
 
 # Copy source code
-COPY . .
+COPY tsconfig.json ./
+COPY src ./src
 
-# Generate Prisma client
+# Generate Prisma Client
 RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine AS production
+# Stage 2: Production
+FROM node:18-alpine
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init curl
-
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Set working directory
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
-COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Copy built files and dependencies from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
 
 # Create uploads directory
-RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
+RUN mkdir -p uploads/profiles uploads/posts uploads/messages
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Change ownership
+RUN chown -R nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
-
 # Expose port
-EXPOSE 5000
+EXPOSE 3001
 
-# Set environment
-ENV NODE_ENV=production
-ENV PORT=5000
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
 
-# Start application with dumb-init
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server.js"]
+# Start application
+CMD ["node", "dist/server-phase1.js"]
