@@ -18,22 +18,18 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 // Import routes
-import authRoutes from './routes/auth.routes';
-import userRoutes from './routes/user.routes';
-import postRoutes from './routes/post.routes';
-import messageRoutes from './routes/message.routes';
-import notificationRoutes from './routes/notification.routes';
-import uploadRoutes from './routes/upload.routes';
-import datingRoutes from './routes/dating.routes';
-import groupRoutes from './routes/group.routes';
-import eventRoutes from './routes/event.routes';
-import storyRoutes from './routes/story.routes';
+import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
+import postRoutes from './routes/posts';
+import messageRoutes from './routes/messages';
+import uploadRoutes from './routes/upload';
+import datingRoutes from './routes/dating';
 
 // Import WebSocket handlers
-import { initializeSocketIO } from './sockets/socket.handler';
+import { initializeSocketIO } from './sockets';
 
 // Import middleware
-import { errorHandler } from './middleware/error.middleware';
+import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth.middleware';
 
 const app: Express = express();
