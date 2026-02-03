@@ -355,6 +355,118 @@ if (document.readyState === 'loading') {
     authOnboarding = new AuthOnboardingSystem();
 }
 
+// Global functions for HTML onclick handlers
+function switchLoginTab(tab) {
+    const loginTab = document.querySelectorAll('.login-tab')[0];
+    const registerTab = document.querySelectorAll('.login-tab')[1];
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const footerText = document.getElementById('footerText');
+    const footerLink = document.getElementById('footerLink');
+
+    if (tab === 'login') {
+        if (loginTab) loginTab.classList.add('active');
+        if (registerTab) registerTab.classList.remove('active');
+        if (loginForm) loginForm.style.display = 'block';
+        if (registerForm) registerForm.style.display = 'none';
+        if (footerText) footerText.textContent = "Don't have an account? ";
+        if (footerLink) {
+            footerLink.textContent = 'Sign up';
+            footerLink.setAttribute('onclick', "switchLoginTab('register')");
+        }
+    } else if (tab === 'register') {
+        if (loginTab) loginTab.classList.remove('active');
+        if (registerTab) registerTab.classList.add('active');
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'block';
+        if (footerText) footerText.textContent = "Already have an account? ";
+        if (footerLink) {
+            footerLink.textContent = 'Sign in';
+            footerLink.setAttribute('onclick', "switchLoginTab('login')");
+        }
+    }
+}
+
+function handleLogin() {
+    const email = document.getElementById('loginEmail')?.value;
+    const password = document.getElementById('loginPassword')?.value;
+    
+    if (!email || !password) {
+        showToast('⚠️ Please fill in all fields');
+        return;
+    }
+    
+    if (!email.includes('@')) {
+        showToast('⚠️ Please enter a valid email');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('⚠️ Password must be at least 6 characters');
+        return;
+    }
+    
+    showToast('🔄 Logging in...');
+    
+    // Simulate API call
+    setTimeout(() => {
+        showToast('✅ Login successful!');
+        
+        // Hide login screen and show main app
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('appContainer');
+        
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
+        
+        console.log('User logged in:', { email, timestamp: new Date().toISOString() });
+    }, 1500);
+}
+
+function handleRegister() {
+    const firstName = document.getElementById('registerFirstName')?.value;
+    const lastName = document.getElementById('registerLastName')?.value;
+    const username = document.getElementById('registerUsername')?.value;
+    const email = document.getElementById('registerEmail')?.value;
+    const password = document.getElementById('registerPassword')?.value;
+    
+    if (!firstName || !lastName || !username || !email || !password) {
+        showToast('⚠️ Please fill in all fields');
+        return;
+    }
+    
+    if (!email.includes('@')) {
+        showToast('⚠️ Please enter a valid email');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showToast('⚠️ Password must be at least 8 characters');
+        return;
+    }
+    
+    if (username.length < 3) {
+        showToast('⚠️ Username must be at least 3 characters');
+        return;
+    }
+    
+    showToast('🔄 Creating your account...');
+    
+    // Simulate API call
+    setTimeout(() => {
+        showToast('✅ Account created successfully!');
+        
+        // Hide login screen and show main app
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('appContainer');
+        
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
+        
+        console.log('User registered:', { firstName, lastName, username, email, timestamp: new Date().toISOString() });
+    }, 1500);
+}
+
 // Toast notification function
 function showToast(message, duration = 3000) {
     const toast = document.createElement('div');
