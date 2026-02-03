@@ -37,7 +37,391 @@
             overflow-x: hidden;
         }
 
+        /* ============================================
+           SPLASH SCREEN STYLES
+           ============================================ */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .splash-screen.fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        .splash-logo {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 70px;
+            margin-bottom: 32px;
+            animation: logoZoom 1s ease-in-out infinite alternate;
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.6);
+        }
+
+        .splash-app-name {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            animation: textGlow 2s ease-in-out infinite;
+        }
+
+        .splash-tagline {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .splash-loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .splash-version {
+            position: absolute;
+            bottom: 40px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes logoZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        @keyframes textGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           LOGIN SCREEN STYLES
+           ============================================ */
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 24px;
+        }
+
+        .login-logo-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .login-logo-box {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.4);
+        }
+
+        .login-app-name {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .login-tagline {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .login-tabs {
+            display: flex;
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 32px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .login-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0 16px;
+            transition: all 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .input-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            color: var(--text-secondary);
+        }
+
+        .input-field-login {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 16px 0;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .input-field-login::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-toggle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glass-border);
+            border-radius: 4px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .forgot-link {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .divider-text {
+            padding: 0 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .social-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .social-button:active {
+            transform: scale(0.95);
+        }
+
+        .login-footer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .login-footer-link {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preferences-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .preferences-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-toggle {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .feature-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         .app-container {
+            display: none;
             max-width: 480px;
             margin: 0 auto;
             min-height: 100vh;
@@ -45,6 +429,10 @@
             position: relative;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             padding-bottom: 70px;
+        }
+
+        .app-container.active {
+            display: block;
         }
 
         /* Top Navigation Bar */
@@ -1623,6 +2011,138 @@
     </style>
 </head>
 <body>
+    <!-- SPLASH SCREEN -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">🔗</div>
+        <div class="splash-app-name">Lynkapp</div>
+        <div class="splash-tagline">Connect • Share • Discover</div>
+        <div class="splash-loader"></div>
+        <div class="splash-version">Version 2.5.1</div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div class="login-container hidden" id="loginScreen">
+        <div class="login-logo-section">
+            <div class="login-logo-box">🔗</div>
+            <div class="login-app-name">Lynkapp</div>
+            <div class="login-tagline">Connect • Share • Discover</div>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="login-tabs">
+            <div class="login-tab active" onclick="switchLoginTab('login')">Sign In</div>
+            <div class="login-tab" onclick="switchLoginTab('register')">Sign Up</div>
+        </div>
+
+        <!-- Login Form -->
+        <div class="login-form active" id="loginForm">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" class="input-field-login" placeholder="Email address" id="loginEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field-login" placeholder="Password" id="loginPassword">
+                    <span class="input-toggle" onclick="togglePasswordVisibility('loginPassword')">👁️</span>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <div class="checkbox-wrapper" onclick="toggleCheckboxLogin('rememberMe')">
+                    <div class="checkbox" id="rememberMe"></div>
+                    <span class="checkbox-label">Remember me</span>
+                </div>
+                <span class="forgot-link" onclick="showToast('Password reset link sent to email')">Forgot password?</span>
+            </div>
+
+            <button class="login-button" onclick="handleLogin()">Sign In</button>
+        </div>
+
+        <!-- Register Form -->
+        <div class="login-form" id="registerForm">
+            <div class="input-row">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input-field-login" placeholder="First name" id="registerFirstName">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input-field-login" placeholder="Last name" id="registerLastName">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">@</span>
+                    <input type="text" class="input-field-login" placeholder="Username" id="registerUsername">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" class="input-field-login" placeholder="Email address" id="registerEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field-login" placeholder="Password" id="registerPassword">
+                    <span class="input-toggle" onclick="togglePasswordVisibility('registerPassword')">👁️</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field-login" placeholder="Confirm password" id="registerConfirmPassword">
+                </div>
+            </div>
+
+            <div class="preferences-section">
+                <div class="preferences-title">Account Preferences</div>
+                <div class="feature-toggle">
+                    <div class="checkbox checked" id="datingEnabled" onclick="toggleCheckboxLogin('datingEnabled')"></div>
+                    <div class="feature-info">
+                        <div class="feature-title">Enable Dating Features</div>
+                        <div class="feature-description">Access matching, dating profiles, and find meaningful connections</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="login-button" onclick="handleRegister()">Create Account</button>
+        </div>
+
+        <!-- Social Login -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-text">or continue with</div>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="social-buttons">
+            <div class="social-button" onclick="socialLogin('Google')">G</div>
+            <div class="social-button" onclick="socialLogin('Facebook')">f</div>
+            <div class="social-button" onclick="socialLogin('Apple')">🍎</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <span id="footerText">Don't have an account? </span>
+            <span class="login-footer-link" onclick="switchLoginTab('register')" id="footerLink">Sign up</span>
+        </div>
+    </div>
+
+    <!-- MAIN APP (SHOWN AFTER LOGIN) -->
     <div class="app-container">
         <!-- Top Navigation -->
         <div class="top-nav">
@@ -19962,6 +20482,148 @@
                 }
             }, 500);
         });
+
+        // ========== SPLASH SCREEN TRANSITION ==========
+        
+        // Auto-transition from splash screen to login screen
+        window.addEventListener('DOMContentLoaded', () => {
+            const splashScreen = document.getElementById('splashScreen');
+            const loginScreen = document.getElementById('loginScreen');
+            
+            // Show splash screen for 2.5 seconds, then transition to login
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                
+                // After fade out animation completes, hide splash and show login
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    loginScreen.classList.remove('hidden');
+                }, 500); // Match CSS fade-out animation duration
+            }, 2500); // 2.5 seconds splash screen display
+        });
+
+        // ========== LOGIN SCREEN FUNCTIONS ==========
+        
+        // Switch Login Tab
+        function switchLoginTab(tab) {
+            const loginTab = document.querySelectorAll('.login-tab')[0];
+            const registerTab = document.querySelectorAll('.login-tab')[1];
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const footerText = document.getElementById('footerText');
+            const footerLink = document.getElementById('footerLink');
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                footerText.textContent = "Don't have an account? ";
+                footerLink.textContent = "Sign up";
+                footerLink.onclick = () => switchLoginTab('register');
+            } else {
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+                footerText.textContent = "Already have an account? ";
+                footerLink.textContent = "Sign in";
+                footerLink.onclick = () => switchLoginTab('login');
+            }
+        }
+
+        // Toggle Password Visibility
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.type = input.type === 'password' ? 'text' : 'password';
+            }
+        }
+
+        // Toggle Checkbox for Login
+        function toggleCheckboxLogin(checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.classList.toggle('checked');
+            }
+        }
+
+        // Handle Login
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showToast('Please fill in all fields');
+                return;
+            }
+
+            // Simulate login
+            console.log('Logging in:', email);
+            showToast('Logging in...');
+            
+            setTimeout(() => {
+                showAppAfterLogin();
+            }, 1000);
+        }
+
+        // Handle Register
+        function handleRegister() {
+            const firstName = document.getElementById('registerFirstName').value;
+            const lastName = document.getElementById('registerLastName').value;
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+            if (!firstName || !lastName || !username || !email || !password || !confirmPassword) {
+                showToast('Please fill in all fields');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match');
+                return;
+            }
+
+            console.log('Registering new user:', email);
+            showToast('Creating account...');
+            
+            setTimeout(() => {
+                showAppAfterLogin();
+            }, 1000);
+        }
+
+        // Social Login
+        function socialLogin(provider) {
+            console.log('Social login with:', provider);
+            showToast(`Logging in with ${provider}...`);
+            
+            setTimeout(() => {
+                showAppAfterLogin();
+            }, 1500);
+        }
+
+        // Show Main App After Login
+        function showAppAfterLogin() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.querySelector('.app-container').classList.add('active');
+            showToast('Welcome to ConnectHub! 🎉');
+        }
+
+        // Logout Function
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.querySelector('.app-container').classList.remove('active');
+                
+                // Reset forms
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                
+                showToast('Logged out successfully');
+            }
+        }
     </script>
 </body>
 </html>
