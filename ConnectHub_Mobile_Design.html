@@ -422,6 +422,7 @@
 
         .app-container {
             display: none;
+            width: 100%;
             max-width: 480px;
             margin: 0 auto;
             min-height: 100vh;
@@ -433,6 +434,31 @@
 
         .app-container.active {
             display: block;
+        }
+
+        /* Responsive Design: Expand to full width on larger screens */
+        @media (min-width: 481px) {
+            .app-container {
+                max-width: 100%;
+                box-shadow: none;
+            }
+            
+            .top-nav,
+            .bottom-nav {
+                max-width: 100%;
+            }
+        }
+
+        /* Desktop view: Center container with max width */
+        @media (min-width: 1024px) {
+            .app-container {
+                max-width: 1200px;
+            }
+            
+            .top-nav,
+            .bottom-nav {
+                max-width: 1200px;
+            }
         }
 
         /* Top Navigation Bar */
