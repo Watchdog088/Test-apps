@@ -26,6 +26,9 @@ echo.
 
 REM Upload files
 echo Uploading updated files...
+
+REM Upload HTML file
+echo   - Uploading HTML...
 aws s3 cp ConnectHub_Mobile_Design.html s3://%BUCKET_NAME%/index.html --content-type "text/html" --cache-control "max-age=300"
 if %ERRORLEVEL% neq 0 (
     echo.
@@ -40,8 +43,40 @@ if %ERRORLEVEL% neq 0 (
     pause
     exit /b 1
 )
-
 aws s3 cp ConnectHub_Mobile_Design.html s3://%BUCKET_NAME%/ --content-type "text/html" --cache-control "max-age=300"
+
+REM Upload all JavaScript system files
+echo   - Uploading JavaScript system files...
+aws s3 cp ConnectHub_Mobile_Design_Feed_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Feed_Enhanced.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Dating_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Stories_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Media_Hub.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Trending_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Friends_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Groups_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Events_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Gaming_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Saved_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Messages_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Notifications_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Search_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Settings_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Marketplace_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Live_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Video_Calls_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_AR_VR_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Business_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Business_Tools_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Creator_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Help_Support_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Menu_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Auth_Onboarding_Complete.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+
+REM Upload src/services folder structure
+echo   - Uploading service modules...
+aws s3 sync ConnectHub-Frontend/src/services s3://%BUCKET_NAME%/src/services --content-type "application/javascript" --cache-control "max-age=300" --exclude "*.map"
 
 echo.
 echo ===================================================================

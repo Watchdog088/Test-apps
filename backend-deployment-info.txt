@@ -1,0 +1,9 @@
+# LynkApp Backend Deployment Information
+# Generated: Tue 02/24/2026 16:56:11.26
+
+DATABASE_ENDPOINT=lynkapp-db.cq3yg4600cbl.us-east-1.rds.amazonaws.com
+S3_BUCKET=lynkapp.net
+DATABASE_URL=postgresql://lynkadmin:Lynkapp2024!@lynkapp-db.cq3yg4600cbl.us-east-1.rds.amazonaws.com:5432/lynkapp
+
+# Connection Test
+psql "postgresql://lynkadmin:Lynkapp2024!@lynkapp-db.cq3yg4600cbl.us-east-1.rds.amazonaws.com:5432/lynkapp"

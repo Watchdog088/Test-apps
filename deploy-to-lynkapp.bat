@@ -143,19 +143,53 @@ aws s3 website s3://%BUCKET_NAME%/ --index-document ConnectHub_Mobile_Design.htm
 echo [OK] Static website hosting enabled
 echo.
 
-REM Step 5: Upload HTML file
-echo [Step 5/5] Uploading HTML file...
+REM Step 5: Upload all required files
+echo [Step 5/5] Uploading website files...
+
+REM Upload HTML file
+echo   - Uploading HTML...
 aws s3 cp ConnectHub_Mobile_Design.html s3://%BUCKET_NAME%/index.html --content-type "text/html" --cache-control "max-age=300"
 if %ERRORLEVEL% neq 0 (
-    echo [ERROR] Failed to upload file!
+    echo [ERROR] Failed to upload HTML file!
     pause
     exit /b 1
 )
-
-REM Also upload with original name
 aws s3 cp ConnectHub_Mobile_Design.html s3://%BUCKET_NAME%/ --content-type "text/html" --cache-control "max-age=300"
 
-echo [OK] Files uploaded successfully
+REM Upload all JavaScript system files
+echo   - Uploading JavaScript system files...
+aws s3 cp ConnectHub_Mobile_Design_Feed_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Feed_Enhanced.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Dating_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Stories_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Media_Hub.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Trending_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Friends_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Groups_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Events_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Gaming_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Saved_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Messages_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Notifications_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Search_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Settings_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Marketplace_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Live_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Video_Calls_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_AR_VR_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Business_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Business_Tools_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Creator_Profile_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Help_Support_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Menu_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Auth_Onboarding_Complete.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+
+REM Upload src/services folder structure
+echo   - Uploading service modules...
+aws s3 sync ConnectHub-Frontend/src/services s3://%BUCKET_NAME%/src/services --content-type "application/javascript" --cache-control "max-age=300" --exclude "*.map"
+
+echo [OK] All files uploaded successfully
 echo.
 
 REM Success message
@@ -192,6 +226,23 @@ if /i "%OPEN_SITE%"=="Y" (
     start http://%BUCKET_NAME%.s3-website-us-east-1.amazonaws.com
 )
 
+echo.
+echo ===================================================================
+echo   DATABASE DEPLOYMENT REMINDER
+echo ===================================================================
+echo.
+echo IMPORTANT: This script only deployed the FRONTEND files!
+echo.
+echo To deploy the databases (PostgreSQL, Redis, MongoDB, S3) to AWS:
+echo   1. Run: deploy-databases-to-aws.bat
+echo   2. This will create RDS, ElastiCache, and S3 resources
+echo   3. Estimated cost: ~$87/month minimum
+echo.
+echo Current database status: 
+echo   - Frontend: DEPLOYED to AWS S3
+echo   - Databases: NOT DEPLOYED (running locally via Docker only)
+echo.
+echo ===================================================================
 echo.
 echo Thank you for using LynkApp AWS Deployment!
 echo.
