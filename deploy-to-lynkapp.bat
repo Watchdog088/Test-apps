@@ -164,6 +164,7 @@ aws s3 cp ConnectHub_Mobile_Design_Dating_System.js s3://%BUCKET_NAME%/ --conten
 aws s3 cp ConnectHub_Mobile_Design_Stories_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Media_Hub.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Trending_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
+aws s3 cp ConnectHub_Mobile_Design_Trending_System_NewsAPI.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Friends_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Groups_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Events_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
@@ -185,11 +186,32 @@ aws s3 cp ConnectHub_Mobile_Design_Help_Support_System.js s3://%BUCKET_NAME%/ --
 aws s3 cp ConnectHub_Mobile_Design_Menu_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 aws s3 cp ConnectHub_Mobile_Design_Auth_Onboarding_Complete.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
 
+REM Upload admin dashboard
+echo   - Uploading admin dashboard...
+aws s3 cp admin-dashboard.html s3://%BUCKET_NAME%/ --content-type "text/html" --cache-control "max-age=300"
+
 REM Upload src/services folder structure
 echo   - Uploading service modules...
 aws s3 sync ConnectHub-Frontend/src/services s3://%BUCKET_NAME%/src/services --content-type "application/javascript" --cache-control "max-age=300" --exclude "*.map"
 
 echo [OK] All files uploaded successfully
+echo.
+echo ===================================================================
+echo   NEW FEATURES DEPLOYED!
+echo ===================================================================
+echo.
+echo [NEW] Enhanced Trending System with NewsAPI
+echo   - Real news integration
+echo   - 70,000+ news sources
+echo   - Auto-caching (15 min)
+echo   File: ConnectHub_Mobile_Design_Trending_System_NewsAPI.js
+echo.
+echo [NEW] Admin Dashboard
+echo   - Manage trending content
+echo   - NewsAPI settings
+echo   - Analytics dashboard
+echo   Access at: http://lynkapp.net/admin-dashboard.html
+echo.
 echo.
 
 REM Success message
