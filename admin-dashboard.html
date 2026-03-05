@@ -467,6 +467,116 @@
             </div>
         </div>
 
+        <!-- Media Management (Cloudinary) -->
+        <div class="dashboard-section">
+            <div class="section-title">
+                <span>🖼️ Media Management (Cloudinary)</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="admin-btn admin-btn-primary" onclick="testCloudinary()">
+                        🔗 Test Connection
+                    </button>
+                    <button class="admin-btn admin-btn-success" onclick="refreshMediaStats()">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Media Stats Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="padding: 16px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #3b82f6;" id="totalMediaUploads">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Uploads</div>
+                    <div style="font-size: 11px; color: var(--admin-primary); margin-top: 4px;">📤 Images + Videos</div>
+                </div>
+
+                <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #10b981;" id="totalImages">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Images</div>
+                    <div style="font-size: 11px; color: var(--admin-success); margin-top: 4px;">🖼️ Optimized</div>
+                </div>
+
+                <div style="padding: 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #f59e0b;" id="totalVideos">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Videos</div>
+                    <div style="font-size: 11px; color: var(--admin-warning); margin-top: 4px;">🎥 Streaming</div>
+                </div>
+
+                <div style="padding: 16px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="storageUsed">0 MB</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Storage Used</div>
+                    <div style="font-size: 11px; color: #8b5cf6; margin-top: 4px;">💾 / 25 GB FREE</div>
+                </div>
+            </div>
+
+            <!-- Storage Progress Bar -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 14px; font-weight: 600;">Storage Usage</span>
+                    <span style="font-size: 13px; color: var(--text-secondary);" id="storagePercent">0%</span>
+                </div>
+                <div class="progress-bar" style="height: 10px;">
+                    <div class="progress-fill" id="storageProgress" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    25 GB bandwidth/month • FREE tier
+                </div>
+            </div>
+
+            <!-- Features List -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 16px; margin-bottom: 12px;">✨ Cloudinary Features</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div style="font-weight: 600;">🚀 Auto-Optimization</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Auto-format, auto-quality, responsive images
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div style="font-weight: 600;">🎨 Image Transformations</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Resize, crop, filters, effects on-the-fly
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div style="font-weight: 600;">🎬 Video Streaming</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Adaptive bitrate, HLS/DASH delivery
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div style="font-weight: 600;">⚡ CDN Delivery</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Global CDN, instant loading worldwide
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Status -->
+            <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600;">Connection Status</div>
+                        <div style="font-size: 13px; color: var(--admin-success); margin-top: 4px;">
+                            ✓ Connected • Cloud: do6ue7mgf
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="admin-btn admin-btn-primary" onclick="openCloudinaryDashboard()">
+                            🌐 Open Dashboard
+                        </button>
+                        <button class="admin-btn admin-btn-success" onclick="uploadTestMedia()">
+                            📤 Test Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Analytics -->
         <div class="dashboard-section">
             <div class="section-title">
