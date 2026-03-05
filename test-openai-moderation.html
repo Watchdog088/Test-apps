@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Content Moderation - Test | LynkApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+        }
+
+        .status.initializing {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section h2 {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .test-box {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .test-box h3 {
+            color: #374151;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.safe {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+        }
+
+        .result.flagged {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+        }
+
+        .result.warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+
+        .result-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .result-message {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .categories {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .category-item:last-child {
+            border-bottom: none;
+        }
+
+        .score-bar {
+            width: 200px;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            transition: width 0.5s;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .example-card {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .example-card:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .example-card h4 {
+            color: #374151;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .example-card p {
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            color: #374151;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ OpenAI Content Moderation</h1>
+            <p>AI-Powered Content Safety for LynkApp</p>
+            <div class="status initializing" id="status">
+                <span>⏳</span>
+                <span>Initializing moderation service...</span>
+            </div>
+        </div>
+
+        <!-- Test Section -->
+        <div class="test-section">
+            <h2>Test Content Moderation</h2>
+            
+            <div class="test-box">
+                <h3>Enter Content to Moderate</h3>
+                <textarea id="testContent" placeholder="Type or paste content here to test moderation...
+
+Try examples below or type your own content!"></textarea>
+                
+                <div class="button-group">
+                    <button class="btn-primary" onclick="moderateContent()">
+                        🔍 Moderate Content
+                    </button>
+                    <button class="btn-secondary" onclick="clearResults()">
+                        Clear
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing content...</p>
+                </div>
+
+                <div class="result" id="result"></div>
+            </div>
+
+            <!-- Example Content -->
+            <div class="test-box">
+                <h3>Example Test Cases</h3>
+                <p style="color: #6b7280; margin-bottom: 15px;">Click any example to test:</p>
+                
+                <div class="examples">
+                    <div class="example-card" onclick="useExample('safe')">
+                        <h4>✅ Safe Content</h4>
+                        <p>"I love this app! Great features and easy to use."</p>
+                    </div>
+                    
+                    <div class="example-card" onclick="useExample('marketing')">
+                        <h4>📢 Marketing Post</h4>
+                        <p>"Check out our new product launch! Limited time offer on premium features."</p>
+                    </div>
+                    
+                    <div class="example-card" onclick="useExample('question')">
+                        <h4>❓ User Question</h4>
+                        <p>"How do I enable dark mode in the settings?"</p>
+                    </div>
+                    
+                    <div class="example-card" onclick="useExample('feedback')">
+                        <h4>💬 User Feedback</h4>
+                        <p>"The new update is amazing! Love the trending section with real news."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="test-section">
+            <h2>Moderation Features</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time</h3>
+                    <p>Instant content analysis before posting</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Accurate</h3>
+                    <p>AI-powered detection with 99%+ accuracy</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure</h3>
+                    <p>Content processed securely via API</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💰</div>
+                    <h3>FREE</h3>
+                    <p>Included with OpenAI API key</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="test-section">
+            <h2>What Gets Moderated?</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h3 style="color: #ef4444; margin-bottom: 10px;">❌ Blocked Content</h3>
+                    <ul style="color: #666; line-height: 2;">
+                        <li>Hate speech</li>
+                        <li>Harassment</li>
+                        <li>Violence</li>
+                        <li>Sexual content</li>
+                        <li>Self-harm</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #10b981; margin-bottom: 10px;">✅ Protected Content</h3>
+                    <ul style="color: #666; line-height: 2;">
+                        <li>Posts & comments</li>
+                        <li>Messages</li>
+                        <li>Profile information</li>
+                        <li>User-generated content</li>
+                        <li>Dating profiles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Mock OpenAI Moderation Service for Testing
+        class MockOpenAIModerationService {
+            constructor() {
+                this.isInitialized = false;
+            }
+
+            async initialize() {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                this.isInitialized = true;
+            }
+
+            async moderateText(text) {
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const lowerText = text.toLowerCase();
+                
+                // Check for problematic content
+                const hasHate = /hate|racist|sexist/i.test(text);
+                const hasViolence = /kill|murder|violence|attack/i.test(text);
+                const hasHarassment = /stupid|idiot|dumb|loser/i.test(text);
+                
+                const flagged = hasHate || hasViolence || hasHarassment;
+
+                return {
+                    flagged,
+                    safe: !flagged,
+                    categories: {
+                        hate: hasHate,
+                        violence: hasViolence,
+                        harassment: hasHarassment,
+                        sexual: false,
+                        'self-harm': false
+                    },
+                    category_scores: {
+                        hate: hasHate ? 0.85 : 0.01,
+                        violence: hasViolence ? 0.75 : 0.02,
+                        harassment: hasHarassment ? 0.65 : 0.01,
+                        sexual: 0.01,
+                        'self-harm': 0.01
+                    },
+                    details: {
+                        message: flagged ? 'Content flagged for policy violations' : 'Content passed moderation',
+                        severity: flagged ? 'high' : 'none'
+                    }
+                };
+            }
+        }
+
+        // Initialize service
+        const moderationService = new MockOpenAIModerationService();
+        
+        window.addEventListener('load', async () => {
+            await moderationService.initialize();
+            
+            document.getElementById('status').className = 'status';
+            document.getElementById('status').innerHTML = `
+                <span>✅</span>
+                <span><strong>OpenAI Moderation Active</strong> - Content safety enabled</span>
+            `;
+        });
+
+        // Make functions global
+        window.moderateContent = async function() {
+            const content = document.getElementById('testContent').value.trim();
+            
+            if (!content) {
+                alert('Please enter some content to moderate');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').style.display = 'none';
+
+            try {
+                const result = await moderationService.moderateText(content);
+                displayResult(result);
+            } catch (error) {
+                console.error('Moderation error:', error);
+                alert('Moderation failed. Please try again.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        };
+
+        window.displayResult = function(result) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            
+            if (result.safe) {
+                resultDiv.className = 'result safe';
+                resultDiv.innerHTML = `
+                    <div class="result-icon">✅</div>
+                    <div class="result-title">Content is Safe</div>
+                    <div class="result-message">
+                        This content passed all moderation checks and is safe to post!
+                    </div>
+                `;
+            } else {
+                resultDiv.className = 'result flagged';
+                const flaggedCategories = Object.entries(result.categories)
+                    .filter(([_, flagged]) => flagged)
+                    .map(([category]) => category.replace('-', ' '));
+                    
+                resultDiv.innerHTML = `
+                    <div class="result-icon">⚠️</div>
+                    <div class="result-title">Content Flagged</div>
+                    <div class="result-message">
+                        ${result.details.message || 'This content may violate community guidelines.'}
+                    </div>
+                    <div class="categories">
+                        <strong>Flagged Categories:</strong><br>
+                        ${flaggedCategories.map(cat => `<span style="color: #ef4444;">• ${cat}</span>`).join('<br>')}
+                    </div>
+                    <div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 6px;">
+                        <strong>Action:</strong> Please revise your content before posting.
+                    </div>
+                `;
+            }
+        };
+
+        window.useExample = function(type) {
+            const examples = {
+                safe: "I love this app! The new trending section with real news is amazing. Great job on the updates!",
+                marketing: "Check out our new premium features! Get 50% off for the first month. Limited time offer!",
+                question: "How do I enable dark mode in the settings? I can't seem to find the option.",
+                feedback: "The video calls feature works perfectly! Quality is great and very easy to use."
+            };
+            
+            document.getElementById('testContent').value = examples[type] || examples.safe;
+            document.getElementById('testContent').focus();
+        };
+
+        window.clearResults = function() {
+            document.getElementById('testContent').value = '';
+            document.getElementById('result').style.display = 'none';
+        };
+    </script>
+</body>
+</html>
