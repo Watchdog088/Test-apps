@@ -1,0 +1,9 @@
+# LynkApp Frontend Deployment 
+# Generated: Mon 03/02/2026 11:57:05.40 
+ 
+WEBSITE_URL=http://lynkapp.net.s3-website-us-east-1.amazonaws.com 
+S3_BUCKET=lynkapp.net 
+REGION=us-east-1 
+ 
+# View your website: 
+# http://lynkapp.net.s3-website-us-east-1.amazonaws.com 

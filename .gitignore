@@ -1,2 +1,7 @@
 node_modules
-ConnectHub-Frontend/.env 
+ConnectHub-Frontend/.env
+ConnectHub-Backend/.env
+*.env
+!.env.example
+!.env.production
+backend-deploy.zip  

@@ -1,5 +1,5 @@
 # LynkApp Backend Deployment Information
-# Generated: Tue 02/24/2026 16:56:11.26
+# Generated: Mon 03/02/2026 10:11:43.99
 
 DATABASE_ENDPOINT=lynkapp-db.cq3yg4600cbl.us-east-1.rds.amazonaws.com
 S3_BUCKET=lynkapp.net

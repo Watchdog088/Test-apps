@@ -7,7 +7,7 @@
 class OneSignalService {
     constructor() {
         // Your OneSignal App ID (create at https://onesignal.com)
-        this.appId = 'YOUR_ONESIGNAL_APP_ID';
+        this.appId = '00c74474-9140-4f10-b8a9-a94e836e43ac';
         this.initialized = false;
         this.subscribed = false;
         
