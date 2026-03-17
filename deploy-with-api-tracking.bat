@@ -26,38 +26,19 @@ if not exist "ConnectHub-Frontend\.env" (
 echo ✅ .env file found
 echo.
 
-echo [2/5] Building frontend with API services...
+echo [2/5] Preparing files for deployment...
 echo.
 
 cd ConnectHub-Frontend
 
-REM Install dependencies if needed
-if not exist "node_modules" (
-    echo Installing dependencies...
-    call npm install
-)
-
-REM Build the project
-echo Building project...
-call npm run build
-
-if errorlevel 1 (
-    echo ❌ Build failed!
-    pause
-    exit /b 1
-)
-
-echo ✅ Build complete
-echo.
-
-echo [3/5] Preparing files for deployment...
-echo.
-
 REM Create deployment directory
 if not exist "..\deploy-output" mkdir "..\deploy-output"
 
-REM Copy build files
-xcopy /E /I /Y dist "..\deploy-output\dist"
+REM Copy all frontend files (already built - no build step needed!)
+xcopy /E /I /Y *.html "..\deploy-output\"
+xcopy /E /I /Y *.js "..\deploy-output\"
+xcopy /E /I /Y src "..\deploy-output\src"
+xcopy /E /I /Y manifest.json "..\deploy-output\" 2>nul
 
 REM Copy API service files
 echo Copying API services...
