@@ -44,13 +44,23 @@ REM Copy API service files
 echo Copying API services...
 xcopy /E /I /Y src\services "..\deploy-output\services"
 
-REM Copy admin dashboard files
-echo Copying admin dashboard...
-xcopy /Y admin-dashboard.html "..\deploy-output\"
-
 echo ✅ Files prepared
 echo.
 
+echo [3/5] Copying admin dashboard from root...
+echo.
+
+cd ..
+
+REM Copy admin dashboard from root directory
+if exist "admin-dashboard.html" (
+    xcopy /Y admin-dashboard.html "deploy-output\"
+    echo ✅ Admin dashboard copied
+) else (
+    echo Note: admin-dashboard.html not found in root, skipping...
+)
+
+echo.
 echo [4/5] Deploying to AWS S3...
 echo.
 
@@ -75,10 +85,8 @@ if exist ".s3-bucket-name" (
 
 echo Uploading to S3 bucket: %BUCKET_NAME%...
 
-REM Upload with API tracking enabled
-aws s3 sync deploy-output s3://%BUCKET_NAME%/ --delete ^
-    --cache-control "max-age=3600" ^
-    --metadata "api-tracking=enabled,version=1.0.0"
+REM Upload with API tracking enabled (simplified command)
+aws s3 sync deploy-output s3://%BUCKET_NAME%/ --delete
 
 if errorlevel 1 (
     echo ❌ S3 upload failed!
