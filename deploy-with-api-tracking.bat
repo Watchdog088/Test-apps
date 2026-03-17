@@ -64,9 +64,7 @@ echo.
 echo [4/5] Deploying to AWS S3...
 echo.
 
-cd ..
-
-REM Check if AWS CLI is installed
+REM Check if AWS CLI is installed (stay in current directory)
 aws --version >nul 2>&1
 if errorlevel 1 (
     echo WARNING: AWS CLI not found!
