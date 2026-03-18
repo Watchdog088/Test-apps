@@ -59,9 +59,7 @@ echo.
 echo [3/5] Copying admin dashboard from root...
 echo.
 
-cd ..
-
-REM Copy admin dashboard from root directory
+REM Copy admin dashboard from root directory (we're already back in root)
 if exist "admin-dashboard.html" (
     xcopy /Y admin-dashboard.html "deploy-output\"
     echo ✅ Admin dashboard copied
@@ -73,7 +71,7 @@ echo.
 echo [4/5] Deploying to AWS S3...
 echo.
 
-REM Check if AWS CLI is installed (stay in current directory)
+REM Check if AWS CLI is installed
 aws --version >nul 2>&1
 if errorlevel 1 (
     echo WARNING: AWS CLI not found!
