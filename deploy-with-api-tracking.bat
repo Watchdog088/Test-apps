@@ -84,7 +84,7 @@ if exist ".s3-bucket-name" (
 echo Uploading to S3 bucket: %BUCKET_NAME%...
 
 REM Upload with API tracking enabled (simplified command)
-aws s3 sync deploy-output s3://%BUCKET_NAME%/ --delete
+aws s3 sync deploy-output s3://%BUCKET_NAME% --delete
 
 if errorlevel 1 (
     echo ❌ S3 upload failed!
