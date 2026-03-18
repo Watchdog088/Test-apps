@@ -29,20 +29,29 @@ echo.
 echo [2/5] Preparing files for deployment...
 echo.
 
+REM Create deployment directory
+if not exist "deploy-output" mkdir "deploy-output"
+
+REM Copy main HTML files from root directory
+echo Copying main HTML files...
+xcopy /Y ConnectHub_Mobile_Design.html "deploy-output\" 2>nul
+xcopy /Y ConnectHub_Mobile_Design_Complete.html "deploy-output\" 2>nul
+xcopy /Y index.html "deploy-output\" 2>nul
+
 cd ConnectHub-Frontend
 
-REM Create deployment directory
-if not exist "..\deploy-output" mkdir "..\deploy-output"
-
-REM Copy all frontend files (already built - no build step needed!)
+REM Copy all frontend files
 xcopy /E /I /Y *.html "..\deploy-output\"
 xcopy /E /I /Y *.js "..\deploy-output\"
 xcopy /E /I /Y src "..\deploy-output\src"
+xcopy /E /I /Y css "..\deploy-output\css" 2>nul
 xcopy /E /I /Y manifest.json "..\deploy-output\" 2>nul
 
 REM Copy API service files
 echo Copying API services...
 xcopy /E /I /Y src\services "..\deploy-output\services"
+
+cd ..
 
 echo ✅ Files prepared
 echo.
