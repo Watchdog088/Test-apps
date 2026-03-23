@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Find Friends Test - ConnectHub</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            margin: 10px;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Simple Find Friends Test</h1>
+        <p>Testing Find Friends functionality step by step</p>
+        
+        <button class="test-button" onclick="testBasicClick()">
+            Test Basic Click
+        </button>
+        
+        <button class="test-button" onclick="testFindFriendsFunction()">
+            Test Find Friends Function
+        </button>
+        
+        <button class="test-button" onclick="testModalCreation()">
+            Test Modal Creation
+        </button>
+        
+        <button class="test-button" onclick="showDebugInfo()">
+            Show Debug Info
+        </button>
+        
+        <div id="debug-output" class="debug-info" style="display: none;"></div>
+    </div>
+
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="src/js/api.js"></script>
+    <script src="src/js/app.js"></script>
+    <script src="src/js/find-friends-ui-components.js"></script>
+
+    <script>
+        function testBasicClick() {
+            console.log('✅ Basic click test working!');
+            alert('Basic click is working!');
+        }
+        
+        function testFindFriendsFunction() {
+            console.log('🧪 Testing Find Friends function...');
+            
+            if (window.findFriendsUI) {
+                console.log('✅ window.findFriendsUI exists');
+                if (typeof window.findFriendsUI.openFindFriends === 'function') {
+                    console.log('✅ openFindFriends method exists');
+                    
+                    // Call the function
+                    window.findFriendsUI.openFindFriends()
+                        .then(() => {
+                            console.log('✅ openFindFriends completed successfully');
+                            alert('Find Friends function called successfully!');
+                        })
+                        .catch(error => {
+                            console.error('❌ Error in openFindFriends:', error);
+                            alert('Error: ' + error.message);
+                        });
+                } else {
+                    console.error('❌ openFindFriends method not found');
+                    alert('openFindFriends method not found');
+                }
+            } else {
+                console.error('❌ window.findFriendsUI not found');
+                alert('findFriendsUI not found');
+            }
+        }
+        
+        function testModalCreation() {
+            console.log('🧪 Testing modal creation...');
+            
+            const modal = document.getElementById('find-friends-modal');
+            if (modal) {
+                console.log('✅ Find Friends modal exists in DOM');
+                console.log('Modal classes:', modal.className);
+                console.log('Modal display style:', window.getComputedStyle(modal).display);
+                console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+                console.log('Modal opacity:', window.getComputedStyle(modal).opacity);
+                alert('Modal exists! Check console for details.');
+            } else {
+                console.error('❌ Find Friends modal not found in DOM');
+                alert('Modal not found in DOM');
+            }
+        }
+        
+        function showDebugInfo() {
+            const debugOutput = document.getElementById('debug-output');
+            let info = 'Debug Information:\n\n';
+            
+            info += '=== Find Friends UI ===\n';
+            info += 'window.findFriendsUI: ' + (window.findFriendsUI ? 'EXISTS' : 'NOT FOUND') + '\n';
+            
+            if (window.findFriendsUI) {
+                info += 'Constructor name: ' + window.findFriendsUI.constructor.name + '\n';
+                info += 'openFindFriends method: ' + (typeof window.findFriendsUI.openFindFriends) + '\n';
+            }
+            
+            info += '\n=== Global Variables ===\n';
+            info += 'Global findFriendsUI: ' + (typeof findFriendsUI !== 'undefined' ? 'EXISTS' : 'NOT FOUND') + '\n';
+            
+            info += '\n=== DOM Elements ===\n';
+            const modal = document.getElementById('find-friends-modal');
+            info += 'find-friends-modal: ' + (modal ? 'EXISTS' : 'NOT FOUND') + '\n';
+            
+            if (modal) {
+                info += 'Modal classes: ' + modal.className + '\n';
+                const style = window.getComputedStyle(modal);
+                info += 'Display: ' + style.display + '\n';
+                info += 'Visibility: ' + style.visibility + '\n';
+                info += 'Opacity: ' + style.opacity + '\n';
+            }
+            
+            info += '\n=== Window Properties ===\n';
+            const friendsRelated = Object.keys(window).filter(key => 
+                key.toLowerCase().includes('friend') || key.toLowerCase().includes('find')
+            );
+            info += 'Friends-related properties: ' + friendsRelated.join(', ') + '\n';
+            
+            debugOutput.textContent = info;
+            debugOutput.style.display = 'block';
+            console.log(info);
+        }
+        
+        // Auto-run debug info after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Simple Find Friends Test loaded');
+            
+            // Wait for components to initialize
+            setTimeout(() => {
+                showDebugInfo();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

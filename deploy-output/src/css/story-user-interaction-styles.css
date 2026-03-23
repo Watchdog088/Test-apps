@@ -1,0 +1,694 @@
+/**
+ * ConnectHub - Story User Interaction Styles
+ * CSS styles for user profile popover and story name interactions
+ */
+
+/* ===== STORY NAME HOVER EFFECTS ===== */
+
+.story-name.hoverable,
+.story-user-name.hoverable {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--primary-color, #007bff);
+    transition: all 0.2s ease;
+}
+
+.story-name,
+.story-user-name {
+    transition: all 0.2s ease;
+}
+
+.story-name:hover,
+.story-user-name:hover {
+    cursor: pointer;
+    color: var(--primary-color, #007bff);
+    transform: translateY(-1px);
+}
+
+/* ===== USER PROFILE POPOVER ===== */
+
+.user-profile-popover {
+    position: fixed;
+    width: 360px;
+    max-height: 90vh;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    z-index: 10001;
+}
+
+.user-profile-popover.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.popover-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* ===== POPOVER HEADER ===== */
+
+.popover-header {
+    position: relative;
+    height: 120px;
+    overflow: hidden;
+}
+
+.header-background {
+    position: relative;
+    height: 100%;
+}
+
+.cover-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.header-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5));
+}
+
+.profile-header-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 16px;
+}
+
+.profile-avatar-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color, #007bff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+.verified-badge i {
+    color: white;
+    font-size: 10px;
+}
+
+.close-popover-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.close-popover-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* ===== PROFILE INFO ===== */
+
+.popover-profile-info {
+    padding: 16px;
+}
+
+.profile-names {
+    margin-bottom: 12px;
+}
+
+.profile-display-name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.verified-icon {
+    color: var(--primary-color, #007bff);
+    font-size: 16px;
+}
+
+.profile-username {
+    margin: 4px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.profile-bio {
+    margin-bottom: 12px;
+}
+
+.profile-bio p {
+    margin: 0;
+    line-height: 1.4;
+    color: #333;
+    font-size: 14px;
+}
+
+.profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+.meta-item i {
+    width: 14px;
+    color: #999;
+}
+
+.meta-item a {
+    color: var(--primary-color, #007bff);
+    text-decoration: none;
+}
+
+.meta-item a:hover {
+    text-decoration: underline;
+}
+
+.mutual-friends {
+    color: var(--primary-color, #007bff);
+    font-weight: 500;
+}
+
+/* ===== PROFILE STATS ===== */
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 16px;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.stat-item:hover {
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.stat-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stories-stat {
+    position: relative;
+}
+
+.stories-stat::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -1px;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 24px;
+    background: #eee;
+}
+
+/* ===== INTERESTS ===== */
+
+.profile-interests {
+    padding: 16px;
+    padding-top: 0;
+}
+
+.interests-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.interest-tag {
+    background: rgba(0, 123, 255, 0.1);
+    color: var(--primary-color, #007bff);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ===== ACTION BUTTONS ===== */
+
+.profile-actions {
+    padding: 16px;
+    border-top: 1px solid #eee;
+}
+
+.primary-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.follow-btn.follow {
+    background: var(--primary-color, #007bff);
+    color: white;
+}
+
+.follow-btn.follow:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.follow-btn.following {
+    background: #28a745;
+    color: white;
+}
+
+.follow-btn.following:hover {
+    background: #1e7e34;
+}
+
+.message-btn {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+}
+
+.message-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.edit-profile-btn {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+}
+
+.edit-profile-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.secondary-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    width: 36px;
+    height: 36px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.dropdown-toggle:hover {
+    background: #e9ecef;
+}
+
+.action-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 10002;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s ease;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+.dropdown-item i {
+    width: 14px;
+    color: #666;
+}
+
+.dropdown-divider {
+    margin: 0;
+    border: none;
+    height: 1px;
+    background: #eee;
+}
+
+.block-item:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.block-item:hover i {
+    color: #dc3545;
+}
+
+.report-item:hover {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+}
+
+.report-item:hover i {
+    color: #856404;
+}
+
+/* ===== RECENT STORIES PREVIEW ===== */
+
+.recent-stories-preview {
+    padding: 16px;
+    border-top: 1px solid #eee;
+}
+
+.recent-stories-preview h5 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.story-thumbnails {
+    display: flex;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.story-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.story-thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.story-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-thumbnail.more-stories {
+    background: rgba(0, 123, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color, #007bff);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ===== LOADING STATES ===== */
+
+.popover-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--primary-color, #007bff);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 768px) {
+    .user-profile-popover {
+        width: 90vw;
+        max-width: 340px;
+        left: 5vw !important;
+        right: 5vw !important;
+    }
+    
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .stat-item {
+        padding: 12px 8px;
+    }
+    
+    .primary-actions {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        padding: 12px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-profile-popover {
+        width: 95vw;
+        max-width: 320px;
+        left: 2.5vw !important;
+        right: 2.5vw !important;
+    }
+    
+    .popover-header {
+        height: 100px;
+    }
+    
+    .profile-avatar {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .profile-display-name {
+        font-size: 18px;
+    }
+    
+    .story-thumbnails {
+        justify-content: center;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+
+@media (prefers-color-scheme: dark) {
+    .user-profile-popover {
+        background: #1a1a1a;
+        border-color: #333;
+        color: #fff;
+    }
+    
+    .profile-display-name {
+        color: #fff;
+    }
+    
+    .profile-bio p {
+        color: #e0e0e0;
+    }
+    
+    .profile-username,
+    .meta-item,
+    .stat-label {
+        color: #aaa;
+    }
+    
+    .stat-number {
+        color: #fff;
+    }
+    
+    .profile-stats {
+        border-color: #333;
+    }
+    
+    .profile-actions {
+        border-color: #333;
+    }
+    
+    .message-btn,
+    .edit-profile-btn,
+    .dropdown-toggle {
+        background: #2a2a2a;
+        border-color: #444;
+        color: #fff;
+    }
+    
+    .message-btn:hover,
+    .edit-profile-btn:hover,
+    .dropdown-toggle:hover {
+        background: #3a3a3a;
+    }
+    
+    .action-dropdown-menu {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+    
+    .dropdown-item {
+        color: #fff;
+    }
+    
+    .dropdown-item:hover {
+        background: #3a3a3a;
+    }
+    
+    .dropdown-divider {
+        background: #444;
+    }
+    
+    .interest-tag {
+        background: rgba(0, 123, 255, 0.2);
+    }
+    
+    .recent-stories-preview {
+        border-color: #333;
+    }
+    
+    .recent-stories-preview h5 {
+        color: #fff;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+.user-profile-popover:focus-within {
+    outline: 2px solid var(--primary-color, #007bff);
+    outline-offset: 2px;
+}
+
+.action-btn:focus,
+.dropdown-item:focus,
+.stat-item:focus {
+    outline: 2px solid var(--primary-color, #007bff);
+    outline-offset: 1px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .user-profile-popover,
+    .story-thumbnail,
+    .action-btn,
+    .stat-item {
+        transition: none;
+    }
+    
+    .loading-spinner {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .user-profile-popover {
+        border: 2px solid;
+    }
+    
+    .action-btn {
+        border: 1px solid;
+    }
+}

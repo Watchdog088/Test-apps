@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating Post-Match Flow Test</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/dating-styles.css">
+    <link rel="stylesheet" href="src/css/dating-post-match-styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .test-header h1 {
+            margin: 0 0 0.5rem;
+        }
+        .test-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin: 0 0 1rem;
+            color: #333;
+        }
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .test-btn {
+            padding: 1rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .test-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .test-btn.secondary {
+            background: #6c757d;
+        }
+        .test-btn.secondary:hover {
+            background: #5a6268;
+        }
+        .dating-stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            background: #e9ecef;
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stat-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-card-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        .feature-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🎯 Dating Post-Match Flow Test Suite</h1>
+            <p>Test all dating features including match flow, dating assistant, consent management, and dashboards</p>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Clickable Dating Stats</h2>
+            <p>Click on any stat card to open its respective dashboard:</p>
+            <div class="dating-stats-cards">
+                <div class="stat-card" id="profileViewsCard" onclick="datingPostMatchFlow.showProfileViewsDashboard()">
+                    <div class="stat-card-icon">👁️</div>
+                    <div class="stat-card-value">45</div>
+                    <div class="stat-card-label">Profile Views</div>
+                </div>
+                
+                <div class="stat-card" id="todayActivityCard" onclick="datingPostMatchFlow.showTodayActivityDashboard()">
+                    <div class="stat-card-icon">📊</div>
+                    <div class="stat-card-value">23</div>
+                    <div class="stat-card-label">Today's Activity</div>
+                </div>
+                
+                <div class="stat-card" id="consentDashboardBtn" onclick="datingPostMatchFlow.showConsentDashboard()">
+                    <div class="stat-card-icon">🛡️</div>
+                    <div class="stat-card-value">3</div>
+                    <div class="stat-card-label">Consent Records</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>💕 Complete Match Flow Test</h2>
+            <p>Test the complete post-match experience from match notification to consent management:</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="demoMatchFlow()">
+                    🎉 Simulate New Match
+                </button>
+                <button class="test-btn" onclick="datingPostMatchFlow.showDatingAssistant({name: 'Sarah', id: 'test123', interests: ['Coffee', 'Hiking']})">
+                    🤖 Dating Assistant
+                </button>
+                <button class="test-btn" onclick="datingPostMatchFlow.showConsentInterface('test123', 0)">
+                    📋 Consent Interface
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📈 Dashboard Features</h2>
+            <p>Access individual dashboard components:</p>
+            <div class="test-buttons">
+                <button class="test-btn secondary" onclick="datingPostMatchFlow.showProfileViewsDashboard()">
+                    👁️ Profile Views Dashboard
+                </button>
+                <button class="test-btn secondary" onclick="datingPostMatchFlow.showTodayActivityDashboard()">
+                    📊 Today's Activity Dashboard
+                </button>
+                <button class="test-btn secondary" onclick="datingPostMatchFlow.showConsentDashboard()">
+                    🛡️ Consent Dashboard
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>✅ Implemented Features</h2>
+            <ul class="feature-list">
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Post-Match Flow</strong> - Automatic celebration, dating assistant, and consent flow after matches
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Dating Assistant</strong> - AI-powered date suggestions based on common interests
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Consent Management</strong> - Complete consent framework with boundaries and safety features
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Consent Dashboard</strong> - Dedicated dashboard to view and manage all consent records
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Profile Views Dashboard</strong> - See who viewed your profile with detailed stats
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Activity Dashboard</strong> - Track all your dating activity in one place
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Clickable Navigation</strong> - All stat cards and buttons properly navigate to dashboards
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Consent Records Storage</strong> - Local storage persistence for consent history
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🔄 How It Works</h2>
+            <ol style="padding-left: 1.5rem; color: #666;">
+                <li style="margin-bottom: 1rem;">
+                    <strong>Match Occurs:</strong> When users swipe right and match, a celebration modal appears
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Dating Assistant:</strong> After celebration, AI suggests personalized dates based on shared interests
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Date Selection:</strong> User can propose a date idea or skip to messaging
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Consent Interface:</strong> Before the date is finalized, both users must provide consent and set boundaries
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Consent Dashboard:</strong> All consent records are stored and can be viewed/managed anytime
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Stats Tracking:</strong> Profile views and activity are tracked and displayed in clickable dashboards
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🎮 Integration Instructions</h2>
+            <p><strong>To integrate into your main dating app:</strong></p>
+            <ol style="padding-left: 1.5rem; color: #666;">
+                <li style="margin-bottom: 0.75rem;">
+                    Include the CSS file: <code>&lt;link rel="stylesheet" href="src/css/dating-post-match-styles.css"&gt;</code>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    Include the JS file: <code>&lt;script src="src/js/dating-post-match-flow.js"&gt;&lt;/script&gt;</code>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    When a match occurs, dispatch the event: <code>document.dispatchEvent(new CustomEvent('datingMatchCreated', {detail: matchData}))</code>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    Add onclick handlers to your stat cards: <code>onclick="datingPostMatchFlow.showProfileViewsDashboard()"</code>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    The flow will automatically handle the rest: celebration → assistant → consent → dashboard
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="src/js/dating-post-match-flow.js"></script>
+    
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Dating Post-Match Flow Test Page Loaded');
+            console.log('All components initialized and ready to test');
+        });
+    </script>
+</body>
+</html>

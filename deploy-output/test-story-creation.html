@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub - Story Creation Dashboard Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .test-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stories-demo {
+            margin-bottom: 40px;
+        }
+
+        .stories-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+        }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            min-width: 80px;
+            transition: transform 0.2s;
+        }
+
+        .story-item:hover {
+            transform: scale(1.05);
+        }
+
+        .story-avatar {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .story-avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            object-fit: cover;
+        }
+
+        .add-story .story-avatar {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+
+        .add-story i {
+            color: white;
+            font-size: 24px;
+        }
+
+        .story-username {
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #007bff;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            color: #666;
+        }
+
+        .feature-card li {
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card li i {
+            color: #28a745;
+            font-size: 12px;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .demo-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-btn.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .demo-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .demo-btn.success {
+            background: #28a745;
+            color: white;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-panel {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-panel h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .status-panel p {
+            color: #424242;
+            margin: 4px 0;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 12px;
+        }
+
+        .instructions ol {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+        }
+
+        /* Modal overlay for better visibility */
+        .modal-open {
+            overflow: hidden;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .test-container {
+                padding: 20px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stories-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1><i class="fas fa-camera"></i> Story Creation Dashboard</h1>
+            <p>Professional-grade story creation interface with comprehensive features</p>
+        </div>
+
+        <div class="status-panel">
+            <h4><i class="fas fa-info-circle"></i> Dashboard Status</h4>
+            <p id="dashboard-status">Initializing Story Creation Dashboard...</p>
+            <p id="features-status">Loading features...</p>
+        </div>
+
+        <div class="stories-demo">
+            <h2 style="margin-bottom: 20px; color: #333;">
+                <i class="fas fa-plus-circle"></i> Stories Demo
+            </h2>
+            <div class="stories-container">
+                <div class="story-item add-story" onclick="openStoryCreation()">
+                    <div class="story-avatar">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <span class="story-username">Your Story</span>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar">
+                        <img src="https://via.placeholder.com/60x60/42b72a/ffffff?text=EW" alt="Emma Watson">
+                    </div>
+                    <span class="story-username">Emma Watson</span>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar">
+                        <img src="https://via.placeholder.com/60x60/e74c3c/ffffff?text=MJ" alt="Mike Johnson">
+                    </div>
+                    <span class="story-username">Mike Johnson</span>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar">
+                        <img src="https://via.placeholder.com/60x60/9b59b6/ffffff?text=SC" alt="Sarah Chen">
+                    </div>
+                    <span class="story-username">Sarah Chen</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3><i class="fas fa-camera"></i> Camera Features</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Live camera preview</li>
+                    <li><i class="fas fa-check"></i> Front/back camera switching</li>
+                    <li><i class="fas fa-check"></i> Flash toggle</li>
+                    <li><i class="fas fa-check"></i> Timer (3s, 10s)</li>
+                    <li><i class="fas fa-check"></i> Real-time effects</li>
+                    <li><i class="fas fa-check"></i> Capture with countdown</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-font"></i> Text Stories</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> 280 character limit</li>
+                    <li><i class="fas fa-check"></i> Background color picker</li>
+                    <li><i class="fas fa-check"></i> Font size control</li>
+                    <li><i class="fas fa-check"></i> Text alignment</li>
+                    <li><i class="fas fa-check"></i> Character counter</li>
+                    <li><i class="fas fa-check"></i> Quick templates</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-upload"></i> File Upload</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Drag & drop support</li>
+                    <li><i class="fas fa-check"></i> JPG, PNG, MP4 support</li>
+                    <li><i class="fas fa-check"></i> 10MB size limit</li>
+                    <li><i class="fas fa-check"></i> Video trimming (15s max)</li>
+                    <li><i class="fas fa-check"></i> Image cropping</li>
+                    <li><i class="fas fa-check"></i> Filter effects</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-magic"></i> Enhancement Tools</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Text overlays</li>
+                    <li><i class="fas fa-check"></i> Drawing tools</li>
+                    <li><i class="fas fa-check"></i> Sticker picker</li>
+                    <li><i class="fas fa-check"></i> Music library</li>
+                    <li><i class="fas fa-check"></i> Privacy settings</li>
+                    <li><i class="fas fa-check"></i> Duration control</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-cog"></i> Advanced Features</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Auto-save drafts</li>
+                    <li><i class="fas fa-check"></i> Draft recovery</li>
+                    <li><i class="fas fa-check"></i> Publishing progress</li>
+                    <li><i class="fas fa-check"></i> Post-publication options</li>
+                    <li><i class="fas fa-check"></i> Analytics preview</li>
+                    <li><i class="fas fa-check"></i> External sharing</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-universal-access"></i> Accessibility</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Full keyboard navigation</li>
+                    <li><i class="fas fa-check"></i> Screen reader support</li>
+                    <li><i class="fas fa-check"></i> ARIA labels</li>
+                    <li><i class="fas fa-check"></i> High contrast support</li>
+                    <li><i class="fas fa-check"></i> Error handling</li>
+                    <li><i class="fas fa-check"></i> Mobile responsive</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-buttons">
+            <button class="demo-btn primary" onclick="openStoryCreation()">
+                <i class="fas fa-plus"></i>
+                Create Story
+            </button>
+            <button class="demo-btn secondary" onclick="testCameraAccess()">
+                <i class="fas fa-camera"></i>
+                Test Camera Access
+            </button>
+            <button class="demo-btn success" onclick="showDemoData()">
+                <i class="fas fa-info-circle"></i>
+                Show Demo Data
+            </button>
+        </div>
+
+        <div class="instructions">
+            <h3><i class="fas fa-lightbulb"></i> How to Test</h3>
+            <ol>
+                <li><strong>Click "Your Story" or "Create Story"</strong> - Opens the comprehensive story creation modal</li>
+                <li><strong>Try Camera Tab</strong> - Request camera permissions and test live capture features</li>
+                <li><strong>Try Text Tab</strong> - Create text stories with background colors, fonts, and templates</li>
+                <li><strong>Try Upload Tab</strong> - Drag & drop photos/videos or browse files</li>
+                <li><strong>Use Enhancement Tools</strong> - Add stickers, music, text overlays, and drawing</li>
+                <li><strong>Test Privacy Settings</strong> - Configure visibility, duration, and reply permissions</li>
+                <li><strong>Publish Story</strong> - Complete the publishing flow with success options</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Mock App Object -->
+    <script>
+        // Create a mock app object to simulate the main application
+        window.app = {
+            currentUser: {
+                id: 'current-user',
+                name: 'Demo User',
+                avatar: 'https://via.placeholder.com/60x60/007bff/ffffff?text=DU'
+            },
+            
+            showToast: function(message, type = 'info') {
+                // Create a simple toast notification
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${this.getToastColor(type)};
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    z-index: 10003;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                    animation: slideIn 0.3s ease;
+                `;
+                toast.textContent = message;
+                
+                // Add animation keyframes
+                if (!document.getElementById('toast-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'toast-styles';
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOut {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+            
+            getToastColor: function(type) {
+                const colors = {
+                    'success': '#28a745',
+                    'error': '#dc3545',
+                    'warning': '#ffc107',
+                    'info': '#007bff'
+                };
+                return colors[type] || colors.info;
+            },
+            
+            addUserStory: function(story) {
+                console.log('Story added to user feed:', story);
+                this.showToast('Story added to your profile!', 'success');
+            }
+        };
+
+        // Initialize dashboard status
+        function updateStatus() {
+            const dashboardStatus = document.getElementById('dashboard-status');
+            const featuresStatus = document.getElementById('features-status');
+            
+            if (window.storyDashboard) {
+                dashboardStatus.textContent = '✅ Story Creation Dashboard loaded successfully';
+                dashboardStatus.style.color = '#28a745';
+                featuresStatus.textContent = '✅ All features ready: Camera, Text, Upload, Enhancement Tools';
+                featuresStatus.style.color = '#28a745';
+            } else {
+                dashboardStatus.textContent = '⏳ Loading Story Creation Dashboard...';
+                featuresStatus.textContent = '⏳ Initializing features...';
+                setTimeout(updateStatus, 500);
+            }
+        }
+
+        // Main function to open story creation
+        function openStoryCreation() {
+            if (window.storyDashboard) {
+                window.storyDashboard.openStoryCreation();
+            } else {
+                alert('Story Creation Dashboard is still loading. Please wait a moment and try again.');
+            }
+        }
+
+        // Test camera access
+        function testCameraAccess() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(stream => {
+                        stream.getTracks().forEach(track => track.stop());
+                        app.showToast('✅ Camera access granted! You can use the camera features.', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Camera access error:', error);
+                        app.showToast('❌ Camera access denied. You can still use text and upload features.', 'warning');
+                    });
+            } else {
+                app.showToast('❌ Camera not available in this browser. Use text or upload instead.', 'error');
+            }
+        }
+
+        // Show demo data
+        function showDemoData() {
+            const demoInfo = `
+📊 Story Creation Dashboard Demo Data:
+
+🎥 Camera Features:
+• Live camera preview with getUserMedia API
+• Front/back camera switching
+• Flash toggle simulation
+• Timer: 0s, 3s, 10s options
+• Real-time effects: Normal, Vintage, Cool, Warm, B&W
+• Capture with countdown animation
+
+✍️ Text Story Features:
+• 280 character limit with live counter
+• 6 background colors: White, Red, Teal, Blue, Green, Yellow
+• Font size: 16px - 48px
+• Text alignment: Left, Center, Right
+• Quick templates: Good Morning, Workout, Food, Travel
+
+📁 Upload Features:
+• Drag & drop file support
+• File types: JPG, PNG, MP4
+• Size limit: 10MB max
+• Video duration: 15s max
+• File validation and error handling
+
+✨ Enhancement Tools:
+• Text overlays (demo mode)
+• Drawing tools (demo mode)  
+• Sticker picker: ❤️😍🔥💯⭐🎉✨🌟
+• Music library with search
+• Privacy settings: Public/Friends/Custom
+• Duration: 1h/6h/24h options
+
+🔧 Advanced Features:
+• Auto-save drafts every 30s
+• Draft recovery (24h retention)
+• Publishing progress simulation
+• Post-publication options
+• External sharing simulation
+• Analytics preview
+
+♿ Accessibility:
+• Full ARIA labels and roles
+• Keyboard navigation (Tab, Enter, Esc)
+• Screen reader compatible
+• High contrast support
+• Mobile responsive design
+            `;
+            
+            alert(demoInfo);
+        }
+
+        // Wait for DOM and dependencies to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update status immediately
+            updateStatus();
+            
+            // Add event listener for story creation
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-story') && !e.target.closest('button')) {
+                    openStoryCreation();
+                }
+            });
+            
+            console.log('📱 Story Creation Dashboard Test Page Loaded');
+            console.log('🎯 Click "Your Story" or any demo button to test the functionality');
+        });
+
+        // Dispatch app-ready event for the dashboard
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const event = new CustomEvent('app-ready');
+                document.dispatchEvent(event);
+                updateStatus();
+            }, 100);
+        });
+    </script>
+
+    <!-- Load the Story Creation Dashboard -->
+    <script src="src/js/story-creation-dashboard.js"></script>
+</body>
+</html>

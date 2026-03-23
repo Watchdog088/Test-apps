@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Creation Wizard Test - ConnectHub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <style>
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-section {
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .demo-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .demo-button {
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.2);
+        }
+        
+        .demo-button h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .demo-button p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-list li i {
+            color: var(--success);
+            width: 16px;
+        }
+        
+        .toast-area {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 10001;
+        }
+        
+        .stat-card {
+            background: var(--glass);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .modal-content.large {
+            max-width: 800px;
+        }
+        
+        .modal-content.extra-large {
+            max-width: 1200px;
+        }
+        
+        /* Additional responsive styles for demo */
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 1rem;
+            }
+            
+            .demo-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="gradient-text">
+                <i class="fas fa-users-cog"></i> 
+                Group Creation Wizard Demo
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-top: 1rem;">
+                Experience the complete 3-step Group Creation process with full validation, 
+                interactive forms, and professional UI design.
+            </p>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-rocket"></i> Group Creation Wizard Features</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Our Group Creation Wizard provides a comprehensive, user-friendly interface for creating new groups 
+                with all necessary settings and configurations.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div>
+                    <h4 style="color: var(--primary); margin-bottom: 1rem;">
+                        <i class="fas fa-list-ol"></i> Step-by-Step Process
+                    </h4>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Step 1: Basic Information</li>
+                        <li><i class="fas fa-check"></i> Step 2: Settings & Permissions</li>
+                        <li><i class="fas fa-check"></i> Step 3: Review & Create</li>
+                        <li><i class="fas fa-check"></i> Progress indicator with validation</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--secondary); margin-bottom: 1rem;">
+                        <i class="fas fa-cogs"></i> Advanced Features
+                    </h4>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Cover photo upload</li>
+                        <li><i class="fas fa-check"></i> Real-time form validation</li>
+                        <li><i class="fas fa-check"></i> Dynamic rules management</li>
+                        <li><i class="fas fa-check"></i> Privacy & permission settings</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: var(--accent); margin-bottom: 1rem;">
+                        <i class="fas fa-shield-alt"></i> Security & Privacy
+                    </h4>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Public, Private, or Secret groups</li>
+                        <li><i class="fas fa-check"></i> Member permission controls</li>
+                        <li><i class="fas fa-check"></i> Moderation settings</li>
+                        <li><i class="fas fa-check"></i> Custom group rules</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-play"></i> Interactive Demo</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                Click on any of the options below to experience the Group Creation Wizard and other group management features.
+            </p>
+            
+            <div class="demo-buttons">
+                <div class="demo-button" onclick="showGroupCreationWizard()">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Group</h3>
+                    <p>Launch the complete 3-step Group Creation Wizard with form validation, cover photo upload, and settings configuration.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupManagementDashboard()">
+                    <h3><i class="fas fa-tachometer-alt"></i> Management Dashboard</h3>
+                    <p>View group analytics, manage member requests, and access quick administrative actions.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupChatInterface()">
+                    <h3><i class="fas fa-comments"></i> Group Chat</h3>
+                    <p>Experience real-time group messaging with reactions, threads, and member management.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupEventCreator()">
+                    <h3><i class="fas fa-calendar-plus"></i> Event Creator</h3>
+                    <p>Create group events with detailed settings, registration options, and agenda planning.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupFileManager()">
+                    <h3><i class="fas fa-folder-open"></i> File Manager</h3>
+                    <p>Organize group files with folder structures, permissions, and sharing capabilities.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupMemberManagement()">
+                    <h3><i class="fas fa-users-cog"></i> Member Management</h3>
+                    <p>Manage group members, roles, permissions, and handle member requests efficiently.</p>
+                </div>
+                
+                <div class="demo-button" onclick="showGroupDiscoveryFeed()">
+                    <h3><i class="fas fa-compass"></i> Group Discovery</h3>
+                    <p>Discover new groups with advanced filtering, trending groups, and join recommendations.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-info-circle"></i> Implementation Details</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Wizard Steps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Form Fields</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">Validation Rules</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Mobile Responsive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast notification area -->
+    <div class="toast-area" id="toast-area"></div>
+    
+    <!-- Include JavaScript files -->
+    <script src="src/js/group-creation-wizard.js"></script>
+    <script src="src/js/groups-missing-ui-components.js"></script>
+    
+    <script>
+        // Mock app object for demo
+        const app = {
+            showToast: function(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                const toastArea = document.getElementById('toast-area');
+                toastArea.appendChild(toast);
+                
+                // Auto remove after 4 seconds
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease forwards';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 300);
+                }, 4000);
+            }
+        };
+        
+        // Initialize groups components
+        const groupsComponents = new GroupsMissingUIComponents(app);
+        
+        // Demo functions
+        function showGroupCreationWizard() {
+            app.showToast('Launching Group Creation Wizard...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupCreationWizard();
+            }, 500);
+        }
+        
+        function showGroupManagementDashboard() {
+            app.showToast('Opening Group Management Dashboard...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupManagementDashboard();
+            }, 500);
+        }
+        
+        function showGroupChatInterface() {
+            app.showToast('Loading Group Chat Interface...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupChatInterface();
+            }, 500);
+        }
+        
+        function showGroupEventCreator() {
+            app.showToast('Opening Event Creator...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupEventCreator();
+            }, 500);
+        }
+        
+        function showGroupFileManager() {
+            app.showToast('Loading File Manager...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupFileManager();
+            }, 500);
+        }
+        
+        function showGroupMemberManagement() {
+            app.showToast('Opening Member Management...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupMemberManagement();
+            }, 500);
+        }
+        
+        function showGroupDiscoveryFeed() {
+            app.showToast('Loading Group Discovery...', 'info');
+            setTimeout(() => {
+                groupsComponents.showGroupDiscoveryFeed();
+            }, 500);
+        }
+        
+        // Add CSS for toast slide out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                to { 
+                    transform: translateX(100%); 
+                    opacity: 0; 
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

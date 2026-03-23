@@ -1,52 +1,324 @@
 /**
- * ConnectHub Authentication Service
- * Handles user authentication, session management, and authorization
- * Phase 1: Core Infrastructure Implementation
+ * ConnectHub Authentication Service with Firebase
+ * Phase 2: Real Firebase Authentication Implementation
+ * Updated: March 19, 2026
  */
 
-import apiService from './api-service.js';
+import { firebaseConfig } from './firebase-config.js';
+
+// Firebase imports (using CDN modules)
+let auth, db;
+let createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, 
+    onAuthStateChanged, sendPasswordResetEmail, updateProfile;
+let doc, setDoc, getDoc, updateDoc, serverTimestamp;
 
 class AuthService {
     constructor() {
         this.currentUser = null;
         this.authToken = null;
-        this.refreshTokenTimeout = null;
-        this.sessionCheckInterval = null;
         this.listeners = [];
+        this.firebaseInitialized = false;
         
-        // Initialize from storage
-        this.loadFromStorage();
-        
-        // Start session monitoring
-        this.startSessionMonitoring();
+        // Initialize Firebase
+        this.initializeFirebase();
     }
 
     /**
-     * Load authentication state from storage
+     * Initialize Firebase Authentication and Firestore
      */
-    loadFromStorage() {
+    async initializeFirebase() {
         try {
-            const token = localStorage.getItem('connecthub_token');
-            const userJson = localStorage.getItem('connecthub_user');
-            
-            if (token && userJson) {
-                this.authToken = token;
-                this.currentUser = JSON.parse(userJson);
-                this.scheduleTokenRefresh();
-            }
+            // Initialize Firebase App
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+            const { getAuth, createUserWithEmailAndPassword: createUser, 
+                    signInWithEmailAndPassword: signIn, signOut: signOutUser,
+                    onAuthStateChanged: authStateChanged, sendPasswordResetEmail: sendReset,
+                    updateProfile: updateUserProfile } = 
+                await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+            const { getFirestore, doc: docRef, setDoc: setDocument, 
+                    getDoc: getDocument, updateDoc: updateDocument, 
+                    serverTimestamp: timestamp } = 
+                await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Assign functions
+            createUserWithEmailAndPassword = createUser;
+            signInWithEmailAndPassword = signIn;
+            signOut = signOutUser;
+            onAuthStateChanged = authStateChanged;
+            sendPasswordResetEmail = sendReset;
+            updateProfile = updateUserProfile;
+            doc = docRef;
+            setDoc = setDocument;
+            getDoc = getDocument;
+            updateDoc = updateDocument;
+            serverTimestamp = timestamp;
+
+            this.firebaseInitialized = true;
+            console.log('✅ Firebase Authentication initialized');
+
+            // Set up auth state listener
+            this.setupAuthStateListener();
+
         } catch (error) {
-            console.error('Failed to load auth state:', error);
-            this.clearAuth();
+            console.error('❌ Firebase initialization failed:', error);
+            throw new Error('Failed to initialize Firebase Authentication');
         }
     }
 
     /**
-     * Save authentication state to storage
+     * Set up Firebase auth state listener
      */
-    saveToStorage() {
-        if (this.authToken && this.currentUser) {
-            localStorage.setItem('connecthub_token', this.authToken);
-            localStorage.setItem('connecthub_user', JSON.stringify(this.currentUser));
+    setupAuthStateListener() {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in
+                console.log('🔐 User signed in:', user.email);
+                await this.loadUserProfile(user.uid);
+                this.notifyListeners('authStateChanged', this.currentUser);
+            } else {
+                // User is signed out
+                console.log('🔓 User signed out');
+                this.currentUser = null;
+                this.authToken = null;
+                this.notifyListeners('authStateChanged', null);
+            }
+        });
+    }
+
+    /**
+     * Load user profile from Firestore
+     */
+    async loadUserProfile(userId) {
+        try {
+            const userDoc = await getDoc(doc(db, 'users', userId));
+            
+            if (userDoc.exists()) {
+                this.currentUser = {
+                    userId: userId,
+                    ...userDoc.data()
+                };
+                
+                // Get auth token
+                this.authToken = await auth.currentUser.getIdToken();
+                
+                return this.currentUser;
+            } else {
+                console.warn('User profile not found in Firestore');
+                return null;
+            }
+        } catch (error) {
+            console.error('Failed to load user profile:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Register new user (TASK 2.2)
+     */
+    async register(userData) {
+        try {
+            if (!this.firebaseInitialized) {
+                throw new Error('Firebase not initialized. Please wait...');
+            }
+
+            const { email, password, username, displayName } = userData;
+
+            // Validate input
+            if (!email || !password) {
+                throw new Error('Email and password are required');
+            }
+
+            if (password.length < 6) {
+                throw new Error('Password must be at least 6 characters');
+            }
+
+            console.log('📝 Creating user account...', email);
+
+            // Create user in Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            console.log('✅ User account created:', user.uid);
+
+            // Update profile with display name
+            if (displayName) {
+                await updateProfile(user, { displayName });
+            }
+
+            // Create user profile in Firestore (TASK 2.7)
+            await this.createUserProfile(user, {
+                username: username || email.split('@')[0],
+                displayName: displayName || username || email.split('@')[0]
+            });
+
+            console.log('✅ User profile created in Firestore');
+
+            // Load the profile
+            await this.loadUserProfile(user.uid);
+
+            this.notifyListeners('register', this.currentUser);
+
+            return {
+                success: true,
+                user: this.currentUser,
+                token: this.authToken
+            };
+
+        } catch (error) {
+            console.error('❌ Registration failed:', error);
+            
+            // Firebase error handling
+            let errorMessage = 'Registration failed';
+            
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'This email is already registered';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email address';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Password is too weak';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            throw new Error(errorMessage);
+        }
+    }
+
+    /**
+     * Create user profile in Firestore (TASK 2.7)
+     */
+    async createUserProfile(user, additionalData = {}) {
+        try {
+            const userProfile = {
+                userId: user.uid,
+                email: user.email,
+                username: additionalData.username || user.email.split('@')[0],
+                displayName: additionalData.displayName || user.displayName || user.email.split('@')[0],
+                bio: '',
+                profilePicture: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(additionalData.displayName || user.email),
+                coverPhoto: null,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                lastActive: serverTimestamp(),
+                stats: {
+                    postsCount: 0,
+                    friendsCount: 0,
+                    followersCount: 0,
+                    followingCount: 0
+                },
+                settings: {
+                    privacy: 'public',
+                    notifications: true,
+                    emailNotifications: true,
+                    darkMode: false
+                },
+                verified: false,
+                online: true
+            };
+
+            // Create document in Firestore
+            await setDoc(doc(db, 'users', user.uid), userProfile);
+
+            return userProfile;
+        } catch (error) {
+            console.error('Failed to create user profile:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Login user (TASK 2.3)
+     */
+    async login(credentials) {
+        try {
+            if (!this.firebaseInitialized) {
+                throw new Error('Firebase not initialized. Please wait...');
+            }
+
+            const { email, password } = credentials;
+
+            if (!email || !password) {
+                throw new Error('Email and password are required');
+            }
+
+            console.log('🔐 Logging in...', email);
+
+            // Sign in with Firebase
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            console.log('✅ Logged in successfully:', user.uid);
+
+            // Load user profile
+            await this.loadUserProfile(user.uid);
+
+            // Update last active
+            await this.updateLastActive(user.uid);
+
+            this.notifyListeners('login', this.currentUser);
+
+            return {
+                success: true,
+                user: this.currentUser,
+                token: this.authToken
+            };
+
+        } catch (error) {
+            console.error('❌ Login failed:', error);
+            
+            let errorMessage = 'Login failed';
+            
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'No account found with this email';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage = 'Invalid email or password';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email address';
+            } else if (error.code === 'auth/user-disabled') {
+                errorMessage = 'This account has been disabled';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many failed attempts. Please try again later';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            throw new Error(errorMessage);
+        }
+    }
+
+    /**
+     * Logout user (TASK 2.4)
+     */
+    async logout() {
+        try {
+            if (!this.firebaseInitialized || !auth.currentUser) {
+                this.clearAuth();
+                return;
+            }
+
+            console.log('🔓 Logging out...');
+
+            // Update online status before logout
+            if (this.currentUser) {
+                await this.updateOnlineStatus(this.currentUser.userId, false);
+            }
+
+            // Sign out from Firebase
+            await signOut(auth);
+
+            this.clearAuth();
+            
+            console.log('✅ Logged out successfully');
+
+        } catch (error) {
+            console.error('❌ Logout failed:', error);
+            // Clear anyway
+            this.clearAuth();
         }
     }
 
@@ -56,204 +328,83 @@ class AuthService {
     clearAuth() {
         this.authToken = null;
         this.currentUser = null;
-        localStorage.removeItem('connecthub_token');
-        localStorage.removeItem('connecthub_user');
-        
-        if (this.refreshTokenTimeout) {
-            clearTimeout(this.refreshTokenTimeout);
-        }
-        
         this.notifyListeners('logout');
     }
 
     /**
-     * Register new user
-     */
-    async register(userData) {
-        try {
-            const response = await apiService.post('/auth/register', userData);
-            
-            if (response.token && response.user) {
-                this.setAuthData(response.token, response.user);
-                this.notifyListeners('register', response.user);
-                return response;
-            }
-            
-            throw new Error('Invalid registration response');
-        } catch (error) {
-            console.error('Registration failed:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Login user
-     */
-    async login(credentials) {
-        try {
-            const response = await apiService.post('/auth/login', credentials);
-            
-            if (response.token && response.user) {
-                this.setAuthData(response.token, response.user);
-                this.notifyListeners('login', response.user);
-                return response;
-            }
-            
-            throw new Error('Invalid login response');
-        } catch (error) {
-            console.error('Login failed:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Logout user
-     */
-    async logout() {
-        try {
-            // Call logout endpoint
-            if (this.authToken) {
-                await apiService.post('/auth/logout');
-            }
-        } catch (error) {
-            console.error('Logout API call failed:', error);
-        } finally {
-            this.clearAuth();
-            
-            // Disconnect WebSocket if available
-            if (window.realtimeService) {
-                window.realtimeService.disconnect();
-            }
-        }
-    }
-
-    /**
-     * Refresh authentication token
-     */
-    async refreshToken() {
-        try {
-            const response = await apiService.post('/auth/refresh');
-            
-            if (response.token) {
-                this.authToken = response.token;
-                this.saveToStorage();
-                this.scheduleTokenRefresh();
-                return response;
-            }
-            
-            throw new Error('Token refresh failed');
-        } catch (error) {
-            console.error('Token refresh failed:', error);
-            this.clearAuth();
-            throw error;
-        }
-    }
-
-    /**
-     * Request password reset
+     * Request password reset (TASK 2.6)
      */
     async forgotPassword(email) {
         try {
-            return await apiService.post('/auth/forgot-password', { email });
-        } catch (error) {
-            console.error('Forgot password failed:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Reset password with token
-     */
-    async resetPassword(token, newPassword) {
-        try {
-            return await apiService.post('/auth/reset-password', { 
-                token, 
-                newPassword 
-            });
-        } catch (error) {
-            console.error('Reset password failed:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Change password
-     */
-    async changePassword(currentPassword, newPassword) {
-        try {
-            return await apiService.post('/auth/change-password', {
-                currentPassword,
-                newPassword
-            });
-        } catch (error) {
-            console.error('Change password failed:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Set authentication data
-     */
-    setAuthData(token, user) {
-        this.authToken = token;
-        this.currentUser = user;
-        this.saveToStorage();
-        this.scheduleTokenRefresh();
-        
-        // Initialize WebSocket if available
-        if (window.realtimeService) {
-            window.realtimeService.connect(token);
-        }
-    }
-
-    /**
-     * Schedule automatic token refresh
-     */
-    scheduleTokenRefresh() {
-        if (this.refreshTokenTimeout) {
-            clearTimeout(this.refreshTokenTimeout);
-        }
-        
-        // Refresh token every 50 minutes (before 1 hour expiry)
-        this.refreshTokenTimeout = setTimeout(() => {
-            this.refreshToken().catch(error => {
-                console.error('Auto token refresh failed:', error);
-            });
-        }, 50 * 60 * 1000);
-    }
-
-    /**
-     * Start session monitoring
-     */
-    startSessionMonitoring() {
-        // Check session validity every 5 minutes
-        this.sessionCheckInterval = setInterval(() => {
-            if (this.isAuthenticated()) {
-                this.validateSession();
+            if (!this.firebaseInitialized) {
+                throw new Error('Firebase not initialized');
             }
-        }, 5 * 60 * 1000);
-    }
 
-    /**
-     * Validate current session
-     */
-    async validateSession() {
-        try {
-            const response = await apiService.get('/auth/validate');
+            if (!email) {
+                throw new Error('Email is required');
+            }
+
+            console.log('📧 Sending password reset email to:', email);
+
+            await sendPasswordResetEmail(auth, email);
+
+            console.log('✅ Password reset email sent');
+
+            return {
+                success: true,
+                message: 'Password reset email sent! Check your inbox.'
+            };
+
+        } catch (error) {
+            console.error('❌ Password reset failed:', error);
             
-            if (!response.valid) {
-                this.clearAuth();
+            let errorMessage = 'Failed to send reset email';
+            
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'No account found with this email';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email address';
+            } else if (error.message) {
+                errorMessage = error.message;
             }
-        } catch (error) {
-            console.error('Session validation failed:', error);
+            
+            throw new Error(errorMessage);
         }
     }
 
     /**
-     * Check if user is authenticated
+     * Update last active timestamp
+     */
+    async updateLastActive(userId) {
+        try {
+            await updateDoc(doc(db, 'users', userId), {
+                lastActive: serverTimestamp(),
+                online: true
+            });
+        } catch (error) {
+            console.error('Failed to update last active:', error);
+        }
+    }
+
+    /**
+     * Update online status
+     */
+    async updateOnlineStatus(userId, isOnline) {
+        try {
+            await updateDoc(doc(db, 'users', userId), {
+                online: isOnline,
+                lastActive: serverTimestamp()
+            });
+        } catch (error) {
+            console.error('Failed to update online status:', error);
+        }
+    }
+
+    /**
+     * Check if user is authenticated (TASK 2.5)
      */
     isAuthenticated() {
-        return !!(this.authToken && this.currentUser);
+        return !!(auth && auth.currentUser && this.currentUser);
     }
 
     /**
@@ -266,21 +417,44 @@ class AuthService {
     /**
      * Get authentication token
      */
-    getToken() {
+    async getToken() {
+        if (auth && auth.currentUser) {
+            try {
+                this.authToken = await auth.currentUser.getIdToken();
+                return this.authToken;
+            } catch (error) {
+                console.error('Failed to get token:', error);
+                return null;
+            }
+        }
         return this.authToken;
     }
 
     /**
-     * Update currentuser data
+     * Update current user data
      */
-    updateCurrentUser(userData) {
-        if (this.currentUser) {
-            this.currentUser = {
-                ...this.currentUser,
-                ...userData
-            };
-            this.saveToStorage();
-            this.notifyListeners('userUpdate', this.currentUser);
+    async updateCurrentUser(userData) {
+        if (this.currentUser && auth.currentUser) {
+            try {
+                // Update Firestore
+                await updateDoc(doc(db, 'users', this.currentUser.userId), {
+                    ...userData,
+                    updatedAt: serverTimestamp()
+                });
+
+                // Update local state
+                this.currentUser = {
+                    ...this.currentUser,
+                    ...userData
+                };
+
+                this.notifyListeners('userUpdate', this.currentUser);
+
+                return this.currentUser;
+            } catch (error) {
+                console.error('Failed to update user:', error);
+                throw error;
+            }
         }
     }
 
@@ -288,7 +462,9 @@ class AuthService {
      * Add authentication listener
      */
     addListener(callback) {
-        this.listeners.push(callback);
+        if (typeof callback === 'function') {
+            this.listeners.push(callback);
+        }
     }
 
     /**
@@ -312,125 +488,83 @@ class AuthService {
     }
 
     /**
-     * Social login (OAuth)
+     * Legacy methods for backward compatibility
+     * These maintain the same interface as before
      */
+    
+    async refreshToken() {
+        // Firebase handles token refresh automatically
+        return await this.getToken();
+    }
+
+    async resetPassword(token, newPassword) {
+        // This is handled by Firebase's password reset email flow
+        console.warn('Use forgotPassword() instead');
+        return { success: false, message: 'Use forgot password flow' };
+    }
+
+    async changePassword(currentPassword, newPassword) {
+        // TODO: Implement in Phase 3
+        console.warn('Change password not yet implemented');
+        return { success: false, message: 'Not yet implemented' };
+    }
+
+    async validateSession() {
+        // Firebase handles session validation automatically
+        return this.isAuthenticated();
+    }
+
     async socialLogin(provider, accessToken) {
-        try {
-            const response = await apiService.post('/auth/social-login', {
-                provider,
-                accessToken
-            });
-            
-            if (response.token && response.user) {
-                this.setAuthData(response.token, response.user);
-                this.notifyListeners('login', response.user);
-                return response;
-            }
-            
-            throw new Error('Social login failed');
-        } catch (error) {
-            console.error('Social login failed:', error);
-            throw error;
-        }
+        // TODO: Implement social login in Phase 3
+        console.warn('Social login not yet implemented');
+        throw new Error('Social login not yet implemented');
     }
 
-    /**
-     * Verify email
-     */
     async verifyEmail(token) {
-        try {
-            return await apiService.post('/auth/verify-email', { token });
-        } catch (error) {
-            console.error('Email verification failed:', error);
-            throw error;
-        }
+        // TODO: Implement email verification in Phase 3
+        console.warn('Email verification not yet implemented');
+        throw new Error('Email verification not yet implemented');
     }
 
-    /**
-     * Resend verification email
-     */
     async resendVerification() {
-        try {
-            return await apiService.post('/auth/resend-verification');
-        } catch (error) {
-            console.error('Resend verification failed:', error);
-            throw error;
-        }
+        // TODO: Implement in Phase 3
+        console.warn('Resend verification not yet implemented');
+        throw new Error('Not yet implemented');
     }
 
-    /**
-     * Enable two-factor authentication
-     */
     async enableTwoFactor() {
-        try {
-            return await apiService.post('/auth/2fa/enable');
-        } catch (error) {
-            console.error('Enable 2FA failed:', error);
-            throw error;
-        }
+        // TODO: Implement 2FA in Phase 3
+        console.warn('2FA not yet implemented');
+        throw new Error('2FA not yet implemented');
     }
 
-    /**
-     * Verify two-factor code
-     */
     async verifyTwoFactor(code) {
-        try {
-            return await apiService.post('/auth/2fa/verify', { code });
-        } catch (error) {
-            console.error('2FA verification failed:', error);
-            throw error;
-        }
+        // TODO: Implement in Phase 3
+        throw new Error('2FA not yet implemented');
     }
 
-    /**
-     * Disable two-factor authentication
-     */
     async disableTwoFactor(password) {
-        try {
-            return await apiService.post('/auth/2fa/disable', { password });
-        } catch (error) {
-            console.error('Disable 2FA failed:', error);
-            throw error;
-        }
+        // TODO: Implement in Phase 3
+        throw new Error('2FA not yet implemented');
     }
 
-    /**
-     * Get user sessions
-     */
     async getSessions() {
-        try {
-            return await apiService.get('/auth/sessions');
-        } catch (error) {
-            console.error('Get sessions failed:', error);
-            throw error;
-        }
+        // Firebase doesn't expose sessions in the same way
+        return [];
     }
 
-    /**
-     * Revoke session
-     */
     async revokeSession(sessionId) {
-        try {
-            return await apiService.delete(`/auth/sessions/${sessionId}`);
-        } catch (error) {
-            console.error('Revoke session failed:', error);
-            throw error;
-        }
+        // Not applicable for Firebase
+        return { success: false };
     }
 
     /**
      * Cleanup on destruction
      */
     destroy() {
-        if (this.refreshTokenTimeout) {
-            clearTimeout(this.refreshTokenTimeout);
-        }
-        
-        if (this.sessionCheckInterval) {
-            clearInterval(this.sessionCheckInterval);
-        }
-        
         this.listeners = [];
+        this.currentUser = null;
+        this.authToken = null;
     }
 }
 

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Friends - Isolated Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 Find Friends - Isolated Test</h1>
+        <p>Testing Find Friends functionality in isolation</p>
+        
+        <button class="test-button" onclick="testFindFriendsDirectly()">
+            👥 Test Find Friends Directly
+        </button>
+        
+        <button class="test-button" onclick="testContentDiscovery()">
+            🌟 Test Content Discovery Dashboard
+        </button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Simple app mock for testing
+        window.app = {
+            showToast: function(message, type) {
+                console.log(`Toast: ${message} (${type})`);
+                updateStatus(message, type);
+            }
+        };
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function testFindFriendsDirectly() {
+            updateStatus('Testing Find Friends directly...', 'info');
+            
+            try {
+                // Check if Find Friends UI is available
+                if (window.findFriendsUI && typeof window.findFriendsUI.openFindFriends === 'function') {
+                    window.findFriendsUI.openFindFriends();
+                    updateStatus('✅ Find Friends opened successfully!', 'success');
+                } else if (window.FindFriendsUIComponents) {
+                    // Try to initialize it
+                    window.findFriendsUI = new window.FindFriendsUIComponents(window.app);
+                    window.findFriendsUI.openFindFriends();
+                    updateStatus('✅ Find Friends initialized and opened!', 'success');
+                } else {
+                    updateStatus('❌ Find Friends UI not available', 'error');
+                }
+            } catch (error) {
+                console.error('Find Friends error:', error);
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testContentDiscovery() {
+            updateStatus('Testing Content Discovery Dashboard...', 'info');
+            
+            try {
+                // Check if Content Discovery Dashboard is available
+                if (window.ContentDiscoveryDashboard && typeof window.ContentDiscoveryDashboard.showDiscoveryDashboard === 'function') {
+                    window.ContentDiscoveryDashboard.showDiscoveryDashboard();
+                    updateStatus('✅ Content Discovery Dashboard opened successfully!', 'success');
+                } else {
+                    updateStatus('❌ Content Discovery Dashboard not available', 'error');
+                }
+            } catch (error) {
+                console.error('Content Discovery error:', error);
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Load Find Friends component after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create script element for Find Friends
+            const findFriendsScript = document.createElement('script');
+            findFriendsScript.src = 'src/js/find-friends-ui-components.js';
+            findFriendsScript.onload = function() {
+                updateStatus('Find Friends script loaded successfully', 'success');
+            };
+            findFriendsScript.onerror = function() {
+                updateStatus('Failed to load Find Friends script', 'error');
+            };
+            document.head.appendChild(findFriendsScript);
+
+            // Create script element for Content Discovery Dashboard
+            const contentDiscoveryScript = document.createElement('script');
+            contentDiscoveryScript.src = 'src/js/content-discovery-dashboard.js';
+            contentDiscoveryScript.onload = function() {
+                updateStatus('Content Discovery Dashboard script loaded successfully', 'success');
+            };
+            contentDiscoveryScript.onerror = function() {
+                updateStatus('Failed to load Content Discovery Dashboard script', 'error');
+            };
+            document.head.appendChild(contentDiscoveryScript);
+        });
+    </script>
+</body>
+</html>

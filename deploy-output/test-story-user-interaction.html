@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnectHub - Story User Interaction Test</title>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main styles -->
+    <link rel="stylesheet" href="src/css/styles.css">
+    
+    <!-- Story user interaction styles -->
+    <link rel="stylesheet" href="src/css/story-user-interaction-styles.css">
+    
+    <style>
+        /* Test page specific styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        /* Mock stories section */
+        .stories-section {
+            margin-bottom: 30px;
+        }
+        
+        .stories-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        
+        .story-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #007bff;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .story-avatar.viewed {
+            border-color: #ccc;
+        }
+        
+        .story-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .story-name {
+            font-size: 12px;
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        
+        .add-story {
+            opacity: 0.7;
+        }
+        
+        .add-story .story-avatar {
+            border: 2px dashed #ccc;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 24px;
+        }
+        
+        /* Mock stories viewer */
+        .stories-viewer-demo {
+            background: #000;
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+        
+        .story-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .story-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .story-user-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .story-timestamp {
+            color: #ccc;
+            font-size: 14px;
+            margin-left: auto;
+        }
+        
+        /* Instructions */
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h4 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        
+        .instruction-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .instruction-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e3f2fd;
+        }
+        
+        .instruction-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .instruction-list li::before {
+            content: '👆';
+            margin-right: 10px;
+        }
+        
+        /* Feature highlights */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .feature-card h5 {
+            margin: 0 0 8px;
+            color: #007bff;
+        }
+        
+        .feature-card p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .demo-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .stories-container {
+                gap: 15px;
+            }
+            
+            .story-item {
+                min-width: 70px;
+            }
+            
+            .story-avatar {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Test Header -->
+        <div class="test-header">
+            <h1>ConnectHub - Story User Interaction Test</h1>
+            <p>Interactive demonstration of user name clicking in stories section</p>
+            <span class="demo-badge">LIVE DEMO</span>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <h4>🎯 How to Test the Story User Interaction</h4>
+            <ul class="instruction-list">
+                <li><strong>Click on any user name</strong> below the story circles to see their profile popover</li>
+                <li><strong>Try the stories viewer</strong> user name at the bottom for a different interaction</li>
+                <li><strong>Interact with the popover:</strong> Follow/unfollow, message, view profile options</li>
+                <li><strong>Test responsive design:</strong> Resize your browser window to see mobile behavior</li>
+                <li><strong>Keyboard navigation:</strong> Use Tab to navigate and Escape to close popovers</li>
+            </ul>
+        </div>
+        
+        <!-- Stories Section Demo -->
+        <div class="test-section">
+            <h3>📱 Stories Section - Click User Names</h3>
+            <div class="stories-section">
+                <div class="stories-container">
+                    <!-- Add Story -->
+                    <div class="story-item add-story">
+                        <div class="story-avatar">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <span class="story-name">Your Story</span>
+                    </div>
+                    
+                    <!-- User Stories -->
+                    <div class="story-item" data-story-id="story-emma">
+                        <div class="story-avatar">
+                            <img src="https://via.placeholder.com/80x80/42b72a/ffffff?text=EW" alt="Emma Watson">
+                        </div>
+                        <span class="story-name">Emma Watson</span>
+                    </div>
+                    
+                    <div class="story-item" data-story-id="story-alex">
+                        <div class="story-avatar">
+                            <img src="https://via.placeholder.com/80x80/ff6b6b/ffffff?text=AJ" alt="Alex Johnson">
+                        </div>
+                        <span class="story-name">Alex Johnson</span>
+                    </div>
+                    
+                    <div class="story-item" data-story-id="story-sarah">
+                        <div class="story-avatar viewed">
+                            <img src="https://via.placeholder.com/80x80/9b59b6/ffffff?text=SC" alt="Sarah Chen">
+                        </div>
+                        <span class="story-name">Sarah Chen</span>
+                    </div>
+                    
+                    <div class="story-item" data-story-id="story-mike">
+                        <div class="story-avatar">
+                            <img src="https://via.placeholder.com/80x80/e67e22/ffffff?text=MR" alt="Mike Rodriguez">
+                        </div>
+                        <span class="story-name">Mike Rodriguez</span>
+                    </div>
+                    
+                    <div class="story-item" data-story-id="story-lisa">
+                        <div class="story-avatar viewed">
+                            <img src="https://via.placeholder.com/80x80/3498db/ffffff?text=LP" alt="Lisa Park">
+                        </div>
+                        <span class="story-name">Lisa Park</span>
+                    </div>
+                    
+                    <div class="story-item" data-story-id="story-tom">
+                        <div class="story-avatar">
+                            <img src="https://via.placeholder.com/80x80/e74c3c/ffffff?text=TW" alt="Tom Wilson">
+                        </div>
+                        <span class="story-name">Tom Wilson</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stories Viewer Demo -->
+        <div class="test-section">
+            <h3>📺 Stories Viewer - Click User Name in Header</h3>
+            <div class="stories-viewer-demo">
+                <div class="story-user-info">
+                    <img src="https://via.placeholder.com/40x40/42b72a/ffffff?text=EW" alt="Emma Watson" class="story-user-avatar">
+                    <div>
+                        <div class="story-user-name">Emma Watson</div>
+                        <div class="story-timestamp">2 hours ago</div>
+                    </div>
+                </div>
+                <div style="height: 200px; background: linear-gradient(45deg, #007bff, #6c5ce7); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    📸 Story Content Preview
+                </div>
+                <p style="margin-top: 16px; opacity: 0.8; text-align: center; font-size: 14px;">
+                    Click on "Emma Watson" name above to see the profile popover
+                </p>
+            </div>
+        </div>
+        
+        <!-- Features Overview -->
+        <div class="test-section">
+            <h3>✨ Story User Interaction Features</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>🎯 Smart Profile Preview</h5>
+                    <p>Rich user profile popover with avatar, bio, stats, and recent activity information</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📊 User Statistics</h5>
+                    <p>View posts count, followers, following, and stories count with clickable navigation</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🔗 Quick Actions</h5>
+                    <p>Follow/unfollow, message, view profile, and more actions directly from the popover</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🛡️ Safety Features</h5>
+                    <p>Block, report, and mute options with comprehensive user safety controls</p>
+                </div>
+                <div class="feature-card">
+                    <h5>📱 Responsive Design</h5>
+                    <p>Optimized for all screen sizes with mobile-first responsive layout</p>
+                </div>
+                <div class="feature-card">
+                    <h5>♿ Accessibility</h5>
+                    <p>Full keyboard navigation, screen reader support, and high contrast mode</p>
+                </div>
+                <div class="feature-card">
+                    <h5>⚡ Performance</h5>
+                    <p>Cached user data, smart positioning, and optimized animations</p>
+                </div>
+                <div class="feature-card">
+                    <h5>🎨 Modern UI</h5>
+                    <p>Beautiful animations, hover effects, and Instagram-style interactions</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Details -->
+        <div class="test-section">
+            <h3>🛠️ Technical Implementation</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div>
+                    <h5>📂 Files Created</h5>
+                    <ul>
+                        <li><code>story-user-interaction.js</code> - Main interaction logic</li>
+                        <li><code>story-user-interaction-styles.css</code> - Complete styling</li>
+                        <li><code>test-story-user-interaction.html</code> - This demo page</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>🎛️ Key Features</h5>
+                    <ul>
+                        <li>Event delegation for click handling</li>
+                        <li>User data caching system</li>
+                        <li>Smart popover positioning</li>
+                        <li>Auto-close functionality</li>
+                        <li>Follow status management</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>🎨 UI Components</h5>
+                    <ul>
+                        <li>Profile header with cover photo</li>
+                        <li>User stats grid</li>
+                        <li>Action buttons with states</li>
+                        <li>Dropdown menu options</li>
+                        <li>Story thumbnails preview</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>📐 Design Patterns</h5>
+                    <ul>
+                        <li>Instagram-style profile cards</li>
+                        <li>Material Design principles</li>
+                        <li>Consistent spacing and typography</li>
+                        <li>Smooth animations and transitions</li>
+                        <li>Dark mode compatibility</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expected Behavior -->
+        <div class="test-section">
+            <h3>📋 Expected Behavior When Clicking User Names</h3>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                <h5 style="color: #856404; margin-top: 0;">🎯 What Should Happen</h5>
+                <ol style="margin: 0; color: #856404;">
+                    <li><strong>Click Detection:</strong> System detects click on story user name (not the story itself)</li>
+                    <li><strong>User Data Loading:</strong> Fetch or retrieve user profile data from cache</li>
+                    <li><strong>Popover Display:</strong> Show beautiful profile popover positioned near clicked element</li>
+                    <li><strong>Interactive Content:</strong> Display user info, stats, actions, and story previews</li>
+                    <li><strong>Action Handling:</strong> Process follow, message, and menu interactions</li>
+                    <li><strong>Auto-Close:</strong> Close popover when clicking outside or pressing Escape</li>
+                </ol>
+            </div>
+            
+            <div style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; padding: 20px;">
+                <h5 style="color: #0c5460; margin-top: 0;">💡 User Experience Benefits</h5>
+                <ul style="margin: 0; color: #0c5460;">
+                    <li><strong>Quick User Discovery:</strong> Instant access to user profiles without navigation</li>
+                    <li><strong>Social Actions:</strong> Follow and message users directly from stories</li>
+                    <li><strong>Context Preservation:</strong> Stay in stories context while exploring users</li>
+                    <li><strong>Reduced Friction:</strong> No need to leave current screen to view user details</li>
+                    <li><strong>Enhanced Engagement:</strong> Encourages profile exploration and connections</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Mock app object for testing
+        window.app = {
+            currentUser: {
+                id: 'current-user',
+                name: 'John Doe',
+                avatar: 'https://via.placeholder.com/60x60/6c5ce7/ffffff?text=JD'
+            },
+            showToast: function(message, type = 'info') {
+                // Create toast notification
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#007bff'};
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    z-index: 10003;
+                    font-weight: 500;
+                    animation: slideIn 0.3s ease;
+                `;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+            getTimeAgo: function(timestamp) {
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - timestamp) / 1000);
+                if (diffInSeconds < 60) return 'just now';
+                if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            },
+            formatNumber: function(num) {
+                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+                if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+                return num.toString();
+            }
+        };
+        
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    
+    <!-- Load the story user interaction system -->
+    <script src="src/js/story-user-interaction.js"></script>
+    
+    <script>
+        // Initialize the system after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Story User Interaction Test Page Loaded');
+            
+            // Show welcome message
+            setTimeout(() => {
+                if (window.app) {
+                    window.app.showToast('Story User Interaction Test Ready! Click any user name.', 'success');
+                }
+            }, 1000);
+        });
+        
+        // Add some demo interactions
+        document.addEventListener('click', function(e) {
+            // Handle story circle clicks (not names) for demo purposes
+            if (e.target.closest('.story-item') && !e.target.closest('.story-name')) {
+                const storyItem = e.target.closest('.story-item');
+                if (!storyItem.classList.contains('add-story')) {
+                    const userName = storyItem.querySelector('.story-name').textContent;
+                    window.app.showToast(`Story by ${userName} would open here (in a real app)`, 'info');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
