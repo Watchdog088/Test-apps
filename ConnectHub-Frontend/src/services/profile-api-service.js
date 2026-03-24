@@ -1,696 +1,598 @@
 /**
- * ConnectHub Profile API Service
- * Handles all profile-related API operations with real backend integration
- * Includes: View Profiles, Edit Profile, Image Upload/Cropping, User Posts
+ * LynkApp Profile API Service - Phase 3
+ * Real Firebase/Firestore Profile Integration
+ * 
+ * Phase 3 Features:
+ *   3.1 Fetch user profile from Firestore
+ *   3.2 Profile editing form (username, bio, location, etc.)
+ *   3.3 Save profile changes to Firestore
+ *   3.4 View other users' profiles by ID or username
+ *   3.5 Calculate real profile stats from database
+ *   3.6 Profile validation (username length, uniqueness, etc.)
+ * 
+ * Updated: Phase 3 - March 2026
  */
+
+// Firebase references (loaded dynamically, same pattern as auth-service.js)
+let db;
+let doc, getDoc, setDoc, updateDoc, getDocs, collection, 
+    query, where, orderBy, limit, serverTimestamp, getCountFromServer;
 
 class ProfileAPIService {
     constructor() {
-        this.baseURL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3001/api/v1'
-            : 'https://api.connecthub.com/api/v1';
-        this.apiService = window.apiService;
+        this.firebaseInitialized = false;
+        this.initializeFirebase();
     }
 
-    // ========== PROFILE VIEW & FETCH ==========
+    // ─────────────────────────────────────────────
+    //  FIREBASE INIT
+    // ─────────────────────────────────────────────
+
+    async initializeFirebase() {
+        try {
+            const {
+                getFirestore,
+                doc: docRef,
+                getDoc: getDocument,
+                setDoc: setDocument,
+                updateDoc: updateDocument,
+                getDocs: getDocuments,
+                collection: collectionRef,
+                query: queryFn,
+                where: whereFn,
+                orderBy: orderByFn,
+                limit: limitFn,
+                serverTimestamp: timestamp,
+                getCountFromServer: countFn
+            } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+            // Reuse the same Firebase app already initialised by auth-service.js
+            const { getApps } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+            const apps = getApps();
+
+            if (apps.length === 0) {
+                // Auth service hasn't loaded yet — wait and retry
+                console.warn('⏳ Firebase app not ready yet, retrying in 1s...');
+                setTimeout(() => this.initializeFirebase(), 1000);
+                return;
+            }
+
+            db = getFirestore(apps[0]);
+
+            doc            = docRef;
+            getDoc         = getDocument;
+            setDoc         = setDocument;
+            updateDoc      = updateDocument;
+            getDocs        = getDocuments;
+            collection     = collectionRef;
+            query          = queryFn;
+            where          = whereFn;
+            orderBy        = orderByFn;
+            limit          = limitFn;
+            serverTimestamp = timestamp;
+            getCountFromServer = countFn;
+
+            this.firebaseInitialized = true;
+            console.log('✅ ProfileAPIService: Firebase ready');
+        } catch (error) {
+            console.error('❌ ProfileAPIService: Firebase init failed', error);
+        }
+    }
+
+    /** Wait until Firebase is ready (max 10 s) */
+    async waitForFirebase() {
+        let attempts = 0;
+        while (!this.firebaseInitialized && attempts < 20) {
+            await new Promise(r => setTimeout(r, 500));
+            attempts++;
+        }
+        if (!this.firebaseInitialized) {
+            throw new Error('Firebase not available. Please refresh the page.');
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 3.1 — FETCH PROFILE FROM FIRESTORE
+    // ─────────────────────────────────────────────
 
     /**
-     * Get user profile by ID with real data
+     * Get any user's profile by their Firebase UID
      */
-    async getProfile(userId = 'me') {
+    async getProfile(userId) {
         try {
-            const response = await this.apiService.get(`/profiles/${userId}`);
+            await this.waitForFirebase();
+
+            if (!userId) {
+                // Default to logged-in user
+                const currentUser = window.authService?.getCurrentUser();
+                if (!currentUser) throw new Error('No user logged in');
+                userId = currentUser.userId;
+            }
+
+            const userRef  = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                return { success: false, error: 'User not found' };
+            }
+
+            const data = userSnap.data();
+
+            // Attach real stats
+            const stats = await this.calculateStats(userId);
+
             return {
                 success: true,
-                data: response.data || response
+                data: {
+                    ...data,
+                    userId,
+                    stats
+                }
             };
         } catch (error) {
-            console.error('Error fetching profile:', error);
-            // Return mock data if API fails
-            return this.getMockProfile(userId);
+            console.error('❌ getProfile error:', error);
+            return { success: false, error: error.message };
         }
     }
 
     /**
-     * Get current user's profile
+     * Shorthand — get the currently logged-in user's profile
      */
     async getMyProfile() {
-        return this.getProfile('me');
+        const currentUser = window.authService?.getCurrentUser();
+        if (!currentUser) return { success: false, error: 'Not logged in' };
+        return this.getProfile(currentUser.userId);
     }
 
+    // ─────────────────────────────────────────────
+    //  TASK 3.4 — VIEW OTHER USERS' PROFILES
+    // ─────────────────────────────────────────────
+
     /**
-     * Get profile by username
+     * Find a profile by username (case-insensitive exact match)
      */
     async getProfileByUsername(username) {
         try {
-            const response = await this.apiService.get(`/profiles/username/${username}`);
+            await this.waitForFirebase();
+
+            const usersRef  = collection(db, 'users');
+            const q         = query(usersRef, where('username', '==', username.toLowerCase()), limit(1));
+            const snapshot  = await getDocs(q);
+
+            if (snapshot.empty) {
+                return { success: false, error: `No user found with username: ${username}` };
+            }
+
+            const userDoc = snapshot.docs[0];
+            const data    = userDoc.data();
+            const uid     = userDoc.id;
+            const stats   = await this.calculateStats(uid);
+
             return {
                 success: true,
-                data: response.data || response
+                data: { ...data, userId: uid, stats }
             };
         } catch (error) {
-            console.error('Error fetching profile by username:', error);
-            return this.getMockProfile(username);
+            console.error('❌ getProfileByUsername error:', error);
+            return { success: false, error: error.message };
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  TASK 3.2 & 3.3 — EDIT PROFILE & SAVE
+    // ─────────────────────────────────────────────
+
     /**
-     * Search profiles
+     * Update the logged-in user's profile.
+     * Validates input before writing to Firestore.
+     * 
+     * @param {Object} profileData  Fields to update:
+     *   { displayName, username, bio, location, website, work, education }
      */
-    async searchProfiles(query, filters = {}) {
+    async updateProfile(profileData) {
         try {
-            const params = {
-                q: query,
-                ...filters
-            };
-            const response = await this.apiService.get('/profiles/search', params);
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
+
+            // ── Validation (Task 3.6) ──────────────────────
+            const validation = await this.validateProfileData(profileData, currentUser.userId);
+            if (!validation.valid) {
+                return { success: false, error: validation.error };
+            }
+
+            // Build the cleaned update object
+            const allowedFields = [
+                'displayName', 'username', 'bio',
+                'location', 'website', 'work', 'education', 'interests'
+            ];
+
+            const updatePayload = { updatedAt: serverTimestamp() };
+
+            for (const field of allowedFields) {
+                if (profileData[field] !== undefined) {
+                    // Store username in lowercase so lookups are consistent
+                    updatePayload[field] = field === 'username'
+                        ? profileData[field].trim().toLowerCase()
+                        : profileData[field];
+                }
+            }
+
+            // Write to Firestore
+            const userRef = doc(db, 'users', currentUser.userId);
+            await updateDoc(userRef, updatePayload);
+
+            // Keep auth-service in sync
+            if (window.authService?.currentUser) {
+                window.authService.currentUser = {
+                    ...window.authService.currentUser,
+                    ...updatePayload
+                };
+            }
+
+            console.log('✅ Profile updated in Firestore');
+
             return {
                 success: true,
-                data: response.data || response.profiles || []
+                message: 'Profile updated successfully',
+                data: updatePayload
             };
         } catch (error) {
-            console.error('Error searching profiles:', error);
+            console.error('❌ updateProfile error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /** Convenience wrappers */
+    async updateBio(bio)             { return this.updateProfile({ bio }); }
+    async updateLocation(location)   { return this.updateProfile({ location }); }
+    async updateDisplayName(name)    { return this.updateProfile({ displayName: name }); }
+    async updateUsername(username)   { return this.updateProfile({ username }); }
+
+    // ─────────────────────────────────────────────
+    //  TASK 3.5 — REAL STATS FROM DATABASE
+    // ─────────────────────────────────────────────
+
+    /**
+     * Count posts, friends, followers and following for a user
+     * by querying the actual Firestore collections.
+     */
+    async calculateStats(userId) {
+        try {
+            await this.waitForFirebase();
+
+            // ── Posts count ───────────────────────────────
+            let postsCount = 0;
+            try {
+                const postsSnap = await getCountFromServer(
+                    query(collection(db, 'posts'), where('userId', '==', userId))
+                );
+                postsCount = postsSnap.data().count;
+            } catch (_) {
+                // getCountFromServer may not be available on all plans
+                const fallback = await getDocs(
+                    query(collection(db, 'posts'), where('userId', '==', userId))
+                );
+                postsCount = fallback.size;
+            }
+
+            // ── Friends count ─────────────────────────────
+            let friendsCount = 0;
+            try {
+                const friendsSnap = await getDocs(
+                    query(
+                        collection(db, 'friendships'),
+                        where('participants', 'array-contains', userId)
+                    )
+                );
+                friendsCount = friendsSnap.size;
+            } catch (_) { /* collection may not exist yet */ }
+
+            // ── Followers count ───────────────────────────
+            let followersCount = 0;
+            try {
+                const followersSnap = await getDocs(
+                    query(collection(db, 'follows'), where('followingId', '==', userId))
+                );
+                followersCount = followersSnap.size;
+            } catch (_) { /* collection may not exist yet */ }
+
+            // ── Following count ───────────────────────────
+            let followingCount = 0;
+            try {
+                const followingSnap = await getDocs(
+                    query(collection(db, 'follows'), where('followerId', '==', userId))
+                );
+                followingCount = followingSnap.size;
+            } catch (_) { /* collection may not exist yet */ }
+
+            const stats = { postsCount, friendsCount, followersCount, followingCount };
+
+            // Persist the fresh stats back to the user document
+            try {
+                await updateDoc(doc(db, 'users', userId), { stats, updatedAt: serverTimestamp() });
+            } catch (_) { /* write may fail if not owner — that's fine */ }
+
+            return stats;
+        } catch (error) {
+            console.error('❌ calculateStats error:', error);
+            // Return zeros so the UI doesn't break
+            return { postsCount: 0, friendsCount: 0, followersCount: 0, followingCount: 0 };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 3.6 — PROFILE VALIDATION
+    // ─────────────────────────────────────────────
+
+    /**
+     * Validate profile fields before saving.
+     * Returns { valid: true } or { valid: false, error: '...' }
+     */
+    async validateProfileData(data, currentUserId) {
+        // Display name
+        if (data.displayName !== undefined) {
+            if (data.displayName.trim().length < 1) {
+                return { valid: false, error: 'Display name cannot be empty' };
+            }
+            if (data.displayName.trim().length > 50) {
+                return { valid: false, error: 'Display name must be 50 characters or less' };
+            }
+        }
+
+        // Username
+        if (data.username !== undefined) {
+            const username = data.username.trim().toLowerCase();
+
+            if (username.length < 3) {
+                return { valid: false, error: 'Username must be at least 3 characters' };
+            }
+            if (username.length > 30) {
+                return { valid: false, error: 'Username must be 30 characters or less' };
+            }
+            if (!/^[a-z0-9_.-]+$/.test(username)) {
+                return { valid: false, error: 'Username can only contain letters, numbers, underscores, dashes and dots' };
+            }
+
+            // Uniqueness check — skip if username unchanged
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser || username !== currentUser.username) {
+                const unique = await this.isUsernameAvailable(username, currentUserId);
+                if (!unique) {
+                    return { valid: false, error: 'That username is already taken' };
+                }
+            }
+        }
+
+        // Bio
+        if (data.bio !== undefined && data.bio.length > 200) {
+            return { valid: false, error: 'Bio must be 200 characters or less' };
+        }
+
+        // Website
+        if (data.website !== undefined && data.website.trim() !== '') {
+            const urlPattern = /^https?:\/\/.+/i;
+            if (!urlPattern.test(data.website.trim())) {
+                return { valid: false, error: 'Website must start with http:// or https://' };
+            }
+        }
+
+        return { valid: true };
+    }
+
+    /**
+     * Check whether a username is available (not taken by another user)
+     */
+    async isUsernameAvailable(username, excludeUserId = null) {
+        try {
+            await this.waitForFirebase();
+
+            const q  = query(
+                collection(db, 'users'),
+                where('username', '==', username.toLowerCase()),
+                limit(1)
+            );
+            const snap = await getDocs(q);
+
+            if (snap.empty) return true;
+
+            // Username exists — OK only if it belongs to the current user
+            return excludeUserId && snap.docs[0].id === excludeUserId;
+        } catch (error) {
+            console.error('❌ isUsernameAvailable error:', error);
+            return true; // Fail-open rather than blocking the user
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  SEARCH PROFILES
+    // ─────────────────────────────────────────────
+
+    /**
+     * Search users by display name or username.
+     * Returns up to 20 results.
+     */
+    async searchProfiles(queryText, options = {}) {
+        try {
+            await this.waitForFirebase();
+
+            if (!queryText || queryText.trim().length < 1) {
+                return { success: true, data: [] };
+            }
+
+            const q = queryText.trim().toLowerCase();
+
+            // Firestore doesn't support full-text search, so we use a
+            // starts-with range trick on the username field.
+            const snap = await getDocs(
+                query(
+                    collection(db, 'users'),
+                    where('username', '>=', q),
+                    where('username', '<=', q + '\uf8ff'),
+                    limit(options.limit || 20)
+                )
+            );
+
+            const results = snap.docs.map(d => ({ userId: d.id, ...d.data() }));
+
+            return { success: true, data: results };
+        } catch (error) {
+            console.error('❌ searchProfiles error:', error);
             return { success: false, error: error.message, data: [] };
         }
     }
 
-    // ========== PROFILE UPDATE & EDIT ==========
+    // ─────────────────────────────────────────────
+    //  USER POSTS (read-only, for profile page)
+    // ─────────────────────────────────────────────
 
     /**
-     * Update profile with real API endpoint
+     * Fetch a user's posts for display on their profile page.
+     * Phase 4 will implement full post creation — this just reads.
      */
-    async updateProfile(profileData) {
+    async getUserPosts(userId, options = {}) {
         try {
-            const response = await this.apiService.put('/profiles/me', profileData);
-            
-            // Update local storage
-            const currentUser = JSON.parse(localStorage.getItem('connecthub_user') || '{}');
-            localStorage.setItem('connecthub_user', JSON.stringify({
-                ...currentUser,
-                ...profileData
-            }));
+            await this.waitForFirebase();
+
+            if (!userId) {
+                const u = window.authService?.getCurrentUser();
+                if (!u) return { success: false, error: 'Not logged in', data: [] };
+                userId = u.userId;
+            }
+
+            const pageSize = options.limit || 20;
+
+            const q = query(
+                collection(db, 'posts'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(pageSize)
+            );
+
+            const snap = await getDocs(q);
+            const posts = snap.docs.map(d => ({ postId: d.id, ...d.data() }));
 
             return {
                 success: true,
-                data: response.data || response,
-                message: 'Profile updated successfully'
+                data: posts,
+                pagination: { hasMore: posts.length === pageSize }
             };
         } catch (error) {
-            console.error('Error updating profile:', error);
-            return {
-                success: false,
-                error: error.message
-            };
+            console.error('❌ getUserPosts error:', error);
+            // Posts collection doesn't exist yet in Phase 3 — return empty gracefully
+            return { success: true, data: [], pagination: { hasMore: false } };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  PROFILE PICTURE (placeholder — Phase 7)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Update profile picture URL in Firestore.
+     * Actual file upload will be implemented in Phase 7.
+     * For now we accept any URL (e.g. from ui-avatars.com or a direct link).
+     */
+    async updateProfilePictureUrl(url) {
+        try {
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
+
+            await updateDoc(doc(db, 'users', currentUser.userId), {
+                profilePicture: url,
+                updatedAt: serverTimestamp()
+            });
+
+            if (window.authService?.currentUser) {
+                window.authService.currentUser.profilePicture = url;
+            }
+
+            return { success: true, message: 'Profile picture updated' };
+        } catch (error) {
+            console.error('❌ updateProfilePictureUrl error:', error);
+            return { success: false, error: error.message };
         }
     }
 
     /**
-     * Update specific profile fields
+     * Update cover photo URL in Firestore.
      */
+    async updateCoverPhotoUrl(url) {
+        try {
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
+
+            await updateDoc(doc(db, 'users', currentUser.userId), {
+                coverPhoto: url,
+                updatedAt: serverTimestamp()
+            });
+
+            if (window.authService?.currentUser) {
+                window.authService.currentUser.coverPhoto = url;
+            }
+
+            return { success: true, message: 'Cover photo updated' };
+        } catch (error) {
+            console.error('❌ updateCoverPhotoUrl error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  PRIVACY SETTINGS
+    // ─────────────────────────────────────────────
+
+    async updatePrivacySettings(privacySettings) {
+        try {
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
+
+            await updateDoc(doc(db, 'users', currentUser.userId), {
+                'settings.privacy': privacySettings.privacy || 'public',
+                updatedAt: serverTimestamp()
+            });
+
+            return { success: true, message: 'Privacy settings updated' };
+        } catch (error) {
+            console.error('❌ updatePrivacySettings error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  LEGACY / BACKWARD COMPATIBILITY
+    //  (kept so existing UI code doesn't break)
+    // ─────────────────────────────────────────────
+
     async updateProfileField(field, value) {
         return this.updateProfile({ [field]: value });
     }
 
-    /**
-     * Update profile bio
-     */
-    async updateBio(bio) {
-        return this.updateProfile({ bio });
+    async updateWork(work)           { return this.updateProfile({ work }); }
+    async updateEducation(education) { return this.updateProfile({ education }); }
+
+    async getProfileStats(userId) {
+        const stats = await this.calculateStats(userId || window.authService?.getCurrentUser()?.userId);
+        return { success: true, data: stats };
     }
 
-    /**
-     * Update profile location
-     */
-    async updateLocation(location) {
-        return this.updateProfile({ location });
+    // Stub for Phase 7 file-upload methods
+    async uploadProfilePicture(file) {
+        return { success: false, error: 'File upload will be available in Phase 7. Use a URL instead.' };
     }
-
-    /**
-     * Update profile work information
-     */
-    async updateWork(work) {
-        return this.updateProfile({ work });
-    }
-
-    /**
-     * Update profile education
-     */
-    async updateEducation(education) {
-        return this.updateProfile({ education });
-    }
-
-    // ========== PROFILE PICTURE UPLOAD & CROPPING ==========
-
-    /**
-     * Upload profile picture with cropping support
-     */
-    async uploadProfilePicture(file, cropData = null) {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', 'profile_picture');
-            
-            if (cropData) {
-                formData.append('crop', JSON.stringify(cropData));
-            }
-
-            const token = localStorage.getItem('connecthub_token');
-            const response = await fetch(`${this.baseURL}/profiles/me/picture`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to upload profile picture');
-            }
-
-            const data = await response.json();
-            
-            // Update local storage
-            const currentUser = JSON.parse(localStorage.getItem('connecthub_user') || '{}');
-            currentUser.profilePicture = data.url || data.data?.url;
-            localStorage.setItem('connecthub_user', JSON.stringify(currentUser));
-
-            return {
-                success: true,
-                data: data.data || data,
-                message: 'Profile picture updated successfully'
-            };
-        } catch (error) {
-            console.error('Error uploading profile picture:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Upload cover photo
-     */
-    async uploadCoverPhoto(file, cropData = null) {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', 'cover_photo');
-            
-            if (cropData) {
-                formData.append('crop', JSON.stringify(cropData));
-            }
-
-            const token = localStorage.getItem('connecthub_token');
-            const response = await fetch(`${this.baseURL}/profiles/me/cover`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to upload cover photo');
-            }
-
-            const data = await response.json();
-            
-            // Update local storage
-            const currentUser = JSON.parse(localStorage.getItem('connecthub_user') || '{}');
-            currentUser.coverPhoto = data.url || data.data?.url;
-            localStorage.setItem('connecthub_user', JSON.stringify(currentUser));
-
-            return {
-                success: true,
-                data: data.data || data,
-                message: 'Cover photo updated successfully'
-            };
-        } catch (error) {
-            console.error('Error uploading cover photo:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Remove profile picture
-     */
-    async removeProfilePicture() {
-        try {
-            const response = await this.apiService.delete('/profiles/me/picture');
-            
-            // Update local storage
-            const currentUser = JSON.parse(localStorage.getItem('connecthub_user') || '{}');
-            delete currentUser.profilePicture;
-            localStorage.setItem('connecthub_user', JSON.stringify(currentUser));
-
-            return {
-                success: true,
-                message: 'Profile picture removed successfully'
-            };
-        } catch (error) {
-            console.error('Error removing profile picture:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Remove cover photo
-     */
-    async removeCoverPhoto() {
-        try {
-            const response = await this.apiService.delete('/profiles/me/cover');
-            
-            // Update local storage
-            const currentUser = JSON.parse(localStorage.getItem('connecthub_user') || '{}');
-            delete currentUser.coverPhoto;
-            localStorage.setItem('connecthub_user', JSON.stringify(currentUser));
-
-            return {
-                success: true,
-                message: 'Cover photo removed successfully'
-            };
-        } catch (error) {
-            console.error('Error removing cover photo:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    // ========== USER POSTS FETCHING ==========
-
-    /**
-     * Fetch user posts with pagination
-     */
-    async getUserPosts(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 20,
-                sort: options.sort || 'recent'
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/posts`, params);
-            return {
-                success: true,
-                data: response.data || response.posts || [],
-                pagination: response.pagination || {
-                    page: params.page,
-                    hasMore: false
-                }
-            };
-        } catch (error) {
-            console.error('Error fetching user posts:', error);
-            // Return mock posts if API fails
-            return this.getMockPosts(userId);
-        }
-    }
-
-    /**
-     * Fetch user photos
-     */
-    async getUserPhotos(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 30,
-                type: 'photo'
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/media`, params);
-            return {
-                success: true,
-                data: response.data || response.photos || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching user photos:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    /**
-     * Fetch user videos
-     */
-    async getUserVideos(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 20,
-                type: 'video'
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/media`, params);
-            return {
-                success: true,
-                data: response.data || response.videos || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching user videos:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    // ========== PROFILE STATS & ANALYTICS ==========
-
-    /**
-     * Get profile statistics
-     */
-    async getProfileStats(userId = 'me') {
-        try {
-            const response = await this.apiService.get(`/profiles/${userId}/stats`);
-            return {
-                success: true,
-                data: response.data || response
-            };
-        } catch (error) {
-            console.error('Error fetching profile stats:', error);
-            return this.getMockStats();
-        }
-    }
-
-    /**
-     * Get profile analytics
-     */
-    async getProfileAnalytics(period = 'week') {
-        try {
-            const response = await this.apiService.get('/profiles/me/analytics', { period });
-            return {
-                success: true,
-                data: response.data || response
-            };
-        } catch (error) {
-            console.error('Error fetching profile analytics:', error);
-            return this.getMockAnalytics();
-        }
-    }
-
-    /**
-     * Get profile viewers
-     */
-    async getProfileViewers(options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 50
-            };
-
-            const response = await this.apiService.get('/profiles/me/viewers', params);
-            return {
-                success: true,
-                data: response.data || response.viewers || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching profile viewers:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    // ========== FOLLOWERS & FOLLOWING ==========
-
-    /**
-     * Get followers list
-     */
-    async getFollowers(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 50
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/followers`, params);
-            return {
-                success: true,
-                data: response.data || response.followers || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching followers:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    /**
-     * Get following list
-     */
-    async getFollowing(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 50
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/following`, params);
-            return {
-                success: true,
-                data: response.data || response.following || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching following:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    /**
-     * Get friends list
-     */
-    async getFriends(userId = 'me', options = {}) {
-        try {
-            const params = {
-                page: options.page || 1,
-                limit: options.limit || 50
-            };
-
-            const response = await this.apiService.get(`/profiles/${userId}/friends`, params);
-            return {
-                success: true,
-                data: response.data || response.friends || [],
-                pagination: response.pagination || {}
-            };
-        } catch (error) {
-            console.error('Error fetching friends:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    // ========== HIGHLIGHTS & FEATURED CONTENT ==========
-
-    /**
-     * Get profile highlights
-     */
-    async getHighlights(userId = 'me') {
-        try {
-            const response = await this.apiService.get(`/profiles/${userId}/highlights`);
-            return {
-                success: true,
-                data: response.data || response.highlights || []
-            };
-        } catch (error) {
-            console.error('Error fetching highlights:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    /**
-     * Create new highlight
-     */
-    async createHighlight(highlightData) {
-        try {
-            const response = await this.apiService.post('/profiles/me/highlights', highlightData);
-            return {
-                success: true,
-                data: response.data || response,
-                message: 'Highlight created successfully'
-            };
-        } catch (error) {
-            console.error('Error creating highlight:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Get featured content
-     */
-    async getFeaturedContent(userId = 'me') {
-        try {
-            const response = await this.apiService.get(`/profiles/${userId}/featured`);
-            return {
-                success: true,
-                data: response.data || response.featured || []
-            };
-        } catch (error) {
-            console.error('Error fetching featured content:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    /**
-     * Add featured content
-     */
-    async addFeaturedContent(contentId, contentType) {
-        try {
-            const response = await this.apiService.post('/profiles/me/featured', {
-                contentId,
-                contentType
-            });
-            return {
-                success: true,
-                data: response.data || response,
-                message: 'Content featured successfully'
-            };
-        } catch (error) {
-            console.error('Error adding featured content:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // ========== BADGES & ACHIEVEMENTS ==========
-
-    /**
-     * Get user badges
-     */
-    async getBadges(userId = 'me') {
-        try {
-            const response = await this.apiService.get(`/profiles/${userId}/badges`);
-            return {
-                success: true,
-                data: response.data || response.badges || []
-            };
-        } catch (error) {
-            console.error('Error fetching badges:', error);
-            return { success: false, error: error.message, data: [] };
-        }
-    }
-
-    // ========== PRIVACY & SETTINGS ==========
-
-    /**
-     * Update privacy zones
-     */
-    async updatePrivacyZones(privacySettings) {
-        try {
-            const response = await this.apiService.put('/profiles/me/privacy', privacySettings);
-            return {
-                success: true,
-                data: response.data || response,
-                message: 'Privacy settings updated successfully'
-            };
-        } catch (error) {
-            console.error('Error updating privacy zones:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Update custom URL
-     */
-    async updateCustomUrl(customUrl) {
-        try {
-            const response = await this.apiService.put('/profiles/me/url', { customUrl });
-            return {
-                success: true,
-                data: response.data || response,
-                message: 'Custom URL updated successfully'
-            };
-        } catch (error) {
-            console.error('Error updating custom URL:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // ========== MOCK DATA (FALLBACK) ==========
-
-    getMockProfile(userId) {
-        return {
-            success: true,
-            data: {
-                id: userId,
-                username: 'johndoe',
-                name: 'John Doe',
-                bio: 'Tech enthusiast | Traveler | Coffee lover ☕',
-                profilePicture: null,
-                coverPhoto: null,
-                verified: true,
-                stats: {
-                    followers: 1234,
-                    following: 456,
-                    friends: 234,
-                    posts: 89
-                },
-                location: 'San Francisco, CA',
-                work: 'Software Engineer at Tech Corp',
-                education: 'Stanford University',
-                interests: ['Technology', 'Travel', 'Photography', 'Coffee']
-            }
-        };
-    }
-
-    getMockPosts(userId) {
-        return {
-            success: true,
-            data: [
-                {
-                    id: '1',
-                    content: 'Great day at the beach! 🏖️',
-                    mediaType: 'photo',
-                    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                    likes: 156,
-                    comments: 23
-                },
-                {
-                    id: '2',
-                    content: 'Working on exciting new projects! 💻',
-                    mediaType: 'photo',
-                    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-                    likes: 89,
-                    comments: 12
-                }
-            ],
-            pagination: {
-                page: 1,
-                hasMore: false
-            }
-        };
-    }
-
-    getMockStats() {
-        return {
-            success: true,
-            data: {
-                profileViews: 15234,
-                postReach: 3845,
-                engagement: 89,
-                growth: 45
-            }
-        };
-    }
-
-    getMockAnalytics() {
-        return {
-            success: true,
-            data: {
-                totalViews: 2534,
-                newFollowers: 567,
-                engagements: 1234,
-                responseRate: 89,
-                period: 'week'
-            }
-        };
+    async uploadCoverPhoto(file) {
+        return { success: false, error: 'File upload will be available in Phase 7. Use a URL instead.' };
     }
 }
 
-// Create and export global instance
+// ── Singleton ─────────────────────────────────
 const profileAPIService = new ProfileAPIService();
 window.profileAPIService = profileAPIService;
 

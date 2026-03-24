@@ -53,7 +53,7 @@ These APIs power your **Trending Content** section in LynkApp:
    
    App type: [●] script (for personal use)
    
-   Description: Social media trending content aggregator
+   Description:Social media tre nding content aggregator
    
    About URL: (leave blank or add your site)
    
