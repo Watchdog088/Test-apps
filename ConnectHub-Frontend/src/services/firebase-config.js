@@ -18,4 +18,7 @@ const firebaseConfig = {
 // Mock mode disabled - using real Firebase backend
 const USE_MOCK_MODE = false;
 
-export { firebaseConfig, USE_MOCK_MODE };
+// Expose globally for non-module scripts
+window.firebaseConfig = firebaseConfig;
+window.USE_MOCK_MODE = USE_MOCK_MODE;
+// export { firebaseConfig, USE_MOCK_MODE }; // disabled - loaded as regular <script>

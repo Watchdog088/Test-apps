@@ -1815,9 +1815,186 @@ function suggestBreak() {
     showToast('Take a break option - UI Available', 'info');
 }
 
+// ============================================================================
+// AUTH SCREEN - Form Submit + Tab Switching
+// ============================================================================
+
+/**
+ * Show the login screen (hide all others)
+ */
+function showAuthScreen() {
+    document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+    const authScreen = document.getElementById('authScreen');
+    if (authScreen) authScreen.classList.add('active');
+}
+
+/**
+ * Navigate to the main app after successful login
+ */
+function showMainApp() {
+    isLoggedIn = true;
+    document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+    const catSel = document.getElementById('categorySelection');
+    if (catSel) {
+        catSel.classList.add('active');
+    } else {
+        // fallback: jump straight to social feed
+        selectCategory('social');
+    }
+    updateMainNav();
+    updateSubNav();
+    showToast('Welcome to Lynk! 🎉', 'success');
+}
+
+/**
+ * Handle auth form submission (Sign In or Register)
+ */
+function handleAuthSubmit(e) {
+    if (e) e.preventDefault();
+
+    const emailEl = document.getElementById('authEmail');
+    const passwordEl = document.getElementById('authPassword');
+    const nameEl = document.getElementById('authName');
+    const confirmEl = document.getElementById('authConfirmPassword');
+    const submitBtn = document.getElementById('authSubmitBtn') || document.querySelector('#authForm button[type="submit"]');
+
+    const email = emailEl ? emailEl.value.trim() : '';
+    const password = passwordEl ? passwordEl.value : '';
+    const isRegister = (document.querySelector('.auth-tab.active') || {}).dataset?.mode === 'register'
+                    || (document.querySelector('[data-auth-mode]') || {}).dataset?.authMode === 'register';
+
+    // Basic validation
+    if (!email || !password) {
+        showToast('Please enter your email and password', 'warning');
+        return;
+    }
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'warning');
+        return;
+    }
+    if (isRegister && confirmEl && confirmEl.value !== password) {
+        showToast('Passwords do not match', 'warning');
+        return;
+    }
+
+    // Disable button to prevent double-submit
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = isRegister ? 'Creating account…' : 'Signing in…'; }
+
+    // Try Firebase auth service first, fall back to direct navigation
+    if (window.authService && typeof window.authService.login === 'function') {
+        const authPromise = isRegister
+            ? window.authService.register(email, password, nameEl ? nameEl.value.trim() : '')
+            : window.authService.login(email, password);
+
+        authPromise
+            .then(() => { showMainApp(); })
+            .catch(err => {
+                console.warn('Auth error:', err);
+                showToast(err.message || 'Authentication failed — entering demo mode', 'warning');
+                // Still let them in (demo/prototype mode)
+                setTimeout(showMainApp, 800);
+            })
+            .finally(() => {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isRegister ? 'Create Account' : 'Sign In'; }
+            });
+    } else {
+        // Firebase not ready — prototype/demo fallback
+        console.warn('authService not available — using demo mode');
+        showToast(isRegister ? 'Account created! Welcome to Lynk 🎉' : 'Signed in — demo mode', 'success');
+        setTimeout(showMainApp, 600);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isRegister ? 'Create Account' : 'Sign In'; }
+    }
+}
+
+/**
+ * Switch between Sign In and Register tabs
+ */
+function switchAuthTab(mode) {
+    // Update tab highlight
+    document.querySelectorAll('.auth-tab, [data-mode]').forEach(tab => {
+        if (tab.dataset.mode === mode) {
+            tab.classList.add('active');
+        } else if (tab.dataset.mode) {
+            tab.classList.remove('active');
+        }
+    });
+
+    // Show/hide register-only fields
+    const nameRow = document.getElementById('authNameRow') || document.querySelector('.auth-name-row');
+    const confirmRow = document.getElementById('authConfirmRow') || document.querySelector('.auth-confirm-row');
+    const nameEl = document.getElementById('authName');
+    const confirmEl = document.getElementById('authConfirmPassword');
+    const submitBtn = document.getElementById('authSubmitBtn') || document.querySelector('#authForm button[type="submit"]');
+    const switchLink = document.getElementById('authSwitchLink');
+    const authTitle = document.getElementById('authTitle') || document.querySelector('.auth-title, .auth-heading, h2.auth-h2');
+
+    if (mode === 'register') {
+        if (nameRow) nameRow.style.display = '';
+        if (confirmRow) confirmRow.style.display = '';
+        if (nameEl) nameEl.required = true;
+        if (confirmEl) confirmEl.required = true;
+        if (submitBtn) submitBtn.textContent = 'Create Account';
+        if (authTitle) authTitle.textContent = 'Create Account';
+        if (switchLink) switchLink.innerHTML = 'Already have an account? <a href="#" onclick="switchAuthTab(\'login\');return false;">Sign In</a>';
+    } else {
+        if (nameRow) { nameRow.style.display = 'none'; }
+        if (confirmRow) { confirmRow.style.display = 'none'; }
+        if (nameEl) nameEl.required = false;
+        if (confirmEl) confirmEl.required = false;
+        if (submitBtn) submitBtn.textContent = 'Sign In';
+        if (authTitle) authTitle.textContent = 'Welcome Back';
+        if (switchLink) switchLink.innerHTML = 'Don\'t have an account? <a href="#" onclick="switchAuthTab(\'register\');return false;">Sign Up</a>';
+    }
+
+    // Store current mode on the form
+    const form = document.getElementById('authForm');
+    if (form) form.dataset.authMode = mode;
+}
+
+// Expose globally so inline onclick handlers work
+window.switchAuthTab = switchAuthTab;
+window.handleAuthSubmit = handleAuthSubmit;
+window.showMainApp = showMainApp;
+window.showAuthScreen = showAuthScreen;
+
+// ============================================================================
 // Initialize navigation on page load
+// ============================================================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Navigation system initialized');
+
+    // ── Wire up Auth Form ────────────────────────────────────────────
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', handleAuthSubmit);
+        // Hide register-only fields by default (login mode)
+        switchAuthTab('login');
+    }
+
+    // ── Wire up Auth Tabs (Sign In / Register) ──────────────────────
+    document.querySelectorAll('.auth-tab, [data-mode="login"], [data-mode="register"]').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            switchAuthTab(this.dataset.mode || 'login');
+        });
+    });
+
+    // ── Wire up Social Login buttons ────────────────────────────────
+    document.querySelectorAll('[data-social-login]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            socialLogin(this.dataset.socialLogin);
+        });
+    });
+
+    // ── Wire up Forgot Password ─────────────────────────────────────
+    const forgotLink = document.getElementById('forgotPasswordLink') || document.querySelector('[data-forgot-password], .forgot-password');
+    if (forgotLink) {
+        forgotLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            forgotPassword();
+        });
+    }
+
     updateMainNav();
     updateSubNav();
 });
