@@ -5,7 +5,9 @@
  * Phase 1: Core Infrastructure
  */
 
-import { firebaseConfig, USE_MOCK_MODE } from './firebase-config.js';
+// firebaseConfig + USE_MOCK_MODE loaded via regular <script> tag — read from window
+const firebaseConfig = window.firebaseConfig || {};
+const USE_MOCK_MODE = window.USE_MOCK_MODE || false;
 
 class FirebaseService {
     constructor() {
@@ -1165,4 +1167,4 @@ class FirebaseService {
 const firebaseService = new FirebaseService();
 window.firebaseService = firebaseService;
 
-export default firebaseService;
+// export default firebaseService; // loaded as regular <script> — use window.firebaseService instead

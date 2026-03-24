@@ -4,7 +4,8 @@
  * Phase 1: Core Infrastructure Implementation
  */
 
-import authService from './auth-service.js';
+// authService loaded as regular <script> before this file — read from window
+const authService = window.authService;
 
 class RealtimeService {
     constructor() {
@@ -461,4 +462,4 @@ class RealtimeService {
 const realtimeService = new RealtimeService();
 window.realtimeService = realtimeService;
 
-export default realtimeService;
+// export default realtimeService; // loaded as regular <script> — use window.realtimeService instead

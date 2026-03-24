@@ -4,7 +4,8 @@
  * Updated: March 19, 2026
  */
 
-import { firebaseConfig } from './firebase-config.js';
+// firebaseConfig loaded via regular <script> tag before this file — read from window
+const firebaseConfig = window.firebaseConfig || {};
 
 // Firebase imports (using CDN modules)
 let auth, db;
@@ -572,4 +573,4 @@ class AuthService {
 const authService = new AuthService();
 window.authService = authService;
 
-export default authService;
+// export default authService; // loaded as regular <script> — use window.authService instead
