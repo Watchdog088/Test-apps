@@ -1,790 +1,688 @@
 /**
- * Feed/Posts API Service
- * Complete backend integration for Feed system
- * Includes: API endpoints, Firebase Storage, compression, pagination, real-time updates
+ * LynkApp Feed API Service - Phase 4
+ * Real Firebase/Firestore Feed & Posts Integration
+ *
+ * Phase 4 Features:
+ *   4.1 Create text post to Firestore
+ *   4.2 Display feed (all users, newest first)
+ *   4.3 Like / unlike posts (real count updates)
+ *   4.4 Add & fetch comments on posts
+ *   4.5 Delete own posts
+ *   4.6 Pagination — 20 posts per page with cursor
+ *   4.7 Refresh feed (reload from top)
+ *
+ * Firestore structure:
+ *   posts/{postId}                    ← main post document
+ *   posts/{postId}/likes/{userId}     ← one doc per user who liked
+ *   posts/{postId}/comments/{commentId} ← comment sub-collection
+ *
+ * Updated: Phase 4 - March 2026
  */
 
-import firebaseService from './firebase-service.js';
-import apiService from './api-service.js';
+let db;
+let doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc,
+    collection, query, orderBy, limit, startAfter,
+    where, serverTimestamp, increment, setDoc, getCountFromServer;
 
 class FeedAPIService {
     constructor() {
-        this.postsCache = new Map();
-        this.realtimeListeners = new Map();
-        this.compressionQuality = 0.8;
-        this.maxImageSize = 1920; // Max width/height
-        this.pagination = {
-            currentPage: 1,
-            postsPerPage: 10,
-            hasMore: true
-        };
+        this.firebaseInitialized = false;
+        this.lastVisiblePost    = null;   // cursor for pagination
+        this.postsPerPage       = 20;
+        this.initializeFirebase();
     }
 
-    // ========== POST CREATION WITH API & STORAGE ==========
+    // ─────────────────────────────────────────────
+    //  FIREBASE INIT
+    // ─────────────────────────────────────────────
+
+    async initializeFirebase() {
+        try {
+            const {
+                getFirestore,
+                doc: docRef,
+                addDoc: addDocument,
+                getDoc: getDocument,
+                getDocs: getDocuments,
+                updateDoc: updateDocument,
+                deleteDoc: deleteDocument,
+                collection: collectionRef,
+                query: queryFn,
+                orderBy: orderByFn,
+                limit: limitFn,
+                startAfter: startAfterFn,
+                where: whereFn,
+                serverTimestamp: timestamp,
+                increment: incrementFn,
+                setDoc: setDocument,
+                getCountFromServer: countFn
+            } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+            const { getApps } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+            const apps = getApps();
+
+            if (apps.length === 0) {
+                console.warn('⏳ FeedAPIService: Firebase app not ready, retrying in 1s...');
+                setTimeout(() => this.initializeFirebase(), 1000);
+                return;
+            }
+
+            db = getFirestore(apps[0]);
+
+            doc              = docRef;
+            addDoc           = addDocument;
+            getDoc           = getDocument;
+            getDocs          = getDocuments;
+            updateDoc        = updateDocument;
+            deleteDoc        = deleteDocument;
+            collection       = collectionRef;
+            query            = queryFn;
+            orderBy          = orderByFn;
+            limit            = limitFn;
+            startAfter       = startAfterFn;
+            where            = whereFn;
+            serverTimestamp  = timestamp;
+            increment        = incrementFn;
+            setDoc           = setDocument;
+            getCountFromServer = countFn;
+
+            this.firebaseInitialized = true;
+            console.log('✅ FeedAPIService: Firebase ready');
+        } catch (error) {
+            console.error('❌ FeedAPIService: Firebase init failed', error);
+        }
+    }
+
+    /** Wait until Firebase is ready (max 10 s) */
+    async waitForFirebase() {
+        let attempts = 0;
+        while (!this.firebaseInitialized && attempts < 20) {
+            await new Promise(r => setTimeout(r, 500));
+            attempts++;
+        }
+        if (!this.firebaseInitialized) {
+            throw new Error('Firebase not available. Please refresh the page.');
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.1 — CREATE POST
+    // ─────────────────────────────────────────────
 
     /**
-     * Create new post with media upload
+     * Create a new text post (with optional image URL for Phase 3/7 compat).
+     *
+     * @param {Object} postData
+     *   { content, imageUrl?, privacy? }
      */
     async createPost(postData) {
         try {
-            // 1. Upload media files if present
-            const uploadedMedia = {
-                photos: [],
-                videos: []
-            };
+            await this.waitForFirebase();
 
-            if (postData.photos && postData.photos.length > 0) {
-                uploadedMedia.photos = await this.uploadPhotos(postData.photos);
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('You must be logged in to post');
+
+            // Validate
+            if (!postData.content || postData.content.trim().length === 0) {
+                throw new Error('Post content cannot be empty');
+            }
+            if (postData.content.trim().length > 2000) {
+                throw new Error('Post must be 2000 characters or less');
             }
 
-            if (postData.videos && postData.videos.length > 0) {
-                uploadedMedia.videos = await this.uploadVideos(postData.videos);
-            }
-
-            // 2. Create post object
             const post = {
-                userId: postData.userId || 'current_user',
-                author: postData.author || 'Current User',
-                authorAvatar: postData.authorAvatar || '👤',
-                content: postData.content || '',
-                photos: uploadedMedia.photos,
-                videos: uploadedMedia.videos,
-                location: postData.location || null,
-                taggedFriends: postData.taggedFriends || [],
-                feeling: postData.feeling || null,
-                privacy: postData.privacy || 'public',
-                timestamp: Date.now(),
-                likes: 0,
-                comments: [],
-                shares: 0,
-                views: 0,
-                reactions: {
-                    like: 0,
-                    love: 0,
-                    haha: 0,
-                    wow: 0,
-                    sad: 0,
-                    angry: 0
-                },
-                gif: postData.gif || null,
-                poll: postData.poll || null,
-                background: postData.background || null,
-                hashtags: this.extractHashtags(postData.content),
-                mentions: this.extractMentions(postData.content),
-                linkPreview: await this.generateLinkPreview(postData.content),
-                analytics: {
-                    reach: 0,
-                    engagement: 0,
-                    clicks: 0,
-                    saves: 0,
-                    shares: 0
-                },
-                isEdited: false,
-                isPinned: false,
-                isSaved: false,
-                isArchived: false
+                userId:        currentUser.userId,
+                authorName:    currentUser.displayName  || currentUser.username || 'User',
+                authorUsername: currentUser.username    || '',
+                authorAvatar:  currentUser.profilePicture || '',
+                content:       postData.content.trim(),
+                imageUrl:      postData.imageUrl        || null,
+                privacy:       postData.privacy         || 'public',
+                likesCount:    0,
+                commentsCount: 0,
+                sharesCount:   0,
+                hashtags:      this._extractHashtags(postData.content),
+                mentions:      this._extractMentions(postData.content),
+                createdAt:     serverTimestamp(),
+                updatedAt:     serverTimestamp(),
+                isEdited:      false
             };
 
-            // 3. Save to backend
-            const savedPost = await this.savePostToBackend(post);
+            const postsRef  = collection(db, 'posts');
+            const docRef_   = await addDoc(postsRef, post);
 
-            // 4. Update local cache
-            this.postsCache.set(savedPost.id, savedPost);
+            console.log('✅ Post created:', docRef_.id);
 
-            // 5. Trigger real-time update
-            this.notifyPostCreated(savedPost);
-
-            return savedPost;
-
-        } catch (error) {
-            console.error('Error creating post:', error);
-            throw new Error(`Failed to create post: ${error.message}`);
-        }
-    }
-
-    /**
-     * Upload and compress photos
-     */
-    async uploadPhotos(photos) {
-        const uploadedPhotos = [];
-
-        for (const photo of photos) {
+            // Update the user's postsCount stat
             try {
-                // 1. Compress image
-                const compressedBlob = await this.compressImage(photo);
-
-                // 2. Upload to Firebase Storage
-                const url = await this.uploadToFirebaseStorage(compressedBlob, 'photos');
-
-                // 3. Generate thumbnail
-                const thumbnailUrl = await this.generateThumbnail(compressedBlob);
-
-                uploadedPhotos.push({
-                    url: url,
-                    thumbnail: thumbnailUrl,
-                    width: null,
-                    height: null,
-                    size: compressedBlob.size,
-                    uploadedAt: Date.now()
+                await updateDoc(doc(db, 'users', currentUser.userId), {
+                    'stats.postsCount': increment(1)
                 });
+            } catch (_) { /* stat update is non-critical */ }
 
-            } catch (error) {
-                console.error('Error uploading photo:', error);
-                throw error;
-            }
-        }
-
-        return uploadedPhotos;
-    }
-
-    /**
-     * Compress image using canvas
-     */
-    async compressImage(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const img = new Image();
-
-                img.onload = () => {
-                    // Calculate new dimensions
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > this.maxImageSize || height > this.maxImageSize) {
-                        if (width > height) {
-                            height = (height / width) * this.maxImageSize;
-                            width = this.maxImageSize;
-                        } else {
-                            width = (width / height) * this.maxImageSize;
-                            height = this.maxImageSize;
-                        }
-                    }
-
-                    // Create canvas and compress
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob) {
-                                resolve(blob);
-                            } else {
-                                reject(new Error('Failed to compress image'));
-                            }
-                        },
-                        'image/jpeg',
-                        this.compressionQuality
-                    );
-                };
-
-                img.onerror = () => reject(new Error('Failed to load image'));
-                img.src = e.target.result;
-            };
-
-            reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsDataURL(file);
-        });
-    }
-
-    /**
-     * Generate thumbnail
-     */
-    async generateThumbnail(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const img = new Image();
-
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const thumbnailSize = 300;
-
-                    canvas.width = thumbnailSize;
-                    canvas.height = thumbnailSize;
-
-                    const ctx = canvas.getContext('2d');
-                    const scale = Math.min(thumbnailSize / img.width, thumbnailSize / img.height);
-                    const x = (thumbnailSize - img.width * scale) / 2;
-                    const y = (thumbnailSize - img.height * scale) / 2;
-
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                    canvas.toBlob(
-                        async (thumbnailBlob) => {
-                            if (thumbnailBlob) {
-                                const url = await this.uploadToFirebaseStorage(thumbnailBlob, 'thumbnails');
-                                resolve(url);
-                            } else {
-                                reject(new Error('Failed to generate thumbnail'));
-                            }
-                        },
-                        'image/jpeg',
-                        0.7
-                    );
-                };
-
-                img.onerror = () => reject(new Error('Failed to load image for thumbnail'));
-                img.src = e.target.result;
-            };
-
-            reader.onerror = () => reject(new Error('Failed to read blob'));
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    /**
-     * Upload to Firebase Storage
-     */
-    async uploadToFirebaseStorage(blob, folder = 'posts') {
-        try {
-            // If using Firebase
-            if (!firebaseService.mockMode && firebaseService.storage) {
-                const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
-                const storageRef = firebaseService.storage.ref(filename);
-                
-                const snapshot = await storageRef.put(blob);
-                const downloadURL = await snapshot.ref.getDownloadURL();
-                
-                return downloadURL;
-            }
-
-            // Mock mode - convert to base64 data URL
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
-
-        } catch (error) {
-            console.error('Error uploading to Firebase Storage:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Upload videos
-     */
-    async uploadVideos(videos) {
-        const uploadedVideos = [];
-
-        for (const video of videos) {
-            try {
-                // Upload video file
-                const url = await this.uploadToFirebaseStorage(video, 'videos');
-
-                // Generate video thumbnail
-                const thumbnailUrl = await this.generateVideoThumbnail(video);
-
-                uploadedVideos.push({
-                    url: url,
-                    thumbnail: thumbnailUrl,
-                    duration: 0,
-                    size: video.size,
-                    uploadedAt: Date.now()
-                });
-
-            } catch (error) {
-                console.error('Error uploading video:', error);
-                throw error;
-            }
-        }
-
-        return uploadedVideos;
-    }
-
-    /**
-     * Generate video thumbnail
-     */
-    async generateVideoThumbnail(videoFile) {
-        return new Promise((resolve) => {
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-
-            video.onloadedmetadata = () => {
-                video.currentTime = 1; // Capture at 1 second
-            };
-
-            video.onseeked = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                canvas.toBlob(
-                    async (blob) => {
-                        if (blob) {
-                            const url = await this.uploadToFirebaseStorage(blob, 'video-thumbnails');
-                            resolve(url);
-                        } else {
-                            resolve(null);
-                        }
-                    },
-                    'image/jpeg',
-                    0.8
-                );
-            };
-
-            video.src = URL.createObjectURL(videoFile);
-        });
-    }
-
-    // ========== POST RETRIEVAL WITH PAGINATION ==========
-
-    /**
-     * Get feed posts with pagination
-     */
-    async getFeedPosts(page = 1, limit = 10, filters = {}) {
-        try {
-            const params = {
-                page: page,
-                limit: limit,
-                ...filters
-            };
-
-            // Check if using Firebase or API
-            if (firebaseService.mockMode) {
-                return await this.getPaginatedPostsFromFirebase(params);
-            } else {
-                return await apiService.get('/posts/feed', params);
-            }
-
-        } catch (error) {
-            console.error('Error fetching feed posts:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Get paginated posts from Firebase
-     */
-    async getPaginatedPostsFromFirebase(params) {
-        const allPosts = await firebaseService.getData('posts') || [];
-        
-        const startIndex = (params.page - 1) * params.limit;
-        const endIndex = startIndex + params.limit;
-        
-        const paginatedPosts = allPosts.slice(startIndex, endIndex);
-        
-        return {
-            posts: paginatedPosts,
-            pagination: {
-                currentPage: params.page,
-                totalPages: Math.ceil(allPosts.length / params.limit),
-                totalPosts: allPosts.length,
-                hasMore: endIndex < allPosts.length
-            }
-        };
-    }
-
-    /**
-     * Load more posts (infinite scroll)
-     */
-    async loadMorePosts() {
-        this.pagination.currentPage++;
-        const result = await this.getFeedPosts(
-            this.pagination.currentPage,
-            this.pagination.postsPerPage
-        );
-        
-        this.pagination.hasMore = result.pagination.hasMore;
-        return result.posts;
-    }
-
-    // ========== LIKE/COMMENT PERSISTENCE ==========
-
-    /**
-     * Like/Unlike post
-     */
-    async toggleLike(postId, userId = 'current_user') {
-        try {
-            // Get current post
-            const post = await this.getPost(postId);
-            
-            if (!post) throw new Error('Post not found');
-
-            // Toggle like status
-            const isLiked = post.likedBy && post.likedBy.includes(userId);
-            
-            if (isLiked) {
-                // Unlike
-                post.likes = Math.max(0, post.likes - 1);
-                post.likedBy = post.likedBy.filter(id => id !== userId);
-                post.reactions.like = Math.max(0, post.reactions.like - 1);
-            } else {
-                // Like
-                post.likes++;
-                post.likedBy = post.likedBy || [];
-                post.likedBy.push(userId);
-                post.reactions.like++;
-            }
-
-            // Update in backend
-            await this.updatePostInBackend(postId, {
-                likes: post.likes,
-                likedBy: post.likedBy,
-                reactions: post.reactions
-            });
-
-            // Update cache
-            this.postsCache.set(postId, post);
-
-            // Trigger real-time update
-            this.notifyPostUpdated(post);
+            // Emit browser event so UI can react
+            window.dispatchEvent(new CustomEvent('post:created', {
+                detail: { postId: docRef_.id, ...post }
+            }));
 
             return {
                 success: true,
-                isLiked: !isLiked,
-                likes: post.likes
+                postId: docRef_.id,
+                data: { postId: docRef_.id, ...post }
             };
-
         } catch (error) {
-            console.error('Error toggling like:', error);
-            throw error;
+            console.error('❌ createPost error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.2 — FETCH FEED (newest first)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Load the first page of the feed.
+     * Resets the pagination cursor — call this on initial load or refresh.
+     */
+    async getFeed(options = {}) {
+        try {
+            await this.waitForFirebase();
+
+            this.lastVisiblePost = null;   // reset cursor
+
+            const pageSize = options.limit || this.postsPerPage;
+
+            const q = query(
+                collection(db, 'posts'),
+                orderBy('createdAt', 'desc'),
+                limit(pageSize)
+            );
+
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                return { success: true, data: [], hasMore: false };
+            }
+
+            // Save cursor for pagination
+            this.lastVisiblePost = snapshot.docs[snapshot.docs.length - 1];
+
+            const posts = await Promise.all(
+                snapshot.docs.map(d => this._hydratePost(d))
+            );
+
+            return {
+                success: true,
+                data: posts,
+                hasMore: posts.length === pageSize
+            };
+        } catch (error) {
+            console.error('❌ getFeed error:', error);
+            return { success: false, error: error.message, data: [] };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.6 — PAGINATION (load more)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Load the NEXT page of posts using the cursor from the previous call.
+     */
+    async loadMorePosts(options = {}) {
+        try {
+            await this.waitForFirebase();
+
+            if (!this.lastVisiblePost) {
+                // Nothing to paginate from — return empty
+                return { success: true, data: [], hasMore: false };
+            }
+
+            const pageSize = options.limit || this.postsPerPage;
+
+            const q = query(
+                collection(db, 'posts'),
+                orderBy('createdAt', 'desc'),
+                startAfter(this.lastVisiblePost),
+                limit(pageSize)
+            );
+
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                return { success: true, data: [], hasMore: false };
+            }
+
+            this.lastVisiblePost = snapshot.docs[snapshot.docs.length - 1];
+
+            const posts = await Promise.all(
+                snapshot.docs.map(d => this._hydratePost(d))
+            );
+
+            return {
+                success: true,
+                data: posts,
+                hasMore: posts.length === pageSize
+            };
+        } catch (error) {
+            console.error('❌ loadMorePosts error:', error);
+            return { success: false, error: error.message, data: [] };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.7 — REFRESH FEED
+    // ─────────────────────────────────────────────
+
+    /**
+     * Reload the feed from the top (same as getFeed but explicit name).
+     */
+    async refreshFeed(options = {}) {
+        return this.getFeed(options);
+    }
+
+    // ─────────────────────────────────────────────
+    //  GET SINGLE POST
+    // ─────────────────────────────────────────────
+
+    async getPost(postId) {
+        try {
+            await this.waitForFirebase();
+
+            const postSnap = await getDoc(doc(db, 'posts', postId));
+            if (!postSnap.exists()) {
+                return { success: false, error: 'Post not found' };
+            }
+
+            const post = await this._hydratePost(postSnap);
+            return { success: true, data: post };
+        } catch (error) {
+            console.error('❌ getPost error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.3 — LIKE / UNLIKE
+    // ─────────────────────────────────────────────
+
+    /**
+     * Toggle like on a post.
+     * Stores one document per user in posts/{postId}/likes/{userId}.
+     * Returns { success, isLiked, likesCount }
+     */
+    async toggleLike(postId) {
+        try {
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('You must be logged in to like posts');
+
+            const likeRef = doc(db, 'posts', postId, 'likes', currentUser.userId);
+            const likeSnap = await getDoc(likeRef);
+
+            const postRef = doc(db, 'posts', postId);
+
+            if (likeSnap.exists()) {
+                // ── Already liked → unlike ──────────────────
+                await deleteDoc(likeRef);
+                await updateDoc(postRef, { likesCount: increment(-1) });
+
+                const postSnap = await getDoc(postRef);
+                const likesCount = postSnap.data()?.likesCount ?? 0;
+
+                window.dispatchEvent(new CustomEvent('post:unliked', {
+                    detail: { postId, likesCount }
+                }));
+
+                return { success: true, isLiked: false, likesCount };
+            } else {
+                // ── Not liked yet → like ────────────────────
+                await setDoc(likeRef, {
+                    userId:    currentUser.userId,
+                    likedAt:   serverTimestamp()
+                });
+                await updateDoc(postRef, { likesCount: increment(1) });
+
+                const postSnap = await getDoc(postRef);
+                const likesCount = postSnap.data()?.likesCount ?? 1;
+
+                window.dispatchEvent(new CustomEvent('post:liked', {
+                    detail: { postId, likesCount }
+                }));
+
+                return { success: true, isLiked: true, likesCount };
+            }
+        } catch (error) {
+            console.error('❌ toggleLike error:', error);
+            return { success: false, error: error.message };
         }
     }
 
     /**
-     * Add comment to post
+     * Check whether the current user has liked a specific post.
      */
-    async addComment(postId, commentData) {
+    async hasLiked(postId) {
         try {
-            const post = await this.getPost(postId);
-            
-            if (!post) throw new Error('Post not found');
+            await this.waitForFirebase();
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) return false;
+
+            const likeSnap = await getDoc(
+                doc(db, 'posts', postId, 'likes', currentUser.userId)
+            );
+            return likeSnap.exists();
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK 4.4 — COMMENTS
+    // ─────────────────────────────────────────────
+
+    /**
+     * Add a comment to a post.
+     * Stores it in posts/{postId}/comments/{commentId}.
+     */
+    async addComment(postId, text) {
+        try {
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('You must be logged in to comment');
+
+            if (!text || text.trim().length === 0) {
+                throw new Error('Comment cannot be empty');
+            }
+            if (text.trim().length > 500) {
+                throw new Error('Comment must be 500 characters or less');
+            }
 
             const comment = {
-                id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                postId: postId,
-                userId: commentData.userId || 'current_user',
-                author: commentData.author || 'Current User',
-                authorAvatar: commentData.authorAvatar || '👤',
-                text: commentData.text,
-                timestamp: Date.now(),
-                likes: 0,
-                replies: []
+                postId:          postId,
+                userId:          currentUser.userId,
+                authorName:      currentUser.displayName || currentUser.username || 'User',
+                authorUsername:  currentUser.username   || '',
+                authorAvatar:    currentUser.profilePicture || '',
+                text:            text.trim(),
+                likesCount:      0,
+                createdAt:       serverTimestamp()
             };
 
-            // Add comment to post
-            post.comments = post.comments || [];
-            post.comments.push(comment);
+            const commentsRef = collection(db, 'posts', postId, 'comments');
+            const commentDoc  = await addDoc(commentsRef, comment);
 
-            // Update in backend
-            await this.updatePostInBackend(postId, {
-                comments: post.comments
+            // Increment the post's commentsCount
+            await updateDoc(doc(db, 'posts', postId), {
+                commentsCount: increment(1)
             });
 
-            // Update cache
-            this.postsCache.set(postId, post);
+            window.dispatchEvent(new CustomEvent('post:commented', {
+                detail: { postId, commentId: commentDoc.id, ...comment }
+            }));
 
-            // Trigger real-time update
-            this.notifyPostUpdated(post);
-
-            return comment;
-
+            return {
+                success: true,
+                commentId: commentDoc.id,
+                data: { commentId: commentDoc.id, ...comment }
+            };
         } catch (error) {
-            console.error('Error adding comment:', error);
-            throw error;
+            console.error('❌ addComment error:', error);
+            return { success: false, error: error.message };
         }
     }
 
     /**
-     * Get post comments
+     * Fetch all comments on a post, newest first.
      */
-    async getComments(postId) {
+    async getComments(postId, options = {}) {
         try {
-            const post = await this.getPost(postId);
-            return post ? post.comments || [] : [];
+            await this.waitForFirebase();
+
+            const q = query(
+                collection(db, 'posts', postId, 'comments'),
+                orderBy('createdAt', 'desc'),
+                limit(options.limit || 50)
+            );
+
+            const snap = await getDocs(q);
+            const comments = snap.docs.map(d => ({ commentId: d.id, ...d.data() }));
+
+            return { success: true, data: comments };
         } catch (error) {
-            console.error('Error getting comments:', error);
-            return [];
+            console.error('❌ getComments error:', error);
+            return { success: false, error: error.message, data: [] };
         }
     }
 
     /**
-     * Update comment counts
+     * Delete a comment (only the comment author can do this).
      */
-    async updateCommentCount(postId) {
-        const post = await this.getPost(postId);
-        if (post) {
-            const commentCount = post.comments ? post.comments.length : 0;
-            await this.updatePostInBackend(postId, { commentCount });
-        }
-    }
+    async deleteComment(postId, commentId) {
+        try {
+            await this.waitForFirebase();
 
-    // ========== REAL-TIME UPDATES ==========
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
 
-    /**
-     * Subscribe to real-time post updates
-     */
-    subscribeToPostUpdates(callback) {
-        const unsubscribe = firebaseService.onDataChange('posts', (posts) => {
-            // Update cache
-            if (Array.isArray(posts)) {
-                posts.forEach(post => {
-                    this.postsCache.set(post.id, post);
-                });
+            const commentRef  = doc(db, 'posts', postId, 'comments', commentId);
+            const commentSnap = await getDoc(commentRef);
+
+            if (!commentSnap.exists()) {
+                return { success: false, error: 'Comment not found' };
             }
-            
-            // Notify callback
-            callback(posts);
-        });
-
-        return unsubscribe;
-    }
-
-    /**
-     * Notify post created
-     */
-    notifyPostCreated(post) {
-        // Trigger real-time update
-        firebaseService.simulateRealTimeUpdate('posts', 500);
-        
-        // Emit event
-        if (window.dispatchEvent) {
-            window.dispatchEvent(new CustomEvent('post:created', { detail: post }));
-        }
-    }
-
-    /**
-     * Notify post updated
-     */
-    notifyPostUpdated(post) {
-        // Trigger real-time update
-        firebaseService.simulateRealTimeUpdate('posts', 300);
-        
-        // Emit event
-        if (window.dispatchEvent) {
-            window.dispatchEvent(new CustomEvent('post:updated', { detail: post }));
-        }
-    }
-
-    // ========== POST OPERATIONS ==========
-
-    /**
-     * Get single post
-     */
-    async getPost(postId) {
-        // Check cache first
-        if (this.postsCache.has(postId)) {
-            return this.postsCache.get(postId);
-        }
-
-        // Fetch from backend
-        try {
-            const posts = await firebaseService.getData('posts') || [];
-            const post = posts.find(p => p.id === postId);
-            
-            if (post) {
-                this.postsCache.set(postId, post);
+            if (commentSnap.data().userId !== currentUser.userId) {
+                return { success: false, error: 'You can only delete your own comments' };
             }
-            
-            return post;
-        } catch (error) {
-            console.error('Error getting post:', error);
-            return null;
-        }
-    }
 
-    /**
-     * Update post
-     */
-    async updatePost(postId, updates) {
-        try {
-            const post = await this.getPost(postId);
-            
-            if (!post) throw new Error('Post not found');
-
-            // Merge updates
-            Object.assign(post, updates, { 
-                isEdited: true,
-                lastEditedAt: Date.now()
+            await deleteDoc(commentRef);
+            await updateDoc(doc(db, 'posts', postId), {
+                commentsCount: increment(-1)
             });
 
-            // Save to backend
-            await this.updatePostInBackend(postId, post);
-
-            // Update cache
-            this.postsCache.set(postId, post);
-
-            // Trigger real-time update
-            this.notifyPostUpdated(post);
-
-            return post;
-
+            return { success: true };
         } catch (error) {
-            console.error('Error updating post:', error);
-            throw error;
+            console.error('❌ deleteComment error:', error);
+            return { success: false, error: error.message };
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  TASK 4.5 — DELETE OWN POST
+    // ─────────────────────────────────────────────
+
     /**
-     * Delete post
+     * Delete a post. Only the post author can delete it.
      */
     async deletePost(postId) {
         try {
-            // Delete from backend
-            await firebaseService.deleteData('posts', postId);
+            await this.waitForFirebase();
 
-            // Remove from cache
-            this.postsCache.delete(postId);
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
 
-            // Trigger real-time update
-            firebaseService.simulateRealTimeUpdate('posts', 300);
+            const postRef  = doc(db, 'posts', postId);
+            const postSnap = await getDoc(postRef);
 
-            return true;
+            if (!postSnap.exists()) {
+                return { success: false, error: 'Post not found' };
+            }
+            if (postSnap.data().userId !== currentUser.userId) {
+                return { success: false, error: 'You can only delete your own posts' };
+            }
 
+            await deleteDoc(postRef);
+
+            // Decrement user's postsCount
+            try {
+                await updateDoc(doc(db, 'users', currentUser.userId), {
+                    'stats.postsCount': increment(-1)
+                });
+            } catch (_) { /* non-critical */ }
+
+            window.dispatchEvent(new CustomEvent('post:deleted', {
+                detail: { postId }
+            }));
+
+            return { success: true, message: 'Post deleted' };
         } catch (error) {
-            console.error('Error deleting post:', error);
-            throw error;
+            console.error('❌ deletePost error:', error);
+            return { success: false, error: error.message };
         }
     }
 
-    /**
-     * Save post to backend
-     */
-    async savePostToBackend(post) {
+    // ─────────────────────────────────────────────
+    //  GET A USER'S OWN POSTS (for profile page)
+    // ─────────────────────────────────────────────
+
+    async getUserPosts(userId, options = {}) {
         try {
-            post.id = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            
-            const posts = await firebaseService.getData('posts') || [];
-            posts.unshift(post);
-            
-            await firebaseService.setData('posts', posts);
-            
-            return post;
+            await this.waitForFirebase();
 
-        } catch (error) {
-            console.error('Error saving post to backend:', error);
-            throw error;
-        }
-    }
+            if (!userId) {
+                const u = window.authService?.getCurrentUser();
+                if (!u) return { success: false, error: 'Not logged in', data: [] };
+                userId = u.userId;
+            }
 
-    /**
-     * Update post in backend
-     */
-    async updatePostInBackend(postId, updates) {
-        try {
-            await firebaseService.updateData('posts', postId, updates);
-            return true;
-        } catch (error) {
-            console.error('Error updating post in backend:', error);
-            throw error;
-        }
-    }
+            const pageSize = options.limit || this.postsPerPage;
 
-    // ========== UTILITY FUNCTIONS ==========
+            const q = query(
+                collection(db, 'posts'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(pageSize)
+            );
 
-    /**
-     * Extract hashtags from content
-     */
-    extractHashtags(content) {
-        if (!content) return [];
-        const hashtagRegex = /#(\w+)/g;
-        const matches = content.match(hashtagRegex);
-        return matches ? matches.map(tag => tag.substring(1)) : [];
-    }
+            const snap  = await getDocs(q);
+            const posts = await Promise.all(snap.docs.map(d => this._hydratePost(d)));
 
-    /**
-     * Extract mentions from content
-     */
-    extractMentions(content) {
-        if (!content) return [];
-        const mentionRegex = /@(\w+)/g;
-        const matches = content.match(mentionRegex);
-        return matches ? matches.map(mention => mention.substring(1)) : [];
-    }
-
-    /**
-     * Generate link preview
-     */
-    async generateLinkPreview(content) {
-        if (!content) return null;
-        
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const match = content.match(urlRegex);
-        
-        if (match && match[0]) {
-            const url = match[0];
-            const domain = new URL(url).hostname;
-            
             return {
-                url: url,
-                title: 'Link Preview',
-                description: 'Click to view content',
-                domain: domain,
-                icon: '🔗',
-                image: null
+                success: true,
+                data: posts,
+                hasMore: posts.length === pageSize
             };
-        }
-        
-        return null;
-    }
-
-    /**
-     * Increment view count
-     */
-    async incrementViews(postId) {
-        try {
-            const post = await this.getPost(postId);
-            if (post) {
-                post.views = (post.views || 0) + 1;
-                await this.updatePostInBackend(postId, { views: post.views });
-            }
         } catch (error) {
-            console.error('Error incrementing views:', error);
+            console.error('❌ getUserPosts error:', error);
+            return { success: false, error: error.message, data: [] };
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  EDIT POST
+    // ─────────────────────────────────────────────
+
     /**
-     * Update analytics
+     * Edit the content of an existing post (author only).
      */
-    async updateAnalytics(postId, analyticsData) {
+    async editPost(postId, newContent) {
         try {
-            const post = await this.getPost(postId);
-            if (post) {
-                post.analytics = {
-                    ...post.analytics,
-                    ...analyticsData
-                };
-                await this.updatePostInBackend(postId, { analytics: post.analytics });
+            await this.waitForFirebase();
+
+            const currentUser = window.authService?.getCurrentUser();
+            if (!currentUser) throw new Error('Not logged in');
+
+            if (!newContent || newContent.trim().length === 0) {
+                throw new Error('Post content cannot be empty');
             }
+
+            const postRef  = doc(db, 'posts', postId);
+            const postSnap = await getDoc(postRef);
+
+            if (!postSnap.exists()) return { success: false, error: 'Post not found' };
+            if (postSnap.data().userId !== currentUser.userId) {
+                return { success: false, error: 'You can only edit your own posts' };
+            }
+
+            await updateDoc(postRef, {
+                content:   newContent.trim(),
+                isEdited:  true,
+                updatedAt: serverTimestamp(),
+                hashtags:  this._extractHashtags(newContent),
+                mentions:  this._extractMentions(newContent)
+            });
+
+            return { success: true, message: 'Post updated' };
         } catch (error) {
-            console.error('Error updating analytics:', error);
+            console.error('❌ editPost error:', error);
+            return { success: false, error: error.message };
         }
     }
 
-    /**
-     * Clear cache
-     */
-    clearCache() {
-        this.postsCache.clear();
-        console.log('Feed cache cleared');
-    }
+    // ─────────────────────────────────────────────
+    //  PRIVATE HELPERS
+    // ─────────────────────────────────────────────
 
     /**
-     * Get service info
+     * Convert a Firestore document snapshot into a plain post object.
+     * Also attaches whether the current user has liked it.
      */
-    getInfo() {
+    async _hydratePost(docSnap) {
+        const data   = docSnap.data();
+        const postId = docSnap.id;
+
+        // Check if current user liked this post
+        let isLiked = false;
+        try {
+            const currentUser = window.authService?.getCurrentUser();
+            if (currentUser) {
+                const likeSnap = await getDoc(
+                    doc(db, 'posts', postId, 'likes', currentUser.userId)
+                );
+                isLiked = likeSnap.exists();
+            }
+        } catch (_) { /* non-critical */ }
+
         return {
-            cachedPosts: this.postsCache.size,
-            realtimeListeners: this.realtimeListeners.size,
-            pagination: this.pagination,
-            compressionQuality: this.compressionQuality,
-            maxImageSize: this.maxImageSize
+            postId,
+            ...data,
+            isLiked,
+            // Convert Firestore timestamps to ISO strings for easy display
+            createdAtDisplay: data.createdAt?.toDate
+                ? this._timeAgo(data.createdAt.toDate())
+                : 'Just now'
         };
     }
+
+    /** Extract #hashtags from text */
+    _extractHashtags(text) {
+        if (!text) return [];
+        return (text.match(/#(\w+)/g) || []).map(t => t.slice(1));
+    }
+
+    /** Extract @mentions from text */
+    _extractMentions(text) {
+        if (!text) return [];
+        return (text.match(/@(\w+)/g) || []).map(m => m.slice(1));
+    }
+
+    /** Human-friendly relative time ("2 minutes ago") */
+    _timeAgo(date) {
+        const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (seconds < 60)   return 'Just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        return `${Math.floor(seconds / 86400)}d ago`;
+    }
+
+    // ─────────────────────────────────────────────
+    //  LEGACY / BACKWARD COMPATIBILITY STUBS
+    //  (kept so existing UI code doesn't break)
+    // ─────────────────────────────────────────────
+
+    /** Alias used by old UI code */
+    async getFeedPosts(page = 1, limit_ = 20) {
+        if (page === 1) return this.getFeed({ limit: limit_ });
+        return this.loadMorePosts({ limit: limit_ });
+    }
+
+    /** Old toggleLike signature accepted (postId, userId) */
+    async likePost(postId)   { return this.toggleLike(postId); }
+    async unlikePost(postId) { return this.toggleLike(postId); }
 }
 
-// Create and export global instance
+// ── Singleton ─────────────────────────────────
 const feedAPIService = new FeedAPIService();
 window.feedAPIService = feedAPIService;
 
