@@ -598,4 +598,4 @@ const LynkApp = (() => {
 // Make globally available
 window.LynkApp = LynkApp;
 
-export default LynkApp;
+// export default LynkApp; // Removed: loaded as regular <script>, not ES module
