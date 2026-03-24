@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Dating API Service
  * Complete backend integration for Dating System
  * Includes: Matching algorithm, distance calculation, profile setup, dating chat, preferences filtering
@@ -808,4 +808,4 @@ class DatingAPIService {
 const datingAPIService = new DatingAPIService();
 window.datingAPIService = datingAPIService;
 
-export default datingAPIService;
+// export default datingAPIService;

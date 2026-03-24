@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LynkApp Messaging Service - Phase 6
  * Real-time Firebase/Firestore Direct Messaging
  *
@@ -619,4 +619,4 @@ window.addEventListener('beforeunload', () => {
     messagingService.stopAllListeners();
 });
 
-export default messagingService;
+// export default messagingService;

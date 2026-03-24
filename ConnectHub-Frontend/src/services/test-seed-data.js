@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LynkApp Test Seed Data - Phase 10
  * Creates test accounts and sample data for user testing
  *
@@ -492,4 +492,4 @@ const TestSeed = (() => {
 window.TestSeed = TestSeed;
 console.log('🌱 TestSeed loaded! Run: TestSeed.quickVerify() or TestSeed.runAll()');
 
-export default TestSeed;
+// export default TestSeed;

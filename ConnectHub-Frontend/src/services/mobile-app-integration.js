@@ -1,13 +1,13 @@
-/**
+﻿/**
  * ConnectHub Mobile App Integration Service
  * Connects mobile UI to backend services
  * Phase 1: Core Infrastructure Implementation
  */
 
-import apiService from './api-service.js';
-import authService from './auth-service.js';
-import realtimeService from './realtime-service.js';
-import stateService from './state-service.js';
+const apiService = window.apiService;
+const authService = window.authService;
+const realtimeService = window.realtimeService;
+const stateService = window.stateService;
 
 class MobileAppIntegration {
     constructor() {
@@ -655,4 +655,4 @@ if (document.readyState === 'loading') {
 
 window.mobileApp = mobileApp;
 
-export default mobileApp;
+// export default mobileApp;

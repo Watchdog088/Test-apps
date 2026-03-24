@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub WebRTC Calling System
  * Handles voice and video calls using WebRTC technology
  */
@@ -532,4 +532,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Export for use in other modules
-export { CallManager };
+// export { CallManager };

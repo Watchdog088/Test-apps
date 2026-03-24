@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Upload Manager
  * Handles file uploads with queue, progress tracking, and retry logic
  */
@@ -428,4 +428,4 @@ class UploadManager {
 const uploadManager = new UploadManager();
 window.uploadManager = uploadManager;
 
-export default uploadManager;
+// export default uploadManager;

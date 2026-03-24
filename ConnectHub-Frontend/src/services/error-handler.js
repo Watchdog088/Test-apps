@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Error Handler
  * Comprehensive error handling and recovery system
  */
@@ -445,4 +445,4 @@ window.errorHandler = errorHandler;
 // Add helper method to window for easy access
 window.handleError = (error, options) => errorHandler.handleError(error, options);
 
-export default errorHandler;
+// export default errorHandler;

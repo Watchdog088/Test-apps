@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Marketplace API Service
  * Complete backend integration for all 17 marketplace features
  * Connects to backend API endpoints for full e-commerce functionality
@@ -911,7 +911,7 @@ class MarketplaceAPIService {
 
 // Export singleton instance
 const marketplaceAPIService = new MarketplaceAPIService();
-export default marketplaceAPIService;
+// export default marketplaceAPIService;
 
 // Also export for use in window scope
 if (typeof window !== 'undefined') {

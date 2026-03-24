@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Complete Features Integration
  * Master service integrating all missing features across all systems
  * Includes: Profile, Notifications, Live Streaming, Video Calls, Marketplace
@@ -1044,7 +1044,7 @@ console.log('✓ Live Streaming: Camera access, RTMP server, live chat');
 console.log('✓ Video Calls: WebRTC P2P, signaling server, actual video/audio');
 console.log('✓ Marketplace: Checkout, payment processing, order management');
 
-export {
+// export {
     profileManagement,
     pushNotifications,
     liveStreaming,

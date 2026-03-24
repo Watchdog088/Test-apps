@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MediaStack API Service
  * Real-time News from 7,500+ Sources
  * Free Tier: 500 requests/month
@@ -348,4 +348,4 @@ class MediaStackService {
 
 // Create and export singleton instance
 const mediaStackService = new MediaStackService();
-export default mediaStackService;
+// export default mediaStackService;

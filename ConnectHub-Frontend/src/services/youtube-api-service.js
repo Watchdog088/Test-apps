@@ -1,4 +1,4 @@
-/**
+﻿/**
  * YouTube Data API Service
  * Trending Videos & Content
  * Free Tier: 10,000 units/day
@@ -457,4 +457,4 @@ class YouTubeService {
 
 // Create and export singleton instance
 const youtubeService = new YouTubeService();
-export default youtubeService;
+// export default youtubeService;

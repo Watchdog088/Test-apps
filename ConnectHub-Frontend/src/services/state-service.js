@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub State Management Service
  * Centralized state management for the mobile app
  * Phase 1: Core Infrastructure Implementation
@@ -450,4 +450,4 @@ stateService.loadPersistedState();
 
 window.stateService = stateService;
 
-export default stateService;
+// export default stateService;

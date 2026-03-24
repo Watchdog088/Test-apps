@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OpenAI Moderation Service
  * Provides content moderation using OpenAI's moderation API
  * FREE with your API key - protects against harmful content
@@ -223,7 +223,7 @@ class OpenAIModerationService {
 
 // Export singleton instance
 const openaiModerationService = new OpenAIModerationService();
-export default openaiModerationService;
+// export default openaiModerationService;
 
 // Also export for testing
-export { OpenAIModerationService };
+// export { OpenAIModerationService };

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub - Enhanced Voice/Video Call UI Components
  * This file contains the 3 missing UI interfaces for the Voice/Video Calls section
  * Developed in detail with comprehensive functionality and modern design
@@ -3227,4 +3227,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Export for use in other modules
-export { CallsUIManager };
+// export { CallsUIManager };

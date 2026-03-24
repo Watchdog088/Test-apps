@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NewsAPI Service - Trending News Integration
  * Fetches real news articles from NewsAPI.org
  */
@@ -217,4 +217,4 @@ class NewsAPIService {
 
 // Export singleton instance
 const newsAPIService = new NewsAPIService();
-export default newsAPIService;
+// export default newsAPIService;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Payment Service
  * Handles Apple Pay, Google Pay, PayPal, Stripe, and Venmo integrations
  */
@@ -431,4 +431,4 @@ class PaymentService {
 const paymentService = new PaymentService();
 window.paymentService = paymentService;
 
-export default paymentService;
+// export default paymentService;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LynkApp Notification Service - Phase 8
  * Real-time In-App Notifications (Firestore)
  *
@@ -591,4 +591,4 @@ window.addEventListener('beforeunload', () => {
     notificationService.stopAllListeners();
 });
 
-export default notificationService;
+// export default notificationService;

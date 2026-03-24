@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub Offline Manager
  * IndexedDB-based storage for offline functionality
  */
@@ -419,4 +419,4 @@ class OfflineManager {
 const offlineManager = new OfflineManager();
 window.offlineManager = offlineManager;
 
-export default offlineManager;
+// export default offlineManager;

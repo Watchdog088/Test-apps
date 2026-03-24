@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LynkApp Feed API Service - Phase 4
  * Real Firebase/Firestore Feed & Posts Integration
  *
@@ -686,4 +686,4 @@ class FeedAPIService {
 const feedAPIService = new FeedAPIService();
 window.feedAPIService = feedAPIService;
 
-export default feedAPIService;
+// export default feedAPIService;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ConnectHub API Service
  * Comprehensive API client for all mobile app features
  * Phase 1: Core Infrastructure Implementation
@@ -199,4 +199,4 @@ class APIService {
 const apiService = new APIService();
 window.apiService = apiService;
 
-export default apiService;
+// export default apiService;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LynkApp Storage Service - Phase 7
  * Firebase Storage File Uploads
  *
@@ -474,4 +474,4 @@ class StorageService {
 const storageService = new StorageService();
 window.storageService = storageService;
 
-export default storageService;
+// export default storageService;
