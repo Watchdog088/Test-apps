@@ -1,3 +1,4 @@
+(function(){
 ﻿/**
  * LynkApp Notification Service - Phase 8
  * Real-time In-App Notifications (Firestore)
@@ -592,3 +593,5 @@ window.addEventListener('beforeunload', () => {
 });
 
 // export default notificationService;
+
+})();

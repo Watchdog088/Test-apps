@@ -39,7 +39,7 @@ echo [1/5] Uploading index.html...
 aws s3 cp "ConnectHub-Frontend\index.html" s3://!BUCKET_NAME!/ ^
     --content-type "text/html; charset=utf-8" ^
     --cache-control "no-cache, no-store, must-revalidate" ^
-    --acl public-read >nul 2>&1
+    >nul 2>&1
 echo [OK] index.html
 
 REM ── Upload service worker (always no-cache) ─────────────────────────
@@ -47,7 +47,7 @@ if exist "ConnectHub-Frontend\service-worker.js" (
     aws s3 cp "ConnectHub-Frontend\service-worker.js" s3://!BUCKET_NAME!/ ^
         --content-type "application/javascript" ^
         --cache-control "no-cache" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 
 REM ── Sync CSS files ──────────────────────────────────────────────────
@@ -57,7 +57,7 @@ if exist "ConnectHub-Frontend\src\css\" (
         --exclude "*" --include "*.css" ^
         --content-type "text/css" ^
         --cache-control "max-age=3600" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 echo [OK] CSS synced
 
@@ -68,7 +68,7 @@ if exist "ConnectHub-Frontend\src\services\" (
         aws s3 cp "%%F" s3://!BUCKET_NAME!/src/services/ ^
             --content-type "application/javascript; charset=utf-8" ^
             --cache-control "no-cache, no-store, must-revalidate" ^
-            --acl public-read >nul 2>&1
+            >nul 2>&1
     )
 )
 echo [OK] Service files synced (firebase-config, auth, messaging, etc.)
@@ -80,7 +80,7 @@ if exist "ConnectHub-Frontend\src\js\" (
         --exclude "*" --include "*.js" ^
         --content-type "application/javascript; charset=utf-8" ^
         --cache-control "max-age=3600" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 echo [OK] UI JS synced
 
@@ -90,19 +90,19 @@ if exist "ConnectHub-Frontend\creator-profile.html" (
     aws s3 cp "ConnectHub-Frontend\creator-profile.html" s3://!BUCKET_NAME!/creator-profile.html ^
         --content-type "text/html; charset=utf-8" ^
         --cache-control "no-cache" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 if exist "ConnectHub-Frontend\premium-profile.html" (
     aws s3 cp "ConnectHub-Frontend\premium-profile.html" s3://!BUCKET_NAME!/premium-profile.html ^
         --content-type "text/html; charset=utf-8" ^
         --cache-control "no-cache" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 if exist "ConnectHub-Frontend\manifest.json" (
     aws s3 cp "ConnectHub-Frontend\manifest.json" s3://!BUCKET_NAME!/ ^
         --content-type "application/json" ^
         --cache-control "max-age=86400" ^
-        --acl public-read >nul 2>&1
+        >nul 2>&1
 )
 echo [OK] Additional pages synced
 

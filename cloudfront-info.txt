@@ -1,0 +1,4 @@
+CloudFront ID: E1K6OG7GOLIRJ2 
+CloudFront Domain: d2ze4bo2gl7bv3.cloudfront.net 
+Live URL: https://lynkapp.net 
+Setup completed: Wed 03/25/2026 12:50:58.92 

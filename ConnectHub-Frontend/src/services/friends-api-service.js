@@ -1,3 +1,4 @@
+(function(){
 ﻿/**
  * LynkApp Friends API Service - Phase 5
  * Real Firebase/Firestore Social Features Integration
@@ -694,3 +695,5 @@ const friendsAPIService = new FriendsAPIService();
 window.friendsAPIService = friendsAPIService;
 
 // export default friendsAPIService;
+
+})();

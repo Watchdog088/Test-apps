@@ -1,3 +1,4 @@
+(function(){
 /**
  * Firebase Service
  * Quick Firebase setup for prototype backend testing
@@ -1168,3 +1169,5 @@ const firebaseService = new FirebaseService();
 window.firebaseService = firebaseService;
 
 // export default firebaseService; // loaded as regular <script> — use window.firebaseService instead
+
+})();

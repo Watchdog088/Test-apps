@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lynk - Connect Your World</title>
-    <meta name="description" content="Lynk - The ultimate social universe platform combining social media, dating, media streaming, and interactive entertainment">
+    <meta name="descriptIion" content="Lynk - The ultimate social universe platform combining social media, dating, media streaming, and interactive entertainment">
     <meta name="keywords" content="social media, dating app, music streaming, live streaming, games, marketplace">
     
     <!-- Favicon and App Icons -->
@@ -21,6 +21,23 @@
     <meta property="og:url" content="https://lynk.app">
     
     <link rel="stylesheet" href="src/css/styles.css">
+
+    <!-- ══ SPLASH SCREEN DISABLED — Load login screen immediately ══ -->
+    <script>
+        // Run before any other scripts: force authScreen visible immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loading overlay immediately
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) { overlay.style.display = 'none'; }
+
+            // Hide all category sections, then show only authScreen
+            document.querySelectorAll('.category-section').forEach(function(s) {
+                s.classList.remove('active');
+            });
+            var authScreen = document.getElementById('authScreen');
+            if (authScreen) { authScreen.classList.add('active'); }
+        });
+    </script>
     <link rel="stylesheet" href="src/css/enhanced-story-user-dashboard-styles.css">
     <link rel="stylesheet" href="src/css/match-profile-modal.css">
     <link rel="stylesheet" href="src/css/search-posts-dashboard.css">
@@ -1782,6 +1799,8 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- Phase 1-10 Firebase Service Layer (MUST load before app.js) -->
     <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- process.env polyfill — prevents 'process is not defined' errors from Node-style code -->
+    <script>window.process = { env: {} };</script>
     <script src="src/services/firebase-config.js"></script>
     <script src="src/services/auth-service.js"></script>
     <script src="src/services/profile-api-service.js"></script>

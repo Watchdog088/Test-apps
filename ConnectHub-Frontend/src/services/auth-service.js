@@ -1,3 +1,4 @@
+(function(){
 /**
  * ConnectHub Authentication Service with Firebase
  * Phase 2: Real Firebase Authentication Implementation
@@ -574,3 +575,5 @@ const authService = new AuthService();
 window.authService = authService;
 
 // export default authService; // loaded as regular <script> — use window.authService instead
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 /**
  * DATING FEATURE INTEGRATION
  * Ensures complete integration of:
@@ -728,3 +729,5 @@ window.expandSearchRadius = expandSearchRadius;
 window.viewLikerProfile = viewLikerProfile;
 
 console.log('✅ Dating Feature Integration Loaded');
+
+})();

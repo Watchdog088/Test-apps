@@ -1,3 +1,4 @@
+(function(){
 // Dating API endpoints
 const API = {
     profile: '/api/v1/dating/profile',
@@ -420,3 +421,5 @@ function markMessageAsRead(messageId) {
         body: JSON.stringify({ messageIds: [messageId] })
     }).catch(error => console.error('Error marking message as read:', error));
 }
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 ﻿/**
  * LynkApp Profile API Service - Phase 3
  * Real Firebase/Firestore Profile Integration
@@ -597,3 +598,5 @@ const profileAPIService = new ProfileAPIService();
 window.profileAPIService = profileAPIService;
 
 // export default profileAPIService;
+
+})();
