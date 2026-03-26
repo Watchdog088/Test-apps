@@ -1954,6 +1954,7 @@ function switchAuthTab(mode) {
 // Expose globally so inline onclick handlers work
 window.switchAuthTab = switchAuthTab;
 window.handleAuthSubmit = handleAuthSubmit;
+window.handleLogin = handleAuthSubmit; // alias for cached/older page versions
 window.showMainApp = showMainApp;
 window.showAuthScreen = showAuthScreen;
 

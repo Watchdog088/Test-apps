@@ -3,7 +3,7 @@
  * Provides offline support, caching, and PWA functionality
  */
 
-const CACHE_VERSION = 'connecthub-v1.0.0';
+const CACHE_VERSION = 'connecthub-v1.1.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;

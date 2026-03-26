@@ -1045,9 +1045,9 @@ console.log('✓ Video Calls: WebRTC P2P, signaling server, actual video/audio')
 console.log('✓ Marketplace: Checkout, payment processing, order management');
 
 // export {
-    profileManagement,
-    pushNotifications,
-    liveStreaming,
-    videoCalls,
-    marketplace
-};
+//     profileManagement,
+//     pushNotifications,
+//     liveStreaming,
+//     videoCalls,
+//     marketplace
+// };
