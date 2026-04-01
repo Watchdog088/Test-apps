@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 REM ===================================================================
 REM  LynkApp — QUICK UPDATE SCRIPT (Run this after every code change)
 REM  Syncs all changed files to S3 without recreating the bucket
-REM  Updated: March 2026
+REM  Updated: April 2026 — includes user testing fixes
 REM ===================================================================
 
 echo.
@@ -84,8 +84,34 @@ if exist "ConnectHub-Frontend\src\js\" (
 )
 echo [OK] UI JS synced
 
+REM ── Upload user testing fix files (no-cache) ────────────────────────
+echo [5/7] Uploading user testing fix files...
+if exist "ConnectHub-Frontend\src\js\user-testing-fixes.js" (
+    aws s3 cp "ConnectHub-Frontend\src\js\user-testing-fixes.js" s3://!BUCKET_NAME!/src/js/ ^
+        --content-type "application/javascript; charset=utf-8" ^
+        --cache-control "no-cache, no-store, must-revalidate" ^
+        >nul 2>&1
+)
+if exist "ConnectHub_Mobile_Design_Fixes.js" (
+    aws s3 cp "ConnectHub_Mobile_Design_Fixes.js" s3://!BUCKET_NAME!/ ^
+        --content-type "application/javascript; charset=utf-8" ^
+        --cache-control "no-cache, no-store, must-revalidate" ^
+        >nul 2>&1
+)
+echo [OK] User testing fixes synced
+
+REM ── Upload main mobile design HTML (no-cache) ──────────────────────
+echo [6/7] Uploading ConnectHub_Mobile_Design.html...
+if exist "ConnectHub_Mobile_Design.html" (
+    aws s3 cp "ConnectHub_Mobile_Design.html" s3://!BUCKET_NAME!/ ^
+        --content-type "text/html; charset=utf-8" ^
+        --cache-control "no-cache, no-store, must-revalidate" ^
+        >nul 2>&1
+)
+echo [OK] Mobile design HTML synced
+
 REM ── Sync extra HTML pages ───────────────────────────────────────────
-echo [5/5] Syncing additional pages...
+echo [7/7] Syncing additional pages...
 if exist "ConnectHub-Frontend\creator-profile.html" (
     aws s3 cp "ConnectHub-Frontend\creator-profile.html" s3://!BUCKET_NAME!/creator-profile.html ^
         --content-type "text/html; charset=utf-8" ^
