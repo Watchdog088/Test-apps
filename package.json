@@ -21,8 +21,33 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.2.1",
+    "clean-css-cli": "^5.6.3",
+    "html-minifier-terser": "^7.2.0",
     "nodemon": "^3.1.10",
+    "terser": "^5.46.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
-  }
+  },
+  "name": "test-apps",
+  "version": "1.0.0",
+  "description": "A comprehensive social media and dating application built for web, iOS, and Android platforms with modern technology stack and advanced features.",
+  "main": "ConnectHub_Chat_Management_5_Features_Complete.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build-production.js",
+    "extract": "node extract-production.js",
+    "build:all": "node extract-production.js && node build-production.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Watchdog088/Test-apps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Watchdog088/Test-apps/issues"
+  },
+  "homepage": "https://github.com/Watchdog088/Test-apps#readme"
 }
