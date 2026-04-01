@@ -51,6 +51,7 @@ const jsFiles = [
     { src: 'js/consent-onboarding.js', dist: 'js/consent-onboarding.js' },
     { src: 'js/app-main.js', dist: 'js/app-main.js' },
     { src: 'js/user-testing-fixes.js', dist: 'js/user-testing-fixes.js' },
+    { src: 'js/performance-optimizer.js', dist: 'js/performance-optimizer.js' },
 ];
 
 let totalJsBefore = 0, totalJsAfter = 0;
