@@ -3,7 +3,20 @@ setlocal enabledelayedexpansion
 REM ===================================================================
 REM  LynkApp — QUICK UPDATE SCRIPT (Run this after every code change)
 REM  Syncs all changed files to S3 without recreating the bucket
-REM  Updated: April 2026 — includes LynkApp-Production-App + monitoring
+REM  Updated: April 2026 — user-testing fixes v3 + bat file updates
+REM
+REM  What this uploads:
+REM    1.  index.html + service worker (no-cache)
+REM    2.  CSS files
+REM    3.  Phase 1-10 service files (no-cache)
+REM    4.  UI JS scripts
+REM    5.  User testing fix files (no-cache)
+REM    6.  ConnectHub_Mobile_Design.html
+REM    7.  Extra HTML pages + manifest
+REM    8.  LynkApp-Production-App full bundle (no-cache)
+REM    9.  LynkApp-Production-App/js/user-testing-fixes.js (explicit)
+REM    10. Admin dashboard
+REM    11. Production monitoring JS
 REM ===================================================================
 
 echo.
@@ -35,7 +48,7 @@ echo   Syncing all changed files...
 echo.
 
 REM ── Upload index.html (always no-cache) ─────────────────────────────
-echo [1/10] Uploading index.html...
+echo [1/11] Uploading index.html...
 aws s3 cp "ConnectHub-Frontend\index.html" s3://!BUCKET_NAME!/ ^
     --content-type "text/html; charset=utf-8" ^
     --cache-control "no-cache, no-store, must-revalidate" ^
@@ -51,7 +64,7 @@ if exist "ConnectHub-Frontend\service-worker.js" (
 )
 
 REM ── Sync CSS files ──────────────────────────────────────────────────
-echo [2/10] Syncing CSS files...
+echo [2/11] Syncing CSS files...
 if exist "ConnectHub-Frontend\src\css\" (
     aws s3 sync "ConnectHub-Frontend\src\css\" s3://!BUCKET_NAME!/src/css/ ^
         --exclude "*" --include "*.css" ^
@@ -62,7 +75,7 @@ if exist "ConnectHub-Frontend\src\css\" (
 echo [OK] CSS synced
 
 REM ── Sync Phase 1-10 service files (no-cache = always fresh) ─────────
-echo [3/10] Syncing Phase 1-10 service files...
+echo [3/11] Syncing Phase 1-10 service files...
 if exist "ConnectHub-Frontend\src\services\" (
     for %%F in ("ConnectHub-Frontend\src\services\*.js") do (
         aws s3 cp "%%F" s3://!BUCKET_NAME!/src/services/ ^
@@ -74,7 +87,7 @@ if exist "ConnectHub-Frontend\src\services\" (
 echo [OK] Service files synced (firebase-config, auth, messaging, etc.)
 
 REM ── Sync UI JS scripts ──────────────────────────────────────────────
-echo [4/10] Syncing UI JS scripts...
+echo [4/11] Syncing UI JS scripts...
 if exist "ConnectHub-Frontend\src\js\" (
     aws s3 sync "ConnectHub-Frontend\src\js\" s3://!BUCKET_NAME!/src/js/ ^
         --exclude "*" --include "*.js" ^
@@ -85,7 +98,7 @@ if exist "ConnectHub-Frontend\src\js\" (
 echo [OK] UI JS synced
 
 REM ── Upload user testing fix files (no-cache) ────────────────────────
-echo [5/10] Uploading user testing fix files...
+echo [5/11] Uploading user testing fix files...
 if exist "ConnectHub-Frontend\src\js\user-testing-fixes.js" (
     aws s3 cp "ConnectHub-Frontend\src\js\user-testing-fixes.js" s3://!BUCKET_NAME!/src/js/ ^
         --content-type "application/javascript; charset=utf-8" ^
@@ -101,7 +114,7 @@ if exist "ConnectHub_Mobile_Design_Fixes.js" (
 echo [OK] User testing fixes synced
 
 REM ── Upload main mobile design HTML (no-cache) ──────────────────────
-echo [6/10] Uploading ConnectHub_Mobile_Design.html...
+echo [6/11] Uploading ConnectHub_Mobile_Design.html...
 if exist "ConnectHub_Mobile_Design.html" (
     aws s3 cp "ConnectHub_Mobile_Design.html" s3://!BUCKET_NAME!/ ^
         --content-type "text/html; charset=utf-8" ^
@@ -111,7 +124,7 @@ if exist "ConnectHub_Mobile_Design.html" (
 echo [OK] Mobile design HTML synced
 
 REM ── Sync extra HTML pages ───────────────────────────────────────────
-echo [7/10] Syncing additional pages...
+echo [7/11] Syncing additional pages...
 if exist "ConnectHub-Frontend\creator-profile.html" (
     aws s3 cp "ConnectHub-Frontend\creator-profile.html" s3://!BUCKET_NAME!/creator-profile.html ^
         --content-type "text/html; charset=utf-8" ^
@@ -133,7 +146,7 @@ if exist "ConnectHub-Frontend\manifest.json" (
 echo [OK] Additional pages synced
 
 REM ── Sync LynkApp-Production-App (NEW — full production bundle) ──────
-echo [8/10] Syncing LynkApp-Production-App (production bundle)...
+echo [8/11] Syncing LynkApp-Production-App (production bundle)...
 if exist "LynkApp-Production-App\" (
     aws s3 sync "LynkApp-Production-App\" s3://!BUCKET_NAME!/LynkApp-Production-App/ ^
         --content-type "application/javascript; charset=utf-8" ^
@@ -159,10 +172,23 @@ if exist "LynkApp-Production-App\" (
             >nul 2>&1
     )
 )
-echo [OK] LynkApp-Production-App synced (17 files)
+echo [OK] LynkApp-Production-App synced
+
+REM ── Explicit upload: user-testing-fixes.js (ALWAYS no-cache) ────────
+echo [9/11] Uploading user-testing-fixes.js (7 bug fixes - no-cache)...
+if exist "LynkApp-Production-App\js\user-testing-fixes.js" (
+    aws s3 cp "LynkApp-Production-App\js\user-testing-fixes.js" ^
+        s3://!BUCKET_NAME!/LynkApp-Production-App/js/user-testing-fixes.js ^
+        --content-type "application/javascript; charset=utf-8" ^
+        --cache-control "no-cache, no-store, must-revalidate" ^
+        >nul 2>&1
+    echo [OK] LynkApp-Production-App/js/user-testing-fixes.js uploaded
+) else (
+    echo [SKIP] LynkApp-Production-App\js\user-testing-fixes.js not found
+)
 
 REM ── Upload admin dashboard (no-cache) ───────────────────────────────
-echo [9/10] Uploading admin dashboard...
+echo [10/11] Uploading admin dashboard...
 if exist "admin-dashboard.html" (
     aws s3 cp "admin-dashboard.html" s3://!BUCKET_NAME!/ ^
         --content-type "text/html; charset=utf-8" ^
@@ -172,7 +198,7 @@ if exist "admin-dashboard.html" (
 echo [OK] Admin dashboard synced
 
 REM ── Upload monitoring + production JS ───────────────────────────────
-echo [10/10] Syncing monitoring and production JS...
+echo [11/11] Syncing monitoring and production JS...
 if exist "ConnectHub-Frontend\production\js\" (
     aws s3 sync "ConnectHub-Frontend\production\js\" s3://!BUCKET_NAME!/production/js/ ^
         --exclude "*" --include "*.js" ^
@@ -191,7 +217,7 @@ echo [OK] Monitoring + production JS synced
 REM ── Done ────────────────────────────────────────────────────────────
 echo.
 echo ===================================================================
-echo   UPDATE COMPLETE! (10/10 steps)
+echo   UPDATE COMPLETE! (11/11 steps)
 echo ===================================================================
 echo.
 echo   Files synced:
@@ -200,7 +226,8 @@ echo     - CSS, services, UI JS
 echo     - User testing fixes
 echo     - Mobile design HTML
 echo     - Additional pages (creator, premium, manifest)
-echo     - LynkApp-Production-App (17 production files)
+echo     - LynkApp-Production-App (full bundle, no-cache)
+echo     - user-testing-fixes.js (7 bugs fixed, explicit no-cache)
 echo     - Admin dashboard (with monitoring)
 echo     - Production monitoring JS
 echo.
