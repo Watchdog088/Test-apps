@@ -1,882 +1,900 @@
 /**
- * Lynkapp Production - User Testing Bug Fixes
- * Target: LynkApp-Production-App/index.html (PRODUCTION interface)
- * 
+ * Lynkapp Production – User Testing Bug Fixes  (v2 – corrected element targets)
+ * Target: LynkApp-Production-App/index.html
+ *
  * Fixes 7 critical issues reported during user testing:
- * 1. Account creation → force full profile setup after signup
- * 2. Post button in create post not working (publishPost)
- * 3. No button to add/confirm location in create post
- * 4. No button to add/confirm tagged person in create post
- * 5. Comments add button not working on posts
- * 6. Share button doesn't open share window
- * 7. Story camera/gallery buttons not opening
+ *  1. Account creation → force full profile setup wizard after signup
+ *  2. "Post" button in Create Post not working  (targets #postTextContent)
+ *  3. No "Add Location" confirm button in the location picker
+ *  4. No "Add Person" confirm button in the Tag People picker
+ *  5. Comments Add/Post button not submitting comments
+ *  6. Share button opens nothing – now opens share-options window
+ *  7. Create Story camera & gallery buttons do nothing
  */
 
-(function() {
+(function () {
     'use strict';
-    
-    console.log('[UserTestingFixes] Initializing all 7 bug fixes for PRODUCTION index.html...');
 
-    // Wait for DOM and existing scripts to load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() { setTimeout(applyAllFixes, 1200); });
-    } else {
-        setTimeout(applyAllFixes, 1200);
+    console.log('[UserTestingFixes v2] Loading – all 7 fixes targeting correct element IDs…');
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+    function toast(msg) {
+        if (typeof showToast === 'function') { showToast(msg); return; }
+        var t = document.createElement('div');
+        t.textContent = msg;
+        t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;z-index:999999;font-size:14px;pointer-events:none;';
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 2500);
     }
 
-    function applyAllFixes() {
-        fix1_ForceProfileSetupAfterRegister();
-        fix2_PostButtonWorking();
+    function openM(id) { if (typeof openModal === 'function') { openModal(id); } }
+    function closeM(id) { if (typeof closeModal === 'function') { closeModal(id); } }
+
+    // Run after the app scripts have fully initialised
+    function init() {
+        fix1_ProfileSetupAfterSignup();
+        fix2_PostButton();
         fix3_AddLocationButton();
         fix4_TagPeopleButton();
-        fix5_CommentsSystem();
+        fix5_CommentsAddButton();
         fix6_ShareButtonWindow();
         fix7_StoryCameraGallery();
-        enhanceCreatePostModal();
-        console.log('[UserTestingFixes] ✅ All 7 fixes applied to PRODUCTION index.html');
+        injectGlobalStyles();
+        console.log('[UserTestingFixes v2] ✅ All 7 fixes applied.');
     }
 
-    // ==========================================
-    // FIX 1: Force full profile setup after signup
-    // ==========================================
-    function fix1_ForceProfileSetupAfterRegister() {
-        // The production auth form is #authForm with handleAuthSubmit
-        var authForm = document.getElementById('authForm');
-        if (authForm) {
-            authForm.addEventListener('submit', function(e) {
-                // Check if we're in register mode
-                var registerTab = document.querySelector('.auth-tab[data-mode="register"]');
-                var isRegisterMode = registerTab && registerTab.classList.contains('active');
-                
-                if (isRegisterMode) {
-                    // After a short delay (let original handler run), show profile wizard
-                    setTimeout(function() {
-                        var profileDone = localStorage.getItem('lynkapp_profile_completed');
-                        if (!profileDone) {
-                            var nameInput = document.getElementById('fullName');
-                            var displayName = nameInput ? nameInput.value.trim() : '';
-                            showProfileSetupWizard(displayName);
-                        }
-                    }, 2000);
-                }
-            });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 1500); });
+    } else {
+        setTimeout(init, 1500);
+    }
+
+    // =========================================================================
+    // FIX 1 – Full profile setup wizard after account creation
+    // =========================================================================
+    function fix1_ProfileSetupAfterSignup() {
+        // Works for both the Firebase auth flow and any direct submit on #authForm
+        // Strategy: watch for the auth screen hiding / feed screen appearing, then
+        // show the wizard if the user hasn't completed it yet.
+
+        function maybeShowWizard() {
+            var done = localStorage.getItem('lynkapp_profile_completed');
+            if (done) return;
+            // Small extra delay so the main app can finish its own transitions
+            setTimeout(showProfileWizard, 800);
         }
 
-        // Also intercept any direct handleAuthSubmit calls
-        var origHandleAuth = window.handleAuthSubmit;
-        window.handleAuthSubmit = function(e) {
-            if (typeof origHandleAuth === 'function') {
-                origHandleAuth.call(this, e);
-            }
-            // Check for register mode
-            var registerTab = document.querySelector('.auth-tab[data-mode="register"]');
-            var isRegisterMode = registerTab && registerTab.classList.contains('active');
-            if (isRegisterMode) {
-                setTimeout(function() {
-                    var profileDone = localStorage.getItem('lynkapp_profile_completed');
-                    if (!profileDone) {
-                        var nameInput = document.getElementById('fullName');
-                        showProfileSetupWizard(nameInput ? nameInput.value.trim() : '');
-                    }
-                }, 2000);
-            }
+        // Hook into handleAuthSubmit (register mode)
+        var _orig = window.handleAuthSubmit;
+        window.handleAuthSubmit = function (e) {
+            var isRegister = !!document.querySelector('.auth-tab.active[data-mode="register"], #registerTab.active, .tab-btn.active[onclick*="register"]');
+            if (typeof _orig === 'function') _orig.call(this, e);
+            if (isRegister) { setTimeout(maybeShowWizard, 2200); }
         };
 
-        console.log('[Fix1] ✅ Profile setup after signup - FIXED');
+        // Also catch any button whose text is "Create Account" / "Sign Up"
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('button, [type="submit"]');
+            if (!btn) return;
+            var txt = btn.textContent.toLowerCase();
+            if ((txt.includes('create account') || txt.includes('sign up') || txt.includes('register')) && !localStorage.getItem('lynkapp_profile_completed')) {
+                setTimeout(maybeShowWizard, 2200);
+            }
+        }, true);
+
+        console.log('[Fix 1] ✅ Profile setup wizard hooked.');
     }
 
-    function showProfileSetupWizard(displayName) {
-        var existing = document.getElementById('profile-setup-wizard');
-        if (existing) existing.remove();
+    function showProfileWizard() {
+        if (document.getElementById('ut-profile-wizard')) return;
 
         var overlay = document.createElement('div');
-        overlay.id = 'profile-setup-wizard';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-        
-        overlay.innerHTML = '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;padding:28px;color:var(--text-primary,#fff);">' +
-            '<div id="wizard-step-1">' +
-                '<div style="text-align:center;margin-bottom:24px;">' +
-                    '<div style="font-size:52px;margin-bottom:8px;">👤</div>' +
-                    '<h2 style="margin:0 0 6px;font-size:22px;">Complete Your Profile</h2>' +
-                    '<p style="color:var(--text-secondary,#888);font-size:14px;margin:0;">Let others know who you are</p>' +
+        overlay.id = 'ut-profile-wizard';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999990;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+        var interests = ['Photography','Travel','Music','Art','Tech','Sports','Food','Fashion','Gaming','Fitness','Movies','Books','Nature','Science','Design','Business'];
+        var gradients = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ef4444,#f59e0b)','linear-gradient(135deg,#10b981,#06b6d4)','linear-gradient(135deg,#ec4899,#f472b6)','linear-gradient(135deg,#3b82f6,#60a5fa)','linear-gradient(135deg,#f59e0b,#fbbf24)'];
+
+        overlay.innerHTML =
+            '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;padding:28px;color:var(--text-primary,#fff);">' +
+
+            // ── STEP 1 ──────────────────────────────────────────────────────
+            '<div id="wiz-s1">' +
+                '<div style="text-align:center;margin-bottom:22px;">' +
+                    '<div style="font-size:54px;margin-bottom:8px;">👤</div>' +
+                    '<h2 style="margin:0 0 4px;font-size:22px;font-weight:700;">Complete Your Profile</h2>' +
+                    '<p style="margin:0;font-size:13px;color:var(--text-secondary,#aaa);">Step 1 of 2 – Tell us about yourself</p>' +
                 '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Display Name *</label>' +
-                    '<input type="text" id="setup-name" value="' + (displayName || '') + '" placeholder="Your name" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;">' +
-                '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Username *</label>' +
-                    '<input type="text" id="setup-username" placeholder="@username" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;">' +
-                '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Bio</label>' +
-                    '<textarea id="setup-bio" placeholder="Tell us about yourself..." rows="3" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;resize:vertical;"></textarea>' +
-                '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Profile Photo</label>' +
-                    '<div style="display:flex;align-items:center;gap:12px;">' +
-                        '<div id="setup-avatar-prev" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;border:2px solid var(--glass-border,#444);color:white;">JD</div>' +
-                        '<button onclick="document.getElementById(\'setup-photo-input\').click()" style="padding:10px 16px;background:var(--primary,#6366f1);color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;">📷 Upload Photo</button>' +
-                        '<input type="file" id="setup-photo-input" accept="image/*" hidden onchange="if(this.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById(\'setup-avatar-prev\').innerHTML=\'<img src=\\\'\'+e.target.result+\'\\\' style=width:100%;height:100%;object-fit:cover>\'};r.readAsDataURL(this.files[0])}">' +
+
+                // Avatar upload
+                '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">' +
+                    '<div id="wiz-avatar" style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;border:3px solid var(--glass-border,#444);">JD</div>' +
+                    '<div>' +
+                        '<button onclick="document.getElementById(\'wiz-photo-input\').click()" style="padding:9px 16px;background:var(--primary,#6366f1);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📷 Upload Photo</button>' +
+                        '<input id="wiz-photo-input" type="file" accept="image/*" hidden onchange="(function(f){if(!f)return;var r=new FileReader();r.onload=function(e){var av=document.getElementById(\'wiz-avatar\');av.innerHTML=\'<img src=\\\'\'+e.target.result+\'\\\' style=width:100%;height:100%;object-fit:cover>\'};r.readAsDataURL(f)})(this.files[0])">' +
+                        '<div style="font-size:11px;color:var(--text-secondary,#888);margin-top:4px;">JPG, PNG or GIF</div>' +
                     '</div>' +
                 '</div>' +
-                '<button onclick="var n=document.getElementById(\'setup-name\').value.trim();var u=document.getElementById(\'setup-username\').value.trim();if(!n||!u){alert(\'Please fill in name and username\');return;}document.getElementById(\'wizard-step-1\').style.display=\'none\';document.getElementById(\'wizard-step-2\').style.display=\'block\'" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;">Next Step →</button>' +
+
+                inputField('wiz-name','text','Display Name *','Your full name') +
+                inputField('wiz-username','text','Username *','@username') +
+                textareaField('wiz-bio','Bio','Tell people a little about yourself…') +
+                inputField('wiz-location','text','Location','City, Country (optional)') +
+
+                '<button onclick="window._wizNext()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;">Next →</button>' +
             '</div>' +
-            '<div id="wizard-step-2" style="display:none;">' +
-                '<div style="text-align:center;margin-bottom:24px;">' +
-                    '<div style="font-size:52px;margin-bottom:8px;">⭐</div>' +
-                    '<h2 style="margin:0 0 6px;font-size:22px;">Your Interests</h2>' +
-                    '<p style="color:var(--text-secondary,#888);font-size:14px;margin:0;">Select topics you enjoy</p>' +
+
+            // ── STEP 2 ──────────────────────────────────────────────────────
+            '<div id="wiz-s2" style="display:none;">' +
+                '<div style="text-align:center;margin-bottom:22px;">' +
+                    '<div style="font-size:54px;margin-bottom:8px;">⭐</div>' +
+                    '<h2 style="margin:0 0 4px;font-size:22px;font-weight:700;">Your Interests</h2>' +
+                    '<p style="margin:0;font-size:13px;color:var(--text-secondary,#aaa);">Step 2 of 2 – Pick topics you love (select any)</p>' +
                 '</div>' +
-                '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">' +
-                    ['Photography','Travel','Music','Art','Tech','Sports','Food','Fashion','Gaming','Fitness','Movies','Books','Nature','Science'].map(function(i) {
-                        return '<button class="interest-tag-btn" onclick="this.classList.toggle(\'sel\');this.style.background=this.classList.contains(\'sel\')?\'var(--primary,#6366f1)\':\'var(--glass,#2a2a3e)\';this.style.borderColor=this.classList.contains(\'sel\')?\'var(--primary,#6366f1)\':\'var(--glass-border,#444)\'" style="padding:8px 16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:20px;cursor:pointer;font-size:13px;color:var(--text-primary,#fff);transition:all 0.2s;">' + i + '</button>';
+                '<div id="wiz-interests" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">' +
+                    interests.map(function (i) {
+                        return '<button class="wiz-int-btn" onclick="this.classList.toggle(\'sel\');this.style.background=this.classList.contains(\'sel\')?\'var(--primary,#6366f1)\':\'var(--glass,#2a2a3e)\';this.style.borderColor=this.classList.contains(\'sel\')?\'var(--primary,#6366f1)\':\'var(--glass-border,#444)\';" style="padding:8px 16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:20px;cursor:pointer;font-size:13px;color:var(--text-primary,#fff);transition:all 0.2s;">' + i + '</button>';
                     }).join('') +
                 '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Location (optional)</label>' +
-                    '<input type="text" id="setup-location" placeholder="City, Country" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;">' +
+
+                // Background style
+                '<div style="margin-bottom:18px;">' +
+                    '<p style="font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:8px;">Profile background style</p>' +
+                    '<div style="display:flex;gap:10px;">' +
+                        gradients.map(function (g) {
+                            return '<button onclick="window._wizGrad=\'' + g + '\';this.parentElement.querySelectorAll(\'button\').forEach(function(b){b.style.outline=\'none\'});this.style.outline=\'3px solid white\';" style="width:40px;height:40px;border-radius:50%;background:' + g + ';border:none;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'"></button>';
+                        }).join('') +
+                    '</div>' +
                 '</div>' +
-                '<div style="margin-bottom:16px;">' +
-                    '<label style="display:block;font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:6px;">Date of Birth</label>' +
-                    '<input type="date" id="setup-dob" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;">' +
-                '</div>' +
+
+                inputField('wiz-dob','date','Date of Birth','') +
+
                 '<div style="display:flex;gap:10px;">' +
-                    '<button onclick="document.getElementById(\'wizard-step-2\').style.display=\'none\';document.getElementById(\'wizard-step-1\').style.display=\'block\'" style="flex:1;padding:14px;background:var(--glass,#2a2a3e);color:var(--text-primary,#fff);border:1px solid var(--glass-border,#444);border-radius:12px;font-size:14px;cursor:pointer;">← Back</button>' +
-                    '<button onclick="window._completeProfileWizard()" style="flex:2;padding:14px;background:linear-gradient(135deg,#10b981,#06b6d4);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Complete Setup ✓</button>' +
+                    '<button onclick="document.getElementById(\'wiz-s2\').style.display=\'none\';document.getElementById(\'wiz-s1\').style.display=\'block\'" style="flex:1;padding:14px;background:var(--glass,#2a2a3e);color:var(--text-primary,#fff);border:1px solid var(--glass-border,#444);border-radius:12px;font-size:14px;cursor:pointer;">← Back</button>' +
+                    '<button onclick="window._wizComplete()" style="flex:2;padding:14px;background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">✓ Complete Setup</button>' +
                 '</div>' +
             '</div>' +
-        '</div>';
-        
+            '</div>';
+
         document.body.appendChild(overlay);
 
-        window._completeProfileWizard = function() {
+        window._wizGrad = gradients[0];
+
+        window._wizNext = function () {
+            var name = (document.getElementById('wiz-name') || {}).value || '';
+            var user = (document.getElementById('wiz-username') || {}).value || '';
+            if (!name.trim() || !user.trim()) { toast('Please enter your name and username'); return; }
+            document.getElementById('wiz-s1').style.display = 'none';
+            document.getElementById('wiz-s2').style.display = 'block';
+        };
+
+        window._wizComplete = function () {
+            var sel = document.querySelectorAll('.wiz-int-btn.sel');
+            var interests = Array.from(sel).map(function (b) { return b.textContent; });
             localStorage.setItem('lynkapp_profile_completed', 'true');
-            localStorage.setItem('lynkapp_display_name', document.getElementById('setup-name').value);
-            localStorage.setItem('lynkapp_username', document.getElementById('setup-username').value);
-            localStorage.setItem('lynkapp_bio', document.getElementById('setup-bio').value);
-            localStorage.setItem('lynkapp_location', (document.getElementById('setup-location') || {}).value || '');
-            var el = document.getElementById('profile-setup-wizard');
-            if (el) el.remove();
-            if (typeof showToast === 'function') showToast('Profile setup complete! Welcome to Lynkapp! 🎉', 'success');
+            localStorage.setItem('lynkapp_display_name', (document.getElementById('wiz-name') || {}).value || '');
+            localStorage.setItem('lynkapp_username', (document.getElementById('wiz-username') || {}).value || '');
+            localStorage.setItem('lynkapp_bio', (document.getElementById('wiz-bio') || {}).value || '');
+            localStorage.setItem('lynkapp_location', (document.getElementById('wiz-location') || {}).value || '');
+            localStorage.setItem('lynkapp_interests', interests.join(','));
+            localStorage.setItem('lynkapp_dob', (document.getElementById('wiz-dob') || {}).value || '');
+            var wiz = document.getElementById('ut-profile-wizard');
+            if (wiz) wiz.remove();
+            toast('🎉 Profile complete! Welcome to Lynkapp!');
         };
     }
 
-    // ==========================================
-    // FIX 2: Post button (publishPost) not working
-    // ==========================================
-    function fix2_PostButtonWorking() {
-        // Override publishPost in the global scope - the production index.html
-        // has #createPostModal with textarea #postContent and a Publish button
-        window.publishPost = function() {
-            var contentEl = document.getElementById('postContent');
-            var text = contentEl ? contentEl.value.trim() : '';
-            
-            if (!text && !window._postAttachedPhoto && !window._postAttachedLocation) {
-                if (typeof showToast === 'function') showToast('Please write something or add media', 'info');
-                return;
-            }
-            
-            // Build post HTML
-            var locationHTML = '';
-            if (window._postAttachedLocation) {
-                locationHTML = '<div style="font-size:0.85rem;color:var(--text-secondary);margin-top:4px;">📍 ' + window._postAttachedLocation + '</div>';
-            }
-            var tagsHTML = '';
-            if (window._postTaggedPeople && window._postTaggedPeople.length > 0) {
-                tagsHTML = '<div style="font-size:0.85rem;color:var(--primary);margin-top:4px;">👥 with ' + window._postTaggedPeople.join(', ') + '</div>';
-            }
-            var photoHTML = '';
-            if (window._postAttachedPhoto) {
-                photoHTML = '<div style="margin:1rem 0;border-radius:12px;overflow:hidden;height:250px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;">' +
-                    '<span style="font-size:4rem;">📸</span>' +
-                '</div>';
-            }
-            
-            var escapedText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
-            
-            var newPostHTML = '<article style="background:var(--bg-card);border:1px solid var(--glass-border);border-radius:20px;padding:1.5rem;animation:fadeIn 0.4s ease;">' +
-                '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">' +
-                    '<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-weight:600;color:white;">JD</div>' +
-                    '<div>' +
-                        '<div style="font-weight:600;">John Doe</div>' +
-                        '<div style="font-size:0.85rem;color:var(--text-secondary);">Just now</div>' +
-                        locationHTML +
-                        tagsHTML +
-                    '</div>' +
-                '</div>' +
-                '<div style="margin-bottom:1rem;line-height:1.6;">' + escapedText + '</div>' +
-                photoHTML +
-                '<div style="display:flex;justify-content:space-between;padding-top:1rem;border-top:1px solid var(--glass-border);">' +
-                    '<button class="btn btn-secondary btn-small" onclick="this.innerHTML=this.innerHTML.includes(\'Liked\')?\'❤️ Like\':\'❤️ Liked (1)\';this.style.color=this.innerHTML.includes(\'Liked\')?\'var(--secondary)\':\'\'">❤️ Like</button>' +
-                    '<button class="btn btn-secondary btn-small" onclick="window._openCommentSection(this.closest(\'article\'))">💬 Comment</button>' +
-                    '<button class="btn btn-secondary btn-small" onclick="window._openShareModal()">🔄 Share</button>' +
-                '</div>' +
-                '<div class="post-comments-section" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--glass-border);"></div>' +
-            '</article>';
-            
-            // Insert into posts container
-            var postsContainer = document.getElementById('postsContainer');
-            if (postsContainer) {
-                postsContainer.insertAdjacentHTML('afterbegin', newPostHTML);
-            }
-            
-            // Reset
-            if (contentEl) contentEl.value = '';
-            window._postAttachedPhoto = null;
-            window._postAttachedLocation = null;
-            window._postTaggedPeople = null;
-            
-            // Remove attachment indicators
-            var indicators = document.querySelectorAll('.post-attachment-indicator');
-            indicators.forEach(function(el) { el.remove(); });
-            
-            // Close modal
-            closeModal('createPostModal');
-            if (typeof showToast === 'function') showToast('Post published successfully! 🎉', 'success');
-        };
-
-        console.log('[Fix2] ✅ Post button (publishPost) - FIXED');
-    }
-
-    // ==========================================
-    // FIX 3: Add location button
-    // ==========================================
-    function fix3_AddLocationButton() {
-        // Override addPostMedia to handle 'location' type with a real picker
-        var origAddPostMedia = window.addPostMedia;
-        window.addPostMedia = function(type) {
-            if (type === 'location') {
-                openLocationPicker();
-                return;
-            }
-            if (type === 'photo') {
-                openPhotoPicker();
-                return;
-            }
-            // For other types, call original or show toast
-            if (typeof origAddPostMedia === 'function') {
-                origAddPostMedia.call(this, type);
-            } else {
-                if (typeof showToast === 'function') showToast(type + ' feature activated', 'info');
-            }
-        };
-
-        console.log('[Fix3] ✅ Add location button - FIXED');
-    }
-
-    function openLocationPicker() {
-        var existing = document.getElementById('location-picker-modal');
-        if (existing) existing.remove();
-
-        var locations = [
-            'New York, NY', 'Los Angeles, CA', 'London, UK', 'Tokyo, Japan',
-            'Paris, France', 'Sydney, Australia', 'Miami, FL', 'San Francisco, CA',
-            'Toronto, Canada', 'Berlin, Germany', 'Dubai, UAE', 'Singapore'
-        ];
-
-        var modal = document.createElement('div');
-        modal.id = 'location-picker-modal';
-        modal.className = 'modal';
-        modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100001;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-        
-        var locItems = locations.map(function(loc) {
-            return '<div class="loc-pick-item" onclick="window._selectLocation(\'' + loc + '\',this)" style="padding:12px 16px;border-bottom:1px solid var(--glass-border,#333);cursor:pointer;display:flex;align-items:center;gap:10px;border-radius:8px;transition:background 0.2s;">📍 ' + loc + '</div>';
-        }).join('');
-
-        modal.innerHTML = '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:420px;max-height:80vh;overflow:hidden;color:var(--text-primary,#fff);">' +
-            '<div style="padding:20px;border-bottom:1px solid var(--glass-border,#333);display:flex;justify-content:space-between;align-items:center;">' +
-                '<h3 style="margin:0;font-size:18px;">📍 Add Location</h3>' +
-                '<button onclick="document.getElementById(\'location-picker-modal\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;">✕</button>' +
-            '</div>' +
-            '<div style="padding:16px;">' +
-                '<input type="text" id="location-search-input" placeholder="🔍 Search for a location..." style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;margin-bottom:12px;" oninput="window._filterLocations(this.value)">' +
-            '</div>' +
-            '<div id="location-results-list" style="max-height:300px;overflow-y:auto;padding:0 16px;">' + locItems + '</div>' +
-            '<div style="padding:16px;">' +
-                '<button id="confirm-location-btn" onclick="window._confirmLocation()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">📍 Add This Location</button>' +
-            '</div>' +
+    function inputField(id, type, label, placeholder) {
+        return '<div style="margin-bottom:14px;">' +
+            '<label style="display:block;font-size:12px;color:var(--text-secondary,#aaa);margin-bottom:5px;">' + label + '</label>' +
+            '<input id="' + id + '" type="' + type + '" placeholder="' + placeholder + '" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;outline:none;">' +
         '</div>';
+    }
+    function textareaField(id, label, placeholder) {
+        return '<div style="margin-bottom:14px;">' +
+            '<label style="display:block;font-size:12px;color:var(--text-secondary,#aaa);margin-bottom:5px;">' + label + '</label>' +
+            '<textarea id="' + id + '" placeholder="' + placeholder + '" rows="3" style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;resize:vertical;outline:none;"></textarea>' +
+        '</div>';
+    }
 
-        document.body.appendChild(modal);
-        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    // =========================================================================
+    // FIX 2 – "Post" / "Publish" button in Create Post
+    // =========================================================================
+    function fix2_PostButton() {
+        window.publishPost = function () {
+            // The textarea in this HTML has id="postTextContent"
+            var ta = document.getElementById('postTextContent') || document.getElementById('postContent');
+            var text = ta ? ta.value.trim() : '';
 
-        window._selectedLocationTemp = '';
+            var hasPhoto    = !!window._ut_postPhoto;
+            var hasLocation = !!window._ut_postLocation;
+            var hasTags     = !!(window._ut_postTags && window._ut_postTags.length);
 
-        window._filterLocations = function(q) {
-            var items = document.querySelectorAll('.loc-pick-item');
-            items.forEach(function(item) {
-                item.style.display = item.textContent.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none';
-            });
-        };
-
-        window._selectLocation = function(loc, el) {
-            window._selectedLocationTemp = loc;
-            document.querySelectorAll('.loc-pick-item').forEach(function(item) {
-                item.style.background = 'transparent';
-            });
-            el.style.background = 'rgba(99,102,241,0.2)';
-            document.getElementById('location-search-input').value = loc;
-        };
-
-        window._confirmLocation = function() {
-            var input = document.getElementById('location-search-input');
-            var loc = input ? input.value.trim() : window._selectedLocationTemp;
-            if (!loc) {
-                if (typeof showToast === 'function') showToast('Please select or type a location', 'info');
+            if (!text && !hasPhoto && !hasLocation) {
+                toast('Please write something before posting');
                 return;
             }
-            window._postAttachedLocation = loc;
-            document.getElementById('location-picker-modal').remove();
-            
-            // Show indicator in create post modal
-            addAttachmentIndicator('📍 ' + loc, 'location');
-            if (typeof showToast === 'function') showToast('📍 Location added: ' + loc, 'success');
-        };
-    }
 
-    function openPhotoPicker() {
-        var fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*,video/*';
-        fileInput.style.display = 'none';
-        fileInput.addEventListener('change', function() {
-            if (fileInput.files && fileInput.files[0]) {
-                window._postAttachedPhoto = fileInput.files[0];
-                addAttachmentIndicator('📷 ' + fileInput.files[0].name, 'photo');
-                if (typeof showToast === 'function') showToast('📷 Photo attached: ' + fileInput.files[0].name, 'success');
-            }
-            document.body.removeChild(fileInput);
-        });
-        document.body.appendChild(fileInput);
-        fileInput.click();
-    }
+            // Build the post card and inject it above existing posts
+            var postId = 'post-' + Date.now();
+            var locationBadge = hasLocation
+                ? '<span style="font-size:0.82rem;color:var(--text-secondary);margin-left:6px;">📍 ' + window._ut_postLocation + '</span>'
+                : '';
+            var tagBadge = hasTags
+                ? '<span style="font-size:0.82rem;color:var(--primary);margin-left:6px;">— with ' + window._ut_postTags.join(', ') + '</span>'
+                : '';
+            var photoBlock = hasPhoto
+                ? '<div style="margin:12px 0;border-radius:14px;overflow:hidden;height:220px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:4rem;">📸</div>'
+                : '';
+            var safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 
-    function addAttachmentIndicator(text, type) {
-        var modal = document.getElementById('createPostModal');
-        if (!modal) return;
-        // Remove existing indicator of same type
-        var existing = modal.querySelector('.post-attachment-indicator[data-type="' + type + '"]');
-        if (existing) existing.remove();
-        
-        var indicator = document.createElement('div');
-        indicator.className = 'post-attachment-indicator';
-        indicator.dataset.type = type;
-        indicator.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--glass,rgba(99,102,241,0.1));border:1px solid var(--glass-border,#333);border-radius:8px;margin:8px 0;font-size:0.9rem;';
-        indicator.innerHTML = '<span>' + text + '</span><button onclick="this.parentElement.remove();window._postAttached' + (type === 'location' ? 'Location' : 'Photo') + '=null;" style="background:none;border:none;color:var(--text-secondary,#888);cursor:pointer;font-size:1.1rem;">✕</button>';
-        
-        // Insert before the button row
-        var buttonRow = modal.querySelector('.modal-content > div:last-child');
-        if (buttonRow) {
-            buttonRow.parentNode.insertBefore(indicator, buttonRow);
-        }
-    }
-
-    // ==========================================
-    // FIX 4: Tag people button missing
-    // ==========================================
-    function fix4_TagPeopleButton() {
-        window._postTaggedPeople = [];
-        
-        // We'll add tag people functionality via a function
-        window.openTagPeoplePicker = function() {
-            var existing = document.getElementById('tag-people-modal');
-            if (existing) existing.remove();
-
-            var people = [
-                { name: 'Emma Watson', user: '@emma', color: '#6366f1' },
-                { name: 'Alex Johnson', user: '@alexj', color: '#ef4444' },
-                { name: 'Sarah Chen', user: '@sarahc', color: '#06b6d4' },
-                { name: 'Mike Rodriguez', user: '@miker', color: '#f59e0b' },
-                { name: 'Lisa Park', user: '@lisap', color: '#ec4899' },
-                { name: 'David Kim', user: '@davidk', color: '#10b981' },
-                { name: 'Olivia Brown', user: '@oliviab', color: '#8b5cf6' },
-                { name: 'James Wilson', user: '@jamesw', color: '#14b8a6' }
-            ];
-
-            var modal = document.createElement('div');
-            modal.id = 'tag-people-modal';
-            modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100001;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-            
-            var peopleItems = people.map(function(p) {
-                return '<div class="tag-person-item" data-name="' + p.name + '" onclick="window._toggleTagPerson(this,\'' + p.name + '\')" style="padding:12px;border-bottom:1px solid var(--glass-border,#333);display:flex;align-items:center;gap:12px;cursor:pointer;border-radius:8px;transition:background 0.2s;">' +
-                    '<div style="width:40px;height:40px;border-radius:50%;background:' + p.color + ';color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">' + p.name.charAt(0) + '</div>' +
-                    '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + p.name + '</div><div style="font-size:12px;color:var(--text-secondary,#888);">' + p.user + '</div></div>' +
-                    '<div class="tag-check" style="width:24px;height:24px;border:2px solid var(--glass-border,#444);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.2s;"></div>' +
-                '</div>';
-            }).join('');
-
-            modal.innerHTML = '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:420px;max-height:80vh;overflow:hidden;color:var(--text-primary,#fff);">' +
-                '<div style="padding:20px;border-bottom:1px solid var(--glass-border,#333);display:flex;justify-content:space-between;align-items:center;">' +
-                    '<h3 style="margin:0;font-size:18px;">👥 Tag People</h3>' +
-                    '<button onclick="document.getElementById(\'tag-people-modal\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;">✕</button>' +
-                '</div>' +
-                '<div style="padding:16px;">' +
-                    '<input type="text" placeholder="🔍 Search people..." style="width:100%;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;" oninput="window._filterTagPeople(this.value)">' +
-                '</div>' +
-                '<div style="max-height:300px;overflow-y:auto;padding:0 16px;">' + peopleItems + '</div>' +
-                '<div style="padding:16px;">' +
-                    '<button onclick="window._confirmTagPeople()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">👥 Tag Selected People</button>' +
-                '</div>' +
-            '</div>';
-
-            document.body.appendChild(modal);
-            modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
-
-            window._tagSelectedTemp = [];
-
-            window._filterTagPeople = function(q) {
-                document.querySelectorAll('.tag-person-item').forEach(function(item) {
-                    item.style.display = item.dataset.name.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none';
-                });
-            };
-
-            window._toggleTagPerson = function(el, name) {
-                var check = el.querySelector('.tag-check');
-                var idx = window._tagSelectedTemp.indexOf(name);
-                if (idx === -1) {
-                    window._tagSelectedTemp.push(name);
-                    check.innerHTML = '✓';
-                    check.style.borderColor = 'var(--primary,#6366f1)';
-                    check.style.background = 'var(--primary,#6366f1)';
-                    check.style.color = '#fff';
-                    el.style.background = 'rgba(99,102,241,0.15)';
-                } else {
-                    window._tagSelectedTemp.splice(idx, 1);
-                    check.innerHTML = '';
-                    check.style.borderColor = 'var(--glass-border,#444)';
-                    check.style.background = 'transparent';
-                    el.style.background = 'transparent';
-                }
-            };
-
-            window._confirmTagPeople = function() {
-                if (window._tagSelectedTemp.length === 0) {
-                    if (typeof showToast === 'function') showToast('Please select at least one person', 'info');
-                    return;
-                }
-                window._postTaggedPeople = window._tagSelectedTemp.slice();
-                document.getElementById('tag-people-modal').remove();
-                addAttachmentIndicator('👥 Tagged: ' + window._postTaggedPeople.join(', '), 'tags');
-                if (typeof showToast === 'function') showToast('👥 Tagged: ' + window._postTaggedPeople.join(', '), 'success');
-            };
-        };
-
-        console.log('[Fix4] ✅ Tag people button - FIXED');
-    }
-
-    // ==========================================
-    // FIX 5: Comments section add button not working
-    // ==========================================
-    function fix5_CommentsSystem() {
-        // Create a working comment system for posts
-        window._openCommentSection = function(postArticle) {
-            if (!postArticle) return;
-            var commentsSection = postArticle.querySelector('.post-comments-section');
-            if (!commentsSection) {
-                // Create comments section if it doesn't exist
-                commentsSection = document.createElement('div');
-                commentsSection.className = 'post-comments-section';
-                commentsSection.style.cssText = 'margin-top:1rem;padding-top:1rem;border-top:1px solid var(--glass-border);';
-                postArticle.appendChild(commentsSection);
-            }
-
-            // Toggle visibility
-            if (commentsSection.style.display === 'block') {
-                commentsSection.style.display = 'none';
-                return;
-            }
-            commentsSection.style.display = 'block';
-
-            // Only add input if not already there
-            if (!commentsSection.querySelector('.comment-input-row')) {
-                commentsSection.innerHTML = '<div class="comments-list"></div>' +
-                    '<div class="comment-input-row" style="display:flex;gap:8px;margin-top:10px;">' +
-                        '<input type="text" placeholder="Write a comment..." class="comment-text-input" style="flex:1;padding:10px 14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:25px;color:var(--text-primary);font-size:0.9rem;">' +
-                        '<button class="btn btn-primary btn-small comment-submit-btn" style="border-radius:25px;padding:10px 18px;">Post</button>' +
-                    '</div>';
-
-                var input = commentsSection.querySelector('.comment-text-input');
-                var submitBtn = commentsSection.querySelector('.comment-submit-btn');
-                var commentsList = commentsSection.querySelector('.comments-list');
-
-                var addComment = function() {
-                    var text = input.value.trim();
-                    if (!text) return;
-                    
-                    var commentHTML = '<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--glass-border);animation:fadeIn 0.3s;">' +
-                        '<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0;">JD</div>' +
-                        '<div style="flex:1;">' +
-                            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">' +
-                                '<span style="font-weight:600;font-size:0.9rem;">John Doe</span>' +
-                                '<span style="font-size:0.8rem;color:var(--text-secondary);">Just now</span>' +
-                            '</div>' +
-                            '<div style="font-size:0.9rem;line-height:1.4;">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
-                            '<div style="margin-top:4px;display:flex;gap:12px;">' +
-                                '<span onclick="this.textContent=this.textContent.includes(\'d\')?\'Like\':\'Liked ❤️\'" style="cursor:pointer;font-size:0.8rem;color:var(--text-secondary);">Like</span>' +
-                                '<span style="font-size:0.8rem;color:var(--text-secondary);cursor:pointer;">Reply</span>' +
-                            '</div>' +
+            var html =
+                '<div id="' + postId + '" class="post-card" style="animation:utFadeUp 0.4s ease;">' +
+                    '<div class="post-header">' +
+                        '<div class="post-avatar">👤</div>' +
+                        '<div class="post-header-info">' +
+                            '<div class="post-author">You' + locationBadge + tagBadge + '</div>' +
+                            '<div class="post-meta">Just now · 🌍 Public</div>' +
                         '</div>' +
-                    '</div>';
-                    
-                    commentsList.insertAdjacentHTML('beforeend', commentHTML);
-                    input.value = '';
-                    if (typeof showToast === 'function') showToast('Comment posted! 💬', 'success');
-                };
+                    '</div>' +
+                    (text ? '<div class="post-content">' + safeText + '</div>' : '') +
+                    photoBlock +
+                    '<div class="post-actions">' +
+                        '<div class="post-action" onclick="window._utToggleLike(this)"><span>👍</span> Like</div>' +
+                        '<div class="post-action" onclick="window._utToggleComments(\'' + postId + '\')"><span>💬</span> Comment</div>' +
+                        '<div class="post-action" onclick="window._utOpenShare()"><span>🔄</span> Share</div>' +
+                    '</div>' +
+                    '<div id="' + postId + '-comments" style="display:none;padding-top:12px;border-top:1px solid var(--glass-border);margin-top:12px;"></div>' +
+                '</div>';
 
-                submitBtn.addEventListener('click', addComment);
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') addComment();
-                });
+            // Find the feed container – try several common IDs/selectors
+            var feed = document.getElementById('feed-screen') || document.getElementById('postsContainer') || document.querySelector('.post-card')?.parentElement;
+            if (feed) {
+                var firstCard = feed.querySelector('.post-card, .card, article');
+                if (firstCard) {
+                    feed.insertBefore(createEl(html), firstCard);
+                } else {
+                    feed.insertAdjacentHTML('afterbegin', html);
+                }
             }
 
-            // Focus the input
-            var commentInput = commentsSection.querySelector('.comment-text-input');
-            if (commentInput) commentInput.focus();
+            // Reset state
+            if (ta) ta.value = '';
+            window._ut_postPhoto    = null;
+            window._ut_postLocation = null;
+            window._ut_postTags     = null;
+            // Remove any attachment badges inside the modal
+            document.querySelectorAll('.ut-attach-badge').forEach(function (el) { el.remove(); });
+
+            closeM('createPost');
+            toast('🎉 Post published!');
         };
 
-        // Also add comment sections to existing posts in the feed
-        addCommentButtonsToExistingPosts();
+        // helpers used by new posts
+        window._utToggleLike = function (el) {
+            el.classList.toggle('active');
+            var s = el.querySelector('span');
+            s.textContent = el.classList.contains('active') ? '❤️' : '👍';
+            el.style.color  = el.classList.contains('active') ? 'var(--error,#ef4444)' : '';
+        };
+        window._utToggleComments = function (postId) {
+            var sec = document.getElementById(postId + '-comments');
+            if (!sec) return;
+            if (sec.style.display === 'block') { sec.style.display = 'none'; return; }
+            sec.style.display = 'block';
+            if (!sec.querySelector('.ut-comment-input')) {
+                sec.innerHTML =
+                    '<div class="ut-comment-list"></div>' +
+                    '<div style="display:flex;gap:8px;margin-top:10px;">' +
+                        '<input class="ut-comment-input" placeholder="Write a comment…" style="flex:1;padding:10px 14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:25px;color:var(--text-primary);font-size:0.9rem;outline:none;">' +
+                        '<button class="ut-comment-btn btn" style="border-radius:25px;padding:10px 18px;">Post</button>' +
+                    '</div>';
+                wireCommentBox(sec);
+            }
+            var inp = sec.querySelector('.ut-comment-input');
+            if (inp) inp.focus();
+        };
 
-        console.log('[Fix5] ✅ Comments add button - FIXED');
+        console.log('[Fix 2] ✅ publishPost patched (targets #postTextContent).');
     }
 
-    function addCommentButtonsToExistingPosts() {
-        // Watch for posts being added to #postsContainer and add comment functionality
-        var postsContainer = document.getElementById('postsContainer');
-        if (!postsContainer) return;
+    function createEl(html) {
+        var d = document.createElement('div');
+        d.innerHTML = html;
+        return d.firstElementChild;
+    }
 
-        // Add to existing posts
-        var existingPosts = postsContainer.querySelectorAll('article, .card');
-        existingPosts.forEach(function(post) {
-            enhancePostWithComments(post);
+    // =========================================================================
+    // FIX 3 – "Add Location" confirm button in the location picker
+    // =========================================================================
+    function fix3_AddLocationButton() {
+        // The location modal already exists as #selectLocationModal.
+        // Pre-defined items call selectLocation(place) which works fine.
+        // What's missing: a text input + "Add Location" button for custom entries.
+        // We inject them into the modal once it opens.
+
+        // Override addLocationToPost so we can also inject UI enhancements
+        var _orig = window.addLocationToPost || function () { openM('selectLocation'); };
+        window.addLocationToPost = function () {
+            _orig.call(this);
+            // After the modal opens, inject our input+button if not already there
+            setTimeout(injectLocationInput, 120);
+        };
+
+        // Also intercept openModal so the injection fires every time
+        var _om = window.openModal;
+        window.openModal = function (id) {
+            _om.call(this, id);
+            if (id === 'selectLocation') {
+                setTimeout(injectLocationInput, 120);
+            }
+        };
+
+        // Override selectLocation so it also saves to our state variable
+        var _origSL = window.selectLocation;
+        window.selectLocation = function (location) {
+            window._ut_postLocation = location;
+            if (typeof _origSL === 'function') _origSL.call(this, location);
+            // Show badge in create-post modal
+            showAttachBadge('📍 ' + location, 'location');
+            toast('📍 Location added: ' + location);
+        };
+
+        console.log('[Fix 3] ✅ Location picker enhanced with input + confirm button.');
+    }
+
+    function injectLocationInput() {
+        var modal = document.getElementById('selectLocationModal');
+        if (!modal || modal.querySelector('.ut-loc-input-row')) return;
+
+        var content = modal.querySelector('.modal-content');
+        if (!content) return;
+
+        var row = document.createElement('div');
+        row.className = 'ut-loc-input-row';
+        row.style.cssText = 'padding:0 0 14px 0;';
+        row.innerHTML =
+            '<p style="font-size:12px;color:var(--text-secondary,#aaa);margin:0 0 8px;">Or type a custom location:</p>' +
+            '<div style="display:flex;gap:8px;">' +
+                '<input id="ut-custom-loc" placeholder="Enter location…" style="flex:1;padding:11px 14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;outline:none;">' +
+                '<button id="ut-add-loc-btn" style="padding:11px 18px;background:var(--primary,#6366f1);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap;">Add Location</button>' +
+            '</div>';
+
+        // Insert before the list items
+        content.insertBefore(row, content.firstChild);
+
+        document.getElementById('ut-add-loc-btn').addEventListener('click', function () {
+            var val = (document.getElementById('ut-custom-loc') || {}).value.trim();
+            if (!val) { toast('Please enter a location'); return; }
+            window.selectLocation(val);
         });
 
-        // Watch for new posts
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(m) {
-                m.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1 && (node.tagName === 'ARTICLE' || node.classList.contains('card'))) {
-                        enhancePostWithComments(node);
-                    }
-                });
+        // Also allow Enter key
+        document.getElementById('ut-custom-loc').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') document.getElementById('ut-add-loc-btn').click();
+        });
+    }
+
+    // =========================================================================
+    // FIX 4 – "Add Person" confirm button in the Tag People picker
+    // =========================================================================
+    function fix4_TagPeopleButton() {
+        // The tag people modal exists as #tagPeopleModal.
+        // Items call tagPerson(name, emoji) which works.
+        // Missing: a search box for finding people + a visible "Done / Add" button.
+
+        var _om = window.openModal;
+        window.openModal = function (id) {
+            _om.call(this, id);
+            if (id === 'tagPeople') {
+                setTimeout(injectTagPeopleFooter, 120);
+            }
+        };
+
+        // Override tagPeopleInPost too (called by the 👥 action button)
+        var _origTP = window.tagPeopleInPost || function () { openM('tagPeople'); };
+        window.tagPeopleInPost = function () {
+            _origTP.call(this);
+            setTimeout(injectTagPeopleFooter, 120);
+        };
+
+        // Keep track of who was tagged so publishPost can read it
+        var _origTag = window.tagPerson;
+        window.tagPerson = function (name, emoji) {
+            if (!window._ut_postTags) window._ut_postTags = [];
+            if (!window._ut_postTags.includes(name)) {
+                window._ut_postTags.push(name);
+            }
+            if (typeof _origTag === 'function') _origTag.call(this, name, emoji);
+        };
+
+        console.log('[Fix 4] ✅ Tag People modal enhanced with search + confirm button.');
+    }
+
+    function injectTagPeopleFooter() {
+        var modal = document.getElementById('tagPeopleModal');
+        if (!modal || modal.querySelector('.ut-tag-footer')) return;
+
+        var content = modal.querySelector('.modal-content');
+        if (!content) return;
+
+        // --- Search box at the top ---
+        var topRow = document.createElement('div');
+        topRow.className = 'ut-tag-footer'; // flag so we don't inject twice
+        topRow.innerHTML = ''; // placeholder class only
+        content.insertBefore(topRow, content.firstChild); // just flags the modal
+
+        var searchRow = document.createElement('div');
+        searchRow.style.cssText = 'margin-bottom:12px;';
+        searchRow.innerHTML =
+            '<input id="ut-tag-search" placeholder="🔍 Search for a person…" style="width:100%;padding:11px 14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;outline:none;">';
+        content.insertBefore(searchRow, content.firstChild);
+
+        document.getElementById('ut-tag-search').addEventListener('input', function () {
+            var q = this.value.toLowerCase();
+            modal.querySelectorAll('.friend-card, .list-item').forEach(function (item) {
+                var name = item.textContent.toLowerCase();
+                item.style.display = name.includes(q) ? '' : 'none';
             });
         });
-        observer.observe(postsContainer, { childList: true });
-    }
 
-    function enhancePostWithComments(post) {
-        if (post.dataset.commentsEnhanced) return;
-        post.dataset.commentsEnhanced = 'true';
-        
-        // Find comment and share buttons and rewire them
-        var buttons = post.querySelectorAll('button, .btn');
-        buttons.forEach(function(btn) {
-            var text = btn.textContent.toLowerCase();
-            if (text.includes('comment')) {
-                btn.onclick = function(e) {
-                    e.preventDefault();
-                    window._openCommentSection(post);
-                };
-            }
-            if (text.includes('share')) {
-                btn.onclick = function(e) {
-                    e.preventDefault();
-                    window._openShareModal();
-                };
+        // --- "Done – Add People" button at the bottom ---
+        var footer = document.createElement('div');
+        footer.style.cssText = 'padding:16px 0 4px;';
+        footer.innerHTML =
+            '<button id="ut-confirm-tag-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">👥 Done – Add People</button>';
+        content.appendChild(footer);
+
+        document.getElementById('ut-confirm-tag-btn').addEventListener('click', function () {
+            var tagged = window._ut_postTags || [];
+            closeM('tagPeople');
+            if (tagged.length > 0) {
+                showAttachBadge('👥 ' + tagged.join(', '), 'tags');
+                toast('👥 Tagged: ' + tagged.join(', '));
+            } else {
+                toast('No one tagged yet – tap a person to tag them');
             }
         });
+    }
 
-        // Add hidden comments section if not present
-        if (!post.querySelector('.post-comments-section')) {
-            var section = document.createElement('div');
-            section.className = 'post-comments-section';
-            section.style.display = 'none';
-            post.appendChild(section);
+    // =========================================================================
+    // FIX 5 – Comments section: wire up existing HTML input (no duplicate UI)
+    // =========================================================================
+    function fix5_CommentsAddButton() {
+        // The HTML already has #commentInputField + .chat-send-btn calling submitComment().
+        // We must NOT add a second input row – just make submitComment() actually work
+        // and style the existing elements properly.
+
+        // Override submitComment() – the existing button calls this
+        window.submitComment = function () {
+            var input = document.getElementById('commentInputField');
+            var val   = input ? input.value.trim() : '';
+            if (!val) { toast('Please write a comment first'); return; }
+
+            // Find or create the comments list inside the modal
+            var modal = document.getElementById('commentsModal');
+            if (!modal) return;
+            var list = modal.querySelector('.ut-modal-comment-list');
+            if (!list) {
+                list = document.createElement('div');
+                list.className = 'ut-modal-comment-list';
+                list.style.cssText = 'max-height:280px;overflow-y:auto;padding:0 0 8px 0;';
+                // Insert BEFORE the sticky input row
+                var stickyRow = modal.querySelector('[style*="sticky"]');
+                if (stickyRow) {
+                    stickyRow.parentNode.insertBefore(list, stickyRow);
+                } else {
+                    var mc = modal.querySelector('.modal-content');
+                    if (mc) mc.appendChild(list);
+                }
+            }
+
+            appendComment(list, val);
+            if (input) input.value = '';
+            toast('💬 Comment posted!');
+        };
+
+        // Style the existing input + send button on first open
+        var _om = window.openModal;
+        window.openModal = function (id) {
+            _om.call(this, id);
+            if (id === 'comments') {
+                setTimeout(styleCommentInput, 120);
+            }
+        };
+
+        // Also wire up comment buttons on feed posts
+        setTimeout(wireAllExistingPostComments, 2000);
+
+        console.log('[Fix 5] ✅ submitComment() wired – single input row, no duplicates.');
+    }
+
+    function styleCommentInput() {
+        var modal = document.getElementById('commentsModal');
+        if (!modal || modal.dataset.utStyled) return;
+        modal.dataset.utStyled = '1';
+
+        // Style the existing input field to be properly sized
+        var inp = document.getElementById('commentInputField');
+        if (inp) {
+            inp.style.cssText = (inp.getAttribute('style') || '') +
+                ';flex:1;padding:11px 16px;border-radius:25px;font-size:0.92rem;outline:none;box-sizing:border-box;';
+        }
+
+        // Style the send button to be a proper round button
+        var btn = modal.querySelector('.chat-send-btn');
+        if (btn) {
+            btn.style.cssText =
+                'width:42px;height:42px;min-width:42px;border-radius:50%;background:var(--primary,#6366f1);' +
+                'color:#fff;border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;' +
+                'justify-content:center;flex-shrink:0;transition:opacity 0.15s;';
+            btn.onmouseover = function () { this.style.opacity = '0.85'; };
+            btn.onmouseout  = function () { this.style.opacity = '1'; };
+        }
+
+        // Ensure the sticky row is flex
+        var stickyRow = modal.querySelector('[style*="sticky"]');
+        if (stickyRow) {
+            stickyRow.style.display  = 'flex';
+            stickyRow.style.gap      = '8px';
+            stickyRow.style.alignItems = 'center';
         }
     }
 
-    // ==========================================
-    // FIX 6: Share button window not opening
-    // ==========================================
-    function fix6_ShareButtonWindow() {
-        // Override sharePost to open a real share dialog
-        window.sharePost = function() {
-            window._openShareModal();
+    function wireCommentBox(container) {
+        // Legacy helper kept for inline post comment boxes (created by Fix 2 posts)
+        var input = container.querySelector('.ut-comment-input');
+        var btn   = container.querySelector('.ut-comment-btn');
+        var list  = container.querySelector('.ut-comment-list');
+        if (!input || !btn || btn.dataset.utWired) return;
+        btn.dataset.utWired = '1';
+
+        var submit = function () {
+            var val = input.value.trim();
+            if (!val) { toast('Please write a comment'); return; }
+            appendComment(list || container, val);
+            input.value = '';
+            toast('💬 Comment posted!');
         };
+        btn.addEventListener('click', submit);
+        input.addEventListener('keypress', function (e) { if (e.key === 'Enter') submit(); });
+    }
 
-        window._openShareModal = function() {
-            var existing = document.getElementById('share-modal-fix');
-            if (existing) existing.remove();
-
-            var modal = document.createElement('div');
-            modal.id = 'share-modal-fix';
-            modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100001;align-items:flex-end;justify-content:center;padding:0;box-sizing:border-box;';
-
-            modal.innerHTML = '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:75vh;overflow-y:auto;padding:24px;color:var(--text-primary,#fff);animation:slideUp 0.3s ease;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
-                    '<h3 style="margin:0;font-size:20px;">🔄 Share Post</h3>' +
-                    '<button onclick="document.getElementById(\'share-modal-fix\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;">✕</button>' +
-                '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">' +
-                    '<div onclick="document.getElementById(\'share-modal-fix\').remove();showToast(\'📝 Shared to your timeline!\',\'success\')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border-radius:12px;transition:background 0.2s;background:var(--glass,#2a2a3e);"><span style="font-size:1.3rem;">📝</span> <div><div style="font-weight:600;">Share to Your Timeline</div><div style="font-size:0.85rem;color:var(--text-secondary);">Post it on your feed</div></div></div>' +
-                    '<div onclick="document.getElementById(\'share-modal-fix\').remove();showToast(\'📨 Opening friend picker...\',\'success\')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border-radius:12px;transition:background 0.2s;background:var(--glass,#2a2a3e);"><span style="font-size:1.3rem;">📨</span> <div><div style="font-weight:600;">Send to a Friend</div><div style="font-size:0.85rem;color:var(--text-secondary);">Share via direct message</div></div></div>' +
-                    '<div onclick="document.getElementById(\'share-modal-fix\').remove();showToast(\'👥 Shared to group!\',\'success\')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border-radius:12px;transition:background 0.2s;background:var(--glass,#2a2a3e);"><span style="font-size:1.3rem;">👥</span> <div><div style="font-weight:600;">Share to a Group</div><div style="font-size:0.85rem;color:var(--text-secondary);">Post in a group</div></div></div>' +
-                    '<div onclick="document.getElementById(\'share-modal-fix\').remove();showToast(\'⭐ Added to your story!\',\'success\')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border-radius:12px;transition:background 0.2s;background:var(--glass,#2a2a3e);"><span style="font-size:1.3rem;">⭐</span> <div><div style="font-weight:600;">Share to Story</div><div style="font-size:0.85rem;color:var(--text-secondary);">Add to your story</div></div></div>' +
-                '</div>' +
-                '<div style="border-top:1px solid var(--glass-border,#333);padding-top:16px;margin-bottom:12px;">' +
-                    '<p style="font-size:0.9rem;color:var(--text-secondary);margin:0 0 10px;">Share via external apps</p>' +
-                    '<div style="display:flex;gap:16px;justify-content:center;">' +
-                        '<div onclick="window.open(\'https://wa.me/?text=\'+encodeURIComponent(\'Check this out on Lynkapp!\'),\'_blank\');document.getElementById(\'share-modal-fix\').remove()" style="text-align:center;cursor:pointer;"><div style="width:50px;height:50px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:4px;">💬</div><div style="font-size:0.8rem;">WhatsApp</div></div>' +
-                        '<div onclick="window.open(\'https://twitter.com/intent/tweet?text=\'+encodeURIComponent(\'Check this out on Lynkapp!\'),\'_blank\');document.getElementById(\'share-modal-fix\').remove()" style="text-align:center;cursor:pointer;"><div style="width:50px;height:50px;border-radius:50%;background:#1DA1F2;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:4px;">🐦</div><div style="font-size:0.8rem;">Twitter</div></div>' +
-                        '<div onclick="window.open(\'https://facebook.com/sharer/sharer.php?u=\'+encodeURIComponent(\'https://lynkapp.com\'),\'_blank\');document.getElementById(\'share-modal-fix\').remove()" style="text-align:center;cursor:pointer;"><div style="width:50px;height:50px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:4px;">📘</div><div style="font-size:0.8rem;">Facebook</div></div>' +
-                        '<div onclick="window.open(\'mailto:?subject=Check+this+out&body=Check+this+out+on+Lynkapp!\');document.getElementById(\'share-modal-fix\').remove()" style="text-align:center;cursor:pointer;"><div style="width:50px;height:50px;border-radius:50%;background:#EA4335;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:4px;">📧</div><div style="font-size:0.8rem;">Email</div></div>' +
-                    '</div>' +
-                '</div>' +
-                '<div style="display:flex;gap:8px;margin-top:12px;">' +
-                    '<input type="text" value="https://lynkapp.com/post/' + Date.now() + '" readonly style="flex:1;padding:12px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:13px;">' +
-                    '<button onclick="var inp=this.previousElementSibling;navigator.clipboard.writeText(inp.value).then(function(){showToast(\'📋 Link copied to clipboard!\',\'success\')}).catch(function(){inp.select();document.execCommand(\'copy\');showToast(\'📋 Link copied!\',\'success\')})" style="padding:12px 16px;background:var(--primary,#6366f1);color:white;border:none;border-radius:10px;cursor:pointer;font-size:1.1rem;">📋</button>' +
+    function appendComment(container, text) {
+        var safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var div = document.createElement('div');
+        div.style.cssText = 'display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--glass-border);animation:utFadeUp 0.3s ease;';
+        div.innerHTML =
+            '<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">JD</div>' +
+            '<div style="flex:1;">' +
+                '<div style="font-weight:600;font-size:0.88rem;">You <span style="font-size:0.78rem;color:var(--text-secondary);font-weight:400;">· just now</span></div>' +
+                '<div style="font-size:0.9rem;margin-top:2px;line-height:1.45;">' + safeText + '</div>' +
+                '<div style="margin-top:5px;display:flex;gap:14px;">' +
+                    '<span onclick="this.style.color=this.style.color?\'\':\' var(--error)\'" style="cursor:pointer;font-size:0.8rem;color:var(--text-secondary);">Like</span>' +
+                    '<span style="cursor:pointer;font-size:0.8rem;color:var(--text-secondary);">Reply</span>' +
                 '</div>' +
             '</div>';
-
-            document.body.appendChild(modal);
-            modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
-        };
-
-        console.log('[Fix6] ✅ Share button window - FIXED');
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
     }
 
-    // ==========================================
-    // FIX 7: Story camera/gallery buttons
-    // ==========================================
-    function fix7_StoryCameraGallery() {
-        // Override createStory to show a real camera/gallery picker
-        window.createStory = function() {
-            showStoryCameraGalleryPicker();
-        };
-
-        console.log('[Fix7] ✅ Story camera/gallery buttons - FIXED');
+    function wireAllExistingPostComments() {
+        document.querySelectorAll('.post-card, article').forEach(function (post) {
+            if (post.dataset.utComEnhanced) return;
+            post.dataset.utComEnhanced = '1';
+            post.querySelectorAll('.post-action, button').forEach(function (btn) {
+                var t = btn.textContent.toLowerCase();
+                if (t.includes('comment')) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openM('comments');
+                    });
+                }
+            });
+        });
     }
 
-    function showStoryCameraGalleryPicker() {
-        var existing = document.getElementById('story-picker-fix');
-        if (existing) existing.remove();
+    // =========================================================================
+    // FIX 6 – Share button opens a proper share-options window
+    // =========================================================================
+    function fix6_ShareButtonWindow() {
+        // The HTML already has #sharePostModal.
+        // The inline post-action buttons call sharePost() which just toasts.
+        // Fix: make sharePost() open the existing sharePostModal instead.
 
-        var modal = document.createElement('div');
-        modal.id = 'story-picker-fix';
-        modal.style.cssText = 'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100001;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-        
-        modal.innerHTML = '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:400px;padding:28px;color:var(--text-primary,#fff);">' +
-            '<div style="text-align:center;margin-bottom:24px;">' +
-                '<div style="font-size:52px;margin-bottom:10px;">📸</div>' +
-                '<h2 style="margin:0 0 6px;font-size:22px;">Create Story</h2>' +
-                '<p style="color:var(--text-secondary,#888);font-size:14px;margin:0;">Choose how to create your story</p>' +
-            '</div>' +
-            '<div style="display:flex;flex-direction:column;gap:12px;">' +
-                '<button onclick="window._storyOpenCamera()" style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:14px;cursor:pointer;color:var(--text-primary,#fff);font-size:15px;text-align:left;transition:all 0.2s;">' +
-                    '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;">📷</div>' +
-                    '<div><div style="font-weight:600;">Camera</div><div style="font-size:13px;color:var(--text-secondary,#888);">Take a photo or record video</div></div>' +
-                '</button>' +
-                '<button onclick="window._storyOpenGallery()" style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:14px;cursor:pointer;color:var(--text-primary,#fff);font-size:15px;text-align:left;transition:all 0.2s;">' +
-                    '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:22px;">🖼️</div>' +
-                    '<div><div style="font-weight:600;">Gallery</div><div style="font-size:13px;color:var(--text-secondary,#888);">Choose from your photos</div></div>' +
-                '</button>' +
-                '<button onclick="window._storyOpenText()" style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:14px;cursor:pointer;color:var(--text-primary,#fff);font-size:15px;text-align:left;transition:all 0.2s;">' +
-                    '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:22px;">✏️</div>' +
-                    '<div><div style="font-weight:600;">Text Story</div><div style="font-size:13px;color:var(--text-secondary,#888);">Create a text-based story</div></div>' +
-                '</button>' +
-            '</div>' +
-            '<button onclick="document.getElementById(\'story-picker-fix\').remove()" style="width:100%;margin-top:16px;padding:14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:12px;cursor:pointer;font-size:14px;color:var(--text-secondary,#888);">Cancel</button>' +
+        window.sharePost = function () {
+            // If the HTML's sharePostModal exists, use it
+            var existing = document.getElementById('sharePostModal');
+            if (existing) {
+                openM('sharePost');
+                return;
+            }
+            // Fallback: build our own share sheet
+            window._utOpenShare();
+        };
+
+        // Also expose this for new posts created by fix 2
+        window._utOpenShare = function () {
+            var existing = document.getElementById('sharePostModal');
+            if (existing) { openM('sharePost'); return; }
+
+            var sheet = document.getElementById('ut-share-sheet');
+            if (sheet) { sheet.remove(); }
+
+            var el = document.createElement('div');
+            el.id = 'ut-share-sheet';
+            el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:999991;display:flex;align-items:flex-end;justify-content:center;';
+            el.innerHTML =
+                '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:24px;animation:utSlideUp 0.3s ease;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
+                        '<h3 style="margin:0;font-size:19px;color:var(--text-primary,#fff);">🔄 Share Post</h3>' +
+                        '<button onclick="document.getElementById(\'ut-share-sheet\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>' +
+                    '</div>' +
+                    shareOption('📝', 'Share to Your Timeline', 'Post it on your feed', "document.getElementById('ut-share-sheet').remove();toast('📝 Shared to your timeline!')") +
+                    shareOption('📨', 'Send to a Friend', 'Share via direct message', "document.getElementById('ut-share-sheet').remove();toast('📨 Opening messages…')") +
+                    shareOption('👥', 'Share to a Group', 'Post in a group', "document.getElementById('ut-share-sheet').remove();toast('👥 Shared to group!')") +
+                    shareOption('⭐', 'Add to Your Story', 'Share as a story', "document.getElementById('ut-share-sheet').remove();toast('⭐ Added to your story!')") +
+                    '<div style="display:flex;justify-content:center;gap:20px;border-top:1px solid var(--glass-border);padding-top:18px;margin-top:14px;">' +
+                        extShareBtn('💬','WhatsApp','#25D366',"window.open('https://wa.me/?text='+encodeURIComponent('Check this out on Lynkapp!'),'_blank');document.getElementById('ut-share-sheet').remove()") +
+                        extShareBtn('🐦','Twitter','#1DA1F2',"window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent('Check this out on Lynkapp!'),'_blank');document.getElementById('ut-share-sheet').remove()") +
+                        extShareBtn('📘','Facebook','#1877F2',"window.open('https://www.facebook.com/sharer/sharer.php?u=https://lynkapp.com','_blank');document.getElementById('ut-share-sheet').remove()") +
+                        extShareBtn('📧','Email','#EA4335',"window.open('mailto:?subject=Check+this+out&body=Check+this+out+on+Lynkapp!');document.getElementById('ut-share-sheet').remove()") +
+                    '</div>' +
+                    '<div style="display:flex;gap:8px;margin-top:16px;">' +
+                        '<input id="ut-share-link" value="https://lynkapp.com/post/' + Date.now() + '" readonly style="flex:1;padding:10px 14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:13px;">' +
+                        '<button onclick="var i=document.getElementById(\'ut-share-link\');navigator.clipboard?navigator.clipboard.writeText(i.value).then(function(){toast(\'📋 Link copied!\')}).catch(function(){i.select();document.execCommand(\'copy\');toast(\'📋 Copied!\')}):(i.select(),document.execCommand(\'copy\'),toast(\'📋 Copied!\'))" style="padding:10px 16px;background:var(--primary,#6366f1);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:1.1rem;">📋</button>' +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(el);
+            el.addEventListener('click', function (e) { if (e.target === el) el.remove(); });
+        };
+
+        console.log('[Fix 6] ✅ sharePost() now opens share window.');
+    }
+
+    function shareOption(icon, title, sub, onclick) {
+        return '<div onclick="' + onclick + '" style="padding:13px 14px;cursor:pointer;display:flex;align-items:center;gap:14px;border-radius:12px;background:var(--glass,#2a2a3e);margin-bottom:8px;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">' +
+            '<span style="font-size:1.4rem;">' + icon + '</span>' +
+            '<div><div style="font-weight:600;font-size:14px;color:var(--text-primary,#fff);">' + title + '</div><div style="font-size:12px;color:var(--text-secondary,#aaa);">' + sub + '</div></div>' +
         '</div>';
+    }
+    function extShareBtn(icon, label, bg, onclick) {
+        return '<div onclick="' + onclick + '" style="text-align:center;cursor:pointer;">' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 5px;">' + icon + '</div>' +
+            '<div style="font-size:11px;color:var(--text-secondary,#aaa);">' + label + '</div>' +
+        '</div>';
+    }
 
-        document.body.appendChild(modal);
-        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    // =========================================================================
+    // FIX 7 – Create Story: camera + gallery buttons actually work
+    // =========================================================================
+    function fix7_StoryCameraGallery() {
+        // The story modal's buttons call openStoryCamera() and openStoryGallery()
+        // which currently just show a toast. We override both.
 
-        // Camera handler
-        window._storyOpenCamera = function() {
-            var picker = document.getElementById('story-picker-fix');
-            if (picker) picker.remove();
-            
+        window.openStoryCamera = function () {
+            closeM('createStory');
+            _tryCamera();
+        };
+
+        window.openStoryGallery = function () {
+            closeM('createStory');
+            _openFileGallery();
+        };
+
+        // Also override createStory so clicking it opens our picker sheet
+        window.createStory = function () {
+            _showStoryPicker();
+        };
+
+        // ── camera ────────────────────────────────────────────────────────────
+        function _tryCamera() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
-                    .then(function(stream) { showStoryCameraPreview(stream); })
-                    .catch(function(err) {
-                        console.error('Camera error:', err);
-                        if (typeof showToast === 'function') showToast('📷 Camera not available. Try uploading from gallery instead.', 'info');
-                        window._storyOpenGallery();
+                    .then(function (stream) { _showCameraPreview(stream); })
+                    .catch(function (err) {
+                        console.warn('[Fix7] Camera denied:', err.name);
+                        toast('📷 Camera unavailable – opening gallery instead');
+                        _openFileGallery();
                     });
             } else {
-                if (typeof showToast === 'function') showToast('Camera not supported. Opening gallery...', 'info');
-                window._storyOpenGallery();
-            }
-        };
-
-        // Gallery handler
-        window._storyOpenGallery = function() {
-            var picker = document.getElementById('story-picker-fix');
-            if (picker) picker.remove();
-            
-            var fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*,video/*';
-            fileInput.style.display = 'none';
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files && fileInput.files[0]) {
-                    var file = fileInput.files[0];
-                    if (typeof showToast === 'function') showToast('📸 Story created with: ' + file.name, 'success');
-                    
-                    // Add story preview to stories list
-                    addStoryToList(file);
-                }
-                document.body.removeChild(fileInput);
-            });
-            document.body.appendChild(fileInput);
-            fileInput.click();
-        };
-
-        // Text story handler
-        window._storyOpenText = function() {
-            var picker = document.getElementById('story-picker-fix');
-            if (picker) picker.remove();
-            showTextStoryCreator();
-        };
-    }
-
-    function showStoryCameraPreview(stream) {
-        var existing = document.getElementById('story-camera-preview');
-        if (existing) existing.remove();
-
-        var preview = document.createElement('div');
-        preview.id = 'story-camera-preview';
-        preview.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:100002;display:flex;flex-direction:column;';
-        preview.innerHTML = '<div style="padding:16px;display:flex;justify-content:space-between;align-items:center;position:absolute;top:0;left:0;right:0;z-index:2;">' +
-                '<button onclick="window._closeStoryCamera()" style="background:rgba(0,0,0,0.5);border:none;color:white;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;backdrop-filter:blur(10px);">✕</button>' +
-                '<span style="font-weight:600;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);">Story Camera</span>' +
-                '<button onclick="window._flipCamera()" style="background:rgba(0,0,0,0.5);border:none;color:white;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;backdrop-filter:blur(10px);">🔄</button>' +
-            '</div>' +
-            '<video id="story-cam-video" autoplay playsinline muted style="flex:1;object-fit:cover;width:100%;"></video>' +
-            '<div style="padding:24px;display:flex;justify-content:center;align-items:center;gap:28px;position:absolute;bottom:24px;left:0;right:0;z-index:2;">' +
-                '<button onclick="window._storyOpenGallery();window._closeStoryCamera()" style="background:rgba(255,255,255,0.2);border:2px solid white;color:white;width:48px;height:48px;border-radius:14px;cursor:pointer;font-size:20px;backdrop-filter:blur(10px);">🖼️</button>' +
-                '<button onclick="window._captureStory()" style="width:72px;height:72px;border-radius:50%;border:4px solid white;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;"><div style="width:56px;height:56px;border-radius:50%;background:white;"></div></button>' +
-                '<div style="width:48px;"></div>' +
-            '</div>';
-
-        document.body.appendChild(preview);
-        var video = document.getElementById('story-cam-video');
-        video.srcObject = stream;
-        window._storyStream = stream;
-
-        window._closeStoryCamera = function() {
-            if (window._storyStream) {
-                window._storyStream.getTracks().forEach(function(t) { t.stop(); });
-            }
-            var el = document.getElementById('story-camera-preview');
-            if (el) el.remove();
-        };
-
-        window._captureStory = function() {
-            var vid = document.getElementById('story-cam-video');
-            var canvas = document.createElement('canvas');
-            canvas.width = vid.videoWidth || 640;
-            canvas.height = vid.videoHeight || 480;
-            canvas.getContext('2d').drawImage(vid, 0, 0);
-            window._closeStoryCamera();
-            if (typeof showToast === 'function') showToast('📸 Story photo captured!', 'success');
-        };
-
-        window._flipCamera = function() {
-            if (window._storyStream) {
-                window._storyStream.getTracks().forEach(function(t) { t.stop(); });
-            }
-            var currentFacing = window._cameraFacing || 'user';
-            var newFacing = currentFacing === 'user' ? 'environment' : 'user';
-            window._cameraFacing = newFacing;
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: newFacing }, audio: false })
-                .then(function(newStream) {
-                    var vid = document.getElementById('story-cam-video');
-                    if (vid) vid.srcObject = newStream;
-                    window._storyStream = newStream;
-                }).catch(function() {
-                    if (typeof showToast === 'function') showToast('Could not switch camera', 'info');
-                });
-        };
-    }
-
-    function showTextStoryCreator() {
-        var existing = document.getElementById('text-story-creator');
-        if (existing) existing.remove();
-
-        var gradients = [
-            'linear-gradient(135deg,#6366f1,#8b5cf6)',
-            'linear-gradient(135deg,#ef4444,#f59e0b)',
-            'linear-gradient(135deg,#10b981,#06b6d4)',
-            'linear-gradient(135deg,#3b82f6,#60a5fa)',
-            'linear-gradient(135deg,#ec4899,#f472b6)',
-            'linear-gradient(135deg,#1e293b,#475569)'
-        ];
-
-        var creator = document.createElement('div');
-        creator.id = 'text-story-creator';
-        creator.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:100002;display:flex;flex-direction:column;';
-        creator.innerHTML = '<div id="text-story-bg" style="flex:1;background:' + gradients[0] + ';display:flex;flex-direction:column;">' +
-            '<div style="padding:16px;display:flex;justify-content:space-between;align-items:center;">' +
-                '<button onclick="document.getElementById(\'text-story-creator\').remove()" style="background:rgba(0,0,0,0.3);border:none;color:white;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;backdrop-filter:blur(10px);">✕</button>' +
-                '<span style="font-weight:600;color:white;">Text Story</span>' +
-                '<button onclick="document.getElementById(\'text-story-creator\').remove();showToast(\'⭐ Story published!\',\'success\')" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:10px 20px;border-radius:25px;cursor:pointer;font-weight:600;backdrop-filter:blur(10px);">Share</button>' +
-            '</div>' +
-            '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:28px;">' +
-                '<textarea placeholder="Type your story..." style="background:transparent;border:none;color:white;font-size:28px;font-weight:700;text-align:center;width:100%;resize:none;outline:none;min-height:120px;text-shadow:0 2px 8px rgba(0,0,0,0.3);" rows="4"></textarea>' +
-            '</div>' +
-            '<div style="padding:20px;display:flex;justify-content:center;gap:10px;">' +
-                gradients.map(function(g) {
-                    return '<button onclick="document.getElementById(\'text-story-bg\').style.background=\'' + g + '\'" style="width:36px;height:36px;border-radius:50%;background:' + g + ';border:3px solid white;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform=\'scale(1.15)\'" onmouseout="this.style.transform=\'scale(1)\'"></button>';
-                }).join('') +
-            '</div>' +
-        '</div>';
-        document.body.appendChild(creator);
-    }
-
-    function addStoryToList(file) {
-        var storiesList = document.getElementById('storiesList');
-        if (!storiesList) return;
-        
-        var storyHTML = '<div style="min-width:100px;text-align:center;cursor:pointer;" onclick="showToast(\'Viewing your story\',\'info\')">' +
-            '<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;border:3px solid var(--primary);margin:0 auto 8px;">' +
-                '<span style="font-size:2rem;color:white;">📸</span>' +
-            '</div>' +
-            '<div style="font-size:0.85rem;">Your Story</div>' +
-        '</div>';
-        storiesList.insertAdjacentHTML('afterbegin', storyHTML);
-    }
-
-    // ==========================================
-    // ENHANCE: Add tag people button to create post modal
-    // ==========================================
-    function enhanceCreatePostModal() {
-        var createModal = document.getElementById('createPostModal');
-        if (!createModal) return;
-        
-        // Find the button row with Photo, Video, Location, Feeling, Poll
-        var buttonRows = createModal.querySelectorAll('div');
-        for (var i = 0; i < buttonRows.length; i++) {
-            var row = buttonRows[i];
-            if (row.querySelector('[onclick*="addPostMedia"]') && !row.querySelector('[onclick*="openTagPeoplePicker"]')) {
-                // Add a Tag People button
-                var tagBtn = document.createElement('button');
-                tagBtn.className = 'btn btn-secondary btn-small';
-                tagBtn.setAttribute('onclick', 'openTagPeoplePicker()');
-                tagBtn.textContent = '👥 Tag People';
-                row.appendChild(tagBtn);
-                break;
+                toast('Camera not supported on this device – opening gallery');
+                _openFileGallery();
             }
         }
 
-        console.log('[Enhancement] ✅ Tag People button added to Create Post modal');
+        // ── gallery / file picker ─────────────────────────────────────────────
+        function _openFileGallery() {
+            var fi = document.createElement('input');
+            fi.type = 'file';
+            fi.accept = 'image/*,video/*';
+            fi.style.display = 'none';
+            fi.addEventListener('change', function () {
+                if (fi.files && fi.files[0]) {
+                    var file = fi.files[0];
+                    toast('📸 Story created: ' + file.name);
+                    _addStoryBubble();
+                }
+                document.body.removeChild(fi);
+            });
+            document.body.appendChild(fi);
+            fi.click();
+        }
+
+        // ── camera preview UI ─────────────────────────────────────────────────
+        function _showCameraPreview(stream) {
+            var prev = document.getElementById('ut-story-camera');
+            if (prev) prev.remove();
+
+            var el = document.createElement('div');
+            el.id = 'ut-story-camera';
+            el.style.cssText = 'position:fixed;inset:0;background:#000;z-index:999992;display:flex;flex-direction:column;';
+            el.innerHTML =
+                '<div style="position:absolute;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:2;">' +
+                    '<button onclick="window._utCloseCam()" style="background:rgba(0,0,0,0.5);border:none;color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:18px;backdrop-filter:blur(8px);">✕</button>' +
+                    '<span style="color:#fff;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,0.5);">Story Camera</span>' +
+                    '<button onclick="window._utFlipCam()" style="background:rgba(0,0,0,0.5);border:none;color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:18px;backdrop-filter:blur(8px);">🔄</button>' +
+                '</div>' +
+                '<video id="ut-cam-video" autoplay playsinline muted style="flex:1;object-fit:cover;width:100%;"></video>' +
+                '<div style="position:absolute;bottom:28px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:28px;z-index:2;">' +
+                    '<button onclick="_openFileGallery();window._utCloseCam()" style="background:rgba(255,255,255,0.2);border:2px solid #fff;color:#fff;width:50px;height:50px;border-radius:14px;cursor:pointer;font-size:20px;backdrop-filter:blur(8px);">🖼️</button>' +
+                    '<button onclick="window._utCapture()" style="width:74px;height:74px;border-radius:50%;border:5px solid #fff;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">' +
+                        '<div style="width:58px;height:58px;border-radius:50%;background:#fff;"></div>' +
+                    '</button>' +
+                    '<div style="width:50px;"></div>' +
+                '</div>';
+
+            document.body.appendChild(el);
+            var vid = document.getElementById('ut-cam-video');
+            vid.srcObject = stream;
+            window._utStream = stream;
+
+            window._utCloseCam = function () {
+                if (window._utStream) { window._utStream.getTracks().forEach(function (t) { t.stop(); }); window._utStream = null; }
+                var e = document.getElementById('ut-story-camera'); if (e) e.remove();
+            };
+            window._utCapture = function () {
+                var v = document.getElementById('ut-cam-video');
+                var c = document.createElement('canvas');
+                c.width  = v.videoWidth  || 640;
+                c.height = v.videoHeight || 480;
+                c.getContext('2d').drawImage(v, 0, 0);
+                window._utCloseCam();
+                toast('📸 Story captured!');
+                _addStoryBubble();
+            };
+            window._utFlipCam = function () {
+                if (window._utStream) { window._utStream.getTracks().forEach(function (t) { t.stop(); }); }
+                var facing = window._utCamFacing === 'environment' ? 'user' : 'environment';
+                window._utCamFacing = facing;
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false })
+                    .then(function (s) {
+                        var v = document.getElementById('ut-cam-video');
+                        if (v) v.srcObject = s;
+                        window._utStream = s;
+                    }).catch(function () { toast('Could not switch camera'); });
+            };
+        }
+
+        // ── picker sheet ──────────────────────────────────────────────────────
+        function _showStoryPicker() {
+            var el = document.getElementById('ut-story-picker');
+            if (el) el.remove();
+
+            var sheet = document.createElement('div');
+            sheet.id = 'ut-story-picker';
+            sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999991;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+            sheet.innerHTML =
+                '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;width:100%;max-width:400px;padding:28px;color:var(--text-primary,#fff);">' +
+                    '<div style="text-align:center;margin-bottom:22px;">' +
+                        '<div style="font-size:52px;margin-bottom:8px;">📸</div>' +
+                        '<h2 style="margin:0 0 4px;font-size:22px;">Create Story</h2>' +
+                        '<p style="margin:0;font-size:13px;color:var(--text-secondary,#aaa);">Choose how to create your story</p>' +
+                    '</div>' +
+                    storyOption('📷','#6366f1','Camera','Take a photo or record video','window._tryCamera();document.getElementById(\'ut-story-picker\').remove()') +
+                    storyOption('🖼️','#10b981','Gallery','Choose from your photos & videos','window._openFileGallery();document.getElementById(\'ut-story-picker\').remove()') +
+                    storyOption('✏️','#f59e0b','Text Story','Write a colorful text story','window._showTextStory();document.getElementById(\'ut-story-picker\').remove()') +
+                    '<button onclick="document.getElementById(\'ut-story-picker\').remove()" style="width:100%;margin-top:12px;padding:13px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:12px;cursor:pointer;font-size:14px;color:var(--text-secondary,#aaa);">Cancel</button>' +
+                '</div>';
+
+            document.body.appendChild(sheet);
+            sheet.addEventListener('click', function (e) { if (e.target === sheet) sheet.remove(); });
+
+            // expose inner helpers to onclick strings
+            window._tryCamera = _tryCamera;
+            window._openFileGallery = _openFileGallery;
+            window._showTextStory = _showTextStoryCreator;
+        }
+
+        // ── text story creator ────────────────────────────────────────────────
+        function _showTextStoryCreator() {
+            var grads = ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#ef4444,#f59e0b)','linear-gradient(135deg,#10b981,#06b6d4)','linear-gradient(135deg,#ec4899,#f472b6)','linear-gradient(135deg,#1e293b,#475569)','linear-gradient(135deg,#f59e0b,#fbbf24)'];
+            var el = document.createElement('div');
+            el.id = 'ut-text-story';
+            el.style.cssText = 'position:fixed;inset:0;z-index:999992;display:flex;flex-direction:column;';
+            el.innerHTML =
+                '<div id="ut-ts-bg" style="flex:1;background:' + grads[0] + ';display:flex;flex-direction:column;">' +
+                    '<div style="padding:16px;display:flex;justify-content:space-between;align-items:center;">' +
+                        '<button onclick="document.getElementById(\'ut-text-story\').remove()" style="background:rgba(0,0,0,0.3);border:none;color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:16px;backdrop-filter:blur(8px);">✕</button>' +
+                        '<span style="font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4);">Text Story</span>' +
+                        '<button onclick="document.getElementById(\'ut-text-story\').remove();toast(\'⭐ Story published!\');_addStoryBubble()" style="background:rgba(255,255,255,0.25);border:none;color:#fff;padding:10px 20px;border-radius:25px;cursor:pointer;font-weight:600;backdrop-filter:blur(8px);">Share</button>' +
+                    '</div>' +
+                    '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:28px;">' +
+                        '<textarea placeholder="Type your story…" style="background:transparent;border:none;color:#fff;font-size:26px;font-weight:700;text-align:center;width:100%;resize:none;outline:none;text-shadow:0 2px 8px rgba(0,0,0,0.3);" rows="4"></textarea>' +
+                    '</div>' +
+                    '<div style="padding:18px;display:flex;justify-content:center;gap:10px;">' +
+                        grads.map(function (g) {
+                            return '<button onclick="document.getElementById(\'ut-ts-bg\').style.background=\'' + g + '\'" style="width:36px;height:36px;border-radius:50%;background:' + g + ';border:3px solid rgba(255,255,255,0.6);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform=\'scale(1.15)\'" onmouseout="this.style.transform=\'scale(1)\'"></button>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(el);
+        }
+
+        function _addStoryBubble() {
+            var list = document.getElementById('storiesList') || document.querySelector('.stories-list, .stories-row');
+            if (!list) return;
+            var div = document.createElement('div');
+            div.style.cssText = 'min-width:90px;text-align:center;cursor:pointer;flex-shrink:0;';
+            div.innerHTML =
+                '<div style="width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;border:3px solid var(--primary,#6366f1);margin:0 auto 6px;font-size:2rem;">📸</div>' +
+                '<div style="font-size:12px;">Your Story</div>';
+            list.insertBefore(div, list.firstChild);
+        }
+
+        console.log('[Fix 7] ✅ Story camera + gallery patched.');
     }
 
-    // Add CSS animations
-    var style = document.createElement('style');
-    style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}.loc-pick-item:hover,.tag-person-item:hover{background:rgba(99,102,241,0.1)!important}';
-    document.head.appendChild(style);
+    function storyOption(icon, color, title, sub, onclick) {
+        return '<div onclick="' + onclick + '" style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:14px;cursor:pointer;margin-bottom:10px;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">' +
+            '<div style="width:48px;height:48px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;">' + icon + '</div>' +
+            '<div><div style="font-weight:600;font-size:14px;color:var(--text-primary,#fff);">' + title + '</div><div style="font-size:12px;color:var(--text-secondary,#aaa);">' + sub + '</div></div>' +
+        '</div>';
+    }
+
+    // =========================================================================
+    // Helper: attachment badge inside #createPostModal
+    // =========================================================================
+    function showAttachBadge(text, type) {
+        var modal = document.getElementById('createPostModal');
+        if (!modal) return;
+        // Remove previous badge of same type
+        var old = modal.querySelector('.ut-attach-badge[data-type="' + type + '"]');
+        if (old) old.remove();
+
+        var badge = document.createElement('div');
+        badge.className = 'ut-attach-badge';
+        badge.dataset.type = type;
+        badge.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--glass,rgba(99,102,241,0.12));border:1px solid var(--glass-border,#444);border-radius:8px;margin:6px 0;font-size:0.88rem;color:var(--text-primary,#fff);';
+        badge.innerHTML = '<span>' + text + '</span>' +
+            '<button onclick="this.parentElement.remove();window._ut_post' + (type === 'location' ? 'Location' : (type === 'tags' ? 'Tags' : 'Photo')) + '=null;" style="background:none;border:none;color:var(--text-secondary,#888);cursor:pointer;font-size:1.1rem;line-height:1;">✕</button>';
+
+        var ta = modal.querySelector('#postTextContent, #postContent, textarea');
+        if (ta && ta.parentElement) {
+            ta.parentElement.insertBefore(badge, ta.nextSibling);
+        } else {
+            var mc = modal.querySelector('.modal-content');
+            if (mc) mc.appendChild(badge);
+        }
+    }
+
+    // =========================================================================
+    // Global CSS keyframes
+    // =========================================================================
+    function injectGlobalStyles() {
+        var s = document.getElementById('ut-fix-styles');
+        if (s) return;
+        s = document.createElement('style');
+        s.id = 'ut-fix-styles';
+        s.textContent =
+            '@keyframes utFadeUp{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}' +
+            '@keyframes utSlideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}' +
+            '#ut-profile-wizard *,#ut-share-sheet *,#ut-story-camera *,#ut-text-story *,#ut-story-picker *{box-sizing:border-box;}' +
+            '.ut-attach-badge button:hover{color:var(--error,#ef4444)!important;}' +
+            '.wiz-int-btn.sel{background:var(--primary,#6366f1)!important;border-color:var(--primary,#6366f1)!important;}';
+        document.head.appendChild(s);
+    }
 
 })();
