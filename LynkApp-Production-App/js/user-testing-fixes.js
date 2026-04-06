@@ -199,11 +199,81 @@
 
     // =========================================================================
     // FIX 2 – "Post" / "Publish" button in Create Post
+    //   Same pattern as Fix 5 (comments): hook openModal → find existing button
+    //   → style it → wire onclick. No duplicate buttons created.
     // =========================================================================
     function fix2_PostButton() {
-        window.publishPost = function () {
-            // The textarea in this HTML has id="postTextContent"
-            var ta = document.getElementById('postTextContent') || document.getElementById('postContent');
+        // Hook openModal so we style+wire the existing Post button each time the modal opens
+        var _om2 = window.openModal;
+        window.openModal = function (id) {
+            _om2.call(this, id);
+            if (id === 'createPost') {
+                setTimeout(wirePostButton, 150);
+            }
+        };
+
+        // Also catch any direct openCreatePost / createNewPost callers
+        var _origCNP = window.openCreatePost || window.createNewPost;
+        if (typeof _origCNP === 'function') {
+            window.openCreatePost = window.createNewPost = function () {
+                _origCNP.call(this);
+                setTimeout(wirePostButton, 250);
+            };
+        }
+
+        // ── style + wire the existing Post button (like styleCommentInput for comments) ──
+        function wirePostButton() {
+            var modal = document.getElementById('createPostModal');
+            if (!modal || modal.dataset.utPostWired) return;
+            modal.dataset.utPostWired = '1';
+
+            // Style the existing textarea
+            var ta = modal.querySelector('#postTextContent, #postContent, textarea');
+            if (ta) {
+                Object.assign(ta.style, {
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    resize: 'vertical',
+                    minHeight: '100px'
+                });
+            }
+
+            // Find the existing Post button by onclick attribute or button text
+            var postBtn = modal.querySelector('[onclick*="publishPost"],[onclick*="createPost"],[onclick*="submitPost"]');
+            if (!postBtn) {
+                modal.querySelectorAll('button').forEach(function (b) {
+                    var t = b.textContent.trim().toLowerCase();
+                    if (!postBtn && (t === 'post' || t === 'publish' || t === 'share' || t === 'create post')) {
+                        postBtn = b;
+                    }
+                });
+            }
+
+            if (postBtn) {
+                // Style it like the comment send button (gradient, rounded pill)
+                postBtn.style.cssText =
+                    'padding:12px 32px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));' +
+                    'color:#fff;border:none;border-radius:25px;font-size:0.95rem;font-weight:600;' +
+                    'cursor:pointer;min-width:100px;transition:opacity 0.15s;';
+                postBtn.onmouseover = function () { this.style.opacity = '0.85'; };
+                postBtn.onmouseout  = function () { this.style.opacity = '1'; };
+                // Remove any old onclick, wire directly
+                postBtn.removeAttribute('onclick');
+                postBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    doPublishPost(modal);
+                });
+            }
+        }
+
+        // ── the actual publish action (mirrors submitComment exactly) ──────────
+        function doPublishPost(modal) {
+            var ta   = modal ? (modal.querySelector('#postTextContent, #postContent, textarea')) : document.getElementById('postTextContent');
             var text = ta ? ta.value.trim() : '';
 
             var hasPhoto    = !!window._ut_postPhoto;
@@ -215,8 +285,8 @@
                 return;
             }
 
-            // Build the post card and inject it above existing posts
             var postId = 'post-' + Date.now();
+
             var locationBadge = hasLocation
                 ? '<span style="font-size:0.82rem;color:var(--text-secondary);margin-left:6px;">📍 ' + window._ut_postLocation + '</span>'
                 : '';
@@ -226,76 +296,75 @@
             var photoBlock = hasPhoto
                 ? '<div style="margin:12px 0;border-radius:14px;overflow:hidden;height:220px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:4rem;">📸</div>'
                 : '';
-            var safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+            var safeText = text
+                ? text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
+                : '';
 
-            var html =
+            var cardHTML =
                 '<div id="' + postId + '" class="post-card" style="animation:utFadeUp 0.4s ease;">' +
                     '<div class="post-header">' +
-                        '<div class="post-avatar">👤</div>' +
+                        '<div class="post-avatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:0.88rem;font-weight:700;color:#fff;flex-shrink:0;">JD</div>' +
                         '<div class="post-header-info">' +
-                            '<div class="post-author">You' + locationBadge + tagBadge + '</div>' +
-                            '<div class="post-meta">Just now · 🌍 Public</div>' +
+                            '<div class="post-author" style="font-weight:600;">You' + locationBadge + tagBadge + '</div>' +
+                            '<div class="post-meta" style="font-size:0.8rem;color:var(--text-secondary);">Just now · 🌍 Public</div>' +
                         '</div>' +
                     '</div>' +
-                    (text ? '<div class="post-content">' + safeText + '</div>' : '') +
+                    (safeText ? '<div class="post-content" style="padding:12px 0;line-height:1.55;">' + safeText + '</div>' : '') +
                     photoBlock +
                     '<div class="post-actions">' +
-                        '<div class="post-action" onclick="window._utToggleLike(this)"><span>👍</span> Like</div>' +
-                        '<div class="post-action" onclick="window._utToggleComments(\'' + postId + '\')"><span>💬</span> Comment</div>' +
-                        '<div class="post-action" onclick="window._utOpenShare()"><span>🔄</span> Share</div>' +
+                        '<div class="post-action" onclick="window._utToggleLike(this)" style="cursor:pointer;"><span>👍</span> Like</div>' +
+                        '<div class="post-action" onclick="window.openModal(\'comments\')" style="cursor:pointer;"><span>💬</span> Comment</div>' +
+                        '<div class="post-action" onclick="window.sharePost()" style="cursor:pointer;"><span>🔄</span> Share</div>' +
                     '</div>' +
-                    '<div id="' + postId + '-comments" style="display:none;padding-top:12px;border-top:1px solid var(--glass-border);margin-top:12px;"></div>' +
                 '</div>';
 
-            // Find the feed container – try several common IDs/selectors
-            var feed = document.getElementById('feed-screen') || document.getElementById('postsContainer') || document.querySelector('.post-card')?.parentElement;
-            if (feed) {
-                var firstCard = feed.querySelector('.post-card, .card, article');
+            // Inject at the top of the feed – try all known containers
+            var feedEl = document.getElementById('feedContainer') ||
+                         document.getElementById('feed-screen') ||
+                         document.getElementById('postsContainer') ||
+                         document.querySelector('.feed-container') ||
+                         document.querySelector('.posts-list') ||
+                         (document.querySelector('.post-card') && document.querySelector('.post-card').parentElement);
+
+            if (feedEl) {
+                var firstCard = feedEl.querySelector('.post-card, .card, article');
+                var tmp = document.createElement('div');
+                tmp.innerHTML = cardHTML;
+                var newCard = tmp.firstElementChild;
                 if (firstCard) {
-                    feed.insertBefore(createEl(html), firstCard);
+                    feedEl.insertBefore(newCard, firstCard);
                 } else {
-                    feed.insertAdjacentHTML('afterbegin', html);
+                    feedEl.insertAdjacentElement('afterbegin', newCard);
                 }
             }
 
-            // Reset state
+            // Reset form state (mirrors comment reset)
             if (ta) ta.value = '';
             window._ut_postPhoto    = null;
             window._ut_postLocation = null;
             window._ut_postTags     = null;
-            // Remove any attachment badges inside the modal
+            if (modal) modal.dataset.utPostWired = ''; // allow re-wiring on next open
             document.querySelectorAll('.ut-attach-badge').forEach(function (el) { el.remove(); });
 
             closeM('createPost');
             toast('🎉 Post published!');
+        }
+
+        // Expose globally so any remaining onclick="publishPost()" in the HTML still fires
+        window.publishPost = function () {
+            var modal = document.getElementById('createPostModal');
+            doPublishPost(modal);
         };
 
-        // helpers used by new posts
+        // ── helpers used by newly created post cards ──────────────────────────
         window._utToggleLike = function (el) {
             el.classList.toggle('active');
             var s = el.querySelector('span');
             s.textContent = el.classList.contains('active') ? '❤️' : '👍';
-            el.style.color  = el.classList.contains('active') ? 'var(--error,#ef4444)' : '';
-        };
-        window._utToggleComments = function (postId) {
-            var sec = document.getElementById(postId + '-comments');
-            if (!sec) return;
-            if (sec.style.display === 'block') { sec.style.display = 'none'; return; }
-            sec.style.display = 'block';
-            if (!sec.querySelector('.ut-comment-input')) {
-                sec.innerHTML =
-                    '<div class="ut-comment-list"></div>' +
-                    '<div style="display:flex;gap:8px;margin-top:10px;">' +
-                        '<input class="ut-comment-input" placeholder="Write a comment…" style="flex:1;padding:10px 14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:25px;color:var(--text-primary);font-size:0.9rem;outline:none;">' +
-                        '<button class="ut-comment-btn btn" style="border-radius:25px;padding:10px 18px;">Post</button>' +
-                    '</div>';
-                wireCommentBox(sec);
-            }
-            var inp = sec.querySelector('.ut-comment-input');
-            if (inp) inp.focus();
+            el.style.color = el.classList.contains('active') ? 'var(--error,#ef4444)' : '';
         };
 
-        console.log('[Fix 2] ✅ publishPost patched (targets #postTextContent).');
+        console.log('[Fix 2] ✅ Post button wired to existing HTML element (same pattern as comments).');
     }
 
     function createEl(html) {
