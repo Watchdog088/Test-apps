@@ -72,6 +72,13 @@
             if (isRegister) { setTimeout(maybeShowWizard, 2200); }
         };
 
+        // Hook handleRegister() – called directly by the HTML "Create Account" button
+        var _origReg = window.handleRegister;
+        window.handleRegister = function () {
+            if (typeof _origReg === 'function') _origReg.apply(this, arguments);
+            setTimeout(maybeShowWizard, 2200);
+        };
+
         // Also catch any button whose text is "Create Account" / "Sign Up"
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('button, [type="submit"]');
@@ -253,7 +260,8 @@
                 });
             }
 
-            if (postBtn) {
+            if (postBtn && !postBtn.dataset.utWired) {
+                postBtn.dataset.utWired = '1'; // prevent duplicate listeners on re-opens
                 // Style it like the comment send button (gradient, rounded pill)
                 postBtn.style.cssText =
                     'padding:12px 32px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));' +
@@ -343,15 +351,21 @@
             window._ut_postPhoto    = null;
             window._ut_postLocation = null;
             window._ut_postTags     = null;
-            if (modal) modal.dataset.utPostWired = ''; // allow re-wiring on next open
+            // NOTE: do NOT reset utPostWired – the event listener stays on the button
             document.querySelectorAll('.ut-attach-badge').forEach(function (el) { el.remove(); });
 
             closeM('createPost');
             toast('🎉 Post published!');
         }
 
-        // Expose globally so any remaining onclick="publishPost()" in the HTML still fires
+        // Expose globally – covers ALL onclick variants used in the HTML
         window.publishPost = function () {
+            var modal = document.getElementById('createPostModal');
+            doPublishPost(modal);
+        };
+        // The HTML Post button calls submitActualPost() – wire it here so it works
+        // even before wirePostButton() has run on first modal open
+        window.submitActualPost = function () {
             var modal = document.getElementById('createPostModal');
             doPublishPost(modal);
         };
