@@ -714,10 +714,10 @@
                         '<h3 style="margin:0;font-size:19px;color:var(--text-primary,#fff);">🔄 Share Post</h3>' +
                         '<button onclick="document.getElementById(\'ut-share-sheet\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>' +
                     '</div>' +
-                    shareOption('📝', 'Share to Your Timeline', 'Post it on your feed', "document.getElementById('ut-share-sheet').remove();toast('📝 Shared to your timeline!')") +
-                    shareOption('📨', 'Send to a Friend', 'Share via direct message', "document.getElementById('ut-share-sheet').remove();toast('📨 Opening messages…')") +
-                    shareOption('👥', 'Share to a Group', 'Post in a group', "document.getElementById('ut-share-sheet').remove();toast('👥 Shared to group!')") +
-                    shareOption('⭐', 'Add to Your Story', 'Share as a story', "document.getElementById('ut-share-sheet').remove();toast('⭐ Added to your story!')") +
+                    shareOption('📝', 'Share to Your Timeline', 'Post it on your feed', "window._utShareToTimeline()") +
+                    shareOption('📨', 'Send to a Friend', 'Share via direct message', "window._utShareToFriend()") +
+                    shareOption('👥', 'Share to a Group', 'Post in a group', "window._utShareToGroup()") +
+                    shareOption('⭐', 'Add to Your Story', 'Share as a story', "window._utShareToStory()") +
                     '<div style="display:flex;justify-content:center;gap:20px;border-top:1px solid var(--glass-border);padding-top:18px;margin-top:14px;">' +
                         extShareBtn('💬','WhatsApp','#25D366',"window.open('https://wa.me/?text='+encodeURIComponent('Check this out on Lynkapp!'),'_blank');document.getElementById('ut-share-sheet').remove()") +
                         extShareBtn('🐦','Twitter','#1DA1F2',"window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent('Check this out on Lynkapp!'),'_blank');document.getElementById('ut-share-sheet').remove()") +
@@ -732,6 +732,213 @@
 
             document.body.appendChild(el);
             el.addEventListener('click', function (e) { if (e.target === el) el.remove(); });
+        };
+
+        // ── Share action: Timeline ────────────────────────────────────────────
+        window._utShareToTimeline = function () {
+            var sheet = document.getElementById('ut-share-sheet');
+            if (sheet) sheet.remove();
+
+            // Build a "shared post" card and inject at the top of the feed
+            var feedEl = document.getElementById('feedContainer') ||
+                         document.getElementById('feed-screen') ||
+                         document.getElementById('postsContainer') ||
+                         document.querySelector('.feed-container') ||
+                         document.querySelector('.posts-list') ||
+                         (document.querySelector('.post-card') && document.querySelector('.post-card').parentElement);
+
+            if (feedEl) {
+                var cardId = 'shared-' + Date.now();
+                var div = document.createElement('div');
+                div.id = cardId;
+                div.className = 'post-card';
+                div.style.animation = 'utFadeUp 0.4s ease';
+                div.innerHTML =
+                    '<div class="post-header">' +
+                        '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:0.88rem;font-weight:700;color:#fff;flex-shrink:0;">JD</div>' +
+                        '<div class="post-header-info">' +
+                            '<div class="post-author" style="font-weight:600;">You <span style="font-size:0.78rem;color:var(--text-secondary);font-weight:400;">shared a post</span></div>' +
+                            '<div class="post-meta" style="font-size:0.8rem;color:var(--text-secondary);">Just now · 🌍 Public</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="background:var(--glass,rgba(99,102,241,0.08));border:1px solid var(--glass-border,#444);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:0.88rem;color:var(--text-secondary);">' +
+                        '<div style="font-weight:600;margin-bottom:4px;color:var(--text-primary,#fff);">🔄 Shared Post</div>' +
+                        '<div>Originally posted on Lynkapp</div>' +
+                    '</div>' +
+                    '<div class="post-actions">' +
+                        '<div class="post-action" onclick="window._utToggleLike(this)" style="cursor:pointer;"><span>👍</span> Like</div>' +
+                        '<div class="post-action" onclick="window.openModal(\'comments\')" style="cursor:pointer;"><span>💬</span> Comment</div>' +
+                        '<div class="post-action" onclick="window.sharePost()" style="cursor:pointer;"><span>🔄</span> Share</div>' +
+                    '</div>';
+
+                var firstCard = feedEl.querySelector('.post-card, .card, article');
+                if (firstCard) { feedEl.insertBefore(div, firstCard); }
+                else { feedEl.insertAdjacentElement('afterbegin', div); }
+            }
+
+            toast('📝 Shared to your timeline!');
+        };
+
+        // ── Share action: Send to a Friend ────────────────────────────────────
+        window._utShareToFriend = function () {
+            var sheet = document.getElementById('ut-share-sheet');
+            if (sheet) sheet.remove();
+
+            var friends = ['Alex Johnson','Maria Garcia','Jordan Lee','Sam Chen','Riley Taylor','Casey Brown'];
+
+            var picker = document.createElement('div');
+            picker.id = 'ut-friend-share-picker';
+            picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:999993;display:flex;align-items:flex-end;justify-content:center;';
+            picker.innerHTML =
+                '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:24px;animation:utSlideUp 0.3s ease;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+                        '<h3 style="margin:0;font-size:18px;color:var(--text-primary,#fff);">📨 Send to a Friend</h3>' +
+                        '<button onclick="document.getElementById(\'ut-friend-share-picker\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;">✕</button>' +
+                    '</div>' +
+                    '<input id="ut-friend-search" placeholder="🔍 Search friends…" oninput="window._utFilterFriends(this.value)" style="width:100%;padding:10px 14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);border-radius:10px;color:var(--text-primary,#fff);font-size:14px;box-sizing:border-box;margin-bottom:12px;outline:none;">' +
+                    '<div id="ut-friend-list" style="max-height:280px;overflow-y:auto;">' +
+                        friends.map(function (f, i) {
+                            var colors = ['#6366f1','#ec4899','#10b981','#f59e0b','#3b82f6','#8b5cf6'];
+                            return '<div class="ut-friend-row" onclick="window._utSendToFriend(\'' + f + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 4px;cursor:pointer;border-bottom:1px solid var(--glass-border,#2a2a3e);transition:background 0.15s;border-radius:8px;" onmouseover="this.style.background=\'var(--glass,#2a2a3e)\'" onmouseout="this.style.background=\'transparent\'">' +
+                                '<div style="width:44px;height:44px;border-radius:50%;background:' + colors[i % colors.length] + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;flex-shrink:0;">' + f.charAt(0) + '</div>' +
+                                '<div><div style="font-weight:600;color:var(--text-primary,#fff);font-size:14px;">' + f + '</div><div style="font-size:12px;color:var(--text-secondary,#aaa);">Tap to send</div></div>' +
+                            '</div>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(picker);
+            picker.addEventListener('click', function (e) { if (e.target === picker) picker.remove(); });
+
+            window._utFilterFriends = function (q) {
+                picker.querySelectorAll('.ut-friend-row').forEach(function (row) {
+                    row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+                });
+            };
+            window._utSendToFriend = function (name) {
+                picker.remove();
+                // Open messages modal if it exists, pre-populate with shared post context
+                var msgModal = document.getElementById('messagesModal') || document.getElementById('chatModal') || document.getElementById('dmModal');
+                if (msgModal && typeof openModal === 'function') {
+                    openModal(msgModal.id);
+                }
+                // Inject a sent-message bubble into any open chat
+                var chatBody = document.querySelector('.chat-messages, .message-list, .messages-container, #chatMessages');
+                if (chatBody) {
+                    var bubble = document.createElement('div');
+                    bubble.style.cssText = 'display:flex;justify-content:flex-end;padding:6px 0;animation:utFadeUp 0.3s ease;';
+                    bubble.innerHTML = '<div style="max-width:72%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:#fff;padding:10px 14px;border-radius:18px 18px 4px 18px;font-size:13px;line-height:1.45;">📎 Shared a post with you! Check it out on Lynkapp. <span style="display:block;font-size:11px;opacity:0.75;margin-top:3px;">Just now ✓✓</span></div>';
+                    chatBody.appendChild(bubble);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+                toast('📨 Post sent to ' + name + '!');
+            };
+        };
+
+        // ── Share action: Share to a Group ────────────────────────────────────
+        window._utShareToGroup = function () {
+            var sheet = document.getElementById('ut-share-sheet');
+            if (sheet) sheet.remove();
+
+            var groups = [
+                { name: 'Photography Club', emoji: '📸', members: '142 members' },
+                { name: 'Tech Enthusiasts', emoji: '💻', members: '389 members' },
+                { name: 'Travel Squad', emoji: '✈️',  members: '57 members' },
+                { name: 'Fitness Goals',   emoji: '💪', members: '203 members' },
+                { name: 'Music Lovers',    emoji: '🎵', members: '511 members' },
+                { name: 'Book Club',       emoji: '📚', members: '88 members' }
+            ];
+
+            var picker = document.createElement('div');
+            picker.id = 'ut-group-share-picker';
+            picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:999993;display:flex;align-items:flex-end;justify-content:center;';
+            picker.innerHTML =
+                '<div style="background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:24px;animation:utSlideUp 0.3s ease;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+                        '<h3 style="margin:0;font-size:18px;color:var(--text-primary,#fff);">👥 Share to a Group</h3>' +
+                        '<button onclick="document.getElementById(\'ut-group-share-picker\').remove()" style="background:none;border:none;color:var(--text-primary,#fff);font-size:1.4rem;cursor:pointer;">✕</button>' +
+                    '</div>' +
+                    '<div style="max-height:320px;overflow-y:auto;">' +
+                        groups.map(function (g) {
+                            return '<div onclick="window._utPostToGroup(\'' + g.name + '\')" style="display:flex;align-items:center;gap:14px;padding:12px 4px;cursor:pointer;border-bottom:1px solid var(--glass-border,#2a2a3e);transition:background 0.15s;border-radius:8px;" onmouseover="this.style.background=\'var(--glass,#2a2a3e)\'" onmouseout="this.style.background=\'transparent\'">' +
+                                '<div style="width:48px;height:48px;border-radius:14px;background:var(--glass,#2a2a3e);border:1px solid var(--glass-border,#444);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">' + g.emoji + '</div>' +
+                                '<div><div style="font-weight:600;color:var(--text-primary,#fff);font-size:14px;">' + g.name + '</div><div style="font-size:12px;color:var(--text-secondary,#aaa);">' + g.members + ' · Tap to share</div></div>' +
+                            '</div>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(picker);
+            picker.addEventListener('click', function (e) { if (e.target === picker) picker.remove(); });
+
+            window._utPostToGroup = function (groupName) {
+                picker.remove();
+                // Inject a group post card into the feed to confirm the share happened
+                var feedEl = document.getElementById('feedContainer') ||
+                             document.getElementById('feed-screen') ||
+                             document.getElementById('postsContainer') ||
+                             document.querySelector('.feed-container') ||
+                             document.querySelector('.posts-list') ||
+                             (document.querySelector('.post-card') && document.querySelector('.post-card').parentElement);
+
+                if (feedEl) {
+                    var div = document.createElement('div');
+                    div.className = 'post-card';
+                    div.style.animation = 'utFadeUp 0.4s ease';
+                    div.innerHTML =
+                        '<div class="post-header">' +
+                            '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:0.88rem;font-weight:700;color:#fff;flex-shrink:0;">JD</div>' +
+                            '<div class="post-header-info">' +
+                                '<div class="post-author" style="font-weight:600;">You <span style="font-size:0.78rem;color:var(--text-secondary);font-weight:400;">shared to <strong>' + groupName + '</strong></span></div>' +
+                                '<div class="post-meta" style="font-size:0.8rem;color:var(--text-secondary);">Just now · 👥 Group</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="background:var(--glass,rgba(16,185,129,0.08));border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:0.88rem;">' +
+                            '<div style="font-weight:600;margin-bottom:3px;color:var(--text-primary,#fff);">🔄 Shared to ' + groupName + '</div>' +
+                            '<div style="color:var(--text-secondary,#aaa);">Originally posted on Lynkapp</div>' +
+                        '</div>' +
+                        '<div class="post-actions">' +
+                            '<div class="post-action" onclick="window._utToggleLike(this)" style="cursor:pointer;"><span>👍</span> Like</div>' +
+                            '<div class="post-action" onclick="window.openModal(\'comments\')" style="cursor:pointer;"><span>💬</span> Comment</div>' +
+                            '<div class="post-action" onclick="window.sharePost()" style="cursor:pointer;"><span>🔄</span> Share</div>' +
+                        '</div>';
+                    var firstCard = feedEl.querySelector('.post-card, .card, article');
+                    if (firstCard) { feedEl.insertBefore(div, firstCard); }
+                    else { feedEl.insertAdjacentElement('afterbegin', div); }
+                }
+                toast('👥 Post shared to ' + groupName + '!');
+            };
+        };
+
+        // ── Share action: Add to Your Story ───────────────────────────────────
+        window._utShareToStory = function () {
+            var sheet = document.getElementById('ut-share-sheet');
+            if (sheet) sheet.remove();
+
+            // Add a shared story bubble to the stories bar
+            var storiesList = document.getElementById('storiesList') || document.querySelector('.stories-list, .stories-row, .stories-container');
+            if (storiesList) {
+                var bubble = document.createElement('div');
+                bubble.style.cssText = 'min-width:90px;text-align:center;cursor:pointer;flex-shrink:0;animation:utFadeUp 0.3s ease;';
+                bubble.innerHTML =
+                    '<div style="width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;border:3px solid var(--primary,#6366f1);margin:0 auto 6px;font-size:2rem;">🔄</div>' +
+                    '<div style="font-size:12px;color:var(--text-primary,#fff);">Shared Story</div>';
+                storiesList.insertBefore(bubble, storiesList.firstChild);
+            }
+
+            // Also show a small floating preview that auto-dismisses
+            var preview = document.createElement('div');
+            preview.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card,#1e1e2e);border:1px solid var(--glass-border,#333);border-radius:20px;padding:32px 28px;text-align:center;z-index:999994;animation:utFadeUp 0.35s ease;min-width:260px;max-width:320px;';
+            preview.innerHTML =
+                '<div style="font-size:56px;margin-bottom:10px;">⭐</div>' +
+                '<div style="font-size:17px;font-weight:700;color:var(--text-primary,#fff);margin-bottom:6px;">Added to Your Story!</div>' +
+                '<div style="font-size:13px;color:var(--text-secondary,#aaa);margin-bottom:18px;">Your followers can now see this for 24 hours.</div>' +
+                '<button onclick="document.getElementById(\'ut-story-confirm\').remove()" style="padding:10px 28px;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));color:#fff;border:none;border-radius:25px;font-size:14px;font-weight:600;cursor:pointer;">Done</button>';
+            preview.id = 'ut-story-confirm';
+            document.body.appendChild(preview);
+            setTimeout(function () { var el = document.getElementById('ut-story-confirm'); if (el) el.remove(); }, 3500);
+
+            toast('⭐ Post added to your story!');
         };
 
         console.log('[Fix 6] ✅ sharePost() now opens share window.');
