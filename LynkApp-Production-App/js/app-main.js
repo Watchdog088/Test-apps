@@ -1,3 +1,36 @@
+
+        // DEMO LOGIN: Bypass Firebase auth for review/testing purposes
+        function demoLogin() {
+            // Hide auth screen, show main app
+            var authEl = document.getElementById('authScreen') || 
+                         document.querySelector('.auth-screen') ||
+                         document.querySelector('[id*="auth"]');
+            var appEl = document.getElementById('appContainer') || 
+                        document.getElementById('mainApp') ||
+                        document.querySelector('.app-container') ||
+                        document.querySelector('.phone-frame') ||
+                        document.querySelector('#app');
+            
+            // Try to find and hide login, show app
+            var loginDivs = document.querySelectorAll('[class*="login"], [id*="login"], [class*="auth"], [id*="auth"]');
+            loginDivs.forEach(function(el) {
+                if (el.id !== 'app' && !el.id.includes('Modal')) {
+                    el.style.display = 'none';
+                }
+            });
+            
+            // Show main content
+            var mainDivs = document.querySelectorAll('[class*="main-app"], [id*="mainApp"], .phone-screen, #feedScreen');
+            mainDivs.forEach(function(el) { el.style.display = 'block'; });
+            
+            // Navigate to feed
+            if (typeof openScreen === 'function') {
+                openScreen('feed');
+            }
+            
+            showToast('Welcome to LynkApp Demo! 🎉');
+        }
+
         let currentScreen = 'feed';
         let currentMainTab = 'feed';
         let currentBottomTab = 'social';
