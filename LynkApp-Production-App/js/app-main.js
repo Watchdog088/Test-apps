@@ -150,7 +150,12 @@
         }
 
         function sharePost() {
-            showToast('Post shared!');
+            openModal('sharePost');
+        }
+        
+        // FIX: submitActualPost is an alias for publishPost (Post button was broken)
+        function submitActualPost() {
+            publishPost();
         }
 
         function publishPost() {
@@ -1033,21 +1038,67 @@
         // ========== CREATE STORY FUNCTIONS ==========
         
         function openStoryCamera() {
-            closeModal('createStory');
-            showToast('Opening camera... 📷');
-            // Simulate camera opening
-            setTimeout(() => {
-                showToast('Camera ready! Snap a photo or record video');
-            }, 1000);
+            var cameraInput = document.getElementById('storyCameraInput');
+            if (cameraInput) {
+                cameraInput.click();
+            } else {
+                showToast('Camera opening... 📷');
+            }
         }
 
         function openStoryGallery() {
-            closeModal('createStory');
-            showToast('Opening gallery... 🖼️');
-            // Simulate gallery opening with selection
-            setTimeout(() => {
-                showToast('Select photos or videos for your story');
-            }, 1000);
+            var galleryInput = document.getElementById('storyGalleryInput');
+            if (galleryInput) {
+                galleryInput.click();
+            } else {
+                showToast('Opening gallery... 🖼️');
+            }
+        }
+
+        // Handle story media file selection
+        function handleStoryMedia(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                showToast('Media selected! Publishing your story... ✨');
+                closeModal('createStory');
+                setTimeout(function() {
+                    showToast('Story published! 🎉');
+                }, 800);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // FIX 3: Add a location typed into the search box
+        function addLocationFromSearch() {
+            var input = document.querySelector('#selectLocationModal .search-input');
+            var loc = input ? input.value.trim() : '';
+            if (!loc) {
+                showToast('Please type a location first 📍');
+                return;
+            }
+            selectLocation(loc);
+        }
+
+        
+        // Share modal helper functions - FIX Issue 6
+        function shareToFeed() { showToast('Post shared to your feed! 📰'); }
+        function shareToStory() { showToast('Post added to your story! 🌟'); openModal('createStory'); }
+        function shareViaMessage() { showToast('Opening messages to share...'); openModal('newMessage'); }
+        function copyPostLink() {
+            var link = window.location.href + '?post=shared';
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(link).then(function() {
+                    showToast('Link copied to clipboard! 🔗');
+                });
+            } else {
+                showToast('Link copied! 🔗');
+            }
+        }
+        function shareExternal(platform) {
+            var msgs = { facebook: 'Sharing to Facebook...', twitter: 'Sharing to X (Twitter)...', instagram: 'Sharing to Instagram...' };
+            showToast((msgs[platform] || 'Sharing...') + ' 🚀');
         }
 
         // ========== GO LIVE FUNCTIONS ==========

@@ -3177,6 +3177,9 @@
                     <span>ðŸ“</span>
                     <input type="text" class="search-input" placeholder="Search for a location..." />
                 </div>
+                <div style="display:flex;gap:10px;margin-bottom:16px;">
+                    <button class="btn" style="flex:1;" onclick="addLocationFromSearch()">📍 Add This Location</button>
+                </div>
                 <div class="list-item" onclick="selectLocation('San Francisco, CA')">
                     <div class="list-item-icon">ðŸ“</div>
                     <div class="list-item-content">
@@ -3233,6 +3236,9 @@
                         <div class="friend-mutual">Friend</div>
                     </div>
                 </div>
+                <div style="padding: 16px 0 0;">
+                    <button class="btn" onclick="closeModal('tagPeople')">✅ Done Tagging</button>
+                </div>
             </div>
         </div>
 
@@ -3279,7 +3285,67 @@
                     <button class="chat-send-btn" onclick="submitComment()">âž¤</button>
                 </div>
             </div>
+        
+        <!-- Share Post Modal - FIX: opens when share button clicked -->
+        <div id="sharePostModal" class="modal">
+            <div class="modal-header">
+                <div class="modal-close" onclick="closeModal('sharePost')">✕</div>
+                <div class="modal-title">Share Post</div>
+            </div>
+            <div class="modal-content">
+                <div class="list-item" onclick="shareToFeed(); closeModal('sharePost');">
+                    <div class="list-item-icon">📰</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Feed</div>
+                        <div class="list-item-subtitle">Share with your followers</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="shareToStory(); closeModal('sharePost');">
+                    <div class="list-item-icon">🌟</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Story</div>
+                        <div class="list-item-subtitle">Add to your story</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="shareViaMessage(); closeModal('sharePost');">
+                    <div class="list-item-icon">💬</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Send as Message</div>
+                        <div class="list-item-subtitle">Share directly with a friend</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="copyPostLink(); closeModal('sharePost');">
+                    <div class="list-item-icon">🔗</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Copy Link</div>
+                        <div class="list-item-subtitle">Copy post link to clipboard</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="shareExternal('facebook'); closeModal('sharePost');">
+                    <div class="list-item-icon">📘</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Facebook</div>
+                        <div class="list-item-subtitle">Post on Facebook</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="shareExternal('twitter'); closeModal('sharePost');">
+                    <div class="list-item-icon">🐦</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to X (Twitter)</div>
+                        <div class="list-item-subtitle">Post on X</div>
+                    </div>
+                </div>
+                <div class="list-item" onclick="shareExternal('instagram'); closeModal('sharePost');">
+                    <div class="list-item-icon">📸</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Share to Instagram</div>
+                        <div class="list-item-subtitle">Post on Instagram</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+</div>
 
         <!-- Chat Window Modal -->
         <div id="chatWindowModal" class="modal">
@@ -3360,6 +3426,9 @@
                 <div class="modal-title">Create Story</div>
             </div>
             <div class="modal-content">
+                <!-- Hidden file inputs for camera and gallery - FIX Issue 7 -->
+                <input type="file" id="storyCameraInput" accept="image/*,video/*" capture="environment" style="display:none;" onchange="handleStoryMedia(event)">
+                <input type="file" id="storyGalleryInput" accept="image/*,video/*" style="display:none;" onchange="handleStoryMedia(event)">
                 <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 400px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; margin-bottom: 20px;">
                     ðŸ“·
                 </div>
