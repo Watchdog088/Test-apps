@@ -1,34 +1,35 @@
 
         // DEMO LOGIN: Bypass Firebase auth for review/testing purposes
         function demoLogin() {
-            // Hide auth screen, show main app
-            var authEl = document.getElementById('authScreen') || 
-                         document.querySelector('.auth-screen') ||
-                         document.querySelector('[id*="auth"]');
-            var appEl = document.getElementById('appContainer') || 
-                        document.getElementById('mainApp') ||
-                        document.querySelector('.app-container') ||
-                        document.querySelector('.phone-frame') ||
-                        document.querySelector('#app');
+            // 1. Hide the login screen
+            var loginScreen = document.getElementById('loginScreen');
+            if (loginScreen) {
+                loginScreen.style.display = 'none';
+            }
             
-            // Try to find and hide login, show app
-            var loginDivs = document.querySelectorAll('[class*="login"], [id*="login"], [class*="auth"], [id*="auth"]');
-            loginDivs.forEach(function(el) {
-                if (el.id !== 'app' && !el.id.includes('Modal')) {
-                    el.style.display = 'none';
-                }
+            // 2. Show the main app container
+            var appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.style.display = 'block';
+                appContainer.style.visibility = 'visible';
+                appContainer.style.opacity = '1';
+            }
+            
+            // Also remove hidden class from anything that's hidden but should show
+            document.querySelectorAll('.app-container, .bottom-nav, .top-nav').forEach(function(el) {
+                el.classList.remove('hidden');
+                el.style.display = '';
             });
             
-            // Show main content
-            var mainDivs = document.querySelectorAll('[class*="main-app"], [id*="mainApp"], .phone-screen, #feedScreen');
-            mainDivs.forEach(function(el) { el.style.display = 'block'; });
-            
-            // Navigate to feed
+            // 3. Navigate to feed screen
             if (typeof openScreen === 'function') {
                 openScreen('feed');
             }
             
-            showToast('Welcome to LynkApp Demo! 🎉');
+            // 4. Show welcome toast
+            if (typeof showToast === 'function') {
+                showToast('Welcome to LynkApp Demo! 🎉');
+            }
         }
 
         let currentScreen = 'feed';
