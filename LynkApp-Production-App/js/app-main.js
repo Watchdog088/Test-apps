@@ -1,35 +1,10 @@
 
         // DEMO LOGIN: Bypass Firebase auth for review/testing purposes
+        window.demoMode = true;
         function demoLogin() {
-            // 1. Hide the login screen
-            var loginScreen = document.getElementById('loginScreen');
-            if (loginScreen) {
-                loginScreen.style.display = 'none';
-            }
-            
-            // 2. Show the main app container
-            var appContainer = document.querySelector('.app-container');
-            if (appContainer) {
-                appContainer.style.display = 'block';
-                appContainer.style.visibility = 'visible';
-                appContainer.style.opacity = '1';
-            }
-            
-            // Also remove hidden class from anything that's hidden but should show
-            document.querySelectorAll('.app-container, .bottom-nav, .top-nav').forEach(function(el) {
-                el.classList.remove('hidden');
-                el.style.display = '';
-            });
-            
-            // 3. Navigate to feed screen
-            if (typeof openScreen === 'function') {
-                openScreen('feed');
-            }
-            
-            // 4. Show welcome toast
-            if (typeof showToast === 'function') {
-                showToast('Welcome to LynkApp Demo! 🎉');
-            }
+            window.demoMode = true;
+            // Use the exact same logic as showAppAfterLogin
+            showAppAfterLogin();
         }
 
         let currentScreen = 'feed';
@@ -9264,4 +9239,4 @@
                 
                 showToast('Logged out successfully');
             }
-        }
+        }
