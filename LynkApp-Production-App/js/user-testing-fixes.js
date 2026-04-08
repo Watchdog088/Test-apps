@@ -1,9 +1,9 @@
 /**
  * ============================================================
- * LynkApp Production — User Testing Bug Fixes v3
+ * LynkApp Production — User Testing Bug Fixes v4
  * Targets: LynkApp-Production-App/index.html
  *
- * Fixes all 7 issues reported during user testing:
+ * Fixes all 8 issues reported during user testing:
  *  1. Account creation → force full profile setup wizard
  *  2. Post button (submitActualPost) not working
  *  3. Location modal — confirm/add button missing
@@ -11,6 +11,7 @@
  *  5. Comments section — submit button not working
  *  6. Share button does not open share window
  *  7. Create Story — camera & gallery buttons not working
+ *  8. Friends section — See All, Message, and Add Friend buttons not working
  * ============================================================
  */
 
@@ -33,7 +34,8 @@
         fix5_CommentsSubmit();
         fix6_ShareButtonOpensWindow();
         fix7_StoryCameraGallery();
-        console.log('[LynkApp Fixes v3] ✅ All 7 user-testing issues patched.');
+        fix8_FriendsSection();
+        console.log('[LynkApp Fixes v4] ✅ All 8 user-testing issues patched.');
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -639,6 +641,169 @@
               '</div>' +
             '</div>';
         document.body.appendChild(div);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       FIX 8 — Friends Section:
+         a) "See All (234)"   → openModal('allFriends') — ensure modal opens
+         b) "Message" buttons on friend cards → open chat window
+         c) "Message" buttons inside allFriendsModal → were completely missing onclick
+         d) "Add Friend" button → proper visual feedback + disable after click
+       ════════════════════════════════════════════════════════════════ */
+    function fix8_FriendsSection() {
+
+        /* ── a) See All → ensure openModal('allFriends') opens the modal ── */
+        // The allFriendsModal exists in the HTML but openModal may not be finding it
+        // We patch openModal to also try a direct class toggle as fallback
+        var _origOpenModal = window.openModal;
+        window.openModal = function (type) {
+            var result = typeof _origOpenModal === 'function' ? _origOpenModal(type) : undefined;
+            // Fallback: directly add .show class if the original didn't open it
+            var modal = document.getElementById(type + 'Modal');
+            if (modal && !modal.classList.contains('show')) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+            }
+            return result;
+        };
+
+        /* Also make "See All (234)" directly reliable with a dedicated function */
+        window.openAllFriends = function () {
+            var modal = document.getElementById('allFriendsModal');
+            if (modal) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+                modal.style.zIndex  = '10000';
+            } else {
+                _showAllFriendsList();
+            }
+        };
+
+        // Patch the See All link in the DOM after render
+        setTimeout(function () {
+            var seeAllLink = document.querySelector('#friends-screen .section-link[onclick*="allFriends"]');
+            if (seeAllLink) {
+                seeAllLink.setAttribute('onclick', 'openAllFriends()');
+            }
+        }, 800);
+
+        /* ── b) sendMessage() → open the chat window instead of just a toast ── */
+        window.sendMessage = function (friendName) {
+            var name = friendName || 'Friend';
+            // Open the new message / chat modal
+            if (typeof openModal === 'function') {
+                openModal('newMessage');
+            }
+            _toast('💬 Opening chat with ' + name + '…', 'info');
+        };
+
+        /* ── c) Wire up Message buttons inside allFriendsModal — they have no onclick ── */
+        setTimeout(function () {
+            var allFriendsModal = document.getElementById('allFriendsModal');
+            if (allFriendsModal) {
+                allFriendsModal.querySelectorAll('.friend-btn.secondary').forEach(function (btn) {
+                    if (btn.textContent.trim() === 'Message' && !btn.getAttribute('onclick')) {
+                        btn.setAttribute('onclick', 'sendFriendMessage(this)');
+                    }
+                });
+                // Also wire the primary (Add) buttons if present
+                allFriendsModal.querySelectorAll('.friend-btn.primary').forEach(function (btn) {
+                    if (!btn.getAttribute('onclick')) {
+                        btn.setAttribute('onclick', 'addFriend(this)');
+                    }
+                });
+            }
+
+            // Wire Message buttons on the main friends-screen too
+            var friendsScreen = document.getElementById('friends-screen');
+            if (friendsScreen) {
+                friendsScreen.querySelectorAll('.friend-btn.primary[onclick="sendMessage()"]').forEach(function (btn) {
+                    btn.setAttribute('onclick', 'sendFriendMessage(this)');
+                });
+            }
+        }, 900);
+
+        /* ── sendFriendMessage: get the friend's name from the card, open chat ── */
+        window.sendFriendMessage = function (btn) {
+            var card = btn ? btn.closest('.friend-card') : null;
+            var nameEl = card ? card.querySelector('.friend-name, .list-item-title, .friend-info h4, h4, .name') : null;
+            var name = (nameEl && nameEl.textContent.trim()) || 'Friend';
+
+            // Close the allFriends modal if it's open
+            if (typeof closeModal === 'function') closeModal('allFriends');
+
+            // Open chat window
+            if (typeof openModal === 'function') openModal('chatWindow');
+
+            _toast('💬 Opening chat with ' + name + '…', 'info');
+        };
+
+        /* ── d) Enhance addFriend with proper visual feedback ── */
+        var _origAddFriend = window.addFriend;
+        window.addFriend = function (button) {
+            if (!button) return;
+            // If already sent, do nothing
+            if (button.dataset.requested === '1') {
+                _toast('Friend request already sent', 'info');
+                return;
+            }
+            // Run original if it exists
+            if (typeof _origAddFriend === 'function') _origAddFriend(button);
+
+            // Visual feedback
+            button.textContent      = '✓ Request Sent';
+            button.dataset.requested = '1';
+            button.disabled          = true;
+            button.style.background  = 'var(--glass, #2a2a3e)';
+            button.style.color       = 'var(--text-secondary, #888)';
+            button.style.border      = '1px solid var(--glass-border, #444)';
+            button.style.cursor      = 'default';
+
+            var card    = button.closest('.friend-card');
+            var nameEl  = card ? card.querySelector('.friend-name, h4, .name, .list-item-title') : null;
+            var name    = (nameEl && nameEl.textContent.trim()) || 'User';
+            _toast('👋 Friend request sent to ' + name + '!', 'success');
+        };
+
+        console.log('[Fix8] ✅ Friends Section — See All / Message / Add Friend FIXED');
+    }
+
+    /** Fallback: build an All Friends panel in JS if the HTML modal is missing */
+    function _showAllFriendsList() {
+        _removeById('lynk-all-friends-panel');
+        var friends = [
+            { emoji: '👤', name: 'Alex Johnson',   meta: '42 mutual friends' },
+            { emoji: '😊', name: 'Sarah Williams',  meta: '18 mutual friends' },
+            { emoji: '🎨', name: 'Mike Chen',       meta: '7 mutual friends'  },
+            { emoji: '🚀', name: 'Emily Davis',     meta: '31 mutual friends' },
+            { emoji: '🎮', name: 'Jordan Taylor',   meta: '5 mutual friends'  },
+            { emoji: '🌟', name: 'Maya Patel',      meta: '24 mutual friends' },
+        ];
+
+        var rows = friends.map(function (f) {
+            return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--glass-border,#333);">' +
+                '<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));display:flex;align-items:center;justify-content:center;font-size:20px;">' + f.emoji + '</div>' +
+                '<div style="flex:1;">' +
+                  '<div style="font-weight:600;font-size:14px;color:var(--text-primary,#fff);">' + f.name + '</div>' +
+                  '<div style="font-size:12px;color:var(--text-secondary,#888);">' + f.meta + '</div>' +
+                '</div>' +
+                '<button onclick="(function(el){el.textContent=\'✓ Sent\';el.disabled=true;el.style.opacity=\'.5\';})(this);sendFriendMessage(this)" style="padding:8px 14px;background:var(--primary,#6366f1);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">💬 Message</button>' +
+            '</div>';
+        }).join('');
+
+        var panel = document.createElement('div');
+        panel.id = 'lynk-all-friends-panel';
+        panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+        panel.innerHTML =
+          '<div style="background:var(--bg-card,#1e1e2e);border-radius:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-border,#333);position:sticky;top:0;background:var(--bg-card,#1e1e2e);">' +
+              '<span style="font-size:17px;font-weight:700;color:var(--text-primary,#fff);">👥 All Friends (234)</span>' +
+              '<button onclick="document.getElementById(\'lynk-all-friends-panel\').remove()" style="background:var(--glass,#2a2a3e);border:none;color:var(--text-primary,#fff);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>' +
+            '</div>' +
+            '<div style="padding:0 20px 20px;">' + rows + '</div>' +
+          '</div>';
+        document.body.appendChild(panel);
+        panel.addEventListener('click', function (e) { if (e.target === panel) panel.remove(); });
     }
 
     window._publishStory = function () {
