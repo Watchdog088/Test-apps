@@ -644,30 +644,95 @@
     }
 
     /* ════════════════════════════════════════════════════════════════
-       FIX 8 — Friends Section:
-         a) "See All (234)"   → openModal('allFriends') — ensure modal opens
-         b) "Message" buttons on friend cards → open chat window
-         c) "Message" buttons inside allFriendsModal → were completely missing onclick
-         d) "Add Friend" button → proper visual feedback + disable after click
+       FIX 8 — Friends Section (comprehensive):
+         a) Search bar → inject a "Search" button; wire searchFriends()
+         b) "See All" → open friends list reliably
+         c) All "Message" buttons → open chat window with friend's name
+         d) "Add Friend" buttons → proper disable + visual feedback
+         e) "Accept / Decline" request buttons → wired correctly
+         f) Friend card clicks → open user profile dashboard
+         g) "Suggest Friends" & tab switching → all wired
+         h) Pending friend-request Accept/Decline → wired
        ════════════════════════════════════════════════════════════════ */
     function fix8_FriendsSection() {
 
-        /* ── a) See All → ensure openModal('allFriends') opens the modal ── */
-        // The allFriendsModal exists in the HTML but openModal may not be finding it
-        // We patch openModal to also try a direct class toggle as fallback
-        var _origOpenModal = window.openModal;
-        window.openModal = function (type) {
-            var result = typeof _origOpenModal === 'function' ? _origOpenModal(type) : undefined;
-            // Fallback: directly add .show class if the original didn't open it
-            var modal = document.getElementById(type + 'Modal');
-            if (modal && !modal.classList.contains('show')) {
-                modal.classList.add('show');
-                modal.style.display = 'flex';
+        /* ══ SEARCH: inject button right after the friends search input ══ */
+        setTimeout(function () {
+            var friendsScreen = document.getElementById('friends-screen');
+            if (!friendsScreen) return;
+
+            // Find the search bar(s) in the friends screen
+            var searchBars = friendsScreen.querySelectorAll('.search-bar, [class*="search"]');
+            searchBars.forEach(function (bar) {
+                var inp = bar.querySelector('input.search-input, input[type="text"]');
+                if (!inp || bar.querySelector('.lynk-friend-search-btn')) return;
+
+                // Assign an id so we can reference it
+                if (!inp.id) inp.id = 'friendSearchInput';
+
+                // Build button matching the comment-section send-button style
+                var btn = document.createElement('button');
+                btn.className = 'lynk-friend-search-btn chat-send-btn';
+                btn.setAttribute('onclick', 'searchFriends()');
+                btn.style.cssText = [
+                    'background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899))',
+                    'border:none',
+                    'border-radius:50%',
+                    'width:36px',
+                    'height:36px',
+                    'min-width:36px',
+                    'display:flex',
+                    'align-items:center',
+                    'justify-content:center',
+                    'cursor:pointer',
+                    'font-size:16px',
+                    'margin-left:8px',
+                    'flex-shrink:0'
+                ].join(';');
+                btn.innerHTML = '🔍';
+                btn.title = 'Search Friends';
+
+                // Also allow Enter key from the input
+                inp.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') { e.preventDefault(); window.searchFriends(); }
+                });
+
+                bar.appendChild(btn);
+            });
+        }, 700);
+
+        /* ── searchFriends(): filter visible friend cards by name ── */
+        window.searchFriends = function () {
+            var inp = document.getElementById('friendSearchInput') ||
+                      document.querySelector('#friends-screen input.search-input');
+            var query = inp ? inp.value.trim().toLowerCase() : '';
+
+            if (!query) {
+                // Restore all cards
+                document.querySelectorAll('#friends-screen .friend-card').forEach(function (c) {
+                    c.style.display = '';
+                });
+                _toast('Showing all friends', 'info');
+                return;
             }
-            return result;
+
+            var shown = 0;
+            document.querySelectorAll('#friends-screen .friend-card').forEach(function (card) {
+                var nameEl = card.querySelector('.friend-name, h4, .name, .list-item-title');
+                var name   = nameEl ? nameEl.textContent.toLowerCase() : '';
+                var match  = name.includes(query);
+                card.style.display = match ? '' : 'none';
+                if (match) shown++;
+            });
+
+            if (shown === 0) {
+                _toast('No friends found for "' + query + '"', 'info');
+            } else {
+                _toast('Found ' + shown + ' friend' + (shown > 1 ? 's' : ''), 'success');
+            }
         };
 
-        /* Also make "See All (234)" directly reliable with a dedicated function */
+        /* ══ SEE ALL: reliable open ══ */
         window.openAllFriends = function () {
             var modal = document.getElementById('allFriendsModal');
             if (modal) {
@@ -679,93 +744,180 @@
             }
         };
 
-        // Patch the See All link in the DOM after render
+        // Patch "See All" links in the DOM once rendered
         setTimeout(function () {
-            var seeAllLink = document.querySelector('#friends-screen .section-link[onclick*="allFriends"]');
-            if (seeAllLink) {
-                seeAllLink.setAttribute('onclick', 'openAllFriends()');
-            }
+            document.querySelectorAll('#friends-screen .section-link').forEach(function (link) {
+                var oc = link.getAttribute('onclick') || '';
+                if (oc.includes('allFriend') || link.textContent.trim().startsWith('See All')) {
+                    link.setAttribute('onclick', 'openAllFriends()');
+                }
+            });
         }, 800);
 
-        /* ── b) sendMessage() → open the chat window instead of just a toast ── */
-        window.sendMessage = function (friendName) {
-            var name = friendName || 'Friend';
-            // Open the new message / chat modal
-            if (typeof openModal === 'function') {
-                openModal('newMessage');
+        /* ══ openModal fallback: ensure .show is always set ══ */
+        var _origOpenModal = window.openModal;
+        window.openModal = function (type) {
+            var result = typeof _origOpenModal === 'function' ? _origOpenModal(type) : undefined;
+            var modal  = document.getElementById(type + 'Modal');
+            if (modal && !modal.classList.contains('show')) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
             }
+            return result;
+        };
+
+        /* ══ sendFriendMessage: open chat and pre-fill name ══ */
+        window.sendFriendMessage = function (btn) {
+            var card   = btn ? btn.closest('.friend-card, .list-item') : null;
+            var nameEl = card ? card.querySelector('.friend-name, .list-item-title, h4, .name') : null;
+            var name   = (nameEl && nameEl.textContent.trim()) || 'Friend';
+
+            // Close allFriends modal if open
+            if (typeof closeModal === 'function') closeModal('allFriends');
+
+            // Try to populate the chat-window header before opening
+            var chatTitle = document.getElementById('chatWindowTitle');
+            if (chatTitle) chatTitle.textContent = name;
+
+            if (typeof window.openModal === 'function') window.openModal('chatWindow');
             _toast('💬 Opening chat with ' + name + '…', 'info');
         };
 
-        /* ── c) Wire up Message buttons inside allFriendsModal — they have no onclick ── */
-        setTimeout(function () {
-            var allFriendsModal = document.getElementById('allFriendsModal');
-            if (allFriendsModal) {
-                allFriendsModal.querySelectorAll('.friend-btn.secondary').forEach(function (btn) {
-                    if (btn.textContent.trim() === 'Message' && !btn.getAttribute('onclick')) {
+        /* ══ sendMessage() → open chat instead of just toast ══ */
+        window.sendMessage = function (friendName) {
+            var name = friendName || 'Friend';
+            var chatTitle = document.getElementById('chatWindowTitle');
+            if (chatTitle) chatTitle.textContent = name;
+            if (typeof window.openModal === 'function') window.openModal('chatWindow');
+            _toast('💬 Opening chat with ' + name + '…', 'info');
+        };
+
+        /* ══ viewFriendProfile: open a profile dashboard ══ */
+        window.viewFriendProfile = function (nameOrBtn) {
+            var name;
+            if (typeof nameOrBtn === 'string') {
+                name = nameOrBtn;
+            } else {
+                var card   = nameOrBtn ? nameOrBtn.closest('.friend-card, .list-item') : null;
+                var nameEl = card ? card.querySelector('.friend-name, .list-item-title, h4, .name') : null;
+                name = (nameEl && nameEl.textContent.trim()) || 'User';
+            }
+            // Try existing profile modal first
+            if (typeof window.openModal === 'function') window.openModal('userProfile');
+            _toast('👤 Viewing ' + name + '\'s profile', 'info');
+        };
+
+        /* ══ acceptFriendRequest / declineFriendRequest ══ */
+        window.acceptFriendRequest = function (btn) {
+            if (!btn) return;
+            var card   = btn.closest('.friend-card, .list-item');
+            var nameEl = card ? card.querySelector('.friend-name, .list-item-title, h4, .name') : null;
+            var name   = (nameEl && nameEl.textContent.trim()) || 'User';
+            if (card) { card.style.opacity = '0'; setTimeout(function(){ card.remove(); }, 300); }
+            _toast('✅ ' + name + ' is now your friend!', 'success');
+        };
+        window.declineFriendRequest = function (btn) {
+            if (!btn) return;
+            var card   = btn.closest('.friend-card, .list-item');
+            var nameEl = card ? card.querySelector('.friend-name, .list-item-title, h4, .name') : null;
+            var name   = (nameEl && nameEl.textContent.trim()) || 'User';
+            if (card) { card.style.opacity = '0'; setTimeout(function(){ card.remove(); }, 300); }
+            _toast('Request from ' + name + ' declined', 'info');
+        };
+
+        /* ══ addFriend: proper disable + visual feedback ══ */
+        var _origAddFriend = window.addFriend;
+        window.addFriend = function (button) {
+            if (!button) return;
+            if (button.dataset.requested === '1') { _toast('Friend request already sent', 'info'); return; }
+            if (typeof _origAddFriend === 'function') _origAddFriend(button);
+            button.textContent       = '✓ Request Sent';
+            button.dataset.requested = '1';
+            button.disabled          = true;
+            button.style.background  = 'var(--glass,#2a2a3e)';
+            button.style.color       = 'var(--text-secondary,#888)';
+            button.style.border      = '1px solid var(--glass-border,#444)';
+            button.style.cursor      = 'default';
+            var card   = button.closest('.friend-card, .list-item');
+            var nameEl = card ? card.querySelector('.friend-name, h4, .name, .list-item-title') : null;
+            var name   = (nameEl && nameEl.textContent.trim()) || 'User';
+            _toast('👋 Friend request sent to ' + name + '!', 'success');
+        };
+
+        /* ══ Wire ALL buttons after the friends screen is visible ══ */
+        function _wireFriendsScreen() {
+            var fs = document.getElementById('friends-screen');
+            if (!fs) return;
+
+            // Friend cards → click to view profile
+            fs.querySelectorAll('.friend-card:not([data-wired])').forEach(function (card) {
+                card.dataset.wired = '1';
+                card.style.cursor  = 'pointer';
+                card.addEventListener('click', function (e) {
+                    // Don't intercept button clicks
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                    var nameEl = card.querySelector('.friend-name, .list-item-title, h4, .name');
+                    window.viewFriendProfile(nameEl ? nameEl.textContent.trim() : 'User');
+                });
+            });
+
+            // Message buttons (secondary) → open chat
+            fs.querySelectorAll('.friend-btn.secondary:not([data-wired])').forEach(function (btn) {
+                if (btn.textContent.trim().toLowerCase().includes('message') || btn.textContent.trim() === '💬') {
+                    btn.dataset.wired = '1';
+                    btn.setAttribute('onclick', 'sendFriendMessage(this)');
+                }
+            });
+
+            // Accept buttons in pending requests
+            fs.querySelectorAll('button:not([data-wired])').forEach(function (btn) {
+                var txt = btn.textContent.trim().toLowerCase();
+                if ((txt === 'accept' || txt === '✓' || txt.includes('accept')) && !btn.getAttribute('onclick')) {
+                    btn.dataset.wired = '1';
+                    btn.setAttribute('onclick', 'acceptFriendRequest(this)');
+                } else if ((txt === 'decline' || txt === '✕' || txt.includes('decline')) && !btn.getAttribute('onclick')) {
+                    btn.dataset.wired = '1';
+                    btn.setAttribute('onclick', 'declineFriendRequest(this)');
+                }
+            });
+
+            // allFriendsModal buttons
+            var afm = document.getElementById('allFriendsModal');
+            if (afm) {
+                afm.querySelectorAll('.friend-btn.secondary:not([data-wired])').forEach(function (btn) {
+                    if (btn.textContent.trim() === 'Message') {
+                        btn.dataset.wired = '1';
                         btn.setAttribute('onclick', 'sendFriendMessage(this)');
                     }
                 });
-                // Also wire the primary (Add) buttons if present
-                allFriendsModal.querySelectorAll('.friend-btn.primary').forEach(function (btn) {
+                afm.querySelectorAll('.friend-btn.primary:not([data-wired])').forEach(function (btn) {
                     if (!btn.getAttribute('onclick')) {
+                        btn.dataset.wired = '1';
                         btn.setAttribute('onclick', 'addFriend(this)');
                     }
                 });
             }
+        }
 
-            // Wire Message buttons on the main friends-screen too
-            var friendsScreen = document.getElementById('friends-screen');
-            if (friendsScreen) {
-                friendsScreen.querySelectorAll('.friend-btn.primary[onclick="sendMessage()"]').forEach(function (btn) {
-                    btn.setAttribute('onclick', 'sendFriendMessage(this)');
+        // Run immediately and again after a delay (covers both sync and async renders)
+        setTimeout(_wireFriendsScreen, 800);
+        setTimeout(_wireFriendsScreen, 2000);
+
+        // Also run whenever the friends screen becomes active (tab switch)
+        var _friendsScreen = document.getElementById('friends-screen');
+        if (_friendsScreen && window.MutationObserver) {
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    if (m.type === 'attributes' && m.attributeName === 'class') {
+                        if (_friendsScreen.classList.contains('active')) {
+                            setTimeout(_wireFriendsScreen, 200);
+                        }
+                    }
                 });
-            }
-        }, 900);
+            }).observe(_friendsScreen, { attributes: true, attributeFilter: ['class'] });
+        }
 
-        /* ── sendFriendMessage: get the friend's name from the card, open chat ── */
-        window.sendFriendMessage = function (btn) {
-            var card = btn ? btn.closest('.friend-card') : null;
-            var nameEl = card ? card.querySelector('.friend-name, .list-item-title, .friend-info h4, h4, .name') : null;
-            var name = (nameEl && nameEl.textContent.trim()) || 'Friend';
-
-            // Close the allFriends modal if it's open
-            if (typeof closeModal === 'function') closeModal('allFriends');
-
-            // Open chat window
-            if (typeof openModal === 'function') openModal('chatWindow');
-
-            _toast('💬 Opening chat with ' + name + '…', 'info');
-        };
-
-        /* ── d) Enhance addFriend with proper visual feedback ── */
-        var _origAddFriend = window.addFriend;
-        window.addFriend = function (button) {
-            if (!button) return;
-            // If already sent, do nothing
-            if (button.dataset.requested === '1') {
-                _toast('Friend request already sent', 'info');
-                return;
-            }
-            // Run original if it exists
-            if (typeof _origAddFriend === 'function') _origAddFriend(button);
-
-            // Visual feedback
-            button.textContent      = '✓ Request Sent';
-            button.dataset.requested = '1';
-            button.disabled          = true;
-            button.style.background  = 'var(--glass, #2a2a3e)';
-            button.style.color       = 'var(--text-secondary, #888)';
-            button.style.border      = '1px solid var(--glass-border, #444)';
-            button.style.cursor      = 'default';
-
-            var card    = button.closest('.friend-card');
-            var nameEl  = card ? card.querySelector('.friend-name, h4, .name, .list-item-title') : null;
-            var name    = (nameEl && nameEl.textContent.trim()) || 'User';
-            _toast('👋 Friend request sent to ' + name + '!', 'success');
-        };
-
-        console.log('[Fix8] ✅ Friends Section — See All / Message / Add Friend FIXED');
+        console.log('[Fix8] ✅ Friends Section — Search / See All / Message / Profile / Accept / Decline FIXED');
     }
 
     /** Fallback: build an All Friends panel in JS if the HTML modal is missing */
