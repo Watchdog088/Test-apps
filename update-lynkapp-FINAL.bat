@@ -1,27 +1,29 @@
 @echo off
 setlocal enabledelayedexpansion
 REM ===================================================================
-REM  LynkApp — QUICK UPDATE SCRIPT (Run this after every code change)
-REM  Syncs all changed files to S3 without recreating the bucket
-REM  Updated: April 2026 — user-testing fixes v3 + bat file updates
+REM  LynkApp — QUICK UPDATE SCRIPT  (Run this after every code change)
+REM  Updated: April 2026 — v5
+REM
+REM  CORRECT deployment structure:
+REM    LynkApp-Production-App\ --> s3://lynkapp.net/  (ROOT)
 REM
 REM  What this uploads:
-REM    1.  index.html + service worker (no-cache)
-REM    2.  CSS files
-REM    3.  Phase 1-10 service files (no-cache)
-REM    4.  UI JS scripts
-REM    5.  User testing fix files (no-cache)
-REM    6.  ConnectHub_Mobile_Design.html
-REM    7.  Extra HTML pages + manifest
-REM    8.  LynkApp-Production-App full bundle (no-cache)
-REM    9.  LynkApp-Production-App/js/user-testing-fixes.js (explicit)
-REM    10. Admin dashboard
-REM    11. Production monitoring JS
+REM    1.  LynkApp-Production-App\ (entire folder) --> S3 ROOT
+REM    2.  Explicit re-upload: index.html (text/html, no-cache)
+REM    3.  Explicit re-upload: css/lynkapp-main.css (text/css)
+REM    4.  Explicit re-upload: manifest.json (application/json)
+REM    5.  Explicit re-upload: sw.js (application/javascript, no-cache)
+REM    6.  Explicit re-upload: js/user-testing-fixes.js (no-cache)
+REM    7.  Explicit re-upload: js/app-main.js (no-cache)
+REM    8.  Admin dashboard
+REM    9.  CloudFront full cache invalidation
+REM
+REM  Live URL: https://lynkapp.net
 REM ===================================================================
 
 echo.
 echo ===================================================================
-echo   LynkApp — Quick Update (Sync to S3)
+echo   LynkApp — Quick Update  (Sync LynkApp-Production-App to S3)
 echo ===================================================================
 echo.
 
@@ -33,7 +35,8 @@ if not exist ".s3-bucket-name" (
     exit /b 1
 )
 set /p BUCKET_NAME=<.s3-bucket-name
-echo   Bucket: !BUCKET_NAME!
+echo   Bucket  : !BUCKET_NAME!
+echo   Live URL: https://lynkapp.net
 echo.
 
 REM ── Verify AWS credentials ──────────────────────────────────────────
@@ -44,209 +47,170 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo   Syncing all changed files...
-echo.
+REM ── CloudFront Distribution ID ──────────────────────────────────────
+set CF_DIST=E1K6OG7GOLIRJ2
 
-REM ── Upload index.html (always no-cache) ─────────────────────────────
-echo [1/11] Uploading index.html...
-aws s3 cp "ConnectHub-Frontend\index.html" s3://!BUCKET_NAME!/ ^
+REM ===================================================================
+REM  STEP 1 — Sync entire LynkApp-Production-App to S3 ROOT
+REM           (This is the production app. All files go to root, not a subfolder)
+REM ===================================================================
+echo [1/9] Syncing LynkApp-Production-App to S3 ROOT...
+if not exist "LynkApp-Production-App\" (
+    echo [ERROR] LynkApp-Production-App folder not found!
+    pause
+    exit /b 1
+)
+aws s3 sync "LynkApp-Production-App\" s3://!BUCKET_NAME!/ ^
+    --exclude "*.backup" ^
+    --cache-control "no-cache, no-store, must-revalidate" ^
+    >nul 2>&1
+echo [OK] LynkApp-Production-App synced to S3 root
+
+REM ===================================================================
+REM  STEP 2 — Explicit re-upload: index.html with correct content-type
+REM ===================================================================
+echo [2/9] Uploading index.html (text/html, no-cache)...
+aws s3 cp "LynkApp-Production-App\index.html" s3://!BUCKET_NAME!/index.html ^
     --content-type "text/html; charset=utf-8" ^
     --cache-control "no-cache, no-store, must-revalidate" ^
     >nul 2>&1
 echo [OK] index.html
 
-REM ── Upload service worker (always no-cache) ─────────────────────────
-if exist "ConnectHub-Frontend\service-worker.js" (
-    aws s3 cp "ConnectHub-Frontend\service-worker.js" s3://!BUCKET_NAME!/ ^
-        --content-type "application/javascript" ^
-        --cache-control "no-cache" ^
-        >nul 2>&1
-)
-
-REM ── Sync CSS files ──────────────────────────────────────────────────
-echo [2/11] Syncing CSS files...
-if exist "ConnectHub-Frontend\src\css\" (
-    aws s3 sync "ConnectHub-Frontend\src\css\" s3://!BUCKET_NAME!/src/css/ ^
-        --exclude "*" --include "*.css" ^
-        --content-type "text/css" ^
+REM ===================================================================
+REM  STEP 3 — Explicit re-upload: CSS with correct content-type
+REM ===================================================================
+echo [3/9] Uploading css/lynkapp-main.css (text/css)...
+if exist "LynkApp-Production-App\css\lynkapp-main.css" (
+    aws s3 cp "LynkApp-Production-App\css\lynkapp-main.css" s3://!BUCKET_NAME!/css/lynkapp-main.css ^
+        --content-type "text/css; charset=utf-8" ^
         --cache-control "max-age=3600" ^
         >nul 2>&1
+    echo [OK] css/lynkapp-main.css
+) else (
+    echo [SKIP] css/lynkapp-main.css not found
 )
-echo [OK] CSS synced
 
-REM ── Sync Phase 1-10 service files (no-cache = always fresh) ─────────
-echo [3/11] Syncing Phase 1-10 service files...
-if exist "ConnectHub-Frontend\src\services\" (
-    for %%F in ("ConnectHub-Frontend\src\services\*.js") do (
-        aws s3 cp "%%F" s3://!BUCKET_NAME!/src/services/ ^
-            --content-type "application/javascript; charset=utf-8" ^
-            --cache-control "no-cache, no-store, must-revalidate" ^
-            >nul 2>&1
-    )
-)
-echo [OK] Service files synced (firebase-config, auth, messaging, etc.)
-
-REM ── Sync UI JS scripts ──────────────────────────────────────────────
-echo [4/11] Syncing UI JS scripts...
-if exist "ConnectHub-Frontend\src\js\" (
-    aws s3 sync "ConnectHub-Frontend\src\js\" s3://!BUCKET_NAME!/src/js/ ^
-        --exclude "*" --include "*.js" ^
-        --content-type "application/javascript; charset=utf-8" ^
-        --cache-control "max-age=3600" ^
-        >nul 2>&1
-)
-echo [OK] UI JS synced
-
-REM ── Upload user testing fix files (no-cache) ────────────────────────
-echo [5/11] Uploading user testing fix files...
-if exist "ConnectHub-Frontend\src\js\user-testing-fixes.js" (
-    aws s3 cp "ConnectHub-Frontend\src\js\user-testing-fixes.js" s3://!BUCKET_NAME!/src/js/ ^
-        --content-type "application/javascript; charset=utf-8" ^
-        --cache-control "no-cache, no-store, must-revalidate" ^
-        >nul 2>&1
-)
-if exist "ConnectHub_Mobile_Design_Fixes.js" (
-    aws s3 cp "ConnectHub_Mobile_Design_Fixes.js" s3://!BUCKET_NAME!/ ^
-        --content-type "application/javascript; charset=utf-8" ^
-        --cache-control "no-cache, no-store, must-revalidate" ^
-        >nul 2>&1
-)
-echo [OK] User testing fixes synced
-
-REM ── Upload main mobile design HTML (no-cache) ──────────────────────
-echo [6/11] Uploading ConnectHub_Mobile_Design.html...
-if exist "ConnectHub_Mobile_Design.html" (
-    aws s3 cp "ConnectHub_Mobile_Design.html" s3://!BUCKET_NAME!/ ^
-        --content-type "text/html; charset=utf-8" ^
-        --cache-control "no-cache, no-store, must-revalidate" ^
-        >nul 2>&1
-)
-echo [OK] Mobile design HTML synced
-
-REM ── Sync extra HTML pages ───────────────────────────────────────────
-echo [7/11] Syncing additional pages...
-if exist "ConnectHub-Frontend\creator-profile.html" (
-    aws s3 cp "ConnectHub-Frontend\creator-profile.html" s3://!BUCKET_NAME!/creator-profile.html ^
-        --content-type "text/html; charset=utf-8" ^
-        --cache-control "no-cache" ^
-        >nul 2>&1
-)
-if exist "ConnectHub-Frontend\premium-profile.html" (
-    aws s3 cp "ConnectHub-Frontend\premium-profile.html" s3://!BUCKET_NAME!/premium-profile.html ^
-        --content-type "text/html; charset=utf-8" ^
-        --cache-control "no-cache" ^
-        >nul 2>&1
-)
-if exist "ConnectHub-Frontend\manifest.json" (
-    aws s3 cp "ConnectHub-Frontend\manifest.json" s3://!BUCKET_NAME!/ ^
+REM ===================================================================
+REM  STEP 4 — Explicit re-upload: manifest.json
+REM ===================================================================
+echo [4/9] Uploading manifest.json...
+if exist "LynkApp-Production-App\manifest.json" (
+    aws s3 cp "LynkApp-Production-App\manifest.json" s3://!BUCKET_NAME!/manifest.json ^
         --content-type "application/json" ^
         --cache-control "max-age=86400" ^
         >nul 2>&1
+    echo [OK] manifest.json
 )
-echo [OK] Additional pages synced
 
-REM ── Sync LynkApp-Production-App (NEW — full production bundle) ──────
-echo [8/11] Syncing LynkApp-Production-App (production bundle)...
-if exist "LynkApp-Production-App\" (
-    aws s3 sync "LynkApp-Production-App\" s3://!BUCKET_NAME!/LynkApp-Production-App/ ^
-        --content-type "application/javascript; charset=utf-8" ^
+REM ===================================================================
+REM  STEP 5 — Explicit re-upload: service worker (always no-cache)
+REM ===================================================================
+echo [5/9] Uploading sw.js (no-cache)...
+if exist "LynkApp-Production-App\sw.js" (
+    aws s3 cp "LynkApp-Production-App\sw.js" s3://!BUCKET_NAME!/sw.js ^
+        --content-type "application/javascript" ^
         --cache-control "no-cache, no-store, must-revalidate" ^
         >nul 2>&1
-    REM Override HTML/CSS/JSON content types
-    if exist "LynkApp-Production-App\index.html" (
-        aws s3 cp "LynkApp-Production-App\index.html" s3://!BUCKET_NAME!/LynkApp-Production-App/ ^
-            --content-type "text/html; charset=utf-8" ^
-            --cache-control "no-cache, no-store, must-revalidate" ^
-            >nul 2>&1
-    )
-    if exist "LynkApp-Production-App\css\lynkapp-main.css" (
-        aws s3 cp "LynkApp-Production-App\css\lynkapp-main.css" s3://!BUCKET_NAME!/LynkApp-Production-App/css/ ^
-            --content-type "text/css; charset=utf-8" ^
-            --cache-control "max-age=3600" ^
-            >nul 2>&1
-    )
-    if exist "LynkApp-Production-App\manifest.json" (
-        aws s3 cp "LynkApp-Production-App\manifest.json" s3://!BUCKET_NAME!/LynkApp-Production-App/ ^
-            --content-type "application/json" ^
-            --cache-control "max-age=86400" ^
-            >nul 2>&1
-    )
+    echo [OK] sw.js
 )
-echo [OK] LynkApp-Production-App synced
 
-REM ── Explicit upload: user-testing-fixes.js (ALWAYS no-cache) ────────
-echo [9/11] Uploading user-testing-fixes.js (7 bug fixes - no-cache)...
+REM ===================================================================
+REM  STEP 6 — Explicit re-upload: user-testing-fixes.js (always no-cache)
+REM           This contains all 7 user-testing bug fixes (v4)
+REM ===================================================================
+echo [6/9] Uploading js/user-testing-fixes.js (7 bug fixes, no-cache)...
 if exist "LynkApp-Production-App\js\user-testing-fixes.js" (
-    aws s3 cp "LynkApp-Production-App\js\user-testing-fixes.js" ^
-        s3://!BUCKET_NAME!/LynkApp-Production-App/js/user-testing-fixes.js ^
+    aws s3 cp "LynkApp-Production-App\js\user-testing-fixes.js" s3://!BUCKET_NAME!/js/user-testing-fixes.js ^
         --content-type "application/javascript; charset=utf-8" ^
         --cache-control "no-cache, no-store, must-revalidate" ^
         >nul 2>&1
-    echo [OK] LynkApp-Production-App/js/user-testing-fixes.js uploaded
+    echo [OK] js/user-testing-fixes.js
 ) else (
-    echo [SKIP] LynkApp-Production-App\js\user-testing-fixes.js not found
+    echo [ERROR] LynkApp-Production-App\js\user-testing-fixes.js NOT FOUND
 )
 
-REM ── Upload admin dashboard (no-cache) ───────────────────────────────
-echo [10/11] Uploading admin dashboard...
+REM ===================================================================
+REM  STEP 7 — Explicit re-upload: app-main.js (always no-cache)
+REM ===================================================================
+echo [7/9] Uploading js/app-main.js (no-cache)...
+if exist "LynkApp-Production-App\js\app-main.js" (
+    aws s3 cp "LynkApp-Production-App\js\app-main.js" s3://!BUCKET_NAME!/js/app-main.js ^
+        --content-type "application/javascript; charset=utf-8" ^
+        --cache-control "no-cache, no-store, must-revalidate" ^
+        >nul 2>&1
+    echo [OK] js/app-main.js
+)
+
+REM ===================================================================
+REM  STEP 8 — Upload admin dashboard
+REM ===================================================================
+echo [8/9] Uploading admin-dashboard.html...
 if exist "admin-dashboard.html" (
-    aws s3 cp "admin-dashboard.html" s3://!BUCKET_NAME!/ ^
+    aws s3 cp "admin-dashboard.html" s3://!BUCKET_NAME!/admin-dashboard.html ^
         --content-type "text/html; charset=utf-8" ^
         --cache-control "no-cache, no-store, must-revalidate" ^
         >nul 2>&1
+    echo [OK] admin-dashboard.html
 )
-echo [OK] Admin dashboard synced
 
-REM ── Upload monitoring + production JS ───────────────────────────────
-echo [11/11] Syncing monitoring and production JS...
-if exist "ConnectHub-Frontend\production\js\" (
-    aws s3 sync "ConnectHub-Frontend\production\js\" s3://!BUCKET_NAME!/production/js/ ^
-        --exclude "*" --include "*.js" ^
-        --content-type "application/javascript; charset=utf-8" ^
-        --cache-control "no-cache, no-store, must-revalidate" ^
-        >nul 2>&1
+REM ===================================================================
+REM  STEP 9 — CloudFront full cache invalidation
+REM           Clears ALL cached files so users get fresh content instantly
+REM ===================================================================
+echo [9/9] Invalidating CloudFront cache (/* - all files)...
+aws cloudfront create-invalidation ^
+    --distribution-id !CF_DIST! ^
+    --paths "/*" ^
+    >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [OK] CloudFront cache invalidation started
+) else (
+    echo [WARN] CloudFront invalidation may have failed - check AWS console
 )
-if exist "ConnectHub-Frontend\production\sw.js" (
-    aws s3 cp "ConnectHub-Frontend\production\sw.js" s3://!BUCKET_NAME!/production/ ^
-        --content-type "application/javascript" ^
-        --cache-control "no-cache" ^
-        >nul 2>&1
-)
-echo [OK] Monitoring + production JS synced
 
 REM ── Done ────────────────────────────────────────────────────────────
 echo.
 echo ===================================================================
-echo   UPDATE COMPLETE! (11/11 steps)
+echo   UPDATE COMPLETE! (9/9 steps)
 echo ===================================================================
 echo.
-echo   Files synced:
-echo     - index.html + service worker
-echo     - CSS, services, UI JS
-echo     - User testing fixes
-echo     - Mobile design HTML
-echo     - Additional pages (creator, premium, manifest)
-echo     - LynkApp-Production-App (full bundle, no-cache)
-echo     - user-testing-fixes.js (7 bugs fixed, explicit no-cache)
-echo     - Admin dashboard (with monitoring)
-echo     - Production monitoring JS
+echo   What was deployed:
+echo     Source : LynkApp-Production-App\
+echo     Target : s3://!BUCKET_NAME!/ (ROOT)
 echo.
-echo   Live URL:
-echo   http://!BUCKET_NAME!.s3-website-us-east-1.amazonaws.com
+echo   Files updated:
+echo     - index.html            (text/html, no-cache)
+echo     - css/lynkapp-main.css  (text/css)
+echo     - manifest.json         (application/json)
+echo     - sw.js                 (no-cache)
+echo     - js/app-main.js        (no-cache)
+echo     - js/user-testing-fixes.js (7 bugs fixed, no-cache)
+echo     - services/*.js
+echo     - admin-dashboard.html  (no-cache)
 echo.
-echo   Admin Dashboard:
-echo   http://!BUCKET_NAME!.s3-website-us-east-1.amazonaws.com/admin-dashboard.html
+echo   Bug fixes deployed (user-testing-fixes.js v4):
+echo     Fix 1: Account creation forces full profile setup wizard
+echo     Fix 2: Post button works correctly
+echo     Fix 3: Add Location button present and working
+echo     Fix 4: Tag People confirm button working
+echo     Fix 5: Comments submit button working
+echo     Fix 6: Share button opens share window
+echo     Fix 7: Story camera and gallery buttons working
+echo.
+echo   CloudFront invalidation: InProgress (takes ~1-2 minutes)
 echo.
 echo ===================================================================
+echo   LIVE URL : https://lynkapp.net
+echo   ADMIN    : https://lynkapp.net/admin-dashboard.html
+echo ===================================================================
 echo.
-echo   TIP: Hard refresh your browser with Ctrl+Shift+R to clear cache
-echo        and see your changes immediately.
+echo   TIP: Hard-refresh with Ctrl+Shift+R or use Incognito to see
+echo        changes immediately (bypasses browser cache).
 echo.
 
-set APP_URL=http://!BUCKET_NAME!.s3-website-us-east-1.amazonaws.com
-set /p OPEN_SITE="   Open app in browser? (Y/N): "
+set /p OPEN_SITE="   Open https://lynkapp.net in browser? (Y/N): "
 if /i "!OPEN_SITE!"=="Y" (
-    start !APP_URL!
+    start https://lynkapp.net
 )
 
 echo.
