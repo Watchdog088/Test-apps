@@ -1,9 +1,9 @@
 /**
  * ============================================================
- * LynkApp Production — User Testing Bug Fixes v4
+ * LynkApp Production — User Testing Bug Fixes v5
  * Targets: LynkApp-Production-App/index.html
  *
- * Fixes all 8 issues reported during user testing:
+ * Fixes all 9 issues reported during user testing:
  *  1. Account creation → force full profile setup wizard
  *  2. Post button (submitActualPost) not working
  *  3. Location modal — confirm/add button missing
@@ -12,6 +12,8 @@
  *  6. Share button does not open share window
  *  7. Create Story — camera & gallery buttons not working
  *  8. Friends section — See All, Message, and Add Friend buttons not working
+ *  9. Universal Search Buttons — all search bars get a consistent
+ *     🔍 button (lynk-search-btn style) across every screen/modal
  * ============================================================
  */
 
@@ -35,7 +37,8 @@
         fix6_ShareButtonOpensWindow();
         fix7_StoryCameraGallery();
         fix8_FriendsSection();
-        console.log('[LynkApp Fixes v4] ✅ All 8 user-testing issues patched.');
+        fix9_UniversalSearchButtons();
+        console.log('[LynkApp Fixes v5] ✅ All 9 user-testing issues patched.');
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -958,6 +961,198 @@
         panel.addEventListener('click', function (e) { if (e.target === panel) panel.remove(); });
     }
 
+    /* ════════════════════════════════════════════════════════════════
+       FIX 9 — Universal Search Buttons
+       Scans EVERY screen and modal in the app for a .search-bar
+       containing a text input.  If one is found and it doesn't
+       already have a .lynk-search-btn, inject one.
+
+       Covered sections (non-exhaustive — runs on ALL screens):
+         • Friends        (#friends-screen)
+         • Groups         (#groups-screen)
+         • Events         (#events-screen)
+         • Messages       (#messages-screen)
+         • Marketplace    (#marketplace-screen)
+         • Explore/Search (#search-screen, #explore-screen, #people-screen)
+         • Dating         (#dating-screen)
+         • Music          (#music-screen)
+         • Notifications  (#notifications-screen)
+         • Any open modal (.modal-content .search-bar)
+
+       All buttons share the same .lynk-search-btn CSS class.
+       ════════════════════════════════════════════════════════════════ */
+    function fix9_UniversalSearchButtons() {
+
+        /* Map of screenId → { cardSelector, nameSelector }
+           Used by the generic search handler to filter content */
+        var SCREEN_MAP = {
+            'friends-screen':      { cards: '.friend-card, .list-item',          name: '.friend-name, .list-item-title, h4, .name' },
+            'groups-screen':       { cards: '.group-card, .list-item',           name: '.group-name, .list-item-title, h4, .name'  },
+            'events-screen':       { cards: '.event-card, .list-item',           name: '.event-name, .event-title, .list-item-title, h4' },
+            'messages-screen':     { cards: '.chat-item, .conversation-item, .list-item', name: '.chat-name, .conversation-name, .list-item-title, h4' },
+            'marketplace-screen':  { cards: '.product-card, .item-card, .list-item', name: '.product-name, .item-name, .list-item-title, h4' },
+            'search-screen':       { cards: '.search-result, .user-card, .list-item', name: '.user-name, .result-name, .list-item-title, h4' },
+            'explore-screen':      { cards: '.explore-card, .post-card, .list-item', name: '.post-author, .card-title, h4'                    },
+            'people-screen':       { cards: '.user-card, .person-card, .list-item',  name: '.user-name, .person-name, .list-item-title, h4'   },
+            'dating-screen':       { cards: '.dating-card, .match-card, .list-item', name: '.match-name, .dating-name, .list-item-title, h4'  },
+            'music-screen':        { cards: '.song-card, .track-card, .list-item',   name: '.song-name, .track-name, .list-item-title, h4'    },
+            'notifications-screen':{ cards: '.notification-item, .list-item',        name: '.notif-title, .list-item-title, h4'               },
+            'saved-screen':        { cards: '.saved-card, .post-card, .list-item',   name: '.post-author, .card-title, h4'                    },
+            'gaming-screen':       { cards: '.game-card, .list-item',               name: '.game-name, .list-item-title, h4'                  },
+        };
+
+        /* ── shared helper: inject a search button into one search bar ── */
+        function _injectBtn(bar, searchFn) {
+            // Skip if button already injected
+            if (bar.querySelector('.lynk-search-btn')) return;
+
+            // Find the text input inside this bar
+            var inp = bar.querySelector('input.search-input, input[type="text"], input[type="search"]');
+            if (!inp) return;
+
+            // Give the input an id if it doesn't have one (needed for focus)
+            if (!inp.id) inp.id = 'lynk-search-inp-' + Math.random().toString(36).slice(2, 7);
+
+            // Build the button using the shared CSS class
+            var btn = document.createElement('button');
+            btn.className = 'lynk-search-btn';
+            btn.type      = 'button';
+            btn.innerHTML = '🔍';
+            btn.title     = 'Search';
+
+            btn.addEventListener('click', function () { searchFn(inp); });
+            inp.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); searchFn(inp); }
+            });
+
+            bar.appendChild(btn);
+        }
+
+        /* ── generic per-screen search: filter cards by name ── */
+        function _makeScreenSearch(screenId) {
+            var cfg = SCREEN_MAP[screenId];
+            return function (inp) {
+                var query  = inp ? inp.value.trim().toLowerCase() : '';
+                var screen = document.getElementById(screenId);
+                if (!screen) {
+                    if (typeof window.performSearch === 'function') window.performSearch(query);
+                    _toast('Searching for "' + query + '"…', 'info');
+                    return;
+                }
+                if (!query) {
+                    screen.querySelectorAll(cfg ? cfg.cards : '.card, .list-item')
+                          .forEach(function (c) { c.style.display = ''; });
+                    _toast('Showing all results', 'info');
+                    return;
+                }
+                var shown = 0;
+                screen.querySelectorAll(cfg ? cfg.cards : '.card, .list-item')
+                      .forEach(function (card) {
+                    var nameEl = card.querySelector(cfg ? cfg.name : 'h4, .name, .title');
+                    var text   = nameEl ? nameEl.textContent.toLowerCase() : card.textContent.toLowerCase();
+                    var match  = text.includes(query);
+                    card.style.display = match ? '' : 'none';
+                    if (match) shown++;
+                });
+                var label = shown > 0
+                    ? 'Found ' + shown + ' result' + (shown !== 1 ? 's' : '')
+                    : 'No results for "' + query + '"';
+                _toast(label, shown > 0 ? 'success' : 'info');
+            };
+        }
+
+        /* ── generic modal search ── */
+        function _makeModalSearch(modal) {
+            return function (inp) {
+                var query = inp ? inp.value.trim().toLowerCase() : '';
+                if (!query) {
+                    modal.querySelectorAll('.list-item, .friend-card, .card')
+                         .forEach(function (c) { c.style.display = ''; });
+                    return;
+                }
+                var shown = 0;
+                modal.querySelectorAll('.list-item, .friend-card, .card')
+                     .forEach(function (card) {
+                    var nameEl = card.querySelector('h4, .name, .list-item-title, .friend-name');
+                    var text   = nameEl ? nameEl.textContent.toLowerCase() : '';
+                    var match  = text.includes(query);
+                    card.style.display = match ? '' : 'none';
+                    if (match) shown++;
+                });
+                if (shown === 0) _toast('No results for "' + query + '"', 'info');
+            };
+        }
+
+        /* ── scan and wire all screens ── */
+        function _scanAllScreens() {
+            // 1. Named screens
+            Object.keys(SCREEN_MAP).forEach(function (screenId) {
+                var screen = document.getElementById(screenId);
+                if (!screen) return;
+                screen.querySelectorAll('.search-bar').forEach(function (bar) {
+                    // Skip friends-screen — Fix 8 already handles it with lynk-friend-search-btn
+                    // but we still use the shared CSS class for style consistency
+                    _injectBtn(bar, _makeScreenSearch(screenId));
+                });
+            });
+
+            // 2. Any other screens we might have missed
+            document.querySelectorAll('[id$="-screen"] .search-bar').forEach(function (bar) {
+                var screen = bar.closest('[id$="-screen"]');
+                if (!screen) return;
+                _injectBtn(bar, _makeScreenSearch(screen.id));
+            });
+
+            // 3. All modals
+            document.querySelectorAll('.modal-content .search-bar, [id$="Modal"] .search-bar').forEach(function (bar) {
+                var modal = bar.closest('.modal-content, [id$="Modal"]');
+                if (!modal) return;
+                _injectBtn(bar, _makeModalSearch(modal));
+            });
+
+            // 4. Any remaining .search-bar elements anywhere in the document
+            document.querySelectorAll('.search-bar').forEach(function (bar) {
+                // Only inject if not already done
+                if (!bar.querySelector('.lynk-search-btn')) {
+                    var screen = bar.closest('[id]');
+                    var searchFn = screen
+                        ? (SCREEN_MAP[screen.id] ? _makeScreenSearch(screen.id) : _makeModalSearch(screen))
+                        : _makeModalSearch(document.body);
+                    _injectBtn(bar, searchFn);
+                }
+            });
+        }
+
+        // Run after initial render (700ms) and again after lazy content loads (2000ms)
+        setTimeout(_scanAllScreens, 700);
+        setTimeout(_scanAllScreens, 2000);
+
+        // Re-scan whenever a new screen becomes active (MutationObserver on body)
+        if (window.MutationObserver) {
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(function (node) {
+                        if (node.nodeType !== 1) return;
+                        // New screen or modal added to DOM
+                        var bars = node.querySelectorAll
+                            ? node.querySelectorAll('.search-bar')
+                            : [];
+                        if (bars.length) {
+                            setTimeout(_scanAllScreens, 150);
+                        }
+                    });
+                });
+            }).observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Expose globally so the app can call it manually after dynamic loads
+        window.lynkInjectSearchButtons = _scanAllScreens;
+
+        console.log('[Fix9] ✅ Universal search buttons — all screens/modals wired with .lynk-search-btn');
+    }
+
+    /* ─────────────────────────────────────────────────────────────── */
+
     window._publishStory = function () {
         _removeById('lynk-story-preview');
         if (typeof closeModal === 'function') closeModal('createStory');
@@ -1023,7 +1218,23 @@
         s.textContent = [
             '@keyframes lynk-fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}',
             '.lynk-attach-badge{transition:all .2s}',
-            '.wiz-int-tag{transition:all .2s}'
+            '.wiz-int-tag{transition:all .2s}',
+            /* ── Universal Search Button ── */
+            '.lynk-search-btn{',
+            '  background:linear-gradient(135deg,var(--primary,#6366f1),var(--secondary,#ec4899));',
+            '  border:none;',
+            '  border-radius:50%;',
+            '  width:36px;height:36px;min-width:36px;',
+            '  display:flex;align-items:center;justify-content:center;',
+            '  cursor:pointer;font-size:15px;',
+            '  margin-left:8px;flex-shrink:0;',
+            '  transition:opacity .2s,transform .15s;',
+            '  box-shadow:0 2px 8px rgba(99,102,241,.35);',
+            '}',
+            '.lynk-search-btn:hover{opacity:.85;}',
+            '.lynk-search-btn:active{transform:scale(.93);}',
+            /* ── Make every search-bar flex so the button sits inline ── */
+            '.search-bar{display:flex!important;align-items:center!important;}'
         ].join('');
         document.head.appendChild(s);
     }
