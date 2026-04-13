@@ -2034,7 +2034,48 @@
             border-color: var(--primary);
             color: white;
         }
-    </style>
+    
+        /* Back Button Style */
+        .screen-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+        .screen-back-btn:active {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.1);
+        }
+        /* Post Button in search bar */
+        .search-post-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .search-post-btn:active {
+            transform: scale(0.9);
+        }
+
+        </style>
 </head>
 <body>
     <!-- SPLASH SCREEN -->
@@ -2656,6 +2697,7 @@
 
             <!-- STORIES SCREEN (NEW) -->
             <div id="stories-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">📖 Stories</div>
                 </div>
@@ -2721,6 +2763,7 @@
 
             <!-- SECTION 2: LIVE SCREEN -->
             <div id="live-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🔴 Live Now</div>
                     <div class="section-link" onclick="openModal('liveSettings')">Settings</div>
@@ -2770,6 +2813,7 @@
 
             <!-- SECTION 3: TRENDING SCREEN -->
             <div id="trending-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🔥 Trending</div>
                 </div>
@@ -2828,6 +2872,7 @@
 
             <!-- SECTION 4: GROUPS SCREEN -->
             <div id="groups-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">👥 Your Groups</div>
                     <div class="section-link" onclick="openModal('createGroup')">+ New</div>
@@ -2890,9 +2935,11 @@
 
             <!-- SECTION 10: FRIENDS SCREEN -->
             <div id="friends-screen" class="screen">
-                <div class="search-bar">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="search-bar" style="display:flex;align-items:center;gap:8px;">
                     <span>🔍</span>
                     <input type="text" class="search-input" placeholder="Search friends..." />
+                    <button class="search-post-btn" onclick="showToast('Post created! ✏️')" title="Post">✏️</button>
                 </div>
 
                 <div class="section-header">
@@ -2953,6 +3000,7 @@
 
             <!-- SECTION 11: DATING SCREEN -->
             <div id="dating-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">💕 Dating</div>
                     <div class="section-link" onclick="openModal('datingSettings')">Settings</div>
@@ -3040,6 +3088,7 @@
 
             <!-- SECTION 12: PROFILE SCREEN -->
             <div id="profile-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="profile-header">
                     <div class="profile-avatar-large">👤</div>
                     <div class="profile-name">[Current User]</div>
@@ -3078,6 +3127,7 @@
 
             <!-- SECTION 14: SAVED SCREEN -->
             <div id="saved-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🔖 Saved Items</div>
                     <div class="section-link" onclick="openModal('createCollection')">+ Collection</div>
@@ -3116,6 +3166,7 @@
 
             <!-- SECTION 15: EVENTS SCREEN -->
             <div id="events-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">📅 Events</div>
                     <div class="section-link" onclick="eventsSystem.openCreateEventModal()">+ Create</div>
@@ -3248,6 +3299,7 @@
 
             <!-- SECTION 16: GAMING HUB SCREEN -->
             <div id="gaming-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🎮 Gaming Hub</div>
                     <div class="section-link" onclick="openModal('gamingNotifications')">
@@ -3349,6 +3401,7 @@
 
             <!-- SECTION 9: MEDIA HUB SCREEN -->
             <div id="media-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🎬 Media Hub</div>
                     <div class="section-link" onclick="openModal('mediaHubSettings')">Settings</div>
@@ -3392,6 +3445,7 @@
 
             <!-- MUSIC PLAYER SCREEN -->
             <div id="musicPlayer-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🎵 Music Player</div>
                     <div class="section-link" onclick="openScreen('media')">← Back</div>
@@ -3471,6 +3525,7 @@
 
             <!-- LIVE STREAMING SCREEN -->
             <div id="liveStreaming-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🔴 Live Streaming</div>
                     <div class="section-link" onclick="openScreen('media')">← Back</div>
@@ -3552,6 +3607,7 @@
 
             <!-- VIDEO CALLS SCREEN -->
             <div id="videoCalls-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">📹 Video Calls</div>
                     <div class="section-link" onclick="openScreen('media')">← Back</div>
@@ -3611,6 +3667,7 @@
 
             <!-- AR/VR SCREEN -->
             <div id="arVR-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🥽 AR/VR Experiences</div>
                     <div class="section-link" onclick="openScreen('media')">← Back</div>
@@ -3714,6 +3771,7 @@
 
             <!-- BUSINESS PROFILE SCREEN -->
             <div id="business-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🏢 Business Profile</div>
                     <div class="section-link" onclick="openModal('businessSettings')">Settings</div>
@@ -3962,6 +4020,7 @@
 
             <!-- CREATOR PROFILE SCREEN -->
             <div id="creator-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">✨ Creator Profile</div>
                     <div class="section-link" onclick="openModal('creatorSettings')">Settings</div>
@@ -4157,6 +4216,7 @@
 
             <!-- PREMIUM PROFILE SCREEN -->
             <div id="premium-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">⭐ Premium Profile</div>
                     <div class="section-link" onclick="openModal('premiumSettings')">Settings</div>
@@ -4418,6 +4478,7 @@
             <!-- SECTION 13: SETTINGS SCREEN -->
             <!-- SETTINGS SCREEN - All 15 Features Complete & Fully Integrated -->
             <div id="settings-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">⚙️ Settings</div>
                 </div>
@@ -4664,6 +4725,7 @@
 
             <!-- SECTION 7: MESSAGES SCREEN -->
             <div id="messages-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">💬 Messages</div>
                     <div class="section-link" onclick="openModal('newMessage')">+ New</div>
@@ -4713,6 +4775,7 @@
 
             <!-- SECTION 8: NOTIFICATIONS SCREEN -->
             <div id="notifications-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">🔔 Notifications</div>
                     <div class="section-link" onclick="markAllAsRead()">Mark all as read</div>
@@ -4771,6 +4834,7 @@
 
             <!-- SECTION 17: HELP & SUPPORT SCREEN -->
             <div id="help-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">💡 Help & Support</div>
                 </div>
@@ -4862,6 +4926,7 @@
 
             <!-- MENU SCREEN -->
             <div id="menu-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
                 <div class="section-header">
                     <div class="section-title">Menu</div>
                 </div>
@@ -5732,6 +5797,9 @@
                         🖼️ Gallery
                     </button>
                 </div>
+                <button class="btn" style="margin-top: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary));" onclick="createAndShareStory()">
+                    🌟 Create Story
+                </button>
             </div>
         </div>
 
@@ -9277,13 +9345,14 @@
         <!-- Friend List Modals -->
         <div id="allFriendsModal" class="modal">
             <div class="modal-header">
-                <div class="modal-close" onclick="closeModal('allFriends')">✕</div>
+                <div class="modal-close" onclick="closeModal('allFriends')">✕</div></div>
                 <div class="modal-title">All Friends (234)</div>
             </div>
             <div class="modal-content">
-                <div class="search-bar">
+                <div class="search-bar" style="display:flex;align-items:center;gap:8px;">
                     <span>🔍</span>
                     <input type="text" class="search-input" placeholder="Search friends..." />
+                    <button class="search-post-btn" onclick="showToast('Post created! ✏️')" title="Post">✏️</button>
                 </div>
                 <div class="friend-card">
                     <div class="friend-avatar">👤</div>
@@ -9291,7 +9360,7 @@
                         <div class="friend-name">[User Name]</div>
                         <div class="friend-mutual">Friends since [Date]</div>
                     </div>
-                    <button class="friend-btn secondary">Message</button>
+                    <button class="friend-btn secondary" onclick="closeModal('allFriends'); openScreen('messages'); showToast('Opening Messages 💬')">Message</button>
                 </div>
                 <div class="friend-card">
                     <div class="friend-avatar">😊</div>
@@ -9299,7 +9368,7 @@
                         <div class="friend-name">[User Name]</div>
                         <div class="friend-mutual">Friends since [Date]</div>
                     </div>
-                    <button class="friend-btn secondary">Message</button>
+                    <button class="friend-btn secondary" onclick="closeModal('allFriends'); openScreen('messages'); showToast('Opening Messages 💬')">Message</button>
                 </div>
             </div>
         </div>
@@ -21000,6 +21069,12 @@
                 showToast('Logged out successfully');
             }
         }
+    
+        function createAndShareStory() {
+            closeModal('createStory');
+            showToast('Your story has been created! 🌟');
+        }
+
     </script>
 </body>
 </html>
