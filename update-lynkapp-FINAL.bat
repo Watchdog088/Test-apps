@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 REM ===================================================================
 REM  LynkApp — QUICK UPDATE SCRIPT  (Run this after every code change)
-REM  Updated: April 2026 — v5
+REM  Updated: April 2026 — v6
 REM
 REM  CORRECT deployment structure:
 REM    LynkApp-Production-App\ --> s3://lynkapp.net/  (ROOT)
@@ -13,7 +13,7 @@ REM    2.  Explicit re-upload: index.html (text/html, no-cache)
 REM    3.  Explicit re-upload: css/lynkapp-main.css (text/css)
 REM    4.  Explicit re-upload: manifest.json (application/json)
 REM    5.  Explicit re-upload: sw.js (application/javascript, no-cache)
-REM    6.  Explicit re-upload: js/user-testing-fixes.js (no-cache)
+REM    6.  Explicit re-upload: js/user-testing-fixes.js (v5, no-cache)
 REM    7.  Explicit re-upload: js/app-main.js (no-cache)
 REM    8.  Admin dashboard
 REM    9.  CloudFront full cache invalidation
@@ -118,7 +118,7 @@ REM ===================================================================
 REM  STEP 6 — Explicit re-upload: user-testing-fixes.js (always no-cache)
 REM           This contains all 7 user-testing bug fixes (v4)
 REM ===================================================================
-echo [6/9] Uploading js/user-testing-fixes.js (7 bug fixes, no-cache)...
+echo [6/9] Uploading js/user-testing-fixes.js (v5 - 9 fixes incl. universal search, no-cache)...
 if exist "LynkApp-Production-App\js\user-testing-fixes.js" (
     aws s3 cp "LynkApp-Production-App\js\user-testing-fixes.js" s3://!BUCKET_NAME!/js/user-testing-fixes.js ^
         --content-type "application/javascript; charset=utf-8" ^
@@ -184,11 +184,11 @@ echo     - css/lynkapp-main.css  (text/css)
 echo     - manifest.json         (application/json)
 echo     - sw.js                 (no-cache)
 echo     - js/app-main.js        (no-cache)
-echo     - js/user-testing-fixes.js (7 bugs fixed, no-cache)
+    echo     - js/user-testing-fixes.js (v5 - 9 bugs fixed, no-cache)
 echo     - services/*.js
 echo     - admin-dashboard.html  (no-cache)
 echo.
-echo   Bug fixes deployed (user-testing-fixes.js v4):
+echo   Bug fixes deployed (user-testing-fixes.js v5):
 echo     Fix 1: Account creation forces full profile setup wizard
 echo     Fix 2: Post button works correctly
 echo     Fix 3: Add Location button present and working
@@ -196,6 +196,8 @@ echo     Fix 4: Tag People confirm button working
 echo     Fix 5: Comments submit button working
 echo     Fix 6: Share button opens share window
 echo     Fix 7: Story camera and gallery buttons working
+echo     Fix 8: Friends section - See All / Message / Add Friend buttons
+echo     Fix 9: Universal search buttons (all screens + modals, same style)
 echo.
 echo   CloudFront invalidation: InProgress (takes ~1-2 minutes)
 echo.
