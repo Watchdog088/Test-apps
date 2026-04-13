@@ -197,7 +197,7 @@ echo     Fix 5: Comments submit button working
 echo     Fix 6: Share button opens share window
 echo     Fix 7: Story camera and gallery buttons working
 echo     Fix 8: Friends section - See All / Message / Add Friend buttons
-echo     Fix 9: Universal search buttons (all screens + modals, same style)
+    echo     Fix 9: Post button added to all search sections (opens create post)
 echo.
 echo   CloudFront invalidation: InProgress (takes ~1-2 minutes)
 echo.
