@@ -1169,4 +1169,18 @@
         document.head.appendChild(s);
     }
 
+
+    // ===== BACK BUTTON: goHome() navigates to feed screen =====
+    window.goHome = function() {
+        if (typeof openScreen === 'function') {
+            openScreen('feed');
+        } else {
+            document.querySelectorAll('.screen').forEach(function(s) {
+                s.classList.remove('active');
+            });
+            var feed = document.getElementById('feed-screen') || document.querySelector('.screen');
+            if (feed) feed.classList.add('active');
+        }
+    };
+
 })();
