@@ -164,6 +164,68 @@ body {
     box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
 }
 
+/* ── Navbar Notification Bell ── */
+.nav-notif-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+}
+
+.nav-notif-btn:hover {
+    background: var(--glass-border);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.nav-notif-btn:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.nav-notif-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.nav-notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: var(--error);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-primary);
+    line-height: 1;
+    animation: pulse 2s infinite;
+}
+
+.nav-notif-badge[data-count="0"],
+.nav-notif-badge:empty {
+    display: none;
+}
+
 /* Sub Navigation */
 .sub-nav {
     background: var(--bg-card);

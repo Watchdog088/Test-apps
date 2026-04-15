@@ -74,6 +74,15 @@
                 <!-- Will be populated by updateMainNav() -->
             </div>
 
+            <!-- Notification Bell -->
+            <button class="nav-notif-btn" id="navNotifBtn" onclick="toggleNotifications()" aria-label="Notifications" title="Notifications">
+                <svg class="nav-notif-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="nav-notif-badge" id="navNotifBadge" aria-label="3 unread notifications">3</span>
+            </button>
+
             <div class="user-avatar" onclick="toggleUserMenu()" role="button" tabindex="0" onkeydown="handleKeyPress(event, toggleUserMenu)" aria-label="User menu">
                 JD
             </div>
