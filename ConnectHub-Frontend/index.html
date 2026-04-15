@@ -1837,7 +1837,7 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
 
     <script src="src/js/app.js"></script>
-    <script src="src/js/navigation-system.js"></script>
+    <!-- GAP-02 FIX: removed duplicate navigation-system.js (was loaded twice, causing double event listeners) -->
     <script src="src/js/dating.js"></script>
     <script src="src/js/dating-feature-integration.js"></script>
     <script src="src/js/dating-post-match-flow.js"></script>
@@ -2212,6 +2212,9 @@
     </div>
     <!-- User Testing Bug Fixes (7 issues) -->
     <script src="src/js/user-testing-fixes.js"></script>
+    <!-- UX GAP FIXES — addresses all 46 gaps from DETAILED-UI-UX-GAPS-AUDIT-2026.md -->
+    <!-- GAP-46 partial fix: loaded last so it can detect already-loaded scripts -->
+    <script src="src/js/ux-gap-fixes.js"></script>
 </body>
 </html>
                 </div>
