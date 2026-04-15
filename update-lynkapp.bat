@@ -45,6 +45,10 @@ if %ERRORLEVEL% neq 0 (
 )
 aws s3 cp ConnectHub_Mobile_Design.html s3://%BUCKET_NAME%/ --content-type "text/html" --cache-control "max-age=300"
 
+REM Upload Admin Dashboard (with Dating Monitor tab)
+echo   - Uploading Admin Dashboard...
+aws s3 cp admin-dashboard.html s3://%BUCKET_NAME%/admin-dashboard.html --content-type "text/html" --cache-control "max-age=300"
+
 REM Upload all JavaScript system files
 echo   - Uploading JavaScript system files...
 aws s3 cp ConnectHub_Mobile_Design_Feed_System.js s3://%BUCKET_NAME%/ --content-type "application/javascript" --cache-control "max-age=300"
