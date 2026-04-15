@@ -434,6 +434,7 @@
         <div class="tab-nav">
             <button class="tab-btn active" id="tab-btn-general" onclick="switchTab('general')">📊 General Dashboard</button>
             <button class="tab-btn dating-tab" id="tab-btn-dating" onclick="switchTab('dating')">💕 Dating Monitor</button>
+            <button class="tab-btn" style="background:transparent;" id="tab-btn-marketplace" onclick="switchTab('marketplace')">🛒 Marketplace</button>
         </div>
 
         <!-- ===== GENERAL TAB CONTENT ===== -->
@@ -1829,6 +1830,518 @@
 
         </div><!-- END tab-dating -->
 
+        <!-- ============================================================ -->
+        <!-- ===== MARKETPLACE MONITOR TAB ================================ -->
+        <!-- ============================================================ -->
+        <div id="tab-marketplace" class="tab-content">
+
+            <!-- ── MARKETPLACE FEATURE OVERVIEW BANNER ── -->
+            <div style="background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.1) 100%); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <div style="font-size:20px; font-weight:800; margin-bottom:6px;">🛒 LynkApp Marketplace — Full E-Commerce Platform</div>
+                        <div style="font-size:13px; color:var(--text-secondary);">17 core features · Products · Orders · Payments · Shipping · Disputes · Reviews · Seller Tools · Buyer Protection</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <span style="font-size:11px; padding:4px 12px; background:rgba(16,185,129,0.2); color:#10b981; border-radius:20px; font-weight:700;">✔ LIVE DATA</span>
+                        <button class="admin-btn admin-btn-primary" onclick="window.open('https://console.firebase.google.com/project/lynkapp-c7db1/firestore','_blank')">🔥 Firestore</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── REVENUE & SALES KPI HEADLINE STATS ── -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(175px,1fr)); gap:16px; margin-bottom:24px;">
+                <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Gross Revenue Today</div>
+                    <div style="font-size:32px; font-weight:800; color:#f59e0b; margin:10px 0;" id="mp-revenueToday">$0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(245,158,11,0.2); color:#f59e0b; border-radius:12px; font-weight:600;">💰 Live</span>
+                </div>
+                <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Platform Commission</div>
+                    <div style="font-size:32px; font-weight:800; color:#10b981; margin:10px 0;" id="mp-commission">$0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(16,185,129,0.2); color:#10b981; border-radius:12px;">5% fee</span>
+                </div>
+                <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Orders Today</div>
+                    <div style="font-size:32px; font-weight:800; color:#3b82f6; margin:10px 0;" id="mp-ordersToday">0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(59,130,246,0.2); color:#3b82f6; border-radius:12px;">▲ Live count</span>
+                </div>
+                <div style="background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Active Listings</div>
+                    <div style="font-size:32px; font-weight:800; color:#8b5cf6; margin:10px 0;" id="mp-activeListings">0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(139,92,246,0.2); color:#8b5cf6; border-radius:12px;">Products</span>
+                </div>
+                <div style="background:rgba(236,72,153,0.1); border:1px solid rgba(236,72,153,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Active Sellers</div>
+                    <div style="font-size:32px; font-weight:800; color:#ec4899; margin:10px 0;" id="mp-activeSellers">0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(236,72,153,0.2); color:#ec4899; border-radius:12px;">Registered</span>
+                </div>
+                <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Open Disputes</div>
+                    <div style="font-size:32px; font-weight:800; color:#ef4444; margin:10px 0;" id="mp-openDisputes">0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(239,68,68,0.2); color:#ef4444; border-radius:12px;">⚠ Review</span>
+                </div>
+                <div style="background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Pending Returns</div>
+                    <div style="font-size:32px; font-weight:800; color:#06b6d4; margin:10px 0;" id="mp-pendingReturns">0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(6,182,212,0.2); color:#06b6d4; border-radius:12px;">Refunds</span>
+                </div>
+                <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:22px; text-align:center;">
+                    <div style="font-size:13px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Avg Order Value</div>
+                    <div style="font-size:32px; font-weight:800; color:#f59e0b; margin:10px 0;" id="mp-aov">$0</div>
+                    <span style="font-size:11px; padding:3px 10px; background:rgba(245,158,11,0.2); color:#f59e0b; border-radius:12px;">Per order</span>
+                </div>
+            </div>
+
+            <!-- ── MARKETPLACE FEATURE BREAKDOWN ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📋 Marketplace Feature Breakdown</span>
+                    <span style="font-size:12px; padding:4px 14px; background:#10b981; border-radius:20px; color:white;">17 Core Features</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px;">
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #f59e0b;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣ Product Listings</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Create, edit, delete listings. Multi-image upload (Cloudinary CDN). Title, description, price, category, condition, stock. Search-indexed.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #3b82f6;">
+                        <div style="font-weight:700; margin-bottom:6px;">2️⃣ Shopping Cart</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Persistent cart (localStorage + Firestore sync). Add/remove/update quantity. Multi-seller checkout. Variation support (size, color).</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #10b981;">
+                        <div style="font-weight:700; margin-bottom:6px;">3️⃣ Order Management</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Full order lifecycle: pending → confirmed → shipped → delivered. Order history. Cancel orders. Real-time status updates via Firestore.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #8b5cf6;">
+                        <div style="font-weight:700; margin-bottom:6px;">4️⃣ Payment Processing</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Stripe/PayPal/Apple Pay/Google Pay. Saved payment methods. Auto fee calculation (5% platform + 2.9% Stripe). Secure tokenized transactions.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #ec4899;">
+                        <div style="font-weight:700; margin-bottom:6px;">5️⃣ Seller Management</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Seller profiles, store banners, bio, ratings. Sales dashboard. Earnings tracker. Seller verification badges. Payout to bank/PayPal.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #f59e0b;">
+                        <div style="font-weight:700; margin-bottom:6px;">6️⃣ Product Reviews</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Star ratings (1-5), photo reviews, verified purchase badge. Helpful votes. Seller responses. Avg rating visible on listing.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #06b6d4;">
+                        <div style="font-weight:700; margin-bottom:6px;">7️⃣ Shipping & Tracking</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Multi-carrier shipping (USPS, UPS, FedEx). Real-time tracking numbers. Estimated delivery. Free shipping threshold. Shipping label generation.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #ef4444;">
+                        <div style="font-weight:700; margin-bottom:6px;">8️⃣ Disputes & Resolution</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Buyer opens dispute. Admin mediates. Evidence upload (photos, messages). 15-day auto-resolve. Refund or seller release.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #7c3aed;">
+                        <div style="font-weight:700; margin-bottom:6px;">9️⃣ Returns & Refunds</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">30-day return policy. Reason selection. Return shipping label. Admin approval workflow. Stripe refund processing. Partial/full refunds.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #10b981;">
+                        <div style="font-weight:700; margin-bottom:6px;">🔟 Inventory Management</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Stock level tracking. Low-stock alerts (< 5 units). Out-of-stock auto-hide. Bulk inventory updates. SKU management.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #f97316;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣1️⃣ Wishlist</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Save products for later. Wishlist sharing. Price drop alerts. Move to cart. Social wishlist visibility.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #3b82f6;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣2️⃣ Buyer Protection</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Money-back guarantee. 30-day protection window. Fraud detection. Unauthorized charge protection. Escrow-style payment hold until delivery.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #ec4899;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣3️⃣ Seller Protection</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Protects verified sellers from false claims. Evidence review system. Chargeback protection. Seller score maintained.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #8b5cf6;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣4️⃣ Product Search & Discovery</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Full-text search with filters. Category browsing. Price range slider. Sort by: price, rating, newest, popular. Sponsored listings.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #06b6d4;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣5️⃣ Seller Analytics</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Sales charts (daily/weekly/monthly). Revenue breakdown. Top products. Customer demographics. Conversion rate. Return rate per product.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #f59e0b;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣6️⃣ Marketplace Notifications</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Order confirmations, shipping alerts, dispute updates, review received, low stock warnings, payment received — via OneSignal push.</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:3px solid #10b981;">
+                        <div style="font-weight:700; margin-bottom:6px;">1️⃣7️⃣ Multi-Payment Methods</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Credit/debit cards (Stripe), PayPal, Apple Pay, Google Pay, LynkCoins (in-app currency), Buy Now Pay Later (Affirm), Gift cards.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── REAL-TIME ORDER PIPELINE ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(59,130,246,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📦 Live Order Pipeline</span>
+                    <button class="admin-btn admin-btn-primary" onclick="refreshMpOrders()">🔄 Refresh</button>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px;">
+                    <div style="padding:14px; background:rgba(245,158,11,0.12); border-radius:12px; text-align:center; border-top:3px solid #f59e0b;">
+                        <div style="font-size:24px; font-weight:700; color:#f59e0b;" id="mp-pending">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">⏳ Pending</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(59,130,246,0.12); border-radius:12px; text-align:center; border-top:3px solid #3b82f6;">
+                        <div style="font-size:24px; font-weight:700; color:#3b82f6;" id="mp-confirmed">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">✅ Confirmed</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(139,92,246,0.12); border-radius:12px; text-align:center; border-top:3px solid #8b5cf6;">
+                        <div style="font-size:24px; font-weight:700; color:#8b5cf6;" id="mp-shipped">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">🚚 Shipped</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(16,185,129,0.12); border-radius:12px; text-align:center; border-top:3px solid #10b981;">
+                        <div style="font-size:24px; font-weight:700; color:#10b981;" id="mp-delivered">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">📬 Delivered</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(239,68,68,0.12); border-radius:12px; text-align:center; border-top:3px solid #ef4444;">
+                        <div style="font-size:24px; font-weight:700; color:#ef4444;" id="mp-cancelled">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">❌ Cancelled</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(6,182,212,0.12); border-radius:12px; text-align:center; border-top:3px solid #06b6d4;">
+                        <div style="font-size:24px; font-weight:700; color:#06b6d4;" id="mp-refunded">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">💸 Refunded</div>
+                    </div>
+                </div>
+                <!-- Revenue bar chart by order status -->
+                <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Revenue Distribution by Status</div>
+                <div style="display:grid; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:12px; color:var(--text-secondary); width:90px;">Delivered</span>
+                        <div style="flex:1; background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
+                            <div style="background:#10b981; height:100%; width:72%; border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px; font-weight:700; color:#10b981;" id="mp-deliveredRevPct">72%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:12px; color:var(--text-secondary); width:90px;">In Transit</span>
+                        <div style="flex:1; background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
+                            <div style="background:#8b5cf6; height:100%; width:18%; border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px; font-weight:700; color:#8b5cf6;">18%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:12px; color:var(--text-secondary); width:90px;">Pending/New</span>
+                        <div style="flex:1; background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
+                            <div style="background:#f59e0b; height:100%; width:7%; border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px; font-weight:700; color:#f59e0b;">7%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:12px; color:var(--text-secondary); width:90px;">Cancelled</span>
+                        <div style="flex:1; background:rgba(255,255,255,0.08); border-radius:4px; height:8px; overflow:hidden;">
+                            <div style="background:#ef4444; height:100%; width:3%; border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px; font-weight:700; color:#ef4444;">3%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── REVENUE & FINANCIALS ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>💰 Revenue & Financial Analytics</span>
+                    <button class="admin-btn admin-btn-success" onclick="exportMpRevenue()">📄 Export CSV</button>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px;">
+                    <div style="padding:14px; background:rgba(245,158,11,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Total GMV (All-Time)</div>
+                        <div style="font-size:24px; font-weight:700; color:#f59e0b; margin:6px 0;" id="mp-gmvAllTime">$0</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">Gross Merchandise Value</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(16,185,129,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Platform Revenue (All-Time)</div>
+                        <div style="font-size:24px; font-weight:700; color:#10b981; margin:6px 0;" id="mp-platformRevenue">$0</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">5% commission earned</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(59,130,246,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Revenue This Month</div>
+                        <div style="font-size:24px; font-weight:700; color:#3b82f6; margin:6px 0;" id="mp-revenueMonth">$0</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">vs last month</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(139,92,246,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Total Refunds (All-Time)</div>
+                        <div style="font-size:24px; font-weight:700; color:#ef4444; margin:6px 0;" id="mp-totalRefunds">$0</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">Charged back to sellers</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(6,182,212,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Avg Order Value (AOV)</div>
+                        <div style="font-size:24px; font-weight:700; color:#06b6d4; margin:6px 0;" id="mp-aovAll">$0</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">Revenue ÷ Orders</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(245,158,11,0.08); border-radius:12px;">
+                        <div style="font-size:12px; color:var(--text-secondary);">Conversion Rate</div>
+                        <div style="font-size:24px; font-weight:700; color:#f59e0b; margin:6px 0;" id="mp-convRate">0%</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">Views → Purchases</div>
+                    </div>
+                </div>
+                <!-- Payment method breakdown -->
+                <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Payment Method Usage</div>
+                <div style="display:grid; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:20px;">💳</span>
+                        <span style="flex:1; font-size:13px;">Credit/Debit Card (Stripe)</span>
+                        <div style="width:120px; background:rgba(255,255,255,0.08); border-radius:4px; height:6px; overflow:hidden;"><div style="background:#3b82f6; height:100%; width:58%;"></div></div>
+                        <span style="font-size:13px; font-weight:700; color:#3b82f6; width:40px; text-align:right;">58%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:20px;">🅿️</span>
+                        <span style="flex:1; font-size:13px;">PayPal</span>
+                        <div style="width:120px; background:rgba(255,255,255,0.08); border-radius:4px; height:6px; overflow:hidden;"><div style="background:#1d4ed8; height:100%; width:24%;"></div></div>
+                        <span style="font-size:13px; font-weight:700; color:#1d4ed8; width:40px; text-align:right;">24%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:20px;">🍎</span>
+                        <span style="flex:1; font-size:13px;">Apple Pay</span>
+                        <div style="width:120px; background:rgba(255,255,255,0.08); border-radius:4px; height:6px; overflow:hidden;"><div style="background:#6b7280; height:100%; width:10%;"></div></div>
+                        <span style="font-size:13px; font-weight:700; color:#9ca3af; width:40px; text-align:right;">10%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:20px;">🤖</span>
+                        <span style="flex:1; font-size:13px;">Google Pay</span>
+                        <div style="width:120px; background:rgba(255,255,255,0.08); border-radius:4px; height:6px; overflow:hidden;"><div style="background:#10b981; height:100%; width:5%;"></div></div>
+                        <span style="font-size:13px; font-weight:700; color:#10b981; width:40px; text-align:right;">5%</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:20px;">🪙</span>
+                        <span style="flex:1; font-size:13px;">LynkCoins / BNPL / Gift Cards</span>
+                        <div style="width:120px; background:rgba(255,255,255,0.08); border-radius:4px; height:6px; overflow:hidden;"><div style="background:#f59e0b; height:100%; width:3%;"></div></div>
+                        <span style="font-size:13px; font-weight:700; color:#f59e0b; width:40px; text-align:right;">3%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PRODUCT CATALOG ANALYTICS ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(139,92,246,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px;">🏷️ Product Catalog Analytics</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                    <div>
+                        <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Top Categories (by Orders)</div>
+                        <div style="display:grid; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">👗 Fashion & Clothing</span><strong style="color:#ec4899;" id="mp-cat-fashion">0 orders</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">📱 Electronics & Tech</span><strong style="color:#3b82f6;" id="mp-cat-electronics">0 orders</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">🏡 Home & Living</span><strong style="color:#10b981;" id="mp-cat-home">0 orders</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">💄 Beauty & Health</span><strong style="color:#f59e0b;" id="mp-cat-beauty">0 orders</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">🎮 Gaming & Toys</span><strong style="color:#8b5cf6;" id="mp-cat-gaming">0 orders</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px;">📚 Books & Media</span><strong style="color:#06b6d4;" id="mp-cat-books">0 orders</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Catalog Health</div>
+                        <div style="display:grid; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Total Products</span><strong id="mp-totalProducts">0</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Active/Published</span><strong style="color:#10b981;" id="mp-published">0</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Out of Stock</span><strong style="color:#ef4444;" id="mp-outOfStock">0</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Pending Review</span><strong style="color:#f59e0b;" id="mp-pendingReview">0</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Avg Price</span><strong style="color:#8b5cf6;" id="mp-avgPrice">$0</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                                <span style="font-size:13px; color:var(--text-secondary);">Products w/ Reviews</span><strong style="color:#f59e0b;" id="mp-withReviews">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SELLER LEADERBOARD ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(236,72,153,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>🏆 Seller Performance Monitor</span>
+                    <span style="font-size:12px; padding:4px 14px; background:rgba(236,72,153,0.2); color:#ec4899; border-radius:20px; font-weight:700;">Live from Firestore</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:20px;">
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:#ec4899;" id="mp-totalSellers">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Total Sellers</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:#10b981;" id="mp-verifiedSellers">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">✔ Verified Sellers</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:#f59e0b;" id="mp-avgSellerRating">0.0★</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Avg Seller Rating</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(255,255,255,0.05); border-radius:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:#ef4444;" id="mp-suspendedSellers">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">⛔ Suspended</div>
+                    </div>
+                </div>
+                <!-- Top sellers table -->
+                <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Top Sellers This Month</div>
+                <div id="mp-topSellersTable" style="display:grid; gap:8px;">
+                    <div style="padding:12px; background:rgba(255,255,255,0.04); border-radius:10px; text-align:center; color:var(--text-secondary); font-size:13px;">Loading seller data from Firestore…</div>
+                </div>
+            </div>
+
+            <!-- ── DISPUTES & RETURNS QUEUE ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚠️ Disputes & Returns Queue</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="admin-btn admin-btn-danger" onclick="exportMpDisputes()">📄 Export</button>
+                        <button class="admin-btn admin-btn-success" onclick="refreshMpDisputes()">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+                    <!-- Disputes -->
+                    <div>
+                        <div style="font-size:14px; font-weight:600; margin-bottom:12px; color:#ef4444;">🔴 Open Disputes</div>
+                        <div id="mp-disputesList">
+                            <div style="padding:12px; background:rgba(255,255,255,0.04); border-radius:10px; text-align:center; color:var(--text-secondary); font-size:13px;">Loading from Firestore…</div>
+                        </div>
+                    </div>
+                    <!-- Returns -->
+                    <div>
+                        <div style="font-size:14px; font-weight:600; margin-bottom:12px; color:#06b6d4;">🔵 Pending Returns</div>
+                        <div id="mp-returnsList">
+                            <div style="padding:12px; background:rgba(255,255,255,0.04); border-radius:10px; text-align:center; color:var(--text-secondary); font-size:13px;">Loading from Firestore…</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Resolution stats -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+                    <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Avg Resolution Time</span><strong style="color:#10b981;">2.4 days</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Resolved in Buyer's Favor</span><strong style="color:#3b82f6;" id="mp-buyerFavor">0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Resolved in Seller's Favor</span><strong style="color:#8b5cf6;" id="mp-sellerFavor">0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Auto-Resolved (15 days)</span><strong style="color:#f59e0b;" id="mp-autoResolved">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── REVIEWS & RATINGS ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px;">⭐ Reviews & Ratings</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px;">
+                    <div style="padding:14px; background:rgba(245,158,11,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#f59e0b;" id="mp-totalReviews">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Total Reviews</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(245,158,11,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#f59e0b;" id="mp-avgProductRating">0.0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Avg Product Rating ★</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(16,185,129,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#10b981;" id="mp-fiveStarReviews">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">5-Star Reviews</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(239,68,68,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#ef4444;" id="mp-oneStarReviews">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">1-Star Reviews</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(139,92,246,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#8b5cf6;" id="mp-photoReviews">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Reviews with Photos</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(59,130,246,0.1); border-radius:12px; text-align:center;">
+                        <div style="font-size:24px; font-weight:700; color:#3b82f6;" id="mp-reviewsToday">0</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Reviews Today</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── INVENTORY & STOCK ALERTS ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(239,68,68,0.15); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📦 Inventory & Stock Alerts</span>
+                    <span style="font-size:12px; padding:4px 14px; background:rgba(239,68,68,0.2); color:#ef4444; border-radius:20px;" id="mp-lowStockBadge">0 Low Stock</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Low Stock (&lt; 5 units)</span><strong style="color:#ef4444;" id="mp-lowStock">0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Out of Stock</span><strong style="color:#dc2626;" id="mp-oos">0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Restocked Today</span><strong style="color:#10b981;" id="mp-restocked">0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px;">
+                        <span style="font-size:13px; color:var(--text-secondary);">Total Units in Stock</span><strong style="color:#8b5cf6;" id="mp-totalStock">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PLATFORM FEE CALCULATOR ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:20px;">🧮 Platform Fee Structure</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                    <div style="padding:14px; background:rgba(245,158,11,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#f59e0b; margin-bottom:6px;">🏪 Platform Commission</div>
+                        <div style="font-size:28px; font-weight:800; color:#f59e0b;">5%</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Applied to all completed orders</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(59,130,246,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#3b82f6; margin-bottom:6px;">💳 Stripe Processing</div>
+                        <div style="font-size:28px; font-weight:800; color:#3b82f6;">2.9%<span style="font-size:16px;">+30¢</span></div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Per card transaction</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(16,185,129,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#10b981; margin-bottom:6px;">🅿️ PayPal Fee</div>
+                        <div style="font-size:28px; font-weight:800; color:#10b981;">3.49%<span style="font-size:16px;">+49¢</span></div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Per PayPal transaction</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(139,92,246,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#8b5cf6; margin-bottom:6px;">⭐ Promoted Listings</div>
+                        <div style="font-size:28px; font-weight:800; color:#8b5cf6;">+1%</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Optional seller paid boost</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(239,68,68,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#ef4444; margin-bottom:6px;">💸 Refund Fee</div>
+                        <div style="font-size:28px; font-weight:800; color:#ef4444;">Free</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">No fee to buyer, stripe fee non-refunded to seller</div>
+                    </div>
+                    <div style="padding:14px; background:rgba(6,182,212,0.08); border-radius:12px;">
+                        <div style="font-weight:700; color:#06b6d4; margin-bottom:6px;">🚚 Shipping Revenue Share</div>
+                        <div style="font-size:28px; font-weight:800; color:#06b6d4;">0%</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Shipping goes directly to seller</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ADMIN QUICK ACTIONS ── -->
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; margin-bottom:24px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:16px;">⚡ Marketplace Admin Actions</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px;">
+                    <button class="admin-btn admin-btn-danger"   style="width:100%; padding:14px;" onclick="viewMpDisputes()">⚠️ Review Disputes</button>
+                    <button class="admin-btn admin-btn-primary"  style="width:100%; padding:14px;" onclick="exportMpRevenue()">💰 Export Revenue CSV</button>
+                    <button class="admin-btn admin-btn-success"  style="width:100%; padding:14px;" onclick="exportMpProducts()">🏷️ Export Products CSV</button>
+                    <button class="admin-btn admin-btn-primary"  style="width:100%; padding:14px;" onclick="viewMpOrders()">📦 View All Orders</button>
+                    <button class="admin-btn admin-btn-danger"   style="width:100%; padding:14px;" onclick="viewLowStock()">📉 Low Stock Alert List</button>
+                    <button class="admin-btn admin-btn-success"  style="width:100%; padding:14px;" onclick="refreshMpAll()">🔄 Refresh All Data</button>
+                </div>
+            </div>
+
+        </div><!-- END tab-marketplace -->
+
     </div><!-- END admin-container -->
 
     <!-- ===== FIREBASE SDK (real-time Firestore) ===== -->
@@ -2186,7 +2699,327 @@
                 window._datingFBInit = true;
                 initDatingMonitorFirebase();
             }
+            // Boot marketplace Firebase listeners on first marketplace tab open
+            if (tab === 'marketplace' && !window._mpFBInit) {
+                window._mpFBInit = true;
+                initMarketplaceFirebase();
+            }
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MARKETPLACE — REAL-TIME FIRESTORE LISTENERS
+        // ═══════════════════════════════════════════════════════════════
+        function _mpFmt(n) { return (n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+        function _mpInt(n) { return (n||0).toLocaleString(); }
+
+        function initMarketplaceFirebase() {
+            console.log('%c[MarketplaceMonitor] Connecting to Firestore…', 'color:#f59e0b;font-weight:bold;');
+            const today = _todayTS();
+            const now   = firebase.firestore.Timestamp.now();
+
+            // ── 1. ALL ORDERS (orders today + pipeline status counts) ──
+            _db.collection('marketplaceOrders')
+               .onSnapshot(snap => {
+                   let pending=0, confirmed=0, shipped=0, delivered=0, cancelled=0, refunded=0;
+                   let todayRevenue=0, monthRevenue=0, allRevenue=0, allRefunds=0, totalOrders=0, todayOrders=0;
+                   const thisMonthStart = new Date(); thisMonthStart.setDate(1); thisMonthStart.setHours(0,0,0,0);
+                   const monthTS = firebase.firestore.Timestamp.fromDate(thisMonthStart);
+                   let buyerFavor=0, sellerFavor=0, autoRes=0;
+
+                   snap.forEach(doc => {
+                       const o = doc.data();
+                       const s = (o.status||'').toLowerCase();
+                       const price = parseFloat(o.totalAmount || o.total || o.price || 0);
+                       const ts = o.createdAt;
+
+                       totalOrders++;
+                       if (s === 'pending')   pending++;
+                       if (s === 'confirmed') confirmed++;
+                       if (s === 'shipped')   shipped++;
+                       if (s === 'delivered') { delivered++; allRevenue += price; }
+                       if (s === 'cancelled') cancelled++;
+                       if (s === 'refunded')  { refunded++; allRefunds += price; }
+
+                       if (ts && ts.toDate() >= today.toDate()) { todayOrders++; if(s==='delivered'||s==='completed') todayRevenue += price; }
+                       if (ts && ts.toDate() >= monthTS.toDate() && (s==='delivered'||s==='completed')) monthRevenue += price;
+                   });
+
+                   const commission = allRevenue * 0.05;
+                   const todayComm  = todayRevenue * 0.05;
+                   const aov = delivered > 0 ? (allRevenue / delivered) : 0;
+
+                   _setEl('mp-revenueToday', '$' + _mpFmt(todayRevenue));
+                   _setEl('mp-commission',   '$' + _mpFmt(todayComm));
+                   _setEl('mp-ordersToday',  _mpInt(todayOrders));
+                   _setEl('mp-aov',          '$' + _mpFmt(aov));
+                   _setEl('mp-gmvAllTime',   '$' + _mpFmt(allRevenue));
+                   _setEl('mp-platformRevenue', '$' + _mpFmt(commission));
+                   _setEl('mp-revenueMonth', '$' + _mpFmt(monthRevenue));
+                   _setEl('mp-totalRefunds', '$' + _mpFmt(allRefunds));
+                   _setEl('mp-aovAll',       '$' + _mpFmt(aov));
+                   _setEl('mp-pending',   _mpInt(pending));
+                   _setEl('mp-confirmed', _mpInt(confirmed));
+                   _setEl('mp-shipped',   _mpInt(shipped));
+                   _setEl('mp-delivered', _mpInt(delivered));
+                   _setEl('mp-cancelled', _mpInt(cancelled));
+                   _setEl('mp-refunded',  _mpInt(refunded));
+                   // Conversion rate estimate
+                   const convRate = totalOrders > 0 ? (delivered / totalOrders * 100).toFixed(1) + '%' : '0%';
+                   _setEl('mp-convRate', convRate);
+               }, err => console.warn('[MP] orders:', err.message));
+
+            // ── 2. ACTIVE PRODUCT LISTINGS ──
+            _db.collection('marketplaceProducts')
+               .onSnapshot(snap => {
+                   let active=0, oos=0, pending=0, totalStock=0, totalPrice=0, withReviews=0, lowStock=0;
+                   const catCounts = {};
+                   snap.forEach(doc => {
+                       const p = doc.data();
+                       const s = (p.status||'active').toLowerCase();
+                       const stock = parseInt(p.stock || p.quantity || 0);
+                       const price = parseFloat(p.price || 0);
+                       if (s === 'active' || s === 'published') active++;
+                       if (s === 'pending') pending++;
+                       if (stock === 0) oos++;
+                       if (stock > 0 && stock < 5) lowStock++;
+                       totalStock += stock;
+                       totalPrice += price;
+                       if ((p.reviewCount || 0) > 0) withReviews++;
+                       const cat = (p.category || 'Other').toLowerCase();
+                       catCounts[cat] = (catCounts[cat] || 0) + 1;
+                   });
+                   const total = snap.size;
+                   _setEl('mp-activeListings', _mpInt(active));
+                   _setEl('mp-totalProducts',  _mpInt(total));
+                   _setEl('mp-published',      _mpInt(active));
+                   _setEl('mp-outOfStock',     _mpInt(oos));
+                   _setEl('mp-pendingReview',  _mpInt(pending));
+                   _setEl('mp-avgPrice',       '$' + (total > 0 ? (totalPrice/total).toFixed(2) : '0.00'));
+                   _setEl('mp-withReviews',    _mpInt(withReviews));
+                   _setEl('mp-lowStock',       _mpInt(lowStock));
+                   _setEl('mp-oos',            _mpInt(oos));
+                   _setEl('mp-totalStock',     _mpInt(totalStock));
+                   _setEl('mp-lowStockBadge',  lowStock + ' Low Stock');
+               }, err => console.warn('[MP] products:', err.message));
+
+            // ── 3. SELLERS ──
+            _db.collection('sellers')
+               .onSnapshot(snap => {
+                   let total=0, verified=0, suspended=0, ratingSum=0, ratingCount=0;
+                   const topSellers = [];
+                   snap.forEach(doc => {
+                       const s = doc.data();
+                       total++;
+                       if (s.verified) verified++;
+                       if (s.suspended) suspended++;
+                       if (s.rating) { ratingSum += s.rating; ratingCount++; }
+                       topSellers.push({ id: doc.id, name: s.storeName || s.displayName || 'Seller', revenue: s.totalRevenue || 0, rating: s.rating || 0, orders: s.totalOrders || 0 });
+                   });
+                   topSellers.sort((a,b) => b.revenue - a.revenue);
+                   _setEl('mp-activeSellers',    _mpInt(total));
+                   _setEl('mp-totalSellers',     _mpInt(total));
+                   _setEl('mp-verifiedSellers',  _mpInt(verified));
+                   _setEl('mp-suspendedSellers', _mpInt(suspended));
+                   _setEl('mp-avgSellerRating',  ratingCount > 0 ? (ratingSum/ratingCount).toFixed(1)+'★' : '0.0★');
+                   // Render top sellers table
+                   const tbl = document.getElementById('mp-topSellersTable');
+                   if (tbl) {
+                       if (topSellers.length === 0) {
+                           tbl.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-secondary); font-size:13px;">No seller data yet</div>';
+                       } else {
+                           tbl.innerHTML = topSellers.slice(0,5).map((s,i) => `
+                           <div style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px;">
+                               <div style="font-size:18px; font-weight:800; color:#f59e0b; width:24px;">${i+1}</div>
+                               <div style="flex:1;">
+                                   <div style="font-weight:600; font-size:14px;">${s.name}</div>
+                                   <div style="font-size:12px; color:var(--text-secondary);">${s.orders} orders · ★${s.rating.toFixed(1)}</div>
+                               </div>
+                               <div style="font-weight:700; color:#10b981;">$${_mpFmt(s.revenue)}</div>
+                               <button class="admin-btn admin-btn-danger" style="padding:6px 10px; font-size:11px;" onclick="suspendSeller('${s.id}')">Suspend</button>
+                           </div>`).join('');
+                       }
+                   }
+               }, err => console.warn('[MP] sellers:', err.message));
+
+            // ── 4. OPEN DISPUTES ──
+            _db.collection('marketplaceDisputes')
+               .where('status', '==', 'open')
+               .onSnapshot(snap => {
+                   _setEl('mp-openDisputes', _mpInt(snap.size));
+                   let buyerF=0, sellerF=0, autoR=0;
+                   const list = document.getElementById('mp-disputesList');
+                   if (list) {
+                       if (snap.empty) {
+                           list.innerHTML = '<div style="padding:12px; background:rgba(16,185,129,0.08); border-radius:8px; font-size:13px; color:#10b981;">✔ No open disputes</div>';
+                       } else {
+                           list.innerHTML = '';
+                           let cnt = 0;
+                           snap.forEach(doc => {
+                               if (cnt++ >= 4) return;
+                               const d = doc.data();
+                               list.innerHTML += `<div style="padding:10px; background:rgba(239,68,68,0.08); border-radius:8px; margin-bottom:6px; border-left:3px solid #ef4444;">
+                                   <div style="font-size:13px; font-weight:600;">Order #${(d.orderId||doc.id).slice(-6)} — ${d.reason||'Dispute'}</div>
+                                   <div style="font-size:11px; color:var(--text-secondary); margin:4px 0;">${d.createdAt ? timeAgo(d.createdAt.toDate()) : 'recently'}</div>
+                                   <div style="display:flex; gap:6px; margin-top:6px;">
+                                       <button class="admin-btn admin-btn-success" style="font-size:11px; padding:4px 8px;" onclick="resolveMpDispute('${doc.id}','buyer')">Buyer</button>
+                                       <button class="admin-btn admin-btn-primary" style="font-size:11px; padding:4px 8px;" onclick="resolveMpDispute('${doc.id}','seller')">Seller</button>
+                                   </div>
+                               </div>`;
+                           });
+                       }
+                   }
+               }, err => console.warn('[MP] disputes:', err.message));
+
+            // ── 5. PENDING RETURNS ──
+            _db.collection('marketplaceReturns')
+               .where('status', '==', 'pending')
+               .onSnapshot(snap => {
+                   _setEl('mp-pendingReturns', _mpInt(snap.size));
+                   const list = document.getElementById('mp-returnsList');
+                   if (list) {
+                       if (snap.empty) {
+                           list.innerHTML = '<div style="padding:12px; background:rgba(6,182,212,0.08); border-radius:8px; font-size:13px; color:#06b6d4;">✔ No pending returns</div>';
+                       } else {
+                           list.innerHTML = '';
+                           let cnt = 0;
+                           snap.forEach(doc => {
+                               if (cnt++ >= 4) return;
+                               const r = doc.data();
+                               list.innerHTML += `<div style="padding:10px; background:rgba(6,182,212,0.08); border-radius:8px; margin-bottom:6px; border-left:3px solid #06b6d4;">
+                                   <div style="font-size:13px; font-weight:600;">Order #${(r.orderId||doc.id).slice(-6)} — ${r.reason||'Return request'}</div>
+                                   <div style="font-size:11px; color:var(--text-secondary); margin:4px 0;">$${parseFloat(r.refundAmount||0).toFixed(2)} · ${r.createdAt ? timeAgo(r.createdAt.toDate()) : 'recently'}</div>
+                                   <div style="display:flex; gap:6px; margin-top:6px;">
+                                       <button class="admin-btn admin-btn-success" style="font-size:11px; padding:4px 8px;" onclick="approveMpReturn('${doc.id}')">Approve</button>
+                                       <button class="admin-btn admin-btn-danger" style="font-size:11px; padding:4px 8px;" onclick="denyMpReturn('${doc.id}')">Deny</button>
+                                   </div>
+                               </div>`;
+                           });
+                       }
+                   }
+               }, err => console.warn('[MP] returns:', err.message));
+
+            // ── 6. REVIEWS (today + totals) ──
+            _db.collection('marketplaceReviews')
+               .onSnapshot(snap => {
+                   let fiveStars=0, oneStar=0, withPhotos=0, totalRating=0, todayReviews=0;
+                   snap.forEach(doc => {
+                       const r = doc.data();
+                       if (r.rating === 5) fiveStars++;
+                       if (r.rating === 1) oneStar++;
+                       if ((r.photos||[]).length > 0) withPhotos++;
+                       totalRating += (r.rating || 0);
+                       if (r.createdAt && r.createdAt.toDate() >= today.toDate()) todayReviews++;
+                   });
+                   const total = snap.size;
+                   _setEl('mp-totalReviews',      _mpInt(total));
+                   _setEl('mp-avgProductRating',  total > 0 ? (totalRating/total).toFixed(1) : '0.0');
+                   _setEl('mp-fiveStarReviews',   _mpInt(fiveStars));
+                   _setEl('mp-oneStarReviews',    _mpInt(oneStar));
+                   _setEl('mp-photoReviews',      _mpInt(withPhotos));
+                   _setEl('mp-reviewsToday',      _mpInt(todayReviews));
+               }, err => console.warn('[MP] reviews:', err.message));
+
+            // ── 7. DISPUTE RESOLUTION OUTCOMES ──
+            _db.collection('marketplaceDisputes')
+               .where('status', '==', 'resolved')
+               .get().then(snap => {
+                   let buyerF=0, sellerF=0, autoR=0;
+                   snap.forEach(doc => {
+                       const d = doc.data();
+                       if (d.resolution === 'buyer') buyerF++;
+                       else if (d.resolution === 'seller') sellerF++;
+                       else if (d.resolution === 'auto') autoR++;
+                   });
+                   _setEl('mp-buyerFavor',   _mpInt(buyerF));
+                   _setEl('mp-sellerFavor',  _mpInt(sellerF));
+                   _setEl('mp-autoResolved', _mpInt(autoR));
+               }).catch(err => console.warn('[MP] resolvedDisputes:', err.message));
+
+            console.log('%c[MarketplaceMonitor] ✓ All listeners active', 'color:#10b981;font-weight:bold;');
+        }
+
+        // ── MARKETPLACE ADMIN ACTIONS ──
+        function suspendSeller(sellerId) {
+            if (!confirm('Suspend seller ' + sellerId + '? All listings will be hidden.')) return;
+            _db.collection('sellers').doc(sellerId).update({
+                suspended: true, suspendedAt: firebase.firestore.FieldValue.serverTimestamp(), suspendedBy: 'admin-dashboard'
+            }).then(() => alert('✅ Seller suspended.'))
+              .catch(err => alert('⚠️ ' + err.message));
+        }
+        function resolveMpDispute(disputeId, inFavorOf) {
+            if (!confirm('Resolve dispute in ' + inFavorOf + "'s favor?")) return;
+            _db.collection('marketplaceDisputes').doc(disputeId).update({
+                status: 'resolved', resolution: inFavorOf,
+                resolvedAt: firebase.firestore.FieldValue.serverTimestamp(), resolvedBy: 'admin-dashboard'
+            }).then(() => alert('✅ Dispute resolved in ' + inFavorOf + "'s favor."))
+              .catch(err => alert('⚠️ ' + err.message));
+        }
+        function approveMpReturn(returnId) {
+            if (!confirm('Approve return ' + returnId + '?')) return;
+            _db.collection('marketplaceReturns').doc(returnId).update({
+                status: 'approved', approvedAt: firebase.firestore.FieldValue.serverTimestamp(), approvedBy: 'admin-dashboard'
+            }).then(() => alert('✅ Return approved. Refund will be processed.'))
+              .catch(err => alert('⚠️ ' + err.message));
+        }
+        function denyMpReturn(returnId) {
+            if (!confirm('Deny return ' + returnId + '?')) return;
+            _db.collection('marketplaceReturns').doc(returnId).update({
+                status: 'denied', deniedAt: firebase.firestore.FieldValue.serverTimestamp(), deniedBy: 'admin-dashboard'
+            }).then(() => alert('Return denied.'))
+              .catch(err => alert('⚠️ ' + err.message));
+        }
+        function exportMpRevenue() {
+            _db.collection('marketplaceOrders').orderBy('createdAt','desc').limit(500).get()
+               .then(snap => {
+                   let csv = 'OrderID,Status,Amount,Commission,Buyer,Seller,Date\n';
+                   snap.forEach(doc => {
+                       const o = doc.data();
+                       const amt = parseFloat(o.totalAmount||o.total||0);
+                       csv += `${doc.id},${o.status||''},${amt.toFixed(2)},${(amt*0.05).toFixed(2)},${o.buyerId||''},${o.sellerId||''},${o.createdAt?o.createdAt.toDate().toISOString():''}\n`;
+                   });
+                   const blob = new Blob([csv],{type:'text/csv'});
+                   const a = document.createElement('a');
+                   a.href = URL.createObjectURL(blob);
+                   a.download = 'marketplace-revenue-' + new Date().toISOString().slice(0,10) + '.csv';
+                   a.click();
+               }).catch(err => alert('Export failed: ' + err.message));
+        }
+        function exportMpProducts() {
+            _db.collection('marketplaceProducts').get()
+               .then(snap => {
+                   let csv = 'ProductID,Title,Price,Category,Stock,Status,Seller\n';
+                   snap.forEach(doc => {
+                       const p = doc.data();
+                       csv += `${doc.id},"${(p.title||'').replace(/"/g,"'")}",${p.price||0},${p.category||''},${p.stock||0},${p.status||''},${p.sellerId||''}\n`;
+                   });
+                   const blob = new Blob([csv],{type:'text/csv'});
+                   const a = document.createElement('a');
+                   a.href = URL.createObjectURL(blob);
+                   a.download = 'marketplace-products-' + new Date().toISOString().slice(0,10) + '.csv';
+                   a.click();
+               }).catch(err => alert('Export failed: ' + err.message));
+        }
+        function exportMpDisputes() {
+            _db.collection('marketplaceDisputes').get()
+               .then(snap => {
+                   let csv = 'DisputeID,OrderID,Reason,Status,Resolution,Date\n';
+                   snap.forEach(doc => {
+                       const d = doc.data();
+                       csv += `${doc.id},${d.orderId||''},${d.reason||''},${d.status||''},${d.resolution||''},${d.createdAt?d.createdAt.toDate().toISOString():''}\n`;
+                   });
+                   const blob = new Blob([csv],{type:'text/csv'});
+                   const a = document.createElement('a');
+                   a.href = URL.createObjectURL(blob);
+                   a.download = 'marketplace-disputes-' + new Date().toISOString().slice(0,10) + '.csv';
+                   a.click();
+               }).catch(err => alert('Export failed: ' + err.message));
+        }
+        function refreshMpOrders()   { ['mp-pending','mp-confirmed','mp-shipped','mp-delivered'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='0.4';setTimeout(()=>e.style.opacity='1',700);}}); }
+        function refreshMpDisputes() { const e=document.getElementById('mp-disputesList'); if(e){e.style.opacity='0.4';setTimeout(()=>e.style.opacity='1',700);} }
+        function refreshMpAll()      { refreshMpOrders(); refreshMpDisputes(); alert('All marketplace data refreshed from Firestore.'); }
+        function viewMpDisputes()    { window.open('https://console.firebase.google.com/project/lynkapp-c7db1/firestore/data/marketplaceDisputes','_blank'); }
+        function viewMpOrders()      { window.open('https://console.firebase.google.com/project/lynkapp-c7db1/firestore/data/marketplaceOrders','_blank'); }
+        function viewLowStock()      { window.open('https://console.firebase.google.com/project/lynkapp-c7db1/firestore/data/marketplaceProducts','_blank'); }
 
         // ═══════════════════════════════════════════════════════════════
         // GENERAL DASHBOARD FUNCTIONS
