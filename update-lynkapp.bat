@@ -96,7 +96,7 @@ for %%F in (
 )
 
 REM ---------------------------------------------------------------
-REM Upload UI/UX gap-fix scripts  *** NEW — added 2026-04-15 ***
+REM Upload UI/UX gap-fix scripts  *** UPDATED — 2026-04-15 ***
 REM ---------------------------------------------------------------
 echo [3/5] Uploading UI/UX gap-fix scripts...
 
@@ -114,6 +114,11 @@ aws s3 cp ConnectHub-Frontend/src/js/navigation-system.js ^
 
 aws s3 cp ConnectHub-Frontend/src/js/user-testing-fixes.js ^
     s3://%BUCKET_NAME%/js/user-testing-fixes.js ^
+    --content-type "application/javascript" --cache-control "max-age=300"
+
+REM Medium-priority UX fixes (#11-#20) — added 2026-04-15
+aws s3 cp LynkApp-Production-App/js/medium-priority-fixes.js ^
+    s3://%BUCKET_NAME%/js/medium-priority-fixes.js ^
     --content-type "application/javascript" --cache-control "max-age=300"
 
 REM ---------------------------------------------------------------
