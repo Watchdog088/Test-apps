@@ -2602,6 +2602,15 @@
                     <div class="nav-btn" onclick="authOnboarding.showLoginScreen()" title="Login">👤</div>
                     <div class="nav-btn" onclick="openModal('createNew')">➕</div>
                     <div class="nav-btn" onclick="openModal('searchModal')">🔍</div>
+                    <div class="nav-btn" id="lnk-bell-btn" onclick="openScreen('notifications')" title="Notifications" style="position:relative;">
+                    🔔
+                    <span id="lnk-notif-badge" style="
+                      position:absolute;top:-4px;right:-4px;
+                      background:#ef4444;color:#fff;border-radius:50%;
+                      font-size:9px;font-weight:700;min-width:16px;height:16px;
+                      display:inline-flex;align-items:center;justify-content:center;
+                      padding:0 3px;line-height:1;">0</span>
+                </div>
                     <div class="nav-btn" onclick="openScreen('menu')">☰</div>
                 </div>
             </div>
@@ -21076,6 +21085,124 @@
         }
 
     </script>
+
+    <!-- ╔═══════════════════════════════════════════╗
+         ║  BOTTOM TAB BAR — patched 2026-04-15     ║
+         ╚═══════════════════════════════════════════╝ -->
+    <div id="lnk-bottom-bar" style="
+      position:fixed;bottom:0;left:0;right:0;
+      background:linear-gradient(135deg,#0d0d1a,#1a1a2e);
+      border-top:1px solid rgba(255,255,255,0.08);
+      display:flex;align-items:center;justify-content:space-around;
+      padding:8px 0 max(8px,env(safe-area-inset-bottom));
+      z-index:9990;height:60px;box-shadow:0 -2px 16px rgba(0,0,0,0.4);">
+
+      <!-- Feed -->
+      <div onclick="switchBottomTab('social');openScreen('feed')" id="lnk-tab-feed"
+        style="display:flex;flex-direction:column;align-items:center;gap:3px;
+               cursor:pointer;min-width:52px;padding:4px 8px;border-radius:12px;
+               color:#8892b0;transition:color .2s;">
+        <span style="font-size:22px;">🏠</span>
+        <span style="font-size:9px;font-weight:600;letter-spacing:.03em;">Home</span>
+      </div>
+
+      <!-- Messages -->
+      <div onclick="openScreen('messages')" id="lnk-tab-messages"
+        style="display:flex;flex-direction:column;align-items:center;gap:3px;
+               cursor:pointer;min-width:52px;padding:4px 8px;border-radius:12px;
+               color:#8892b0;transition:color .2s;position:relative;">
+        <span style="font-size:22px;">💬</span>
+        <span style="font-size:9px;font-weight:600;letter-spacing:.03em;">Messages</span>
+        <span id="lnk-msg-badge" style="
+          position:absolute;top:0;right:6px;background:#ef4444;color:#fff;
+          border-radius:50%;font-size:9px;font-weight:700;min-width:16px;height:16px;
+          display:none;align-items:center;justify-content:center;padding:0 3px;">3</span>
+      </div>
+
+      <!-- Create (FAB) -->
+      <div onclick="openModal('createPost')" id="lnk-tab-create"
+        style="display:flex;flex-direction:column;align-items:center;gap:3px;
+               cursor:pointer;min-width:52px;padding:4px 8px;border-radius:12px;
+               color:#fff;transition:color .2s;">
+        <div style="
+          width:44px;height:44px;border-radius:50%;
+          background:linear-gradient(135deg,#7c3aed,#4f46e5);
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 16px rgba(124,58,237,0.4);
+          font-size:22px;margin-top:-14px;">➕</div>
+        <span style="font-size:9px;font-weight:600;letter-spacing:.03em;margin-top:2px;">Create</span>
+      </div>
+
+      <!-- Notifications -->
+      <div onclick="openScreen('notifications')" id="lnk-tab-notif"
+        style="display:flex;flex-direction:column;align-items:center;gap:3px;
+               cursor:pointer;min-width:52px;padding:4px 8px;border-radius:12px;
+               color:#8892b0;transition:color .2s;position:relative;">
+        <span style="font-size:22px;">🔔</span>
+        <span style="font-size:9px;font-weight:600;letter-spacing:.03em;">Alerts</span>
+        <span id="lnk-notif-tab-badge" style="
+          position:absolute;top:0;right:6px;background:#ef4444;color:#fff;
+          border-radius:50%;font-size:9px;font-weight:700;min-width:16px;height:16px;
+          display:none;align-items:center;justify-content:center;padding:0 3px;">5</span>
+      </div>
+
+      <!-- Profile -->
+      <div onclick="openScreen('profile')" id="lnk-tab-profile"
+        style="display:flex;flex-direction:column;align-items:center;gap:3px;
+               cursor:pointer;min-width:52px;padding:4px 8px;border-radius:12px;
+               color:#8892b0;transition:color .2s;">
+        <span style="font-size:22px;">👤</span>
+        <span style="font-size:9px;font-weight:600;letter-spacing:.03em;">Profile</span>
+      </div>
+
+    </div>
+    <!-- END BOTTOM TAB BAR -->
+
+    <script>
+    /* ─── Bottom Tab Bar: active state + badge init ─────────────────── */
+    (function(){
+      var tabs = {
+        feed:'lnk-tab-feed', messages:'lnk-tab-messages',
+        create:'lnk-tab-create', notif:'lnk-tab-notif', profile:'lnk-tab-profile'
+      };
+      window.setActiveTab = function(key){
+        Object.values(tabs).forEach(function(id){
+          var el = document.getElementById(id);
+          if(el) el.style.color = '#8892b0';
+        });
+        var active = document.getElementById(tabs[key]);
+        if(active) active.style.color = '#a78bfa';
+      };
+
+      // Show message badge
+      var msgBadge = document.getElementById('lnk-msg-badge');
+      if(msgBadge){ msgBadge.style.display='inline-flex'; }
+
+      // Show notification badge
+      var notifBadge = document.getElementById('lnk-notif-tab-badge');
+      if(notifBadge){ notifBadge.style.display='inline-flex'; }
+
+      // Also update header bell badge
+      var bellBadge = document.getElementById('lnk-notif-badge');
+      if(bellBadge){ bellBadge.textContent='5'; }
+
+      // Push content up so it isn't hidden behind the tab bar
+      var content = document.querySelector('.content') || document.querySelector('.app-container');
+      if(content) content.style.paddingBottom = '70px';
+
+      // Set initial active tab based on current visible screen
+      setActiveTab('feed');
+    })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════
+         UX Gap Fix Scripts  (injected 2026-04-15)
+         All scripts use relative paths → work on S3 + local
+         ═══════════════════════════════════════════════════════ -->
+    <script src="js/ux-gap-fixes.js"></script>
+    <script src="js/sidebar-nav.js"></script>
+    <script src="js/user-testing-fixes.js"></script>
+    <script src="js/medium-priority-fixes.js"></script>
 </body>
 </html>
 
