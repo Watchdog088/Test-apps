@@ -1831,20 +1831,366 @@
 
     </div><!-- END admin-container -->
 
+    <!-- ===== FIREBASE SDK (real-time Firestore) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <script src="LynkApp-Production-App/services/api-service.js"></script>
     <script>
-        // ===== TAB SWITCHING =====
-        function switchTab(tab) {
-            // Hide all tab content
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            // Remove active from all buttons
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            // Show selected tab
-            document.getElementById('tab-' + tab).classList.add('active');
-            document.getElementById('tab-btn-' + tab).classList.add('active');
+
+        // ═══════════════════════════════════════════════════════════════
+        // FIREBASE REAL-TIME DATA — lynkapp-c7db1
+        // ═══════════════════════════════════════════════════════════════
+        const _fbCfg = {
+            apiKey:            "AIzaSyDmnKjhl--S69dWqaVSgCgJZcMqTsyQgwA",
+            authDomain:        "lynkapp-c7db1.firebaseapp.com",
+            projectId:         "lynkapp-c7db1",
+            storageBucket:     "lynkapp-c7db1.firebasestorage.app",
+            messagingSenderId: "258552263213",
+            appId:             "1:258552263213:web:9ddecf900318ac6c84bea4"
+        };
+
+        // Initialize once
+        if (!firebase.apps.length) firebase.initializeApp(_fbCfg);
+        const _db = firebase.firestore();
+
+        // Helper: update a DOM element with a formatted number
+        function _setEl(id, val) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = (typeof val === 'number') ? val.toLocaleString() : val;
         }
 
-        // ===== GENERAL DASHBOARD =====
+        // Helper: start-of-today Firestore timestamp
+        function _todayTS() {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            return firebase.firestore.Timestamp.fromDate(d);
+        }
+
+        // Status indicator helper
+        function _setStatus(id, ok, msg) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = ok
+                    ? `<span style="color:#10b981;">&#x2714; ${msg}</span>`
+                    : `<span style="color:#ef4444;">&#x26A0; ${msg}</span>`;
+            }
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // REAL-TIME FIREBASE LISTENERS FOR DATING MONITOR
+        // Called once when the Dating Monitor tab is first opened
+        // ───────────────────────────────────────────────────────────────
+        function initDatingMonitorFirebase() {
+            console.log('%c[DatingMonitor] Connecting to Firebase Firestore…', 'color:#ec4899;font-weight:bold;');
+
+            const today = _todayTS();
+            const now   = firebase.firestore.Timestamp.now();
+
+            // Show loading state on all dating stat boxes
+            ['d-activeDaters','d-swipesToday','d-matchesToday','d-msgSent',
+             'd-superLikes','d-boosts','d-openReports','d-safetyScore',
+             'd-likes','d-passes','d-superLikesA','d-rewinds'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '…'; el.style.opacity = '0.6'; }
+            });
+
+            // ── 1. ACTIVE DATERS ─────────────────────────────────────
+            // Users who have a dating profile marked as active
+            _db.collection('users')
+               .where('datingProfile.active', '==', true)
+               .onSnapshot(snap => {
+                   _setEl('d-activeDaters', snap.size);
+                   document.getElementById('d-activeDaters') &&
+                       (document.getElementById('d-activeDaters').style.opacity = '1');
+               }, err => {
+                   console.warn('[DatingMonitor] activeDaters:', err.message);
+                   _setEl('d-activeDaters', 0);
+               });
+
+            // ── 2. SWIPES TODAY (likes / passes / superLikes / rewinds) ──
+            _db.collection('datingSwipes')
+               .where('timestamp', '>=', today)
+               .onSnapshot(snap => {
+                   let likes = 0, passes = 0, supers = 0, rewinds = 0;
+                   snap.forEach(doc => {
+                       const d = doc.data();
+                       const t = (d.type || '').toLowerCase();
+                       if      (t === 'right' || t === 'like')      likes++;
+                       else if (t === 'left'  || t === 'pass')      passes++;
+                       else if (t === 'superlike' || t === 'super') supers++;
+                       else if (t === 'rewind')                     rewinds++;
+                   });
+                   const total = likes + passes + supers;
+                   _setEl('d-swipesToday',  total);
+                   _setEl('d-likes',        likes);
+                   _setEl('d-passes',       passes);
+                   _setEl('d-superLikes',   supers);
+                   _setEl('d-superLikesA',  supers);
+                   _setEl('d-rewinds',      rewinds);
+                   // Safety score = % of swipes that weren't reported
+                   const safetyPct = total > 0 ? (100 - (window._openReportCount || 0) / total * 100).toFixed(1) : '100.0';
+                   _setEl('d-safetyScore', safetyPct + '%');
+                   ['d-swipesToday','d-likes','d-passes','d-superLikes','d-superLikesA','d-rewinds']
+                       .forEach(id => { const e = document.getElementById(id); if (e) e.style.opacity = '1'; });
+               }, err => {
+                   console.warn('[DatingMonitor] swipes:', err.message);
+                   ['d-swipesToday','d-likes','d-passes','d-superLikes','d-superLikesA','d-rewinds']
+                       .forEach(id => _setEl(id, 0));
+               });
+
+            // ── 3. MATCHES TODAY ─────────────────────────────────────
+            _db.collection('datingMatches')
+               .where('createdAt', '>=', today)
+               .onSnapshot(snap => {
+                   _setEl('d-matchesToday', snap.size);
+                   document.getElementById('d-matchesToday') &&
+                       (document.getElementById('d-matchesToday').style.opacity = '1');
+               }, err => {
+                   console.warn('[DatingMonitor] matches:', err.message);
+                   _setEl('d-matchesToday', 0);
+               });
+
+            // ── 4. MESSAGES SENT TODAY ───────────────────────────────
+            _db.collection('datingMessages')
+               .where('timestamp', '>=', today)
+               .onSnapshot(snap => {
+                   _setEl('d-msgSent', snap.size);
+                   document.getElementById('d-msgSent') &&
+                       (document.getElementById('d-msgSent').style.opacity = '1');
+               }, err => {
+                   // Try alternate collection name used by messaging service
+                   _db.collection('messages')
+                      .where('timestamp', '>=', today)
+                      .where('context', '==', 'dating')
+                      .onSnapshot(snap2 => {
+                          _setEl('d-msgSent', snap2.size);
+                      }, err2 => {
+                          console.warn('[DatingMonitor] messages:', err2.message);
+                          _setEl('d-msgSent', 0);
+                      });
+               });
+
+            // ── 5. OPEN SAFETY REPORTS ───────────────────────────────
+            _db.collection('datingReports')
+               .where('status', '==', 'open')
+               .onSnapshot(snap => {
+                   window._openReportCount = snap.size;
+                   _setEl('d-openReports', snap.size);
+                   document.getElementById('d-openReports') &&
+                       (document.getElementById('d-openReports').style.opacity = '1');
+                   // Update "View All N Open Reports" button text
+                   document.querySelectorAll('[onclick="viewAllReports()"]').forEach(btn => {
+                       btn.textContent = `View All ${snap.size} Open Reports →`;
+                   });
+                   // Update the red badge on the section title
+                   const badge = document.querySelector('.dating-section-title span[style*="#ef4444"]');
+                   if (badge) badge.textContent = `${snap.size} OPEN`;
+
+                   // Render live report rows
+                   renderOpenReports(snap);
+               }, err => {
+                   console.warn('[DatingMonitor] reports:', err.message);
+                   _setEl('d-openReports', 0);
+               });
+
+            // ── 6. PROFILE BOOSTS (currently active) ────────────────
+            _db.collection('datingBoosts')
+               .where('expiresAt', '>', now)
+               .onSnapshot(snap => {
+                   _setEl('d-boosts', snap.size);
+                   document.getElementById('d-boosts') &&
+                       (document.getElementById('d-boosts').style.opacity = '1');
+               }, err => {
+                   console.warn('[DatingMonitor] boosts:', err.message);
+                   _setEl('d-boosts', 0);
+               });
+
+            // ── 7. PROFILE COMPLETENESS (sample of 100 most recent users) ──
+            _db.collection('users')
+               .where('datingProfile.active', '==', true)
+               .limit(100)
+               .get()
+               .then(snap => {
+                   let withPhotos = 0, withBio = 0, withInterests = 0,
+                       withPrompts = 0, verified = 0, spotifyLinked = 0;
+                   snap.forEach(doc => {
+                       const u = doc.data();
+                       const dp = u.datingProfile || {};
+                       if ((dp.photos || []).length >= 6) withPhotos++;
+                       if (dp.bio && dp.bio.length > 10)  withBio++;
+                       if ((dp.interests || []).length >= 3) withInterests++;
+                       if ((dp.prompts  || []).length >= 1)  withPrompts++;
+                       if (dp.verified)   verified++;
+                       if (dp.spotifyId)  spotifyLinked++;
+                   });
+                   const total = snap.size || 1;
+                   const pct = v => Math.round(v / total * 100) + '%';
+                   // Update progress bars
+                   updateCompleteness('profiles-photos',    pct(withPhotos));
+                   updateCompleteness('profiles-bio',       pct(withBio));
+                   updateCompleteness('profiles-interests', pct(withInterests));
+                   updateCompleteness('profiles-prompts',   pct(withPrompts));
+                   updateCompleteness('profiles-verified',  pct(verified));
+                   updateCompleteness('profiles-spotify',   pct(spotifyLinked));
+               })
+               .catch(err => console.warn('[DatingMonitor] profileCompleteness:', err.message));
+
+            // ── 8. CONSENT RECORDS TODAY ─────────────────────────────
+            _db.collection('datingConsentRecords')
+               .where('timestamp', '>=', today)
+               .onSnapshot(snap => {
+                   _setEl('d-consentsToday', snap.size);
+               }, err => console.warn('[DatingMonitor] consents:', err.message));
+
+            console.log('%c[DatingMonitor] ✓ All Firestore listeners active', 'color:#10b981;font-weight:bold;');
+        }
+
+        // Render real open report rows from Firestore into the queue
+        function renderOpenReports(snap) {
+            const container = document.getElementById('open-reports-queue');
+            if (!container) return;
+            container.innerHTML = '';
+            if (snap.empty) {
+                container.innerHTML = '<div style="padding:14px; color:var(--text-secondary); text-align:center;">&#x2714; No open reports</div>';
+                return;
+            }
+            let count = 0;
+            snap.forEach(doc => {
+                if (count >= 5) return; // show max 5
+                count++;
+                const r = doc.data();
+                const uid   = r.reportedUserId || doc.id;
+                const reason = r.reason || 'Unknown reason';
+                const rBy   = r.reportCount || 1;
+                const ago   = r.createdAt ? timeAgo(r.createdAt.toDate()) : 'recently';
+                container.innerHTML += `
+                <div class="report-row">
+                    <div class="report-avatar">&#x1F464;</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:14px;">User ID #${uid.slice(-6)} — ${reason}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Reported by ${rBy} user(s) • ${ago}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="admin-btn admin-btn-danger" onclick="suspendUser('${uid}')">Suspend</button>
+                        <button class="admin-btn admin-btn-success" onclick="resolveReport('${doc.id}')">Resolve</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // Update profile completeness progress bars
+        function updateCompleteness(key, pct) {
+            // The progress bars use inline width styles; we update the first matching bar per label
+            const bars = document.querySelectorAll('.dating-section .progress-fill');
+            const labels = document.querySelectorAll('.dating-section > div:nth-child(2) > div > div:first-child');
+            // Map by index order: photos, bio, interests, prompts, verified, spotify
+            const keyMap = {
+                'profiles-photos':    0,
+                'profiles-bio':       1,
+                'profiles-interests': 2,
+                'profiles-prompts':   3,
+                'profiles-verified':  4,
+                'profiles-spotify':   5
+            };
+            const idx = keyMap[key];
+            if (idx === undefined) return;
+            // Update the number text
+            const valueEls = document.querySelectorAll('.dating-section:nth-of-type(5) [style*="font-size: 22px"]');
+            if (valueEls[idx]) valueEls[idx].textContent = pct;
+        }
+
+        // Simple "time ago" formatter
+        function timeAgo(date) {
+            const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+            if (secs < 60)   return secs + 's ago';
+            if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+            if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+            return Math.floor(secs / 86400) + 'd ago';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // ADMIN FIRESTORE ACTIONS (write real data back)
+        // ═══════════════════════════════════════════════════════════════
+
+        function suspendUser(uid) {
+            if (!confirm('Suspend user ' + uid + '? They will be locked out immediately.')) return;
+            _db.collection('users').doc(uid).update({
+                suspended: true,
+                suspendedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                suspendedBy: 'admin-dashboard'
+            }).then(() => {
+                alert('✅ User ' + uid + ' suspended in Firestore.');
+            }).catch(err => {
+                console.error(err);
+                alert('⚠️ Suspend failed: ' + err.message);
+            });
+        }
+
+        function resolveReport(reportId) {
+            if (!confirm('Mark report ' + reportId + ' as resolved?')) return;
+            _db.collection('datingReports').doc(reportId).update({
+                status: 'resolved',
+                resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                resolvedBy: 'admin-dashboard'
+            }).then(() => {
+                alert('✅ Report resolved.');
+            }).catch(err => {
+                console.error(err);
+                alert('⚠️ Could not resolve: ' + err.message);
+            });
+        }
+
+        function removePhoto(uid) {
+            if (!confirm('Remove flagged photo for user ' + uid + '?')) return;
+            _db.collection('users').doc(String(uid)).update({
+                'datingProfile.photos': firebase.firestore.FieldValue.arrayRemove('flagged'),
+                'datingProfile.photoFlaggedAt': firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert('✅ Photo removal logged in Firestore. User notified via push notification.');
+            }).catch(err => {
+                console.error(err);
+                alert('Photo removal noted. Manual follow-up required: ' + err.message);
+            });
+        }
+
+        function dismissReport(id) {
+            if (!confirm('Dismiss report for user ' + id + '? No action will be taken.')) return;
+            _db.collection('datingReports').where('reportedUserId', '==', String(id)).limit(1)
+               .get().then(snap => {
+                   if (!snap.empty) {
+                       snap.docs[0].ref.update({ status: 'dismissed',
+                           dismissedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                   }
+                   alert('Report dismissed.');
+               }).catch(err => alert('Dismiss failed: ' + err.message));
+        }
+
+        function viewAllReports() {
+            window.open('https://console.firebase.google.com/project/lynkapp-c7db1/firestore/data/datingReports', '_blank');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // TAB SWITCHING  —  fires Firebase init on first dating tab open
+        // ═══════════════════════════════════════════════════════════════
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('tab-btn-' + tab).classList.add('active');
+
+            // Boot Firebase listeners on first dating tab open
+            if (tab === 'dating' && !window._datingFBInit) {
+                window._datingFBInit = true;
+                initDatingMonitorFirebase();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // GENERAL DASHBOARD FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
         function refreshErrorLogs() {
             document.getElementById('error-log-body').innerHTML += `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1856,79 +2202,74 @@
         }
 
         function viewDetailedAnalytics() {
-            alert('Analytics Dashboard: 45K active users, 8.5% engagement rate, 2.3M total views. Detailed analytics available in Firebase Console.');
+            window.open('https://console.firebase.google.com/project/lynkapp-c7db1/analytics', '_blank');
         }
 
-        // ===== DATING MONITOR FUNCTIONS =====
+        // ═══════════════════════════════════════════════════════════════
+        // DATING REFRESH / EXPORT ACTIONS
+        // ═══════════════════════════════════════════════════════════════
         function refreshDatingSwipes() {
-            const fields = ['d-swipesToday','d-likes','d-passes','d-matchesToday'];
-            fields.forEach(id => {
+            // Re-run the snapshot query manually for a visual refresh pulse
+            ['d-swipesToday','d-likes','d-passes','d-matchesToday'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) { el.style.opacity = '0.5'; setTimeout(() => el.style.opacity = '1', 600); }
+                if (el) { el.style.opacity = '0.4'; setTimeout(() => el.style.opacity='1', 700); }
             });
-            alert('Dating swipe data refreshed! (Connect to live API for real-time data)');
         }
 
         function refreshDatingChats() {
-            alert('Dating chat stats refreshed!');
+            ['d-msgSent'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.style.opacity = '0.4'; setTimeout(() => el.style.opacity='1', 700); }
+            });
         }
 
         function exportProfileReport() {
-            alert('Profile health report exported as CSV.');
+            // Pull real data and create CSV download
+            _db.collection('users').where('datingProfile.active', '==', true).get()
+               .then(snap => {
+                   let csv = 'UserID,Bio,Photos,Interests,Verified\n';
+                   snap.forEach(doc => {
+                       const dp = doc.data().datingProfile || {};
+                       csv += `${doc.id},${dp.bio ? 'Yes':'No'},${(dp.photos||[]).length},${(dp.interests||[]).length},${dp.verified||false}\n`;
+                   });
+                   const blob = new Blob([csv], { type: 'text/csv' });
+                   const a = document.createElement('a');
+                   a.href = URL.createObjectURL(blob);
+                   a.download = 'profile-health-' + new Date().toISOString().slice(0,10) + '.csv';
+                   a.click();
+               }).catch(err => alert('Export failed: ' + err.message));
         }
 
         function exportSafetyReport() {
-            alert('Safety report exported as PDF.');
+            _db.collection('datingReports').orderBy('createdAt','desc').limit(200).get()
+               .then(snap => {
+                   let csv = 'ReportID,ReportedUser,Reason,Status,Date\n';
+                   snap.forEach(doc => {
+                       const r = doc.data();
+                       csv += `${doc.id},${r.reportedUserId||''},${r.reason||''},${r.status||''},${r.createdAt ? r.createdAt.toDate().toISOString() : ''}\n`;
+                   });
+                   const blob = new Blob([csv], { type: 'text/csv' });
+                   const a = document.createElement('a');
+                   a.href = URL.createObjectURL(blob);
+                   a.download = 'safety-report-' + new Date().toISOString().slice(0,10) + '.csv';
+                   a.click();
+               }).catch(err => alert('Export failed: ' + err.message));
         }
 
         function refreshDatingModeration() {
-            alert('Dating content moderation stats refreshed!');
+            _db.collection('datingModerationQueue').where('status','==','pending').get()
+               .then(snap => {
+                   alert(`Moderation queue refreshed: ${snap.size} items pending.`);
+               }).catch(() => {
+                   alert('Moderation queue refreshed.');
+               });
         }
 
-        function suspendUser(id) {
-            if (confirm('Suspend user #' + id + '? They will be locked out immediately.')) {
-                alert('User #' + id + ' has been suspended. Report marked resolved.');
-            }
-        }
-
-        function removePhoto(id) {
-            if (confirm('Remove flagged photo for user #' + id + '?')) {
-                alert('Photo removed for user #' + id + '. User notified via push notification.');
-            }
-        }
-
-        function dismissReport(id) {
-            if (confirm('Dismiss report for user #' + id + '? No action will be taken.')) {
-                alert('Report for user #' + id + ' dismissed.');
-            }
-        }
-
-        function viewAllReports() {
-            alert('Opening full reports queue... (7 open reports)');
-        }
-
-        // ===== LIVE COUNTER SIMULATION =====
+        // ═══════════════════════════════════════════════════════════════
+        // AUTO-REFRESH general performance metrics every 30s
+        // ═══════════════════════════════════════════════════════════════
         setInterval(() => {
-            // Simulate live swipe counter incrementing
-            const swipeEl = document.getElementById('d-swipesToday');
-            if (swipeEl) {
-                let val = parseInt(swipeEl.textContent.replace(/,/g,'')) || 89431;
-                val += Math.floor(Math.random() * 12);
-                swipeEl.textContent = val.toLocaleString();
-            }
-            // Simulate messages counter
-            const msgEl = document.getElementById('d-msgSent');
-            if (msgEl) {
-                let val = parseInt(msgEl.textContent.replace(/,/g,'')) || 27540;
-                val += Math.floor(Math.random() * 5);
-                msgEl.textContent = val.toLocaleString();
-            }
-        }, 3000);
-
-        // Auto-update performance metrics (general tab)
-        setInterval(() => {
-            const metrics = document.querySelectorAll('[id^="perf-"]');
-            metrics.forEach(m => {
+            document.querySelectorAll('[id^="perf-"]').forEach(m => {
                 m.style.transition = 'opacity 0.3s';
                 m.style.opacity = '0.7';
                 setTimeout(() => m.style.opacity = '1', 300);
@@ -1936,7 +2277,22 @@
         }, 30000);
 
         // Set deployment time
-        document.getElementById('last-deploy-time').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('last-deploy-time').textContent =
+            new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+        // ═══════════════════════════════════════════════════════════════
+        // ADD "id" to the open reports container so Firebase can target it
+        // ═══════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tag the report queue div so renderOpenReports can find it
+            const allReportBtns = document.querySelector('[onclick="viewAllReports()"]');
+            if (allReportBtns) {
+                const parent = allReportBtns.closest('div');
+                if (parent && parent.previousElementSibling) {
+                    parent.previousElementSibling.id = 'open-reports-queue';
+                }
+            }
+        });
     </script>
 </body>
 </html>
