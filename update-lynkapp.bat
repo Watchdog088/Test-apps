@@ -1,7 +1,7 @@
 @echo off
 REM ===================================================================
 REM LynkApp - Quick Update Script
-REM Updated: 2026-04-15 — includes UI/UX gap-fix scripts
+REM Updated: 2026-04-15 — syncs root js/ folder; bell + bottom-tab fixes
 REM ===================================================================
 setlocal EnableDelayedExpansion
 
@@ -26,7 +26,7 @@ echo Bucket: %BUCKET_NAME%
 echo.
 
 REM ---------------------------------------------------------------
-REM Upload HTML files
+REM [1/5] Upload HTML files
 REM ---------------------------------------------------------------
 echo [1/5] Uploading HTML files...
 
@@ -51,7 +51,7 @@ aws s3 cp admin-dashboard.html s3://%BUCKET_NAME%/admin-dashboard.html ^
     --content-type "text/html" --cache-control "max-age=300"
 
 REM ---------------------------------------------------------------
-REM Upload core JavaScript system files
+REM [2/5] Upload core JavaScript system files
 REM ---------------------------------------------------------------
 echo [2/5] Uploading JavaScript system files...
 
@@ -96,33 +96,40 @@ for %%F in (
 )
 
 REM ---------------------------------------------------------------
-REM Upload UI/UX gap-fix scripts  *** UPDATED — 2026-04-15 ***
+REM [3/5] Sync entire root js/ folder → s3://lynkapp.net/js/
+REM       This uploads ALL UX-fix scripts automatically:
+REM         ux-gap-fixes.js, sidebar-nav.js, navigation-system.js,
+REM         user-testing-fixes.js, medium-priority-fixes.js
 REM ---------------------------------------------------------------
-echo [3/5] Uploading UI/UX gap-fix scripts...
+echo [3/5] Syncing UX gap-fix scripts ^(js/ folder^)...
 
-aws s3 cp ConnectHub-Frontend/src/js/ux-gap-fixes.js ^
-    s3://%BUCKET_NAME%/js/ux-gap-fixes.js ^
-    --content-type "application/javascript" --cache-control "max-age=300"
-
-aws s3 cp ConnectHub-Frontend/src/js/sidebar-nav.js ^
-    s3://%BUCKET_NAME%/js/sidebar-nav.js ^
-    --content-type "application/javascript" --cache-control "max-age=300"
-
-aws s3 cp ConnectHub-Frontend/src/js/navigation-system.js ^
-    s3://%BUCKET_NAME%/js/navigation-system.js ^
-    --content-type "application/javascript" --cache-control "max-age=300"
-
-aws s3 cp ConnectHub-Frontend/src/js/user-testing-fixes.js ^
-    s3://%BUCKET_NAME%/js/user-testing-fixes.js ^
-    --content-type "application/javascript" --cache-control "max-age=300"
-
-REM Medium-priority UX fixes (#11-#20) — added 2026-04-15
-aws s3 cp LynkApp-Production-App/js/medium-priority-fixes.js ^
-    s3://%BUCKET_NAME%/js/medium-priority-fixes.js ^
-    --content-type "application/javascript" --cache-control "max-age=300"
+if exist "js" (
+    aws s3 sync js/ s3://%BUCKET_NAME%/js/ ^
+        --content-type "application/javascript" ^
+        --cache-control "max-age=300" ^
+        --delete
+    echo   Synced js/ folder to s3://%BUCKET_NAME%/js/
+) else (
+    echo   [WARN] No js/ folder found — uploading individually...
+    aws s3 cp ConnectHub-Frontend/src/js/ux-gap-fixes.js ^
+        s3://%BUCKET_NAME%/js/ux-gap-fixes.js ^
+        --content-type "application/javascript" --cache-control "max-age=300"
+    aws s3 cp ConnectHub-Frontend/src/js/sidebar-nav.js ^
+        s3://%BUCKET_NAME%/js/sidebar-nav.js ^
+        --content-type "application/javascript" --cache-control "max-age=300"
+    aws s3 cp ConnectHub-Frontend/src/js/navigation-system.js ^
+        s3://%BUCKET_NAME%/js/navigation-system.js ^
+        --content-type "application/javascript" --cache-control "max-age=300"
+    aws s3 cp ConnectHub-Frontend/src/js/user-testing-fixes.js ^
+        s3://%BUCKET_NAME%/js/user-testing-fixes.js ^
+        --content-type "application/javascript" --cache-control "max-age=300"
+    aws s3 cp LynkApp-Production-App/js/medium-priority-fixes.js ^
+        s3://%BUCKET_NAME%/js/medium-priority-fixes.js ^
+        --content-type "application/javascript" --cache-control "max-age=300"
+)
 
 REM ---------------------------------------------------------------
-REM Sync CSS styles
+REM [4/5] Sync CSS styles
 REM ---------------------------------------------------------------
 echo [4/5] Uploading CSS styles...
 
@@ -135,7 +142,7 @@ aws s3 sync ConnectHub-Frontend/src/css ^
     --content-type "text/css" --cache-control "max-age=300" --exclude "*.map"
 
 REM ---------------------------------------------------------------
-REM Sync service modules
+REM [5/5] Sync service modules
 REM ---------------------------------------------------------------
 echo [5/5] Uploading service modules...
 
@@ -175,15 +182,16 @@ echo Changes uploaded to:
 echo   http://lynkapp.net
 echo   https://lynkapp.net  ^(via CloudFront^)
 echo.
-echo   NEW in this update:
+echo   Changes in this build:
+echo     - Bell notification button in header ^(with live badge^)
+echo     - Fixed bottom tab bar: Home, Messages, Create, Alerts, Profile
 echo     - ux-gap-fixes.js   ^(skeleton loader, scroll memory, mini-player,
-echo                          search empty state, post validation, badge fix,
-echo                          dating button spacing, empty messages state^)
-echo     - sidebar-nav.js    ^(pill nav scroll hint, 44px touch targets,
-echo                          bottom tab label enforcement^)
+echo                          search empty state, post validation, badge fix^)
+echo     - sidebar-nav.js    ^(pill nav scroll hint, 44px touch targets^)
+echo     - user-testing-fixes.js  ^(demo login, placeholder cleanup^)
+echo     - medium-priority-fixes.js  ^(UX gaps #11-20^)
 echo.
-echo Note: Changes are live immediately. Force-refresh with Ctrl+F5
-echo       if your browser cached the old version.
+echo Note: Force-refresh with Ctrl+Shift+R if you see the old version.
 echo.
 
 set /p OPEN_SITE="Open website now? (Y/N): "
