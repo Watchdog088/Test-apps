@@ -1,7 +1,8 @@
 /**
  * LynkApp Service Worker - PWA Offline Support
+ * Updated: 2026-04-16 — v2.6.0: force cache refresh for UX gap fixes
  */
-const CACHE_VERSION = 'lynkapp-v2.5.1';
+const CACHE_VERSION = 'lynkapp-v2.6.0';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const DYNAMIC_CACHE = CACHE_VERSION + '-dynamic';
 
@@ -13,7 +14,10 @@ const STATIC_ASSETS = [
     './js/consent-onboarding.js',
     './js/app-main.js',
     './js/user-testing-fixes.js',
-    './js/performance-optimizer.js'
+    './js/performance-optimizer.js',
+    './js/ux-gap-fixes.js',
+    './js/sidebar-nav.js',
+    './js/medium-priority-fixes.js'
 ];
 
 // Install - cache static assets
@@ -25,7 +29,7 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate - clean old caches
+// Activate - clean ALL old caches (including v2.5.x)
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys => Promise.all(
@@ -34,13 +38,13 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch - network first for API, cache first for static
+// Fetch - network first for HTML (always get latest), cache first for other static
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    
+
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;
-    
+
     // API calls - network first
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(
@@ -55,7 +59,21 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Static assets - cache first
+    // HTML pages - network first so updates always show immediately
+    if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(res => {
+                    const clone = res.clone();
+                    caches.open(STATIC_CACHE).then(cache => cache.put(event.request, clone));
+                    return res;
+                })
+                .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+        );
+        return;
+    }
+
+    // Static assets - cache first (with network fallback)
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
@@ -66,7 +84,7 @@ self.addEventListener('fetch', event => {
                 }
                 return res;
             }).catch(() => {
-                if (event.request.headers.get('accept')?.includes('text/html')) {
+                if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
                     return caches.match('./index.html');
                 }
             });

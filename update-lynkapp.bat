@@ -151,26 +151,35 @@ aws s3 sync ConnectHub-Frontend/src/services ^
     --content-type "application/javascript" --cache-control "max-age=300" --exclude "*.map"
 
 REM ---------------------------------------------------------------
+REM [4.5/5] Upload service worker (always no-cache so browsers get
+REM         the latest version immediately — this is critical!)
+REM ---------------------------------------------------------------
+echo [4.5/5] Uploading service worker ^(no-cache^)...
+
+if exist "LynkApp-Production-App\sw.js" (
+    aws s3 cp LynkApp-Production-App\sw.js s3://%BUCKET_NAME%/sw.js ^
+        --content-type "application/javascript" ^
+        --cache-control "no-cache, no-store, must-revalidate"
+    echo   Uploaded sw.js ^(no-cache^)
+) else (
+    echo   [WARN] LynkApp-Production-App\sw.js not found — skipping
+)
+
+REM ---------------------------------------------------------------
 REM Invalidate CloudFront cache so changes go live immediately
 REM ---------------------------------------------------------------
 echo.
 echo Invalidating CloudFront cache...
 
-set CF_ID=
-if exist "cloudfront-info.txt" (
-    for /f "tokens=*" %%i in (cloudfront-info.txt) do set CF_ID=%%i
-)
+REM CF_ID is hardcoded — the for/f loop approach reads the LAST line
+REM of cloudfront-info.txt (the "Setup completed" line) which is wrong.
+set CF_ID=E1K6OG7GOLIRJ2
 
-if not "!CF_ID!"=="" (
-    aws cloudfront create-invalidation --distribution-id !CF_ID! --paths "/*" 2>nul
-    if %ERRORLEVEL% equ 0 (
-        echo   CloudFront cache invalidated for distribution !CF_ID!
-    ) else (
-        echo   [WARN] CloudFront invalidation failed ^(not critical^)
-    )
+aws cloudfront create-invalidation --distribution-id %CF_ID% --paths "/*"
+if %ERRORLEVEL% equ 0 (
+    echo   CloudFront cache invalidated for distribution %CF_ID%
 ) else (
-    echo   [INFO] No CloudFront distribution ID found — skipping cache invalidation.
-    echo         Add your distribution ID to cloudfront-info.txt to enable this.
+    echo   [WARN] CloudFront invalidation failed — check AWS credentials
 )
 
 echo.
