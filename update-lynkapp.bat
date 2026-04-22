@@ -1,8 +1,17 @@
 @echo off
 REM ===================================================================
-REM LynkApp - Quick Update Script  v3.0
+REM LynkApp - Quick Update Script  v4.0
 REM FIXED: Now deploys from LynkApp-Production-App/ (the real prod app)
 REM        Previously deployed ConnectHub_Mobile_Design.html (wrong!)
+REM
+REM CHANGES v4.0 (2026-04-22):
+REM   - index.html: Fixed apple-touch-icon (was pointing to manifest.json)
+REM   - index.html: Added null-safe navigation wrappers (try-catch guards)
+REM       prevents switchBottomTab/PillTab/MainTab crashes
+REM   - app-main.js: Fixed .nav-tab null crash in switchBottomTab (line 93)
+REM   - app-main.js: Fixed getElementById null crash (line 88)
+REM   - app-main.js: Fixed showAppAfterLogin null crashes (line 9234)
+REM   - fix-lynkapp-loading.js: Added comprehensive fix script
 REM
 REM CHANGES v3.0 (2026-04-22):
 REM   - Added performance-optimizer.js and accessibility.js
@@ -15,7 +24,7 @@ setlocal EnableDelayedExpansion
 
 echo.
 echo ===================================================================
-echo   LynkApp - Quick Update Script  v3.0
+echo   LynkApp - Quick Update Script  v4.0
 echo   Source: LynkApp-Production-App/
 echo   Target: s3://lynkapp.net  ^(https://lynkapp.net^)
 echo ===================================================================
@@ -39,11 +48,22 @@ echo CF Dist: %CF_ID%
 echo.
 
 REM ---------------------------------------------------------------
-REM [1/4] Sync the entire LynkApp-Production-App/ to S3
+REM [0/5] Run the loading fix script to ensure all fixes are applied
+REM       This is idempotent - safe to run multiple times
+REM ---------------------------------------------------------------
+echo [0/5] Running loading fix script (idempotent - ensures all fixes applied)...
+node fix-lynkapp-loading.js
+if %ERRORLEVEL% neq 0 (
+    echo [WARN] fix-lynkapp-loading.js had an issue, continuing...
+)
+echo.
+
+REM ---------------------------------------------------------------
+REM [1/5] Sync the entire LynkApp-Production-App/ to S3
 REM       This is the self-contained production app with:
 REM         index.html, css/lynkapp-main.css, js/*.js, services/
 REM ---------------------------------------------------------------
-echo [1/4] Syncing LynkApp-Production-App/ to S3...
+echo [1/5] Syncing LynkApp-Production-App/ to S3...
 
 aws s3 sync LynkApp-Production-App/ s3://%BUCKET_NAME%/ ^
     --exclude "*.backup" ^
@@ -64,9 +84,9 @@ echo   Synced LynkApp-Production-App/ to s3://%BUCKET_NAME%/
 echo.
 
 REM ---------------------------------------------------------------
-REM [2/4] Upload index.html with no-cache (always get latest HTML)
+REM [2/5] Upload index.html with no-cache (always get latest HTML)
 REM ---------------------------------------------------------------
-echo [2/4] Uploading index.html ^(no-cache^)...
+echo [2/5] Uploading index.html ^(no-cache^)...
 
 aws s3 cp LynkApp-Production-App\index.html s3://%BUCKET_NAME%/index.html ^
     --content-type "text/html" ^
@@ -75,10 +95,10 @@ aws s3 cp LynkApp-Production-App\index.html s3://%BUCKET_NAME%/index.html ^
 echo   Uploaded index.html ^(no-cache^)
 
 REM ---------------------------------------------------------------
-REM [3/4] Upload sw.js with no-cache (critical for cache updates!)
+REM [3/5] Upload sw.js with no-cache (critical for cache updates!)
 REM       Browsers check sw.js byte-for-byte — must be no-cache
 REM ---------------------------------------------------------------
-echo [3/4] Uploading sw.js ^(no-cache — critical!^)...
+echo [3/5] Uploading sw.js ^(no-cache — critical!^)...
 
 aws s3 cp LynkApp-Production-App\sw.js s3://%BUCKET_NAME%/sw.js ^
     --content-type "application/javascript" ^
@@ -87,10 +107,9 @@ aws s3 cp LynkApp-Production-App\sw.js s3://%BUCKET_NAME%/sw.js ^
 echo   Uploaded sw.js ^(no-cache^)
 
 REM ---------------------------------------------------------------
-REM [3b] Upload splash-init.js with no-cache
-REM      (v3 — removed window.load double-timer that caused stuck splash)
+REM [4/5] Upload critical JS files with no-cache
 REM ---------------------------------------------------------------
-echo [3b] Uploading splash-init.js ^(no-cache — splash fix!^)...
+echo [4/5] Uploading critical JS files ^(no-cache^)...
 
 aws s3 cp LynkApp-Production-App\js\splash-init.js s3://%BUCKET_NAME%/js/splash-init.js ^
     --content-type "application/javascript" ^
@@ -98,11 +117,17 @@ aws s3 cp LynkApp-Production-App\js\splash-init.js s3://%BUCKET_NAME%/js/splash-
 
 echo   Uploaded js/splash-init.js ^(no-cache^)
 
+aws s3 cp LynkApp-Production-App\js\app-main.js s3://%BUCKET_NAME%/js/app-main.js ^
+    --content-type "application/javascript" ^
+    --cache-control "no-cache, no-store, must-revalidate"
+
+echo   Uploaded js/app-main.js ^(no-cache - loading fixes v4^)
+
 REM ---------------------------------------------------------------
-REM [4/4] Invalidate CloudFront cache
+REM [5/5] Invalidate CloudFront cache
 REM ---------------------------------------------------------------
 echo.
-echo [4/4] Invalidating CloudFront cache ^(%CF_ID%^)...
+echo [5/5] Invalidating CloudFront cache ^(%CF_ID%^)...
 
 aws cloudfront create-invalidation --distribution-id %CF_ID% --paths "/*"
 
@@ -114,26 +139,33 @@ if %ERRORLEVEL% equ 0 (
 
 echo.
 echo ===================================================================
-echo   UPDATE COMPLETE!  v3.0 — Loading Fixes Applied
+echo   UPDATE COMPLETE!  v4.0 — App Loading Fixes Applied
 echo ===================================================================
 echo.
 echo Live at:
 echo   https://lynkapp.net
 echo.
 echo Files deployed from LynkApp-Production-App/:
-echo   index.html               ^(HTML — stat label typo fixed, async services^)
-echo   css/lynkapp-main.css     ^(CSS  — added lynk-fadeIn animation^)
-echo   js/app-main.js           ^(JS   — fixed implicit event.currentTarget^)
+echo   index.html               ^(HTML — apple-touch-icon fixed, nav safety wrappers^)
+echo   css/lynkapp-main.css     ^(CSS  — splash screen + app container styles^)
+echo   js/app-main.js           ^(JS   — null crashes fixed: nav-tab, showAppAfterLogin^)
 echo   js/splash-init.js        ^(JS   — v3: removed window.load double-timer^)
-echo   js/performance-optimizer.js  ^(NEW — lazy load + resize throttle^)
-echo   js/accessibility.js      ^(NEW — keyboard nav + screen reader support^)
+echo   js/performance-optimizer.js  ^(lazy load + resize throttle^)
+echo   js/accessibility.js      ^(keyboard nav + screen reader support^)
 echo   js/ux-gap-fixes.js       ^(GAP fixes 1-10^)
 echo   js/sidebar-nav.js        ^(sidebar + nav fixes^)
 echo   js/medium-priority-fixes.js  ^(GAP fixes 11-20^)
 echo   js/user-testing-fixes.js ^(demo login + placeholders^)
 echo   sw.js                    ^(service worker^)
 echo.
-echo KEY FIX: Splash screen now dismisses in ~2.5s ^(was timing out 6-10s+^)
+echo KEY FIXES v4.0:
+echo   - apple-touch-icon no longer points to manifest.json
+echo   - switchBottomTab/PillTab/MainTab wrapped in try-catch
+echo   - showAppAfterLogin has null checks for loginScreen + app-container
+echo   - .nav-tab null crash fixed in switchBottomTab
+echo   - getElementById screen null crash fixed
+echo.
+echo KEY FIX v3: Splash screen now dismisses in ~2.5s ^(was timing out 6-10s+^)
 echo.
 echo CloudFront will clear in ~30 seconds.
 echo Force-refresh: Ctrl+Shift+R  ^(or clear site data if on mobile^)

@@ -52,7 +52,8 @@
         function switchMainTab(tab) {
             // Update nav tabs
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            var _activeNavTab = document.querySelector('[onclick*="switchMainTab(\'' + tab + '\')"]');
+            if (_activeNavTab) _activeNavTab.classList.add('active');
             
             // Show corresponding screen
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -66,7 +67,8 @@
         function switchBottomTab(tab) {
             // Update nav items
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            var _activeBottomTab = document.querySelector('.bottom-nav .nav-item[onclick*="switchBottomTab(\'' + tab + '\')"]');
+            if (_activeBottomTab) _activeBottomTab.classList.add('active');
             
             // Map bottom tabs to screens
             let screenMap = {
@@ -83,12 +85,12 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             
             // Show selected screen
-            document.getElementById(screenToShow + '-screen').classList.add('active');
+            var _ss = document.getElementById(screenToShow + '-screen'); if (_ss) _ss.classList.add('active');
             
             // Reset top nav tabs when switching to social
             if (tab === 'social') {
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                document.querySelector('.nav-tab').classList.add('active');
+                var _nt = document.querySelector('.nav-tab'); if (_nt) _nt.classList.add('active');
                 currentMainTab = 'feed';
             }
             
@@ -477,7 +479,8 @@
         // Switch marketplace tabs
         function marketplaceSwitchTab(tab) {
             document.querySelectorAll('#marketplace-screen .pill-nav-button').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            var _activeMarketTab = document.querySelector('#marketplace-screen .pill-nav-button[onclick*="marketplaceSwitchTab(\'' + tab + '\')"]');
+            if (_activeMarketTab) _activeMarketTab.classList.add('active');
 
             document.querySelectorAll('#marketplace-screen .tab-content').forEach(content => {
                 content.classList.remove('active');
@@ -9101,20 +9104,31 @@
         // ========== SPLASH SCREEN TRANSITION ==========
         
         // Auto-transition from splash screen to login screen
-        window.addEventListener('DOMContentLoaded', () => {
+        // NOTE: The inline <head> script already handles dismissal at 2.5s.
+        // This DOMContentLoaded handler is kept as a safety net with null guards.
+        document.addEventListener('DOMContentLoaded', () => {
             const splashScreen = document.getElementById('splashScreen');
             const loginScreen = document.getElementById('loginScreen');
-            
-            // Show splash screen for 2.5 seconds, then transition to login
+
+            // Guard against missing elements
+            if (!splashScreen || !loginScreen) {
+                console.warn('[LynkApp] Splash or login screen element not found — skipping timer.');
+                return;
+            }
+
+            // 2.5 second splash → login transition (in sync with the inline head script)
             setTimeout(() => {
-                splashScreen.classList.add('fade-out');
-                
-                // After fade out animation completes, hide splash and show login
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                    loginScreen.classList.remove('hidden');
-                }, 500); // Match CSS fade-out animation duration
-            }, 2500); // 2.5 seconds splash screen display
+                if (splashScreen.style.display !== 'none') {
+                    splashScreen.classList.add('fade-out');
+                    splashScreen.style.opacity = '0';
+                    splashScreen.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                        loginScreen.classList.remove('hidden');
+                        loginScreen.style.display = 'flex';
+                    }, 500);
+                }
+            }, 2500);
         });
 
         // ========== LOGIN SCREEN FUNCTIONS ==========
@@ -9173,14 +9187,10 @@
                 return;
             }
 
-            // Simulate login
+            // Simulate login — only call showAppAfterLogin ONCE
             console.log('Logging in:', email);
             showToast('Logging in...');
-            setTimeout(function() { showAppAfterLogin(); }, 1200);
-            
-            setTimeout(() => {
-                showAppAfterLogin();
-            }, 1000);
+            setTimeout(function() { showAppAfterLogin(); }, 1000);
         }
 
         // Handle Register
@@ -9222,8 +9232,12 @@
 
         // Show Main App After Login
         function showAppAfterLogin() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.querySelector('.app-container').classList.add('active');
+            try {
+                var _loginSc = document.getElementById('loginScreen');
+                var _appCont = document.querySelector('.app-container');
+                if (_loginSc) _loginSc.classList.add('hidden');
+                if (_appCont) _appCont.classList.add('active');
+            } catch(e) { console.error('[LynkApp] showAppAfterLogin DOM error:', e); }
             showToast('Welcome to LynkApp! 🎉 🎉');
         }
 

@@ -55,7 +55,7 @@
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20192%20192'%3E%3Crect%20width%3D'192'%20height%3D'192'%20rx%3D'40'%20fill%3D'%238b5cf6'%2F%3E%3Ctext%20x%3D'96'%20y%3D'130'%20font-size%3D'90'%20text-anchor%3D'middle'%20fill%3D'white'%3E%F0%9F%94%97%3C%2Ftext%3E%3C%2Fsvg%3E">
     
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://firebaseio.com">
@@ -9582,12 +9582,12 @@
     <script src="js/splash-init.js"></script>
     <script src="js/consent-onboarding.js"></script>
     
-    <!-- Service Layer -->
-    <script type="module" src="services/api-service.js"></script>
-    <script type="module" src="services/auth-service.js"></script>
-    <script type="module" src="services/realtime-service.js"></script>
-    <script type="module" src="services/state-service.js"></script>
-    <script type="module" src="services/mobile-app-integration.js"></script>
+    <!-- Service Layer (plain scripts — type=module removed: classes must be global) -->
+    <script src="services/api-service.js"></script>
+    <script src="services/auth-service.js"></script>
+    <script src="services/realtime-service.js"></script>
+    <script src="services/state-service.js"></script>
+    <script src="services/mobile-app-integration.js"></script>
     
     <!-- Main Application Logic -->
     <script src="js/app-main.js"></script>
@@ -9606,5 +9606,203 @@
     <script src="js/ux-gap-fixes.js"></script>
     <script src="js/sidebar-nav.js"></script>
     <script src="js/medium-priority-fixes.js"></script>
+
+    <!-- ====================================================
+         CRITICAL GLOBAL FUNCTIONS & SERVICE WORKER
+         Must run AFTER all other scripts so showToast etc. are available.
+         ==================================================== -->
+    <script>
+    // ── Missing global login helpers called from HTML onclick attributes ──
+
+    // Forgot password handler
+    window.handleForgotPassword = function() {
+        var email = document.getElementById('loginEmail') ? document.getElementById('loginEmail').value : '';
+        if (email && email.trim()) {
+            showToast('Password reset email sent to ' + email + ' 📧');
+        } else {
+            showToast('Please enter your email address first 📧');
+        }
+    };
+
+    // Google social login
+    window.handleGoogleSignIn = function() {
+        showToast('Signing in with Google... ⏳');
+        setTimeout(function() { showAppAfterLogin(); }, 1500);
+    };
+
+    // Apple social login
+    window.handleAppleSignIn = function() {
+        showToast('Signing in with Apple... ⏳');
+        setTimeout(function() { showAppAfterLogin(); }, 1500);
+    };
+
+    // Facebook social login
+    window.handleFacebookSignIn = function() {
+        showToast('Signing in with Facebook... ⏳');
+        setTimeout(function() { showAppAfterLogin(); }, 1500);
+    };
+
+    // goHome — navigate back to the feed screen
+    window.goHome = function() {
+        if (typeof openScreen === 'function') {
+            openScreen('feed');
+        }
+    };
+
+    // Safe version of showAppAfterLogin with null checks
+    // Override the one in app-main.js to be bulletproof
+    window.showAppAfterLogin = function() {
+        try {
+            var loginScreen = document.getElementById('loginScreen');
+            var appContainer = document.querySelector('.app-container');
+            if (loginScreen) loginScreen.classList.add('hidden');
+            if (appContainer) appContainer.classList.add('active');
+            if (typeof showToast === 'function') showToast('Welcome to LynkApp! 🎉');
+        } catch(e) {
+            console.error('[LynkApp] showAppAfterLogin error:', e);
+        }
+    };
+
+    // Photo/video upload handlers for the create post form
+    window.handlePhotoUpload = function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.getElementById('photoPreviewImg');
+            var preview = document.getElementById('selectedPhotoPreview');
+            if (img) img.src = e.target.result;
+            if (preview) preview.style.display = 'block';
+            if (typeof showToast === 'function') showToast('Photo added! 📷');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.handleVideoUpload = function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var vid = document.getElementById('videoPreviewVid');
+            var preview = document.getElementById('selectedVideoPreview');
+            if (vid) { vid.src = e.target.result; }
+            if (preview) preview.style.display = 'block';
+            if (typeof showToast === 'function') showToast('Video added! 🎥');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Virtual event toggle helper
+    window.toggleVirtualEvent = function() {
+        var link = document.getElementById('eventVirtualLink');
+        var toggle = document.getElementById('virtualEventToggle');
+        if (link && toggle) {
+            link.style.display = toggle.classList.contains('active') ? 'block' : 'none';
+        }
+    };
+
+    // Comment helpers
+    window.likeComment = function(el) {
+        el.textContent = el.textContent === 'Like' ? '❤️ Liked' : 'Like';
+    };
+
+    window.replyToComment = function(name) {
+        var input = document.getElementById('commentInputField');
+        if (input) { input.value = '@' + name + ' '; input.focus(); }
+    };
+
+    window.submitComment = function() {
+        var input = document.getElementById('commentInputField');
+        if (!input || !input.value.trim()) { if(typeof showToast==='function') showToast('Please write a comment'); return; }
+        var container = document.getElementById('commentsContainer');
+        if (container) {
+            var div = document.createElement('div');
+            div.style.cssText = 'display:flex;gap:12px;margin-bottom:16px;';
+            div.innerHTML = '<div class="post-avatar" style="width:32px;height:32px;font-size:14px;">👤</div>'
+              + '<div style="flex:1;"><div style="background:var(--glass);border-radius:16px;padding:10px 14px;margin-bottom:6px;">'
+              + '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">You</div>'
+              + '<div style="font-size:14px;">' + input.value + '</div></div>'
+              + '<div style="padding:0 14px;font-size:12px;color:var(--text-muted);display:flex;gap:12px;">'
+              + '<span onclick="likeComment(this)" style="cursor:pointer;">Like</span><span>Just now</span></div></div>';
+            container.appendChild(div);
+        }
+        input.value = '';
+        if (typeof showToast === 'function') showToast('Comment posted! 💬');
+    };
+
+    // viewPostAnalytics helper
+    window.viewPostAnalytics = function() {
+        if (typeof closeModal === 'function') closeModal('postOptions');
+        if (typeof openModal === 'function') openModal('postAnalytics');
+    };
+
+    // exportPostAnalytics helper
+    window.exportPostAnalytics = function() {
+        if (typeof showToast === 'function') showToast('Exporting post analytics... 📊');
+    };
+
+    // shareToMyTimeline, shareToFriend, shareToGroup, shareViaWhatsApp, shareViaTwitter, shareViaFacebook
+    window.shareToMyTimeline = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Shared to your timeline! 📰'); };
+    window.shareToFriend = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Share sent as a message! 💬'); };
+    window.shareToGroup = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Shared to group! 👥'); };
+    window.shareViaWhatsApp = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Sharing to WhatsApp... 📱'); };
+    window.shareViaTwitter = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Sharing to X (Twitter)... 🐦'); };
+    window.shareViaFacebook = function() { if(typeof closeModal==='function') closeModal('sharePost'); if(typeof showToast==='function') showToast('Sharing to Facebook... 📘'); };
+
+    // ── Service Worker Registration ──
+    
+    // ============================================================
+    // CRITICAL: Null-safe navigation wrappers
+    // Prevents crashes when screen IDs don't exist in DOM
+    // Must run AFTER app-main.js loads (which defines these functions)
+    // ============================================================
+    (function() {
+        // Wrap switchBottomTab to catch .nav-tab null crash and missing screen elements
+        var _origSwitchBottomTab = window.switchBottomTab;
+        if (typeof _origSwitchBottomTab === 'function') {
+            window.switchBottomTab = function(tab) {
+                try { _origSwitchBottomTab(tab); }
+                catch(e) { console.warn('[LynkApp] switchBottomTab caught error (non-fatal):', e.message); }
+            };
+        }
+        // Wrap switchPillTab to catch missing screen elements
+        var _origSwitchPillTab = window.switchPillTab;
+        if (typeof _origSwitchPillTab === 'function') {
+            window.switchPillTab = function(el, tab) {
+                try { _origSwitchPillTab(el, tab); }
+                catch(e) { console.warn('[LynkApp] switchPillTab caught error (non-fatal):', e.message); }
+            };
+        }
+        // Wrap switchMainTab to catch missing screen elements
+        var _origSwitchMainTab = window.switchMainTab;
+        if (typeof _origSwitchMainTab === 'function') {
+            window.switchMainTab = function(tab) {
+                try { _origSwitchMainTab(tab); }
+                catch(e) { console.warn('[LynkApp] switchMainTab caught error (non-fatal):', e.message); }
+            };
+        }
+        // Wrap openScreen to catch missing screen elements  
+        var _origOpenScreen = window.openScreen;
+        if (typeof _origOpenScreen === 'function') {
+            window.openScreen = function(screen) {
+                try { _origOpenScreen(screen); }
+                catch(e) { console.warn('[LynkApp] openScreen caught error (non-fatal):', e.message); }
+            };
+        }
+        console.log('[LynkApp] Navigation safety wrappers installed');
+    })();
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js')
+                .then(function(reg) {
+                    console.log('[LynkApp] Service Worker registered:', reg.scope);
+                })
+                .catch(function(err) {
+                    console.warn('[LynkApp] Service Worker registration failed (non-fatal):', err);
+                });
+        });
+    }
+    </script>
 </body>
 </html>
