@@ -1,14 +1,21 @@
 @echo off
 REM ===================================================================
-REM LynkApp - Quick Update Script
+REM LynkApp - Quick Update Script  v3.0
 REM FIXED: Now deploys from LynkApp-Production-App/ (the real prod app)
 REM        Previously deployed ConnectHub_Mobile_Design.html (wrong!)
+REM
+REM CHANGES v3.0 (2026-04-22):
+REM   - Added performance-optimizer.js and accessibility.js
+REM   - splash-init.js v3 (removed double-timer causing stuck splash)
+REM   - app-main.js: fixed implicit event.currentTarget JS errors
+REM   - index.html: fixed stat label typo, async service loading
+REM   - lynkapp-main.css: added lynk-fadeIn animation
 REM ===================================================================
 setlocal EnableDelayedExpansion
 
 echo.
 echo ===================================================================
-echo   LynkApp - Quick Update Script
+echo   LynkApp - Quick Update Script  v3.0
 echo   Source: LynkApp-Production-App/
 echo   Target: s3://lynkapp.net  ^(https://lynkapp.net^)
 echo ===================================================================
@@ -80,6 +87,18 @@ aws s3 cp LynkApp-Production-App\sw.js s3://%BUCKET_NAME%/sw.js ^
 echo   Uploaded sw.js ^(no-cache^)
 
 REM ---------------------------------------------------------------
+REM [3b] Upload splash-init.js with no-cache
+REM      (v3 — removed window.load double-timer that caused stuck splash)
+REM ---------------------------------------------------------------
+echo [3b] Uploading splash-init.js ^(no-cache — splash fix!^)...
+
+aws s3 cp LynkApp-Production-App\js\splash-init.js s3://%BUCKET_NAME%/js/splash-init.js ^
+    --content-type "application/javascript" ^
+    --cache-control "no-cache, no-store, must-revalidate"
+
+echo   Uploaded js/splash-init.js ^(no-cache^)
+
+REM ---------------------------------------------------------------
 REM [4/4] Invalidate CloudFront cache
 REM ---------------------------------------------------------------
 echo.
@@ -95,21 +114,26 @@ if %ERRORLEVEL% equ 0 (
 
 echo.
 echo ===================================================================
-echo   UPDATE COMPLETE!
+echo   UPDATE COMPLETE!  v3.0 — Loading Fixes Applied
 echo ===================================================================
 echo.
 echo Live at:
 echo   https://lynkapp.net
 echo.
 echo Files deployed from LynkApp-Production-App/:
-echo   index.html          ^(561 KB — correct production HTML^)
-echo   css/lynkapp-main.css ^(53 KB  — production styles^)
-echo   js/app-main.js      ^(490 KB — main app logic^)
-echo   js/ux-gap-fixes.js  ^(35 KB  — GAP fixes 1-10^)
-echo   js/sidebar-nav.js   ^(25 KB  — sidebar + nav fixes^)
-echo   js/medium-priority-fixes.js ^(43 KB — GAP fixes 11-20^)
-echo   js/user-testing-fixes.js    ^(demo login + placeholders^)
-echo   sw.js               ^(v2.6.0 — service worker^)
+echo   index.html               ^(HTML — stat label typo fixed, async services^)
+echo   css/lynkapp-main.css     ^(CSS  — added lynk-fadeIn animation^)
+echo   js/app-main.js           ^(JS   — fixed implicit event.currentTarget^)
+echo   js/splash-init.js        ^(JS   — v3: removed window.load double-timer^)
+echo   js/performance-optimizer.js  ^(NEW — lazy load + resize throttle^)
+echo   js/accessibility.js      ^(NEW — keyboard nav + screen reader support^)
+echo   js/ux-gap-fixes.js       ^(GAP fixes 1-10^)
+echo   js/sidebar-nav.js        ^(sidebar + nav fixes^)
+echo   js/medium-priority-fixes.js  ^(GAP fixes 11-20^)
+echo   js/user-testing-fixes.js ^(demo login + placeholders^)
+echo   sw.js                    ^(service worker^)
+echo.
+echo KEY FIX: Splash screen now dismisses in ~2.5s ^(was timing out 6-10s+^)
 echo.
 echo CloudFront will clear in ~30 seconds.
 echo Force-refresh: Ctrl+Shift+R  ^(or clear site data if on mobile^)

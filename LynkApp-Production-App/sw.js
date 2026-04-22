@@ -2,7 +2,7 @@
  * LynkApp Service Worker - PWA Offline Support
  * Updated: 2026-04-16 — v2.6.0: force cache refresh for UX gap fixes
  */
-const CACHE_VERSION = 'lynkapp-v2.6.0';
+const CACHE_VERSION = 'lynkapp-v2.7.0';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const DYNAMIC_CACHE = CACHE_VERSION + '-dynamic';
 
