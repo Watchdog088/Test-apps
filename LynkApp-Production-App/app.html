@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f23">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lynkapp</title>
+
+<!-- ─────────────────────────────────────────────
+     FIREBASE CONFIG  (replace values with your own)
+     https://console.firebase.google.com → Project settings → Your apps
+───────────────────────────────────────────────── -->
+<script>
+window.firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+</script>
+
+<style>
+/* ───────────── RESET & BASE ───────────── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+body{background:#0f0f23;color:#fff;}
+
+/* ───────────── CSS VARIABLES ───────────── */
+:root{
+  --bg-primary:#0f0f23;
+  --bg-secondary:#1a1a2e;
+  --bg-card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.10);
+  --purple:#4f46e5;
+  --pink:#ec4899;
+  --gradient:linear-gradient(135deg,#4f46e5,#ec4899);
+  --text-primary:#ffffff;
+  --text-secondary:#94a3b8;
+  --text-muted:#64748b;
+  --danger:#f87171;
+  --success:#4ade80;
+  --nav-height:64px;
+  --header-height:60px;
+}
+
+/* ───────────── APP LAYOUT ───────────── */
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  max-width:500px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg-primary);
+}
+
+/* ───────────── OFFLINE BANNER ───────────── */
+#offline-banner{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#92400e;color:#fef3c7;
+  text-align:center;padding:10px 16px;font-size:13px;font-weight:600;
+  display:none;
+  max-width:500px;margin:0 auto;
+}
+#offline-banner.show{display:block;}
+
+/* ───────────── HEADER ───────────── */
+#app-header{
+  height:var(--header-height);
+  background:rgba(15,15,35,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  flex-shrink:0;
+  position:relative;z-index:100;
+}
+.header-logo{
+  font-size:22px;font-weight:900;letter-spacing:-0.5px;
+  background:var(--gradient);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.header-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg-card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;position:relative;transition:background 0.2s;
+}
+.header-btn:hover{background:rgba(255,255,255,0.08);}
+.notif-dot{
+  position:absolute;top:5px;right:5px;
+  width:8px;height:8px;border-radius:50%;background:#ec4899;
+  border:2px solid var(--bg-primary);display:none;
+}
+.notif-dot.show{display:block;}
+
+/* User avatar in header */
+.header-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--gradient);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;cursor:pointer;
+  overflow:hidden;flex-shrink:0;
+  border:2px solid rgba(79,70,229,0.4);
+}
+.header-avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* ───────────── SCREEN CONTAINER ───────────── */
+#screens{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+}
+#screens::-webkit-scrollbar{display:none;}
+
+.screen{display:none;min-height:100%;}
+.screen.active{display:block;}
+
+/* ───────────── BOTTOM NAV ───────────── */
+#bottom-nav{
+  height:var(--nav-height);
+  background:rgba(15,15,35,0.97);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;
+  flex-shrink:0;
+  position:relative;z-index:100;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;cursor:pointer;
+  padding:8px 4px;transition:all 0.2s;position:relative;
+}
+.nav-icon{font-size:22px;transition:transform 0.2s;}
+.nav-label{font-size:10px;font-weight:600;color:var(--text-muted);transition:color 0.2s;}
+.nav-item.active .nav-label{color:var(--purple);}
+.nav-item.active .nav-icon{transform:scale(1.1);}
+.nav-badge{
+  position:absolute;top:6px;right:50%;
+  transform:translateX(calc(50% + 8px));
+  background:#ec4899;color:#fff;
+  font-size:10px;font-weight:700;
+  min-width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 4px;display:none;
+}
+.nav-badge.show{display:flex;}
+
+/* Center CREATE button */
+.nav-item.create-btn .nav-icon{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--gradient);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 20px rgba(79,70,229,0.5);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.nav-item.create-btn:active .nav-icon{transform:scale(0.94);}
+
+/* ───────────── LOADING / SKELETON ───────────── */
+.skeleton{
+  background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:8px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.skeleton-post{padding:16px;border-bottom:1px solid var(--border);}
+.skeleton-avatar{width:44px;height:44px;border-radius:50%;margin-bottom:0;}
+.skeleton-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.skeleton-line{height:12px;border-radius:6px;}
+.skeleton-block{height:200px;border-radius:12px;margin-top:8px;}
+
+/* ───────────── EMPTY STATE ───────────── */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 32px;text-align:center;min-height:400px;
+}
+.empty-icon{font-size:64px;margin-bottom:20px;opacity:0.5;}
+.empty-title{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text-primary);}
+.empty-desc{font-size:14px;color:var(--text-secondary);line-height:1.6;max-width:260px;}
+.empty-action{
+  margin-top:24px;padding:13px 28px;
+  background:var(--gradient);border:none;border-radius:24px;
+  font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+  transition:opacity 0.2s,transform 0.1s;
+}
+.empty-action:hover{opacity:0.9;}
+.empty-action:active{transform:scale(0.97);}
+
+/* ───────────── ERROR STATE ───────────── */
+.error-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:48px 32px;text-align:center;
+}
+.error-icon{font-size:48px;margin-bottom:16px;}
+.error-msg{font-size:15px;color:var(--danger);margin-bottom:16px;font-weight:500;}
+.retry-btn{
+  padding:10px 24px;border-radius:20px;
+  background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);
+  color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;
+}
+
+/* ───────────── SECTION HEADER ───────────── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 16px 12px;
+}
+.section-title{font-size:22px;font-weight:800;}
+.section-action{font-size:13px;color:var(--purple);font-weight:600;cursor:pointer;}
+
+/* ───────────── FEED SCREEN ───────────── */
+#screen-home .story-bar{
+  display:flex;gap:12px;padding:16px 16px 8px;overflow-x:auto;
+  scrollbar-width:none;
+}
+#screen-home .story-bar::-webkit-scrollbar{display:none;}
+.story-add{
+  display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;
+  cursor:pointer;
+}
+.story-add-ring{
+  width:66px;height:66px;border-radius:50%;
+  background:var(--bg-card);border:2px dashed rgba(79,70,229,0.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;transition:border-color 0.2s;
+}
+.story-add:hover .story-add-ring{border-color:var(--purple);}
+.story-add span{font-size:11px;color:var(--text-secondary);font-weight:500;}
+
+/* Post card */
+.post-card{border-bottom:1px solid var(--border);padding:16px;}
+.post-author{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.author-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--gradient);overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;
+}
+.author-avatar img{width:100%;height:100%;object-fit:cover;}
+.author-info{flex:1;}
+.author-name{font-size:15px;font-weight:700;}
+.post-time{font-size:12px;color:var(--text-muted);}
+.post-menu{color:var(--text-muted);font-size:20px;cursor:pointer;padding:4px;}
+.post-text{font-size:15px;line-height:1.6;margin-bottom:12px;color:var(--text-primary);}
+.post-media{
+  width:100%;border-radius:16px;overflow:hidden;margin-bottom:12px;
+  background:rgba(255,255,255,0.03);
+  max-height:400px;object-fit:cover;display:block;
+}
+.post-actions{
+  display:flex;align-items:center;gap:20px;padding-top:4px;
+}
+.post-action-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;color:var(--text-secondary);cursor:pointer;
+  padding:4px 0;transition:color 0.15s;
+  background:none;border:none;
+}
+.post-action-btn:hover{color:#fff;}
+.post-action-btn.liked{color:#f87171;}
+.post-action-btn span{font-size:18px;}
+
+/* ───────────── MESSAGES SCREEN ───────────── */
+.msg-search{
+  margin:16px;padding:0 14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);border-radius:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.msg-search input{
+  flex:1;background:none;border:none;
+  padding:13px 0;font-size:14px;color:#fff;outline:none;
+}
+.msg-search input::placeholder{color:var(--text-muted);}
+
+.chat-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:background 0.15s;
+}
+.chat-item:hover{background:rgba(255,255,255,0.03);}
+.chat-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gradient);overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;position:relative;
+}
+.chat-avatar img{width:100%;height:100%;object-fit:cover;}
+.online-dot{
+  position:absolute;bottom:2px;right:2px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--success);border:2px solid var(--bg-primary);
+}
+.chat-info{flex:1;min-width:0;}
+.chat-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+.chat-preview{
+  font-size:13px;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chat-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.chat-time{font-size:11px;color:var(--text-muted);}
+.unread-count{
+  background:var(--purple);color:#fff;
+  font-size:11px;font-weight:700;
+  min-width:20px;height:20px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px;
+}
+
+/* ───────────── NOTIFICATIONS SCREEN ───────────── */
+.notif-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:background 0.15s;
+}
+.notif-item.unread{background:rgba(79,70,229,0.06);}
+.notif-item:hover{background:rgba(255,255,255,0.03);}
+.notif-avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--gradient);overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+}
+.notif-avatar img{width:100%;height:100%;object-fit:cover;}
+.notif-body{flex:1;}
+.notif-text{font-size:14px;line-height:1.5;margin-bottom:4px;}
+.notif-text strong{color:#fff;}
+.notif-time{font-size:12px;color:var(--text-muted);}
+.notif-icon-badge{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+
+/* ───────────── PROFILE SCREEN ───────────── */
+.profile-cover{
+  width:100%;height:160px;
+  background:var(--gradient);position:relative;overflow:hidden;
+}
+.profile-cover img{width:100%;height:100%;object-fit:cover;}
+.profile-cover-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 50%,rgba(15,15,35,0.8));
+}
+.profile-info-block{
+  padding:0 16px 20px;
+  margin-top:-32px;position:relative;
+}
+.profile-avatar-wrap{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:12px;
+}
+.profile-avatar{
+  width:80px;height:80px;border-radius:50%;
+  border:4px solid var(--bg-primary);
+  background:var(--gradient);
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:700;
+}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;}
+.edit-profile-btn{
+  padding:9px 20px;border-radius:20px;
+  background:transparent;border:1.5px solid var(--border);
+  color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+  transition:border-color 0.2s,background 0.2s;
+}
+.edit-profile-btn:hover{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
+.profile-name{font-size:22px;font-weight:800;margin-bottom:2px;}
+.profile-username{font-size:14px;color:var(--text-secondary);margin-bottom:10px;}
+.profile-bio{font-size:14px;line-height:1.6;color:#e2e8f0;margin-bottom:16px;}
+.profile-stats{display:flex;gap:24px;margin-bottom:20px;}
+.stat-item{text-align:center;}
+.stat-num{font-size:20px;font-weight:800;display:block;}
+.stat-label{font-size:12px;color:var(--text-secondary);}
+.profile-tabs{
+  display:flex;border-bottom:1px solid var(--border);margin:0 16px;
+}
+.profile-tab{
+  flex:1;padding:12px 8px;text-align:center;
+  font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;
+}
+.profile-tab.active{color:var(--purple);border-bottom-color:var(--purple);}
+.profile-posts-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;
+}
+.grid-post{
+  aspect-ratio:1;background:rgba(255,255,255,0.04);
+  overflow:hidden;cursor:pointer;position:relative;
+}
+.grid-post img{width:100%;height:100%;object-fit:cover;}
+
+/* ───────────── CREATE / COMPOSE MODAL ───────────── */
+#create-modal{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+#create-modal.open{opacity:1;pointer-events:all;}
+.create-sheet{
+  width:100%;max-width:500px;margin:0 auto;
+  background:var(--bg-secondary);border-radius:24px 24px 0 0;
+  padding:20px 16px 32px;
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+#create-modal.open .create-sheet{transform:translateY(0);}
+.sheet-handle{
+  width:40px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,0.2);margin:0 auto 20px;
+}
+.sheet-title{font-size:18px;font-weight:700;margin-bottom:20px;text-align:center;}
+.create-options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.create-opt{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 8px;border-radius:16px;
+  background:var(--bg-card);border:1px solid var(--border);
+  cursor:pointer;transition:background 0.2s,transform 0.1s;
+}
+.create-opt:hover{background:rgba(255,255,255,0.07);}
+.create-opt:active{transform:scale(0.96);}
+.create-opt-icon{font-size:28px;}
+.create-opt-label{font-size:12px;font-weight:600;color:var(--text-secondary);}
+
+/* New Post Compose */
+#compose-modal{
+  position:fixed;inset:0;z-index:600;
+  background:var(--bg-secondary);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform 0.3s;
+}
+#compose-modal.open{transform:translateY(0);}
+.compose-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px;border-bottom:1px solid var(--border);
+}
+.compose-close{
+  font-size:24px;cursor:pointer;color:var(--text-secondary);
+  padding:4px;transition:color 0.2s;
+}
+.compose-close:hover{color:#fff;}
+.compose-post-btn{
+  padding:9px 20px;border-radius:20px;
+  background:var(--gradient);border:none;
+  color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+  opacity:0.5;transition:opacity 0.2s;
+}
+.compose-post-btn.ready{opacity:1;}
+.compose-body{
+  flex:1;display:flex;gap:12px;padding:16px;overflow-y:auto;
+}
+.compose-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--gradient);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;overflow:hidden;
+}
+.compose-avatar img{width:100%;height:100%;object-fit:cover;}
+.compose-input-wrap{flex:1;}
+.compose-name{font-size:15px;font-weight:700;margin-bottom:8px;}
+.compose-textarea{
+  width:100%;background:none;border:none;
+  font-size:17px;color:#fff;line-height:1.6;
+  resize:none;outline:none;min-height:120px;
+  font-family:inherit;
+}
+.compose-textarea::placeholder{color:var(--text-muted);}
+.compose-media-preview{
+  position:relative;margin-top:12px;
+}
+.compose-media-preview img,
+.compose-media-preview video{
+  width:100%;border-radius:12px;max-height:300px;object-fit:cover;
+}
+.remove-media{
+  position:absolute;top:8px;right:8px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,0.7);border:none;
+  color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.compose-toolbar{
+  padding:12px 16px;border-top:1px solid var(--border);
+  display:flex;gap:16px;
+}
+.compose-tool{
+  font-size:22px;cursor:pointer;color:var(--text-secondary);
+  transition:color 0.2s;padding:4px;
+}
+.compose-tool:hover{color:var(--purple);}
+
+/* ───────────── TOAST ───────────── */
+#toast{
+  position:fixed;bottom:calc(var(--nav-height) + 16px);
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1e293b;border:1px solid rgba(255,255,255,0.1);
+  color:#fff;padding:11px 20px;border-radius:24px;
+  font-size:14px;font-weight:500;
+  opacity:0;transition:opacity 0.3s,transform 0.3s;
+  white-space:nowrap;z-index:9000;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  max-width:calc(100vw - 32px);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ───────────── LOADING OVERLAY ───────────── */
+#loading-overlay{
+  position:fixed;inset:0;z-index:9998;
+  background:var(--bg-primary);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition:opacity 0.4s;
+}
+#loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-logo{
+  width:72px;height:72px;border-radius:18px;
+  background:var(--gradient);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  box-shadow:0 16px 48px rgba(79,70,229,0.4);
+}
+.loading-name{
+  font-size:28px;font-weight:900;
+  background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.loading-spinner{
+  width:32px;height:32px;border-radius:50%;
+  border:3px solid rgba(255,255,255,0.1);
+  border-top-color:var(--purple);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-status{font-size:13px;color:var(--text-muted);}
+
+/* ───────────── SEARCH BAR (home) ───────────── */
+.home-search{
+  margin:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);border-radius:12px;
+  padding:0 14px;
+}
+.home-search input{
+  flex:1;background:none;border:none;
+  padding:12px 0;font-size:14px;color:#fff;outline:none;
+}
+.home-search input::placeholder{color:var(--text-muted);}
+
+/* ───────────── FEED FILTER TABS ───────────── */
+.feed-tabs{
+  display:flex;gap:8px;padding:0 16px 12px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.feed-tabs::-webkit-scrollbar{display:none;}
+.feed-tab{
+  padding:7px 16px;border-radius:20px;
+  font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;
+  background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text-secondary);transition:all 0.2s;flex-shrink:0;
+}
+.feed-tab.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+
+/* ───────────── POST COMPOSER TEASER ───────────── */
+.post-teaser{
+  margin:8px 16px 4px;padding:12px 14px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:background 0.2s;
+}
+.post-teaser:hover{background:rgba(255,255,255,0.06);}
+.teaser-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--gradient);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;overflow:hidden;
+}
+.teaser-avatar img{width:100%;height:100%;object-fit:cover;}
+.teaser-placeholder{
+  flex:1;font-size:14px;color:var(--text-muted);
+}
+.teaser-icon{font-size:20px;color:var(--text-muted);}
+
+/* ───────────── SETTINGS QUICK ───────────── */
+.settings-list{padding:16px;}
+.settings-section-title{
+  font-size:12px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:0.8px;
+  padding:8px 0 12px;
+}
+.settings-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:opacity 0.2s;
+}
+.settings-item:hover{opacity:0.8;}
+.settings-icon{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--bg-card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.settings-text{flex:1;}
+.settings-label{font-size:15px;font-weight:600;}
+.settings-sublabel{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.settings-arrow{color:var(--text-muted);font-size:18px;}
+
+/* ───────────── SIGN OUT BTN ───────────── */
+.signout-btn{
+  margin:24px 16px 16px;width:calc(100% - 32px);
+  padding:14px;border-radius:12px;
+  background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.25);
+  color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;
+  transition:background 0.2s;
+}
+.signout-btn:hover{background:rgba(248,113,113,0.2);}
+
+/* ───────────── RESPONSIVE FIXES ───────────── */
+@media (max-width:360px){
+  .create-options{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- ── OFFLINE BANNER ── -->
+<div id="offline-banner">📶 No internet connection — some features may not work</div>
+
+<!-- ── LOADING OVERLAY ── -->
+<div id="loading-overlay">
+  <div class="loading-logo">🔗</div>
+  <div class="loading-name">Lynkapp</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-status" id="loading-status">Connecting…</div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-logo">Lynkapp</div>
+    <div class="header-actions">
+      <div class="header-btn" onclick="navigateTo('notifications')" title="Notifications">
+        🔔
+        <div class="notif-dot" id="notif-dot"></div>
+      </div>
+      <div class="header-avatar" id="header-avatar" onclick="navigateTo('profile')">
+        <span id="header-avatar-initials">?</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREENS -->
+  <div id="screens">
+
+    <!-- ════════════════════ HOME / FEED ════════════════════ -->
+    <div class="screen active" id="screen-home">
+
+      <!-- Post teaser -->
+      <div class="post-teaser" onclick="openCompose()">
+        <div class="teaser-avatar" id="teaser-avatar">
+          <span id="teaser-initials">?</span>
+        </div>
+        <div class="teaser-placeholder">What's on your mind?</div>
+        <span class="teaser-icon">📷</span>
+      </div>
+
+      <!-- Stories bar -->
+      <div class="story-bar" id="story-bar">
+        <div class="story-add" onclick="openCompose('story')">
+          <div class="story-add-ring">➕</div>
+          <span>Add Story</span>
+        </div>
+        <!-- Stories from Firebase will inject here -->
+      </div>
+
+      <!-- Feed filter tabs -->
+      <div class="feed-tabs">
+        <div class="feed-tab active" onclick="setFeedFilter('all', this)">All</div>
+        <div class="feed-tab" onclick="setFeedFilter('following', this)">Following</div>
+        <div class="feed-tab" onclick="setFeedFilter('trending', this)">Trending</div>
+        <div class="feed-tab" onclick="setFeedFilter('nearby', this)">Nearby</div>
+      </div>
+
+      <!-- Posts list -->
+      <div id="feed-list">
+        <!-- Skeleton while loading -->
+        <div id="feed-skeleton">
+          <div class="skeleton-post">
+            <div class="skeleton-row">
+              <div class="skeleton skeleton-avatar" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
+              <div style="flex:1">
+                <div class="skeleton skeleton-line" style="width:120px;margin-bottom:6px;"></div>
+                <div class="skeleton skeleton-line" style="width:80px;height:10px;"></div>
+              </div>
+            </div>
+            <div class="skeleton skeleton-line" style="width:100%;margin-bottom:6px;"></div>
+            <div class="skeleton skeleton-line" style="width:75%;margin-bottom:10px;"></div>
+            <div class="skeleton skeleton-block"></div>
+          </div>
+          <div class="skeleton-post">
+            <div class="skeleton-row">
+              <div class="skeleton skeleton-avatar" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
+              <div style="flex:1">
+                <div class="skeleton skeleton-line" style="width:100px;margin-bottom:6px;"></div>
+                <div class="skeleton skeleton-line" style="width:70px;height:10px;"></div>
+              </div>
+            </div>
+            <div class="skeleton skeleton-line" style="width:90%;margin-bottom:6px;"></div>
+            <div class="skeleton skeleton-line" style="width:60%;"></div>
+          </div>
+        </div>
+        <!-- Posts or empty state render here -->
+      </div>
+    </div>
+
+    <!-- ════════════════════ MESSAGES ════════════════════ -->
+    <div class="screen" id="screen-messages">
+      <div class="section-header">
+        <div class="section-title">Messages</div>
+        <div class="section-action" onclick="startNewChat()">New ✏️</div>
+      </div>
+      <div class="msg-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search conversations…" id="msg-search-input"
+               oninput="searchChats(this.value)">
+      </div>
+      <div id="chats-list">
+        <div style="padding:8px 0">
+          <!-- Skeleton -->
+          <div id="chats-skeleton" style="padding:0 16px">
+            <div class="skeleton-row" style="margin:14px 0">
+              <div class="skeleton skeleton-avatar" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
+              <div style="flex:1">
+                <div class="skeleton skeleton-line" style="width:130px;margin-bottom:7px;"></div>
+                <div class="skeleton skeleton-line" style="width:200px;height:10px;"></div>
+              </div>
+            </div>
+            <div class="skeleton-row" style="margin:14px 0">
+              <div class="skeleton skeleton-avatar" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
+              <div style="flex:1">
+                <div class="skeleton skeleton-line" style="width:110px;margin-bottom:7px;"></div>
+                <div class="skeleton skeleton-line" style="width:180px;height:10px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ (CREATE — modal, no screen) ════════════════════ -->
+
+    <!-- ════════════════════ NOTIFICATIONS ════════════════════ -->
+    <div class="screen" id="screen-notifications">
+      <div class="section-header">
+        <div class="section-title">Notifications</div>
+        <div class="section-action" id="mark-all-read" onclick="markAllRead()" style="display:none">Mark all read</div>
+      </div>
+      <div id="notif-list">
+        <div id="notif-skeleton" style="padding:0 16px">
+          <div class="skeleton-row" style="margin:14px 0">
+            <div class="skeleton skeleton-avatar" style="width:46px;height:46px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1">
+              <div class="skeleton skeleton-line" style="width:90%;margin-bottom:7px;"></div>
+              <div class="skeleton skeleton-line" style="width:60px;height:10px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-row" style="margin:14px 0">
+            <div class="skeleton skeleton-avatar" style="width:46px;height:46px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1">
+              <div class="skeleton skeleton-line" style="width:80%;margin-bottom:7px;"></div>
+              <div class="skeleton skeleton-line" style="width:50px;height:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ PROFILE ════════════════════ -->
+    <div class="screen" id="screen-profile">
+      <!-- Cover photo -->
+      <div class="profile-cover" id="profile-cover">
+        <div class="profile-cover-overlay"></div>
+      </div>
+
+      <!-- Profile info -->
+      <div class="profile-info-block">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="profile-avatar-big">
+            <span id="profile-avatar-initials">?</span>
+          </div>
+          <button class="edit-profile-btn" onclick="editProfile()">Edit Profile</button>
+        </div>
+        <div class="profile-name" id="profile-display-name">Loading…</div>
+        <div class="profile-username" id="profile-username">@…</div>
+        <div class="profile-bio" id="profile-bio"></div>
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-num" id="stat-posts">—</span>
+            <span class="stat-label">Posts</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" id="stat-followers">—</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" id="stat-following">—</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile tabs -->
+      <div class="profile-tabs">
+        <div class="profile-tab active" onclick="setProfileTab('posts',this)">Posts</div>
+        <div class="profile-tab" onclick="setProfileTab('media',this)">Media</div>
+        <div class="profile-tab" onclick="setProfileTab('liked',this)">Liked</div>
+      </div>
+
+      <!-- Profile posts grid -->
+      <div id="profile-posts-container" style="padding-bottom:16px;">
+        <!-- Loaded by Firebase -->
+      </div>
+
+      <!-- Settings link -->
+      <div class="settings-list">
+        <div class="settings-section-title">Account</div>
+        <div class="settings-item" onclick="toast('Settings coming soon')">
+          <div class="settings-icon">⚙️</div>
+          <div class="settings-text">
+            <div class="settings-label">Settings & Privacy</div>
+            <div class="settings-sublabel">Manage your account</div>
+          </div>
+          <span class="settings-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="toast('Help center coming soon')">
+          <div class="settings-icon">💬</div>
+          <div class="settings-text">
+            <div class="settings-label">Help & Support</div>
+            <div class="settings-sublabel">Get help with Lynkapp</div>
+          </div>
+          <span class="settings-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="toast('About page coming soon')">
+          <div class="settings-icon">ℹ️</div>
+          <div class="settings-text">
+            <div class="settings-label">About Lynkapp</div>
+            <div class="settings-sublabel">Version 1.0.0</div>
+          </div>
+          <span class="settings-arrow">›</span>
+        </div>
+        <button class="signout-btn" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="navigateTo('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" id="nav-messages" onclick="navigateTo('messages')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Messages</span>
+      <div class="nav-badge" id="msg-badge"></div>
+    </div>
+    <div class="nav-item create-btn" onclick="openCreate()">
+      <div class="nav-icon">✚</div>
+      <span class="nav-label">Create</span>
+    </div>
+    <div class="nav-item" id="nav-notifications" onclick="navigateTo('notifications')">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Alerts</span>
+      <div class="nav-badge" id="notif-badge"></div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="navigateTo('profile')">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profile</span>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ── CREATE MODAL ── -->
+<div id="create-modal" onclick="closeCreateOnBg(event)">
+  <div class="create-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Create</div>
+    <div class="create-options">
+      <div class="create-opt" onclick="openCompose('post')">
+        <span class="create-opt-icon">📝</span>
+        <span class="create-opt-label">Post</span>
+      </div>
+      <div class="create-opt" onclick="openCompose('story')">
+        <span class="create-opt-icon">⭕</span>
+        <span class="create-opt-label">Story</span>
+      </div>
+      <div class="create-opt" onclick="toast('Video feature coming soon')">
+        <span class="create-opt-icon">🎬</span>
+        <span class="create-opt-label">Video</span>
+      </div>
+      <div class="create-opt" onclick="toast('Live feature coming soon')">
+        <span class="create-opt-icon">🔴</span>
+        <span class="create-opt-label">Go Live</span>
+      </div>
+      <div class="create-opt" onclick="toast('Poll feature coming soon')">
+        <span class="create-opt-icon">📊</span>
+        <span class="create-opt-label">Poll</span>
+      </div>
+      <div class="create-opt" onclick="toast('Event feature coming soon')">
+        <span class="create-opt-icon">📅</span>
+        <span class="create-opt-label">Event</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPOSE MODAL ── -->
+<div id="compose-modal">
+  <div class="compose-header">
+    <span class="compose-close" onclick="closeCompose()">✕</span>
+    <span style="font-size:16px;font-weight:700;" id="compose-title">New Post</span>
+    <button class="compose-post-btn" id="compose-submit-btn" onclick="submitPost()">Post</button>
+  </div>
+  <div class="compose-body">
+    <div class="compose-avatar" id="compose-avatar">
+      <span id="compose-initials">?</span>
+    </div>
+    <div class="compose-input-wrap">
+      <div class="compose-name" id="compose-display-name">You</div>
+      <textarea class="compose-textarea" id="compose-text"
+        placeholder="What's on your mind?"
+        maxlength="2000"
+        oninput="onComposeInput()"></textarea>
+      <div class="compose-media-preview" id="compose-media-preview" style="display:none">
+        <button class="remove-media" onclick="removeMedia()">✕</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none" onchange="onMediaSelected(event)">
+  <div class="compose-toolbar">
+    <span class="compose-tool" onclick="document.getElementById('media-file-input').click()" title="Add Photo/Video">🖼️</span>
+    <span class="compose-tool" onclick="toast('Emoji picker coming soon')" title="Emoji">😊</span>
+    <span class="compose-tool" onclick="toast('Tag people coming soon')" title="Tag people">👥</span>
+    <span class="compose-tool" onclick="toast('Location coming soon')" title="Add location">📍</span>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
+<!-- ──────────────────────────────────────────
+     FIREBASE SERVICES  (CDN — loaded only when
+     a valid config is present)
+──────────────────────────────────────────── -->
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════
+   GLOBAL STATE
+════════════════════════════════════════════ */
+var _currentUser   = null;  // Firebase auth user
+var _userProfile   = null;  // Firestore user doc
+var _currentTab    = 'home';
+var _currentFeed   = 'all';
+var _composeType   = 'post';
+var _mediaFile     = null;
+var _unsubFeed     = null;
+var _unsubChats    = null;
+var _unsubNotifs   = null;
+var _firebase      = null;  // {auth, db} when initialized
+var _toastTimer;
+
+/* ════════════════════════════════════════════
+   OFFLINE DETECTION
+════════════════════════════════════════════ */
+function updateOnlineStatus() {
+  var banner = document.getElementById('offline-banner');
+  if (!navigator.onLine) { banner.classList.add('show'); }
+  else                   { banner.classList.remove('show'); }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+/* ════════════════════════════════════════════
+   FIREBASE BOOT
+════════════════════════════════════════════ */
+(async function boot() {
+  setLoadingStatus('Starting up…');
+
+  var cfg = window.firebaseConfig || {};
+  var hasFirebase = !!(cfg.apiKey && cfg.projectId &&
+                       cfg.apiKey  !== 'YOUR_API_KEY' &&
+                       cfg.projectId !== 'YOUR_PROJECT_ID');
+
+  if (!hasFirebase) {
+    // No real Firebase config → show "not configured" state
+    setLoadingStatus('No Firebase config detected');
+    setTimeout(function() { showNotConfigured(); }, 800);
+    return;
+  }
+
+  try {
+    setLoadingStatus('Loading Firebase…');
+    var [appMod, authMod, dbMod] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js')
+    ]);
+
+    var app  = appMod.initializeApp(cfg);
+    var auth = authMod.getAuth(app);
+    var db   = dbMod.getFirestore(app);
+
+    _firebase = { auth, db, authMod, dbMod };
+
+    setLoadingStatus('Checking authentication…');
+
+    // Wait for auth state
+    authMod.onAuthStateChanged(auth, async function(user) {
+      if (user) {
+        _currentUser = user;
+        setLoadingStatus('Loading your profile…');
+        await loadUserProfile(user.uid);
+        hideLoading();
+        initApp();
+      } else {
+        // Not logged in → redirect to login
+        hideLoading();
+        window.location.href = 'lynkapp-login.html';
+      }
+    });
+
+  } catch (err) {
+    console.error('[Boot] Firebase failed:', err);
+    setLoadingStatus('Connection error');
+    setTimeout(function() { showBootError(err.message); }, 500);
+  }
+})();
+
+function setLoadingStatus(msg) {
+  var el = document.getElementById('loading-status');
+  if (el) el.textContent = msg;
+}
+
+function hideLoading() {
+  var el = document.getElementById('loading-overlay');
+  if (!el) return;
+  el.classList.add('hidden');
+  setTimeout(function() { el.style.display = 'none'; }, 500);
+}
+
+function showNotConfigured() {
+  hideLoading();
+  document.getElementById('screen-home').innerHTML = [
+    '<div class="empty-state">',
+    '<div class="empty-icon">🔧</div>',
+    '<div class="empty-title">Firebase Not Configured</div>',
+    '<div class="empty-desc">Add your Firebase project credentials to the <code>firebaseConfig</code> block at the top of this file to connect to live data.</div>',
+    '<button class="empty-action" onclick="window.open(\'https://console.firebase.google.com\',\'_blank\')">Open Firebase Console</button>',
+    '</div>'
+  ].join('');
+}
+
+function showBootError(msg) {
+  hideLoading();
+  document.getElementById('screen-home').innerHTML = [
+    '<div class="error-state">',
+    '<div class="error-icon">⚠️</div>',
+    '<div class="error-msg">' + (msg || 'Failed to connect') + '</div>',
+    '<button class="retry-btn" onclick="location.reload()">Retry</button>',
+    '</div>'
+  ].join('');
+}
+
+/* ════════════════════════════════════════════
+   LOAD USER PROFILE FROM FIRESTORE
+════════════════════════════════════════════ */
+async function loadUserProfile(uid) {
+  try {
+    var { doc, getDoc } = _firebase.dbMod;
+    var snap = await getDoc(doc(_firebase.db, 'users', uid));
+    if (snap.exists()) {
+      _userProfile = snap.data();
+    } else {
+      // Profile doesn't exist yet — create a minimal one
+      _userProfile = {
+        userId:      uid,
+        email:       _currentUser.email,
+        displayName: _currentUser.displayName || _currentUser.email.split('@')[0],
+        username:    '@' + _currentUser.email.split('@')[0],
+        bio:         '',
+        photoURL:    _currentUser.photoURL || null,
+        stats:       { postsCount:0, followersCount:0, followingCount:0 }
+      };
+    }
+    return _userProfile;
+  } catch (err) {
+    console.error('[loadUserProfile]', err);
+    // Fallback to Firebase auth data
+    _userProfile = {
+      userId:      uid,
+      email:       _currentUser.email,
+      displayName: _currentUser.displayName || _currentUser.email.split('@')[0],
+      username:    '@' + _currentUser.email.split('@')[0],
+      bio:         '',
+      photoURL:    _currentUser.photoURL || null,
+      stats:       { postsCount:0, followersCount:0, followingCount:0 }
+    };
+    return _userProfile;
+  }
+}
+
+/* ════════════════════════════════════════════
+   INIT APP — called once auth is confirmed
+════════════════════════════════════════════ */
+function initApp() {
+  renderUserUI();
+  loadFeed();
+  loadChats();
+  loadNotifications();
+}
+
+/* ════════════════════════════════════════════
+   RENDER USER DATA INTO UI
+════════════════════════════════════════════ */
+function renderUserUI() {
+  var p = _userProfile;
+  if (!p) return;
+
+  var name = p.displayName || p.email || 'You';
+  var initials = getInitials(name);
+  var photo    = p.photoURL || null;
+
+  // Header avatar
+  var hAvatar = document.getElementById('header-avatar');
+  var hInit   = document.getElementById('header-avatar-initials');
+  if (photo) {
+    hAvatar.innerHTML = '<img src="' + photo + '" alt="' + name + '" onerror="this.style.display=\'none\'">';
+  } else {
+    hInit.textContent = initials;
+  }
+
+  // Teaser avatar (home feed)
+  var tAvatar = document.getElementById('teaser-avatar');
+  var tInit   = document.getElementById('teaser-initials');
+  if (photo) {
+    tAvatar.innerHTML = '<img src="' + photo + '" alt="' + name + '" onerror="this.style.display=\'none\'">';
+  } else {
+    tInit.textContent = initials;
+  }
+
+  // Compose avatar
+  var cAvatar = document.getElementById('compose-avatar');
+  var cInit   = document.getElementById('compose-initials');
+  var cName   = document.getElementById('compose-display-name');
+  if (photo) {
+    cAvatar.innerHTML = '<img src="' + photo + '" alt="' + name + '" onerror="this.style.display=\'none\'">';
+  } else {
+    cInit.textContent = initials;
+  }
+  if (cName) cName.textContent = name;
+
+  // Profile screen
+  var bigAvatar = document.getElementById('profile-avatar-big');
+  var bigInit   = document.getElementById('profile-avatar-initials');
+  if (photo) {
+    bigAvatar.innerHTML = '<img src="' + photo + '" alt="' + name + '" onerror="this.style.display=\'none\'">';
+  } else {
+    bigInit.textContent = initials;
+  }
+  setEl('profile-display-name', name);
+  setEl('profile-username',     p.username || ('@' + (p.email || '').split('@')[0]));
+  setEl('profile-bio',          p.bio || '');
+
+  var stats = p.stats || {};
+  setEl('stat-posts',     fmtNum(stats.postsCount     || 0));
+  setEl('stat-followers', fmtNum(stats.followersCount || 0));
+  setEl('stat-following', fmtNum(stats.followingCount || 0));
+}
+
+/* ════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════ */
+function navigateTo(tab) {
+  if (_currentTab === tab) return;
+
+  // Deactivate old
+  var oldScreen = document.getElementById('screen-' + _currentTab);
+  var oldNav    = document.getElementById('nav-' + _currentTab);
+  if (oldScreen) oldScreen.classList.remove('active');
+  if (oldNav)    oldNav.classList.remove('active');
+
+  // Activate new
+  _currentTab = tab;
+  var newScreen = document.getElementById('screen-' + tab);
+  var newNav    = document.getElementById('nav-'    + tab);
+  if (newScreen) newScreen.classList.add('active');
+  if (newNav)    newNav.classList.add('active');
+
+  // Scroll to top
+  var screensEl = document.getElementById('screens');
+  if (screensEl) screensEl.scrollTop = 0;
+
+  // Clear notification dot when viewing notifications
+  if (tab === 'notifications') {
+    markAllRead();
+  }
+}
+
+/* ════════════════════════════════════════════
+   FEED (Firestore real-time)
+════════════════════════════════════════════ */
+function loadFeed() {
+  if (!_firebase) return;
+
+  var { collection, query, orderBy, limit, onSnapshot } = _firebase.dbMod;
+
+  // Unsubscribe from previous listener
+  if (_unsubFeed) { _unsubFeed(); _unsubFeed = null; }
+
+  try {
+    var q = query(
+      collection(_firebase.db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      limit(30)
+    );
+
+    _unsubFeed = onSnapshot(q, function(snapshot) {
+      hideSkeleton('feed-skeleton');
+
+      if (snapshot.empty) {
+        renderFeedEmpty();
+        return;
+      }
+
+      var html = '';
+      snapshot.forEach(function(docSnap) {
+        html += buildPostCard(docSnap.id, docSnap.data());
+      });
+      document.getElementById('feed-list').innerHTML = html;
+
+    }, function(err) {
+      console.error('[Feed]', err);
+      hideSkeleton('feed-skeleton');
+      document.getElementById('feed-list').innerHTML =
+        '<div class="error-state">' +
+        '<div class="error-icon">⚠️</div>' +
+        '<div class="error-msg">Could not load posts</div>' +
+        '<button class="retry-btn" onclick="loadFeed()">Retry</button>' +
+        '</div>';
+    });
+
+  } catch (err) {
+    console.error('[Feed setup]', err);
+    hideSkeleton('feed-skeleton');
+    renderFeedEmpty();
+  }
+}
+
+function renderFeedEmpty() {
+  var isNew = _userProfile && (!_userProfile.stats || _userProfile.stats.postsCount === 0);
+  document.getElementById('feed-list').innerHTML =
+    '<div class="empty-state">' +
+    '<div class="empty-icon">📭</div>' +
+    '<div class="empty-title">' + (isNew ? 'Welcome to Lynkapp!' : 'Nothing to show yet') + '</div>' +
+    '<div class="empty-desc">' +
+      (isNew
+        ? 'Share your first post to connect with people.'
+        : 'Follow more people to see their posts here.') +
+    '</div>' +
+    '<button class="empty-action" onclick="openCompose()">Create Post</button>' +
+    '</div>';
+}
+
+function buildPostCard(id, post) {
+  var name     = esc(post.authorName || 'Unknown');
+  var initials = getInitials(name);
+  var photo    = post.authorPhoto || '';
+  var time     = formatTime(post.createdAt);
+  var text     = esc(post.content || '');
+  var likes    = post.likes || 0;
+  var comments = post.comments || 0;
+  var shares   = post.shares || 0;
+  var uid      = _currentUser ? _currentUser.uid : '';
+  var liked    = post.likedBy && post.likedBy[uid] ? 'liked' : '';
+
+  var avatarHtml = photo
+    ? '<img src="' + esc(photo) + '" alt="' + name + '" onerror="this.style.display=\'none\'">'
+    : initials;
+
+  var mediaHtml = '';
+  if (post.mediaURL) {
+    if (post.mediaType === 'video') {
+      mediaHtml = '<video class="post-media" controls playsinline preload="none" src="' + esc(post.mediaURL) + '"></video>';
+    } else {
+      mediaHtml = '<img class="post-media" src="' + esc(post.mediaURL) + '" alt="Post image" loading="lazy">';
+    }
+  }
+
+  return '<div class="post-card" id="post-' + id + '">' +
+    '<div class="post-author">' +
+    '<div class="author-avatar">' + avatarHtml + '</div>' +
+    '<div class="author-info">' +
+    '<div class="author-name">' + name + '</div>' +
+    '<div class="post-time">' + time + '</div>' +
+    '</div>' +
+    '<span class="post-menu" onclick="postMenu(\'' + id + '\')">…</span>' +
+    '</div>' +
+    (text ? '<div class="post-text">' + text + '</div>' : '') +
+    mediaHtml +
+    '<div class="post-actions">' +
+    '<button class="post-action-btn ' + liked + '" onclick="toggleLike(\'' + id + '\',this)">' +
+    '<span>' + (liked ? '❤️' : '🤍') + '</span>' + fmtNum(likes) +
+    '</button>' +
+    '<button class="post-action-btn" onclick="toast(\'Comments coming soon\')">' +
+    '<span>💬</span>' + fmtNum(comments) +
+    '</button>' +
+    '<button class="post-action-btn" onclick="sharePost(\'' + id + '\')">' +
+    '<span>🔁</span>' + fmtNum(shares) +
+    '</button>' +
+    '</div>' +
+    '</div>';
+}
+
+function setFeedFilter(filter, el) {
+  _currentFeed = filter;
+  document.querySelectorAll('.feed-tab').forEach(function(t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  // Reload with filter (extend as needed)
+  loadFeed();
+}
+
+/* ════════════════════════════════════════════
+   LIKE / UNLIKE A POST
+════════════════════════════════════════════ */
+function toggleLike(postId, btn) {
+  if (!_currentUser) { toast('Sign in to like posts'); return; }
+  if (!_firebase)    return;
+
+  var { doc, updateDoc, increment, arrayUnion, arrayRemove,
+        getDoc, setDoc } = _firebase.dbMod;
+
+  var liked = btn.classList.contains('liked');
+  btn.classList.toggle('liked');
+
+  var countEl  = btn.childNodes[1];
+  var iconEl   = btn.querySelector('span');
+  var current  = parseInt(countEl.nodeValue || '0') || 0;
+
+  if (liked) {
+    iconEl.textContent = '🤍';
+    countEl.nodeValue  = ' ' + Math.max(0, current - 1);
+  } else {
+    iconEl.textContent = '❤️';
+    countEl.nodeValue  = ' ' + (current + 1);
+  }
+
+  // Update Firestore
+  var postRef = doc(_firebase.db, 'posts', postId);
+  var update  = liked
+    ? { likes: Math.max(0, current - 1), ['likedBy.' + _currentUser.uid]: false }
+    : { likes: current + 1,              ['likedBy.' + _currentUser.uid]: true  };
+
+  updateDoc(postRef, update).catch(function(e) {
+    console.error('[like]', e);
+    // Revert UI if failed
+    btn.classList.toggle('liked');
+  });
+}
+
+/* ════════════════════════════════════════════
+   SHARE POST
+════════════════════════════════════════════ */
+function sharePost(postId) {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Check out this post on Lynkapp',
+      url:   window.location.origin + '/post/' + postId
+    }).catch(function() {});
+  } else {
+    var url = window.location.origin + '/post/' + postId;
+    navigator.clipboard.writeText(url).then(function() {
+      toast('Link copied! 🔗');
+    }).catch(function() {
+      toast('Share: ' + url);
+    });
+  }
+}
+
+function postMenu(postId) {
+  toast('Post options coming soon');
+}
+
+/* ════════════════════════════════════════════
+   MESSAGES (Firestore real-time)
+════════════════════════════════════════════ */
+function loadChats() {
+  if (!_firebase || !_currentUser) return;
+
+  var { collection, query, where, orderBy, limit, onSnapshot } = _firebase.dbMod;
+
+  if (_unsubChats) { _unsubChats(); _unsubChats = null; }
+
+  try {
+    var q = query(
+      collection(_firebase.db, 'conversations'),
+      where('participants', 'array-contains', _currentUser.uid),
+      orderBy('updatedAt', 'desc'),
+      limit(30)
+    );
+
+    _unsubChats = onSnapshot(q, function(snapshot) {
+      hideSkeleton('chats-skeleton');
+
+      if (snapshot.empty) {
+        document.getElementById('chats-list').innerHTML =
+          '<div class="empty-state">' +
+          '<div class="empty-icon">💬</div>' +
+          '<div class="empty-title">No messages yet</div>' +
+          '<div class="empty-desc">Start a conversation with someone in your network.</div>' +
+          '<button class="empty-action" onclick="startNewChat()">Start a Chat</button>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      var totalUnread = 0;
+      snapshot.forEach(function(docSnap) {
+        var data = docSnap.data();
+        var unread = (data.unreadCounts && data.unreadCounts[_currentUser.uid]) || 0;
+        totalUnread += unread;
+        html += buildChatItem(docSnap.id, data, unread);
+      });
+
+      document.getElementById('chats-list').innerHTML = html;
+
+      // Update badge
+      updateNavBadge('msg-badge', totalUnread);
+
+    }, function(err) {
+      console.error('[Chats]', err);
+      hideSkeleton('chats-skeleton');
+      document.getElementById('chats-list').innerHTML =
+        '<div class="error-state">' +
+        '<div class="error-icon">⚠️</div>' +
+        '<div class="error-msg">Could not load messages</div>' +
+        '<button class="retry-btn" onclick="loadChats()">Retry</button>' +
+        '</div>';
+    });
+
+  } catch (err) {
+    console.error('[Chats setup]', err);
+    hideSkeleton('chats-skeleton');
+  }
+}
+
+function buildChatItem(id, chat, unread) {
+  var uid     = _currentUser.uid;
+  var names   = chat.participantNames || {};
+  var photos  = chat.participantPhotos || {};
+
+  // Find the other participant
+  var otherId   = (chat.participants || []).find(function(p) { return p !== uid; }) || uid;
+  var otherName = esc(names[otherId] || 'Unknown');
+  var otherPhoto = photos[otherId] || '';
+  var initials  = getInitials(otherName);
+
+  var lastMsg   = esc(chat.lastMessage || '');
+  var time      = formatTime(chat.updatedAt);
+  var isOnline  = !!(chat.onlineStatus && chat.onlineStatus[otherId]);
+
+  var avatarHtml = otherPhoto
+    ? '<img src="' + esc(otherPhoto) + '" alt="' + otherName + '" onerror="this.style.display=\'none\'">'
+    : initials;
+
+  return '<div class="chat-item" onclick="openChat(\'' + id + '\')">' +
+    '<div class="chat-avatar">' + avatarHtml +
+    (isOnline ? '<div class="online-dot"></div>' : '') +
+    '</div>' +
+    '<div class="chat-info">' +
+    '<div class="chat-name">' + otherName + '</div>' +
+    '<div class="chat-preview">' + (lastMsg || 'Tap to start chatting') + '</div>' +
+    '</div>' +
+    '<div class="chat-meta">' +
+    '<div class="chat-time">' + time + '</div>' +
+    (unread > 0 ? '<div class="unread-count">' + unread + '</div>' : '') +
+    '</div>' +
+    '</div>';
+}
+
+function openChat(id) {
+  toast('Chat screen coming soon');
+}
+
+function startNewChat() {
+  toast('Search users coming soon');
+}
+
+function searchChats(val) {
+  // Client-side filter of visible chat items
+  var items = document.querySelectorAll('.chat-item');
+  items.forEach(function(item) {
+    var name = item.querySelector('.chat-name');
+    var preview = item.querySelector('.chat-preview');
+    var text = (name ? name.textContent : '') + ' ' + (preview ? preview.textContent : '');
+    item.style.display = text.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+
+/* ════════════════════════════════════════════
+   NOTIFICATIONS (Firestore real-time)
+════════════════════════════════════════════ */
+function loadNotifications() {
+  if (!_firebase || !_currentUser) return;
+
+  var { collection, query, where, orderBy, limit, onSnapshot } = _firebase.dbMod;
+
+  if (_unsubNotifs) { _unsubNotifs(); _unsubNotifs = null; }
+
+  try {
+    var q = query(
+      collection(_firebase.db, 'notifications'),
+      where('recipientId', '==', _currentUser.uid),
+      orderBy('createdAt', 'desc'),
+      limit(30)
+    );
+
+    _unsubNotifs = onSnapshot(q, function(snapshot) {
+      hideSkeleton('notif-skeleton');
+
+      if (snapshot.empty) {
+        document.getElementById('notif-list').innerHTML =
+          '<div class="empty-state">' +
+          '<div class="empty-icon">🔔</div>' +
+          '<div class="empty-title">All caught up!</div>' +
+          '<div class="empty-desc">Notifications about likes, comments, follows and more will appear here.</div>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      var unread = 0;
+      snapshot.forEach(function(docSnap) {
+        var data = docSnap.data();
+        if (!data.read) { unread++; }
+        html += buildNotifItem(docSnap.id, data);
+      });
+
+      document.getElementById('notif-list').innerHTML = html;
+      updateNavBadge('notif-badge', unread);
+
+      var dot = document.getElementById('notif-dot');
+      if (dot) { unread > 0 ? dot.classList.add('show') : dot.classList.remove('show'); }
+
+      var markAllEl = document.getElementById('mark-all-read');
+      if (markAllEl) { markAllEl.style.display = unread > 0 ? 'block' : 'none'; }
+
+    }, function(err) {
+      console.error('[Notifs]', err);
+      hideSkeleton('notif-skeleton');
+      document.getElementById('notif-list').innerHTML =
+        '<div class="error-state">' +
+        '<div class="error-icon">⚠️</div>' +
+        '<div class="error-msg">Could not load notifications</div>' +
+        '<button class="retry-btn" onclick="loadNotifications()">Retry</button>' +
+        '</div>';
+    });
+
+  } catch (err) {
+    console.error('[Notifs setup]', err);
+    hideSkeleton('notif-skeleton');
+  }
+}
+
+function buildNotifItem(id, notif) {
+  var icon    = notifIcon(notif.type);
+  var name    = esc(notif.actorName || 'Someone');
+  var msg     = esc(notifMessage(notif.type, notif));
+  var time    = formatTime(notif.createdAt);
+  var photo   = notif.actorPhoto || '';
+  var initials = getInitials(name);
+  var unread  = !notif.read;
+
+  var avatarHtml = photo
+    ? '<img src="' + esc(photo) + '" alt="' + name + '" onerror="this.style.display=\'none\'">'
+    : initials;
+
+  return '<div class="notif-item' + (unread ? ' unread' : '') + '" onclick="markNotifRead(\'' + id + '\')">' +
+    '<div class="notif-avatar">' + avatarHtml + '</div>' +
+    '<div class="notif-body">' +
+    '<div class="notif-text"><strong>' + name + '</strong> ' + msg + '</div>' +
+    '<div class="notif-time">' + time + '</div>' +
+    '</div>' +
+    '<div class="notif-icon-badge">' + icon + '</div>' +
+    '</div>';
+}
+
+function notifIcon(type) {
+  var icons = { like:'❤️', comment:'💬', follow:'👤', share:'🔁', mention:'@', message:'📩' };
+  return icons[type] || '🔔';
+}
+
+function notifMessage(type, notif) {
+  switch (type) {
+    case 'like':    return 'liked your post';
+    case 'comment': return 'commented: ' + (notif.preview || '');
+    case 'follow':  return 'started following you';
+    case 'share':   return 'shared your post';
+    case 'mention': return 'mentioned you in a post';
+    case 'message': return 'sent you a message';
+    default:        return 'interacted with you';
+  }
+}
+
+function markNotifRead(id) {
+  if (!_firebase) return;
+  var { doc, updateDoc } = _firebase.dbMod;
+  updateDoc(doc(_firebase.db, 'notifications', id), { read: true }).catch(function(){});
+}
+
+function markAllRead() {
+  if (!_firebase || !_currentUser) return;
+  var { collection, query, where, getDocs, doc, writeBatch } = _firebase.dbMod;
+  var q = query(
+    collection(_firebase.db, 'notifications'),
+    where('recipientId', '==', _currentUser.uid),
+    where('read', '==', false)
+  );
+  getDocs(q).then(function(snap) {
+    if (snap.empty) return;
+    var batch = writeBatch(_firebase.db);
+    snap.forEach(function(d) {
+      batch.update(doc(_firebase.db, 'notifications', d.id), { read: true });
+    });
+    return batch.commit();
+  }).catch(function(e) { console.error('[markAllRead]', e); });
+}
+
+/* ════════════════════════════════════════════
+   PROFILE TABS
+════════════════════════════════════════════ */
+function setProfileTab(tab, el) {
+  document.querySelectorAll('.profile-tab').forEach(function(t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+
+  if (tab === 'posts' || tab === 'media') {
+    loadProfilePosts(tab);
+  } else {
+    loadLikedPosts();
+  }
+}
+
+function loadProfilePosts(tab) {
+  if (!_firebase || !_currentUser) return;
+  var { collection, query, where, orderBy, limit, getDocs } = _firebase.dbMod;
+
+  var container = document.getElementById('profile-posts-container');
+  container.innerHTML = '<div style="padding:32px;text-align:center"><div class="loading-spinner" style="margin:0 auto"></div></div>';
+
+  var q = query(
+    collection(_firebase.db, 'posts'),
+    where('authorId', '==', _currentUser.uid),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
+
+  getDocs(q).then(function(snap) {
+    if (snap.empty) {
+      container.innerHTML =
+        '<div class="empty-state">' +
+        '<div class="empty-icon">' + (tab === 'media' ? '🖼️' : '📝') + '</div>' +
+        '<div class="empty-title">No ' + tab + ' yet</div>' +
+        '<div class="empty-desc">Share your first post and it will appear here.</div>' +
+        '<button class="empty-action" onclick="openCompose()">Create Post</button>' +
+        '</div>';
+      return;
+    }
+
+    // Filter for media tab
+    var posts = [];
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (tab === 'media' && !data.mediaURL) return;
+      posts.push({ id: d.id, data: data });
+    });
+
+    if (posts.length === 0) {
+      container.innerHTML =
+        '<div class="empty-state">' +
+        '<div class="empty-icon">🖼️</div>' +
+        '<div class="empty-title">No media yet</div>' +
+        '<div class="empty-desc">Posts with photos and videos will appear here.</div>' +
+        '</div>';
+      return;
+    }
+
+    if (tab === 'media') {
+      // Grid layout
+      var grid = '<div class="profile-posts-grid">';
+      posts.forEach(function(p) {
+        var thumb = p.data.mediaURL || '';
+        grid += '<div class="grid-post" onclick="toast(\'Post detail coming soon\')">' +
+          (thumb ? '<img src="' + esc(thumb) + '" alt="Post" loading="lazy">' :
+            '<div style="width:100%;height:100%;background:rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;font-size:24px">📷</div>') +
+          '</div>';
+      });
+      grid += '</div>';
+      container.innerHTML = grid;
+    } else {
+      // List layout
+      var html = '';
+      posts.forEach(function(p) { html += buildPostCard(p.id, p.data); });
+      container.innerHTML = html;
+    }
+
+  }).catch(function(err) {
+    console.error('[profilePosts]', err);
+    container.innerHTML =
+      '<div class="error-state">' +
+      '<div class="error-icon">⚠️</div>' +
+      '<div class="error-msg">Could not load posts</div>' +
+      '<button class="retry-btn" onclick="loadProfilePosts(\'' + tab + '\')">Retry</button>' +
+      '</div>';
+  });
+}
+
+function loadLikedPosts() {
+  var container = document.getElementById('profile-posts-container');
+  container.innerHTML =
+    '<div class="empty-state">' +
+    '<div class="empty-icon">❤️</div>' +
+    '<div class="empty-title">No liked posts yet</div>' +
+    '<div class="empty-desc">Posts you like will appear here.</div>' +
+    '</div>';
+}
+
+function editProfile() {
+  toast('Profile editor coming soon');
+}
+
+/* ════════════════════════════════════════════
+   CREATE / COMPOSE
+════════════════════════════════════════════ */
+function openCreate() {
+  document.getElementById('create-modal').classList.add('open');
+}
+
+function closeCreateOnBg(e) {
+  if (e.target === document.getElementById('create-modal')) {
+    document.getElementById('create-modal').classList.remove('open');
+  }
+}
+
+function openCompose(type) {
+  document.getElementById('create-modal').classList.remove('open');
+  _composeType = type || 'post';
+  _mediaFile   = null;
+
+  var title = { post:'New Post', story:'New Story', video:'New Video' };
+  setEl('compose-title', title[_composeType] || 'New Post');
+  document.getElementById('compose-text').value = '';
+  document.getElementById('compose-media-preview').style.display = 'none';
+  document.getElementById('compose-submit-btn').classList.remove('ready');
+
+  document.getElementById('compose-modal').classList.add('open');
+  setTimeout(function() {
+    document.getElementById('compose-text').focus();
+  }, 300);
+}
+
+function closeCompose() {
+  document.getElementById('compose-modal').classList.remove('open');
+  _mediaFile = null;
+}
+
+function onComposeInput() {
+  var text = document.getElementById('compose-text').value.trim();
+  var btn  = document.getElementById('compose-submit-btn');
+  if (text.length > 0 || _mediaFile) {
+    btn.classList.add('ready');
+  } else {
+    btn.classList.remove('ready');
+  }
+}
+
+function onMediaSelected(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+
+  // Validate size (50MB max)
+  if (file.size > 50 * 1024 * 1024) {
+    toast('File too large. Max 50MB.');
+    return;
+  }
+
+  _mediaFile = file;
+  var preview = document.getElementById('compose-media-preview');
+  var reader  = new FileReader();
+  reader.onload = function(ev) {
+    preview.innerHTML = '<button class="remove-media" onclick="removeMedia()">✕</button>';
+    if (file.type.startsWith('video')) {
+      preview.innerHTML += '<video src="' + ev.target.result + '" controls playsinline style="width:100%;border-radius:12px;max-height:300px;"></video>';
+    } else {
+      preview.innerHTML += '<img src="' + ev.target.result + '" alt="Preview" style="width:100%;border-radius:12px;max-height:300px;object-fit:cover;">';
+    }
+    preview.style.display = 'block';
+    document.getElementById('compose-submit-btn').classList.add('ready');
+  };
+  reader.readAsDataURL(file);
+  // Reset input so same file can be re-selected
+  e.target.value = '';
+}
+
+function removeMedia() {
+  _mediaFile = null;
+  document.getElementById('compose-media-preview').style.display = 'none';
+  onComposeInput();
+}
+
+async function submitPost() {
+  var btn  = document.getElementById('compose-submit-btn');
+  if (!btn.classList.contains('ready')) { toast('Write something first'); return; }
+  if (!_firebase || !_currentUser)      { toast('Not logged in'); return; }
+
+  var text = document.getElementById('compose-text').value.trim();
+  if (!text && !_mediaFile)            { toast('Write something or add media'); return; }
+
+  btn.textContent = 'Posting…';
+  btn.style.opacity = '0.7';
+
+  try {
+    var mediaURL  = null;
+    var mediaType = null;
+
+    // Upload media if present (requires Firebase Storage to be set up)
+    if (_mediaFile) {
+      toast('Uploading media… ⏳');
+      try {
+        var storageModule = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js');
+        var { getStorage, ref, uploadBytes, getDownloadURL } = storageModule;
+        var storage  = getStorage();
+        var ext      = _mediaFile.name.split('.').pop();
+        var path     = 'posts/' + _currentUser.uid + '/' + Date.now() + '.' + ext;
+        var storRef  = ref(storage, path);
+        var snap     = await uploadBytes(storRef, _mediaFile);
+        mediaURL     = await getDownloadURL(snap.ref);
+        mediaType    = _mediaFile.type.startsWith('video') ? 'video' : 'image';
+      } catch (uploadErr) {
+        console.error('[upload]', uploadErr);
+        toast('Media upload failed — posting without media');
+      }
+    }
+
+    var { collection, addDoc, serverTimestamp } = _firebase.dbMod;
+
+    var postData = {
+      authorId:    _currentUser.uid,
+      authorName:  _userProfile ? (_userProfile.displayName || _currentUser.email) : _currentUser.email,
+      authorPhoto: _userProfile ? (_userProfile.photoURL || null) : null,
+      content:     text,
+      mediaURL:    mediaURL,
+      mediaType:   mediaType,
+      likes:       0,
+      comments:    0,
+      shares:      0,
+      likedBy:     {},
+      type:        _composeType,
+      createdAt:   serverTimestamp()
+    };
+
+    await addDoc(collection(_firebase.db, 'posts'), postData);
+
+    // Update user stats
+    if (_userProfile) {
+      var { doc, updateDoc, increment } = _firebase.dbMod;
+      updateDoc(doc(_firebase.db, 'users', _currentUser.uid), {
+        'stats.postsCount': (_firebase.dbMod.increment || function(n){return n;})(1)
+      }).catch(function(){});
+    }
+
+    toast('Posted! 🎉');
+    closeCompose();
+
+    // Navigate home to see the new post
+    navigateTo('home');
+
+  } catch (err) {
+    console.error('[submitPost]', err);
+    toast('Failed to post. Try again.');
+  } finally {
+    btn.textContent = 'Post';
+    btn.style.opacity = '';
+  }
+}
+
+/* ════════════════════════════════════════════
+   SIGN OUT
+════════════════════════════════════════════ */
+function signOut() {
+  if (!_firebase) { window.location.href = 'lynkapp-login.html'; return; }
+
+  // Unsubscribe all real-time listeners
+  if (_unsubFeed)   { _unsubFeed();   _unsubFeed   = null; }
+  if (_unsubChats)  { _unsubChats();  _unsubChats  = null; }
+  if (_unsubNotifs) { _unsubNotifs(); _unsubNotifs = null; }
+
+  _firebase.authMod.signOut(_firebase.auth).then(function() {
+    window.location.href = 'lynkapp-login.html';
+  }).catch(function() {
+    window.location.href = 'lynkapp-login.html';
+  });
+}
+
+/* ════════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════════ */
+function getInitials(name) {
+  if (!name) return '?';
+  var parts = String(name).trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return String(name).slice(0,2).toUpperCase();
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  var date;
+  if (ts && ts.toDate) { date = ts.toDate(); }
+  else if (ts && ts.seconds) { date = new Date(ts.seconds * 1000); }
+  else { date = new Date(ts); }
+  if (isNaN(date.getTime())) return '';
+
+  var now  = Date.now();
+  var diff = now - date.getTime();
+  if (diff < 60000)   return 'Just now';
+  if (diff < 3600000) return Math.floor(diff / 60000)  + 'm ago';
+  if (diff < 86400000)return Math.floor(diff / 3600000) + 'h ago';
+  if (diff < 604800000)return Math.floor(diff/86400000) + 'd ago';
+  return date.toLocaleDateString();
+}
+
+function fmtNum(n) {
+  n = parseInt(n) || 0;
+  if (n >= 1000000) return (n/1000000).toFixed(1).replace('.0','') + 'M';
+  if (n >= 1000)    return (n/1000).toFixed(1).replace('.0','') + 'K';
+  return String(n);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function setEl(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val || '';
+}
+
+function hideSkeleton(id) {
+  var el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function updateNavBadge(id, count) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent = count > 99 ? '99+' : count;
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+/* ── TOAST ── */
+function toast(msg) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+/* ── Back button / history ── */
+window.addEventListener('popstate', function() {
+  if (_currentTab !== 'home') { navigateTo('home'); }
+});
+
+/* ── Prevent double-tap zoom on buttons ── */
+document.addEventListener('dblclick', function(e) {
+  e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
