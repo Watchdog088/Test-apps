@@ -277,6 +277,8 @@
       <div class="more-item" onclick="closeMoreDrawer();openScreen('saved')"><div class="more-item-icon">💾</div><span class="more-item-text">Saved</span></div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('notifications')"><div class="more-item-icon">🔔</div><span class="more-item-text">Notifications</span></div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('premium')"><div class="more-item-icon">⭐</div><span class="more-item-text">Premium</span></div>
+      <!-- AR/VR shortcut — accessible via Premium per rec #17 -->
+      <div class="more-item arvr-premium-shortcut" onclick="closeMoreDrawer();openScreen('arVr')" style="background:linear-gradient(135deg,rgba(90,30,200,.12),rgba(0,180,255,.12));border-left:3px solid #a855f7;margin-left:8px;border-radius:0 8px 8px 0"><div class="more-item-icon">🌐</div><span class="more-item-text" style="font-size:12px;color:#a855f7">AR &amp; VR <span style="font-size:10px;background:#a855f7;color:#fff;padding:1px 5px;border-radius:9px;margin-left:4px">⭐ Premium</span></span></div>
       <div class="more-divider"></div>
       <div class="more-section-label">Create &amp; Earn</div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('creatorProfile')"><div class="more-item-icon">🎨</div><span class="more-item-text">Creator Studio</span></div>
@@ -287,7 +289,7 @@
       <div class="more-item" onclick="closeMoreDrawer();openScreen('musicPlayer')"><div class="more-item-icon">🎵</div><span class="more-item-text">Music Player</span></div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('gaming')"><div class="more-item-icon">🎮</div><span class="more-item-text">Gaming Hub</span></div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('mediaHub')"><div class="more-item-icon">🎬</div><span class="more-item-text">Media Hub</span></div>
-      <div class="more-item" onclick="closeMoreDrawer();openScreen('arVr')"><div class="more-item-icon">🌐</div><span class="more-item-text">AR / VR</span></div>
+      
       <div class="more-divider"></div>
       <div class="more-section-label">Account</div>
       <div class="more-item" onclick="closeMoreDrawer();openScreen('settings')"><div class="more-item-icon">⚙️</div><span class="more-item-text">Settings</span></div>
@@ -321,7 +323,7 @@
                       display:inline-flex;align-items:center;justify-content:center;
                       padding:0 3px;line-height:1;">0</span>
                 </div>
-                    <div class="nav-btn" onclick="openMoreDrawer()" title="More">☰</div>
+                    <div class="nav-btn" onclick="openMoreDrawer()" title="More"><button class="nav-btn ar-camera-btn" id="arCameraBtn" onclick="openArCamera()" title="AR Filters &amp; Camera" aria-label="AR Camera" style="font-size:18px;background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px">📷</button>☰</div>
                 </div>
             </div>
             
@@ -9799,6 +9801,20 @@ function setFeedFilter(el, filter) {
 })();
 </script>
 
+
+<script>
+/* AR Camera / Premium gate — rec #17 */
+function openArCamera() {
+  try {
+    // In production: check isPremiumUser() before opening
+    if (typeof openScreen === 'function') {
+      openScreen('arVr');
+    } else {
+      console.warn('openScreen not available yet');
+    }
+  } catch(e) { console.warn('openArCamera error:', e); }
+}
+</script>
 </body>
 </html>
 
