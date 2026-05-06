@@ -1,22 +1,22 @@
 {
   "name": "LynkApp",
   "version": "2.5.1",
-  "buildDate": "2026-04-01T20:07:45.221Z",
+  "buildDate": "2026-05-05T19:11:29.045Z",
   "files": {
     "html": {
-      "original": 553263,
-      "minified": 553263
+      "original": 553358,
+      "minified": 553358
     },
     "css": {
       "original": 53921,
       "minified": 27671
     },
     "js": {
-      "original": 651152,
-      "minified": 468831
+      "original": 651540,
+      "minified": 466139
     }
   },
-  "totalOriginal": 1258336,
-  "totalMinified": 1049765,
-  "reductionPercent": "16.6"
+  "totalOriginal": 1258819,
+  "totalMinified": 1047168,
+  "reductionPercent": "16.8"
 }

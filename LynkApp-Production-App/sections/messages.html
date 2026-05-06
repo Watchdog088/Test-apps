@@ -1,0 +1,48 @@
+<div id="messages-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">💬 Messages</div>
+                    <div class="section-link" onclick="openModal('newMessage')">+ New</div>
+                </div>
+
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search messages..." />
+                </div>
+
+                <div class="message-list">
+                    <div class="message-item" onclick="openModal('chatWindow')">
+                        <div class="message-avatar">👤</div>
+                        <div class="message-content">
+                            <div class="message-name">[User Name]</div>
+                            <div class="message-preview">[Message Content]</div>
+                        </div>
+                        <div>
+                            <div class="message-time">2m</div>
+                            <div class="message-unread">3</div>
+                        </div>
+                    </div>
+
+                    <div class="message-item" onclick="openModal('chatWindow')">
+                        <div class="message-avatar">😊</div>
+                        <div class="message-content">
+                            <div class="message-name">[User Name]</div>
+                            <div class="message-preview">[Message Content]</div>
+                        </div>
+                        <div>
+                            <div class="message-time">1h</div>
+                        </div>
+                    </div>
+
+                    <div class="message-item" onclick="openModal('chatWindow')">
+                        <div class="message-avatar">🎨</div>
+                        <div class="message-content">
+                            <div class="message-name">[User Name]</div>
+                            <div class="message-preview">[Message Content]</div>
+                        </div>
+                        <div>
+                            <div class="message-time">3h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>

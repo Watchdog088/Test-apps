@@ -1,0 +1,37 @@
+<div id="profile-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="profile-header">
+                    <div class="profile-avatar-large">👤</div>
+                    <div class="profile-name">[Current User]</div>
+                    <div class="profile-bio">Tech enthusiast | Traveler | Coffee lover ☕</div>
+                    <div class="profile-stats">
+                        <div class="profile-stat" onclick="openModal('friendsList')">
+                            <div class="profile-stat-value">234</div>
+                            <div class="profile-stat-label">Friends</div>
+                        </div>
+                        <div class="profile-stat" onclick="openModal('followersList')">
+                            <div class="profile-stat-value">1.2K</div>
+                            <div class="profile-stat-label">Followers</div>
+                        </div>
+                        <div class="profile-stat" onclick="openModal('followingList')">
+                            <div class="profile-stat-value">456</div>
+                            <div class="profile-stat-label">Following</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 12px;">
+                        <button class="btn" onclick="openModal('editProfile')" style="flex: 1;">Edit Profile</button>
+                        <button class="btn" onclick="shareProfile()" style="flex: 1;">Share Profile</button>
+                    </div>
+                </div>
+
+                <div class="section-header" style="cursor: pointer;" onclick="openModal('allPosts')">
+                    <div class="section-title">Recent Posts</div>
+                    <div class="section-link" onclick="event.stopPropagation(); openModal('allPosts')">See All</div>
+                </div>
+
+                <div class="post-card" style="cursor: pointer;" onclick="openModal('allPosts')">
+                    <div class="post-content">Great day at the beach! 🏖️</div>
+                    <div class="post-image">🏖️</div>
+                    <div class="post-meta">Yesterday at 3:24 PM</div>
+                </div>
+            </div>

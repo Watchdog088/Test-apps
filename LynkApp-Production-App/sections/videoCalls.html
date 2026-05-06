@@ -1,0 +1,58 @@
+<div id="videoCalls-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">📹 Video Calls</div>
+                    <div class="section-link" onclick="openScreen('media')">← Back</div>
+                </div>
+
+                <!-- Start Call -->
+                <div class="card">
+                    <button class="btn" onclick="openModal('selectContactForCall')" style="margin-bottom: 12px;">📹 Start Video Call</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('selectContactForVoiceCall')">📞 Start Voice Call</button>
+                </div>
+
+                <!-- Call Features -->
+                <div class="section-header">
+                    <div class="section-title">Features</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" style="background: var(--glass);" onclick="window.videoCalls.toggleScreenShare()">🖥️ Screen Share</button>
+                    <button class="btn" style="background: var(--glass);" onclick="window.videoCalls.toggleCallRecording()">🔴 Recording</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('addCallParticipant')">👥 Add People</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('virtualBackgrounds')">🎨 Background</button>
+                    <button class="btn" style="background: var(--glass);" onclick="window.videoCalls.viewCallHistory()">📋 History</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('scheduleVideoCall')">📅 Schedule</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('deviceSettings')">⚙️ Devices</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('audioSettings')">🎧 Audio</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('callQualityMonitor')">📊 Quality</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('recordingsLibrary')">📹 Recordings</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('waitingRoom')">🚪 Waiting Room</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('scheduledCallsList')">📆 Scheduled</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('groupCallSettings')">👥 Group Calls</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('callAnalytics')">📈 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('callSettings')">🔧 Settings</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('networkQuality')">📡 Network</button>
+                </div>
+
+                <!-- Call History -->
+                <div class="section-header">
+                    <div class="section-title">Recent Calls</div>
+                </div>
+                <div class="list-item" onclick="openModal('callDetails')">
+                    <div class="list-item-icon">📹</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">[User Name]</div>
+                        <div class="list-item-subtitle">Video Call • 0 minutes</div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Just now</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('callDetails')">
+                    <div class="list-item-icon">📞</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">[User Name]</div>
+                        <div class="list-item-subtitle">Voice Call • 0 minutes</div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Just now</div>
+                </div>
+            </div>

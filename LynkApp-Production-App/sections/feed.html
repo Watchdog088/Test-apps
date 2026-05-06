@@ -1,0 +1,77 @@
+<div id="feed-section-inner">
+    <!-- Create Post Card -->
+    <div class="card" id="createPostCard" style="margin-bottom:12px;cursor:pointer;">
+        <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
+            <div class="post-avatar" id="feedCurrentUserAvatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
+            <div class="create-post-input" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:10px 16px;color:rgba(255,255,255,0.5);font-size:14px;" onclick="openCreatePost()">What's on your mind?</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+            <button style="flex:1;background:none;border:none;color:rgba(255,255,255,0.6);font-size:13px;padding:6px;border-radius:8px;cursor:pointer;" onclick="openCreatePost('photo')">📷 Photo</button>
+            <button style="flex:1;background:none;border:none;color:rgba(255,255,255,0.6);font-size:13px;padding:6px;border-radius:8px;cursor:pointer;" onclick="openCreatePost('video')">🎥 Video</button>
+            <button style="flex:1;background:none;border:none;color:rgba(255,255,255,0.6);font-size:13px;padding:6px;border-radius:8px;cursor:pointer;" onclick="openCreatePost('feeling')">😊 Feeling</button>
+        </div>
+    </div>
+
+    <!-- Feed Filter Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;">
+        <button class="feed-filter-btn active" data-filter="all" style="background:rgba(79,70,229,0.3);border:1px solid rgba(79,70,229,0.5);color:white;padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;" onclick="filterFeed(this,'all')">🏠 All</button>
+        <button class="feed-filter-btn" data-filter="friends" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;" onclick="filterFeed(this,'friends')">👥 Friends</button>
+        <button class="feed-filter-btn" data-filter="trending" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;" onclick="filterFeed(this,'trending')">🔥 Trending</button>
+        <button class="feed-filter-btn" data-filter="nearby" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;" onclick="filterFeed(this,'nearby')">📍 Nearby</button>
+    </div>
+
+    <!-- Posts List — populated by FeedService.loadPosts() -->
+    <div id="feedPostsList">
+        <div class="loading-skeleton" style="padding:40px;text-align:center;color:rgba(255,255,255,0.4);">
+            <div style="font-size:24px;margin-bottom:8px;">⟳</div>
+            Loading your feed…
+        </div>
+    </div>
+</div>
+
+<script>
+// Feed section initialization — runs when section is lazy-loaded
+(function initFeedSection() {
+    // Load posts when this section becomes active
+    if (window.FeedService && typeof window.FeedService.loadPosts === 'function') {
+        window.FeedService.loadPosts();
+    } else {
+        // FeedService not ready yet — show demo content
+        const list = document.getElementById('feedPostsList');
+        if (list) {
+            list.innerHTML = [
+                '<div class="card" style="margin-bottom:12px;">',
+                '  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">',
+                '    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:18px;">😊</div>',
+                '    <div>',
+                '      <div style="font-weight:600;font-size:14px;color:white;">Alex Johnson</div>',
+                '      <div style="font-size:12px;color:rgba(255,255,255,0.5);">2 hours ago • 🌍 Public</div>',
+                '    </div>',
+                '  </div>',
+                '  <div style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.5;margin-bottom:12px;">Just finished an amazing hike! The views were breathtaking 🏔️ Who else loves getting outdoors?</div>',
+                '  <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">👍 42 Likes</span>',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">💬 7 Comments</span>',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">🔄 Share</span>',
+                '  </div>',
+                '</div>',
+                '<div class="card" style="margin-bottom:12px;">',
+                '  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">',
+                '    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#10b981,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:18px;">🎨</div>',
+                '    <div>',
+                '      <div style="font-weight:600;font-size:14px;color:white;">Maria Garcia</div>',
+                '      <div style="font-size:12px;color:rgba(255,255,255,0.5);">5 hours ago • 👥 Friends</div>',
+                '    </div>',
+                '  </div>',
+                '  <div style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.5;margin-bottom:12px;">New artwork finished! What do you all think? 🎭 Been working on this for weeks.</div>',
+                '  <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">👍 128 Likes</span>',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">💬 23 Comments</span>',
+                '    <span style="color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;">🔄 Share</span>',
+                '  </div>',
+                '</div>',
+            ].join('');
+        }
+    }
+})();
+</script>

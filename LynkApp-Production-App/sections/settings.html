@@ -1,0 +1,245 @@
+<div id="settings-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">⚙️ Settings</div>
+                </div>
+
+                <!-- Account Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">ACCOUNT</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('editPersonalInfo')">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Edit Personal Info</div>
+                        <div class="list-item-subtitle">Name, email, phone</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showChangePasswordModal()">
+                    <div class="list-item-icon">🔒</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Change Password</div>
+                        <div class="list-item-subtitle">Update your password</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showChangeEmailModal()">
+                    <div class="list-item-icon">📧</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Change Email</div>
+                        <div class="list-item-subtitle">Update email address with verification</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showTwoFactorSetup()">
+                    <div class="list-item-icon">🛡️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Two-Factor Authentication</div>
+                        <div class="list-item-subtitle">Extra security for your account</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showDeviceManagement()">
+                    <div class="list-item-icon">📱</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Manage Login Devices</div>
+                        <div class="list-item-subtitle">View and remove devices</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showSessionManagement()">
+                    <div class="list-item-icon">🔐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Active Sessions</div>
+                        <div class="list-item-subtitle">Manage active login sessions</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Privacy Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">PRIVACY</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('privacySettings')">
+                    <div class="list-item-icon">🔐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Privacy Settings</div>
+                        <div class="list-item-subtitle">Who can see your content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showPrivacyEnforcement()">
+                    <div class="list-item-icon">👁️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Privacy Enforcement</div>
+                        <div class="list-item-subtitle">Last seen, read receipts</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showBlockedUsers()">
+                    <div class="list-item-icon">🚫</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Blocked Users</div>
+                        <div class="list-item-subtitle">Manage blocked accounts</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Data & Download Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">DATA & DOWNLOAD</div>
+                </div>
+
+                <div class="list-item" onclick="showDataExport()">
+                    <div class="list-item-icon">💾</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Data Export</div>
+                        <div class="list-item-subtitle">Download your data</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showAccountDeactivation()">
+                    <div class="list-item-icon">⏸️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Deactivate Account</div>
+                        <div class="list-item-subtitle">Temporarily disable your account</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showAccountDeletion()">
+                    <div class="list-item-icon">🗑️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Delete Account</div>
+                        <div class="list-item-subtitle">Permanently delete your account</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">PREFERENCES</div>
+                </div>
+
+                <div class="list-item" onclick="showLanguageSettings()">
+                    <div class="list-item-icon">🌍</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Language</div>
+                        <div class="list-item-subtitle">English</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showTimezoneSettings()">
+                    <div class="list-item-icon">🕐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Timezone</div>
+                        <div class="list-item-subtitle">America/New_York</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">NOTIFICATIONS</div>
+                </div>
+
+                <div class="list-item" onclick="showNotificationSettings()">
+                    <div class="list-item-icon">🔔</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Notification Settings</div>
+                        <div class="list-item-subtitle">Manage all notifications</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">Push Notifications</div>
+                        <div class="list-item-subtitle">Get notified about activity</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <div>
+                        <div class="list-item-title">In-App Notifications</div>
+                        <div class="list-item-subtitle">Show notification banners</div>
+                    </div>
+                    <div class="toggle-switch active" id="inAppNotificationsToggle" onclick="toggleInAppNotifications(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="openModal('emailPreferences')">
+                    <div class="list-item-icon">📧</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Email Preferences</div>
+                        <div class="list-item-subtitle">Manage email notifications</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Security Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">SECURITY</div>
+                </div>
+
+                <div class="list-item" onclick="showLoginHistory()">
+                    <div class="list-item-icon">📋</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Login History</div>
+                        <div class="list-item-subtitle">View recent login activity</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="showSecurityAlerts()">
+                    <div class="list-item-icon">⚠️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Security Alerts</div>
+                        <div class="list-item-subtitle">Recent security notifications</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- About Section -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <div class="section-title" style="font-size: 14px; color: var(--text-secondary);">ABOUT</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('aboutLynkApp')">
+                    <div class="list-item-icon">ℹ️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">About LynkApp</div>
+                        <div class="list-item-subtitle">Version 2.5.1</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('termsOfService')">
+                    <div class="list-item-icon">📄</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Terms of Service</div>
+                        <div class="list-item-subtitle">Legal information</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <button class="btn" style="margin-top: 20px; background: var(--error);">
+                    Logout
+                </button>
+            </div>

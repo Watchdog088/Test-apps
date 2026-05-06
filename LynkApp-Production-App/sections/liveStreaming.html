@@ -1,0 +1,80 @@
+<div id="liveStreaming-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🔴 Live Streaming</div>
+                    <div class="section-link" onclick="openScreen('media')">← Back</div>
+                </div>
+
+                <!-- Stream Control Panel -->
+                <div class="card">
+                    <div class="section-title" style="margin-bottom: 16px;">Stream Control</div>
+                    <button class="btn" onclick="openModal('setupLiveStream')" style="margin-bottom: 12px;">🔴 Start New Stream</button>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <button class="btn" style="background: var(--glass);" onclick="window.liveStreaming.requestCameraAccess()">📷 Camera</button>
+                        <button class="btn" style="background: var(--glass);" onclick="window.liveStreaming.requestMicrophoneAccess()">🎤 Microphone</button>
+                        <button class="btn" style="background: var(--glass);" onclick="window.liveStreaming.showStreamPreview()">👁️ Preview</button>
+                        <button class="btn" style="background: var(--glass);" onclick="openModal('streamQualitySettings')">⚙️ Quality</button>
+                    </div>
+                </div>
+
+                <!-- Stream Features -->
+                <div class="section-header">
+                    <div class="section-title">Features</div>
+                </div>
+                <div class="list-item" onclick="openModal('streamRecording')">
+                    <div class="list-item-icon">🔴</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Auto-Recording</div>
+                        <div class="list-item-subtitle">Save your streams</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="event.stopPropagation(); window.liveStreaming.toggleStreamRecording()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="openModal('streamDonations')">
+                    <div class="list-item-icon">💰</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Donations & Tips</div>
+                        <div class="list-item-subtitle">Enable viewer support</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('streamModerators')">
+                    <div class="list-item-icon">🛡️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Moderators</div>
+                        <div class="list-item-subtitle">Manage stream moderators</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.liveStreaming.viewStreamAnalytics()">
+                    <div class="list-item-icon">📊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Stream Analytics</div>
+                        <div class="list-item-subtitle">View performance</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('scheduleStream')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Schedule Stream</div>
+                        <div class="list-item-subtitle">Plan future broadcasts</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('multiStream')">
+                    <div class="list-item-icon">🌐</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Multi-Stream</div>
+                        <div class="list-item-subtitle">Broadcast to multiple platforms</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>

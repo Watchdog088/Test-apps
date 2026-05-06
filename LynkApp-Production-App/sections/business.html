@@ -1,0 +1,247 @@
+<div id="business-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🏢 Business Profile</div>
+                    <div class="section-link" onclick="openModal('businessSettings')">Settings</div>
+                </div>
+
+                <!-- Business Profile Header -->
+                <div class="card" style="text-align: center; padding: 24px;">
+                    <div style="width: 100px; height: 100px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border);">
+                        🏢
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        Tech Solutions Inc.
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Verified Business">✓</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Technology & Consulting</div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">📍 123 Market St, San Francisco, CA</div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value">4.8★</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">2.4K</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">15K</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">892</div>
+                            <div class="stat-label">Customers</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px;" onclick="openModal('editBusinessProfile')">✏️ Edit</button>
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: var(--glass);" onclick="shareBusinessProfile()">📤 Share</button>
+                    </div>
+                </div>
+
+                <!-- Business Hours -->
+                <div class="section-header">
+                    <div class="section-title">🕐 Business Hours</div>
+                    <div class="section-link" onclick="openModal('editBusinessHours')">Edit</div>
+                </div>
+                <div class="card">
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Monday - Friday</div>
+                            <div class="list-item-subtitle">9:00 AM - 6:00 PM</div>
+                        </div>
+                        <div style="padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success);">OPEN</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Saturday</div>
+                            <div class="list-item-subtitle">10:00 AM - 4:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="openModal('businessHoursDetails')">
+                        <div class="list-item-icon">📅</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Sunday</div>
+                            <div class="list-item-subtitle">Closed</div>
+                        </div>
+                    </div>
+                    <div class="toggle-container" style="margin-top: 12px;">
+                        <div>
+                            <div class="list-item-title">Holiday Hours</div>
+                            <div class="list-item-subtitle">Special holiday schedule</div>
+                        </div>
+                        <div class="list-item-arrow" onclick="openModal('holidayHours')">→</div>
+                    </div>
+                </div>
+
+                <!-- Location & Contact -->
+                <div class="section-header">
+                    <div class="section-title">📍 Location & Contact</div>
+                    <div class="section-link" onclick="openModal('editLocation')">Edit</div>
+                </div>
+                <div class="card">
+                    <div class="list-item" onclick="openModal('viewMap')">
+                        <div class="list-item-icon">📍</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Address</div>
+                            <div class="list-item-subtitle">123 Market St, San Francisco, CA 94103</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="callBusiness()">
+                        <div class="list-item-icon">📞</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Phone</div>
+                            <div class="list-item-subtitle">(415) 555-0123</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="emailBusiness()">
+                        <div class="list-item-icon">📧</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Email</div>
+                            <div class="list-item-subtitle">contact@techsolutions.com</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="visitWebsite()">
+                        <div class="list-item-icon">🌐</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Website</div>
+                            <div class="list-item-subtitle">www.techsolutions.com</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                    <div class="list-item" onclick="openModal('socialMediaLinks')">
+                        <div class="list-item-icon">🔗</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Social Media</div>
+                            <div class="list-item-subtitle">5 connected platforms</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                </div>
+
+                <!-- Products & Services -->
+                <div class="section-header">
+                    <div class="section-title">💼 Products & Services</div>
+                    <div class="section-link" onclick="openModal('manageProductsServices')">Manage</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Web Development')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">💻</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Web Development</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$5,000+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Mobile Apps')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">📱</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Mobile Apps</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$8,000+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'Cloud Solutions')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">☁️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Cloud Solutions</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$3,500+</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">From</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('serviceDetails', 'IT Consulting')">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🎯</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">IT Consulting</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary);">$150/hr</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Hourly</div>
+                    </div>
+                </div>
+                <button class="btn" style="background: var(--glass); margin-bottom: 16px;" onclick="openModal('catalogBrowser')">View All Services</button>
+
+                <!-- Team Management -->
+                <div class="section-header">
+                    <div class="section-title">👥 Team</div>
+                    <div class="section-link" onclick="openModal('manageTeam')">Manage</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', '[User Name]')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">👤</div>
+                        <div style="font-size: 11px; font-weight: 600;">Sarah</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">CEO</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', '[User Name]')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--success), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">😊</div>
+                        <div style="font-size: 11px; font-weight: 600;">Mike</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">CTO</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('teamMemberProfile', '[User Name]')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--warning), var(--error)); display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 8px; border: 3px solid var(--glass-border);">🎨</div>
+                        <div style="font-size: 11px; font-weight: 600;">Emily</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Designer</div>
+                    </div>
+                    <div style="text-align: center; cursor: pointer;" onclick="openModal('viewAllTeam')">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--glass); border: 2px dashed var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 8px;">➕</div>
+                        <div style="font-size: 11px; font-weight: 600;">View All</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">25 members</div>
+                    </div>
+                </div>
+
+                <!-- Professional Networking -->
+                <div class="section-header">
+                    <div class="section-title">🤝 Professional Network</div>
+                    <div class="section-link" onclick="openModal('networkingTools')">Tools</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="stat-card" onclick="openModal('businessConnections')">
+                        <div class="stat-value">234</div>
+                        <div class="stat-label">Connections</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('partnerships')">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Partnerships</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('leads')">
+                        <div class="stat-value">45</div>
+                        <div class="stat-label">Active Leads</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('opportunities')">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Opportunities</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" onclick="openModal('findBusinesses')">🔍 Find Businesses</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('sendProposal')">📄 Send Proposal</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('scheduleBusinessMeeting')">📅 Schedule Meeting</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('businessMessenger')">💬 Messenger</button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" onclick="openModal('getDirections')">🗺️ Directions</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openBookingSystem()">📅 Book</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.manageQuotes()">💰 Quote</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessProfile.openAnalyticsDashboard()">📊 Analytics</button>
+                </div>
+
+                <!-- Business Tools Section - 10 Complete Features (Analytics & Ad Management Added) -->
+                <div class="section-header">
+                    <div class="section-title">🛠️ Business Tools</div>
+                    <div class="section-link" onclick="viewAllBusinessTools()">View All</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openAnalyticsDashboard()">📊 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openAdManagement()">📢 Ad Manager</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.openCRM()">👥 CRM</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageInvoices()">📄 Invoices</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.setupPaymentProcessing()">💳 Payments</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.showBusinessInsights()">💡 Insights</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.analyzeCompetitors()">🔍 Competitors</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.managePromotions()">🎯 Promotions</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageCatalog()">📦 Catalog</button>
+                    <button class="btn" style="background: var(--glass);" onclick="businessTools.manageReviews()">⭐ Reviews</button>
+                </div>
+            </div>

@@ -1,0 +1,100 @@
+<div id="gaming-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🎮 Gaming Hub</div>
+                    <div class="section-link" onclick="openModal('gamingNotifications')">
+                        <span>🔔</span> Notifications
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">Level 42</div>
+                        <div class="stat-label">Gaming Level</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">Games Won</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">68%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">230</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Play Now</div>
+                    <div class="section-link" onclick="openModal('allGames')">View All</div>
+                </div>
+
+                <div class="game-card" onclick="gamingSystem.playGame('tetris')">
+                    <div class="game-icon">🟦</div>
+                    <div class="game-info">
+                        <div class="game-title">Block Blitz (Tetris)</div>
+                        <div class="game-stats">Play time: 12h 34m • High Score: 24,500</div>
+                    </div>
+                </div>
+
+                <div class="game-card" onclick="gamingSystem.playGame('candy')">
+                    <div class="game-icon">🍬</div>
+                    <div class="game-info">
+                        <div class="game-title">Sweet Match</div>
+                        <div class="game-stats">Play time: 8h 22m • High Score: 18,900</div>
+                    </div>
+                </div>
+
+                <div class="game-card" onclick="gamingSystem.playGame('cards')">
+                    <div class="game-icon">🃏</div>
+                    <div class="game-info">
+                        <div class="game-title">Card Champion</div>
+                        <div class="game-stats">Play time: 15h 45m • High Score: 5,670</div>
+                    </div>
+                </div>
+
+                <div class="game-card" onclick="gamingSystem.playGame('puzzle')">
+                    <div class="game-icon">🧩</div>
+                    <div class="game-info">
+                        <div class="game-title">Puzzle Master</div>
+                        <div class="game-stats">Play time: 5h 10m • High Score: 12,300</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Leaderboard</div>
+                    <div class="section-link" onclick="openModal('fullLeaderboard')">View All</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('fullLeaderboard')" style="cursor: pointer;">
+                    <div style="font-size: 24px; font-weight: 700; color: #ffd700;">🥇</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">ProGamer123</div>
+                        <div class="list-item-subtitle">5,890 points</div>
+                    </div>
+                </div>
+
+                <div class="list-item" onclick="openModal('fullLeaderboard')" style="cursor: pointer;">
+                    <div style="font-size: 24px; font-weight: 700; color: #c0c0c0;">🥈</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">GameMaster</div>
+                        <div class="list-item-subtitle">5,234 points</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Daily Challenges</div>
+                </div>
+
+                <div class="card">
+                    <div class="list-item-title">Win 3 games today</div>
+                    <div style="margin: 12px 0;">
+                        <div style="background: var(--glass); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 66%; height: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="list-item-subtitle">2/3 completed • Reward: 500 XP</div>
+                </div>
+            </div>

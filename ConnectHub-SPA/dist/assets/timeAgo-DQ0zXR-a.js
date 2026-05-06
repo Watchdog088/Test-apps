@@ -1,0 +1,1 @@
+function f(t){if(!t)return"";const r=t!=null&&t.toDate?t.toDate():new Date(t),o=Math.floor((new Date-r)/1e3);return o<60?"now":o<3600?Math.floor(o/60)+"m":o<86400?Math.floor(o/3600)+"h":o<604800?Math.floor(o/86400)+"d":r.toLocaleDateString()}export{f as t};

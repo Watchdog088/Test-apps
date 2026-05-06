@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LynkApp — Visual Test</title>
+<link rel="stylesheet" href="css/lynkapp-main.css">
+<style>
+/* Minimal splash CSS for instant render */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0f23; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.splash-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999;
+}
+.splash-logo { font-size: 80px; margin-bottom: 20px; animation: pulse 2s infinite; }
+.splash-app-name { font-size: 36px; font-weight: 700; color: #fff; letter-spacing: 2px; margin-bottom: 8px; }
+.splash-tagline { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 50px; }
+.splash-loader {
+    width: 40px; height: 40px; border: 3px solid rgba(139,92,246,0.3);
+    border-top-color: #8b5cf6; border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+/* Login screen preview */
+.login-preview {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+    display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+}
+.login-preview.show { display: flex; }
+.login-card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 32px; width: 100%; max-width: 380px;
+}
+.login-logo { font-size: 40px; text-align: center; margin-bottom: 8px; }
+.login-title { font-size: 24px; font-weight: 700; color: #fff; text-align: center; margin-bottom: 4px; }
+.login-sub { font-size: 14px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 24px; }
+.login-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 16px; font-weight: 600; margin-bottom: 12px;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff;
+}
+.demo-btn { background: rgba(139,92,246,0.2); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+.status { 
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(16,185,129,0.9); color: white; padding: 8px 20px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<!-- Splash Screen -->
+<div class="splash-screen" id="splashScreen">
+    <div class="splash-logo">🔗</div>
+    <div class="splash-app-name">Lynkapp</div>
+    <div class="splash-tagline">Connect. Share. Discover.</div>
+    <div class="splash-loader"></div>
+</div>
+
+<!-- Login Screen Preview (shown after 2.5s) -->
+<div class="login-preview" id="loginPreview">
+    <div class="login-card">
+        <div class="login-logo">🔗</div>
+        <div class="login-title">Welcome to Lynkapp</div>
+        <div class="login-sub">Sign in to continue</div>
+        <button class="login-btn">Sign In</button>
+        <button class="login-btn demo-btn">Try Demo</button>
+    </div>
+</div>
+
+<div class="status" id="status">✅ CSS Loading — Splash Screen Active</div>
+
+<script>
+// Auto-transition splash → login at 2.5s (same as the real app)
+setTimeout(function() {
+    var s = document.getElementById('splashScreen');
+    var l = document.getElementById('loginPreview');
+    var st = document.getElementById('status');
+    s.style.opacity = '0';
+    s.style.transition = 'opacity 0.5s';
+    setTimeout(function() {
+        s.style.display = 'none';
+        l.classList.add('show');
+        st.textContent = '✅ Login Screen Loaded — App Working!';
+        st.style.background = 'rgba(139,92,246,0.9)';
+    }, 500);
+}, 2500);
+</script>
+</body>
+</html>

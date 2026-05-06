@@ -1,0 +1,48 @@
+<div id="live-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🔴 Live Now</div>
+                    <div class="section-link" onclick="openModal('liveSettings')">Settings</div>
+                </div>
+
+                <div class="card">
+                    <div class="list-item" onclick="openModal('startLive')">
+                        <div class="list-item-icon">🎥</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Go Live</div>
+                            <div class="list-item-subtitle">Start broadcasting now</div>
+                        </div>
+                        <div class="list-item-arrow">→</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Active Streams</div>
+                </div>
+
+                <div class="card" onclick="openModal('viewLive')">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div class="post-avatar">👤</div>
+                        <div style="flex: 1;">
+                            <div class="post-author">Sarah's Gaming Stream</div>
+                            <div class="post-meta">
+                                <span class="live-badge">
+                                    <span class="live-dot"></span> LIVE
+                                </span>
+                                <span style="margin-left: 8px;">1.2K watching</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-image">🎮</div>
+                    <div class="post-content">Epic gaming session! Come join the fun!</div>
+                </div>
+
+                <div class="list-item" onclick="openModal('savedLives')">
+                    <div class="list-item-icon">🔖</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Saved Lives</div>
+                        <div class="list-item-subtitle">12 saved broadcasts</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+            </div>

@@ -1,6 +1,7 @@
 
         // DEMO LOGIN: Bypass Firebase auth for review/testing purposes
-        window.demoMode = true;
+        // NOTE: demoMode defaults FALSE — it is only set to true when demoLogin() is called
+        window.demoMode = window.demoMode || false;
         function demoLogin() {
             window.demoMode = true;
             // Use the exact same logic as showAppAfterLogin
@@ -9133,32 +9134,33 @@
 
         // ========== LOGIN SCREEN FUNCTIONS ==========
         
-        // Switch Login Tab
+        // Switch Login Tab — null-safe version
         function switchLoginTab(tab) {
-            const loginTab = document.querySelectorAll('.login-tab')[0];
-            const registerTab = document.querySelectorAll('.login-tab')[1];
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const footerText = document.getElementById('footerText');
-            const footerLink = document.getElementById('footerLink');
+            try {
+                const tabs = document.querySelectorAll('.login-tab');
+                const loginTab = tabs[0] || null;
+                const registerTab = tabs[1] || null;
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+                const footerText = document.getElementById('footerText');
+                const footerLink = document.getElementById('footerLink');
 
-            if (tab === 'login') {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                loginForm.classList.add('active');
-                registerForm.classList.remove('active');
-                footerText.textContent = "Don't have an account? ";
-                footerLink.textContent = "Sign up";
-                footerLink.onclick = () => switchLoginTab('register');
-            } else {
-                loginTab.classList.remove('active');
-                registerTab.classList.add('active');
-                loginForm.classList.remove('active');
-                registerForm.classList.add('active');
-                footerText.textContent = "Already have an account? ";
-                footerLink.textContent = "Sign in";
-                footerLink.onclick = () => switchLoginTab('login');
-            }
+                if (tab === 'login') {
+                    if (loginTab) loginTab.classList.add('active');
+                    if (registerTab) registerTab.classList.remove('active');
+                    if (loginForm) loginForm.classList.add('active');
+                    if (registerForm) registerForm.classList.remove('active');
+                    if (footerText) footerText.textContent = "Don't have an account? ";
+                    if (footerLink) { footerLink.textContent = "Sign up"; footerLink.onclick = () => switchLoginTab('register'); }
+                } else {
+                    if (loginTab) loginTab.classList.remove('active');
+                    if (registerTab) registerTab.classList.add('active');
+                    if (loginForm) loginForm.classList.remove('active');
+                    if (registerForm) registerForm.classList.add('active');
+                    if (footerText) footerText.textContent = "Already have an account? ";
+                    if (footerLink) { footerLink.textContent = "Sign in"; footerLink.onclick = () => switchLoginTab('login'); }
+                }
+            } catch(e) { console.warn('[LynkApp] switchLoginTab error:', e.message); }
         }
 
         // Toggle Password Visibility
@@ -9235,22 +9237,46 @@
             try {
                 var _loginSc = document.getElementById('loginScreen');
                 var _appCont = document.querySelector('.app-container');
-                if (_loginSc) _loginSc.classList.add('hidden');
-                if (_appCont) _appCont.classList.add('active');
+                // Hide login - both class AND inline style for belt-and-suspenders
+                if (_loginSc) {
+                    _loginSc.classList.add('hidden');
+                    _loginSc.style.display = 'none';
+                }
+                // Show app container - both class AND inline style (critical: CSS .active rule must exist)
+                if (_appCont) {
+                    _appCont.classList.add('active');
+                    _appCont.style.display = 'block';
+                }
+                // Activate feed screen (the first/home screen)
+                try {
+                    var allScreens = document.querySelectorAll('.screen');
+                    var anyActive = false;
+                    allScreens.forEach(function(s){ if(s.classList.contains('active')) anyActive = true; });
+                    if (!anyActive) {
+                        var feedScreen = document.getElementById('feed-screen');
+                        if (feedScreen) feedScreen.classList.add('active');
+                    }
+                    // Activate first bottom nav item
+                    var firstNavItem = document.querySelector('.bottom-nav .nav-item');
+                    if (firstNavItem) firstNavItem.classList.add('active');
+                } catch(e2) {}
             } catch(e) { console.error('[LynkApp] showAppAfterLogin DOM error:', e); }
-            showToast('Welcome to LynkApp! 🎉 🎉');
+            try { showToast('Welcome to LynkApp! 🔗 ✨'); } catch(e) {}
         }
 
         // Logout Function
         function logoutUser() {
             if (confirm('Are you sure you want to logout?')) {
-                document.getElementById('loginScreen').classList.remove('hidden');
-                document.querySelector('.app-container').classList.remove('active');
-                
-                // Reset forms
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                
-                showToast('Logged out successfully');
+                try {
+                    var _ls = document.getElementById('loginScreen');
+                    var _ac = document.querySelector('.app-container');
+                    if (_ls) { _ls.classList.remove('hidden'); _ls.style.display = 'flex'; }
+                    if (_ac) { _ac.classList.remove('active'); _ac.style.display = 'none'; }
+                    var emailField = document.getElementById('loginEmail');
+                    var passField = document.getElementById('loginPassword');
+                    if (emailField) emailField.value = '';
+                    if (passField) passField.value = '';
+                } catch(e) { console.error('[LynkApp] logoutUser error:', e); }
+                try { showToast('Logged out successfully'); } catch(e) {}
             }
         }

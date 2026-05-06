@@ -1,0 +1,166 @@
+<div id="marketplace-screen" class="screen">
+                <!-- Marketplace Top Actions -->
+                <div style="padding: 16px; display: flex; gap: 12px; border-bottom: 1px solid var(--glass-border);">
+                    <button class="nav-btn" style="width: auto; padding: 0 16px; border-radius: 12px;" onclick="marketplaceToggleNotifications()">
+                        🔔
+                        <span class="badge" id="marketplaceNotificationsBadge">3</span>
+                    </button>
+                    <button class="nav-btn" style="width: auto; padding: 0 16px; border-radius: 12px;" onclick="marketplaceOpenModal('cart')" id="marketplaceCartBtn">
+                        🛒
+                        <span class="badge" id="marketplaceCartBadge" style="display: none;">0</span>
+                    </button>
+                    <button class="nav-btn" style="width: auto; padding: 0 16px; border-radius: 12px;" onclick="marketplaceOpenModal('orders')">📦</button>
+                </div>
+
+                <!-- Marketplace Notifications Panel -->
+                <div class="notifications-panel" id="marketplaceNotificationsPanel">
+                    <div class="notification-header">
+                        <div class="notification-title">Notifications</div>
+                        <button class="nav-btn" style="width: 32px; height: 32px; font-size: 14px;" onclick="marketplaceMarkAllRead()">✓</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item unread" onclick="marketplaceHandleNotification('order')">
+                            <div class="notification-icon">📦</div>
+                            <div class="notification-text">Your order #ORD-2024-001 has been delivered!</div>
+                            <div class="notification-time">5 minutes ago</div>
+                        </div>
+                        <div class="notification-item unread" onclick="marketplaceHandleNotification('message')">
+                            <div class="notification-icon">💬</div>
+                            <div class="notification-text">Sarah Miller sent you a message about MacBook Pro</div>
+                            <div class="notification-time">0 minutes ago</div>
+                        </div>
+                        <div class="notification-item unread" onclick="marketplaceHandleNotification('sale')">
+                            <div class="notification-icon">💰</div>
+                            <div class="notification-text">Your item "Guitar" has been sold for $280!</div>
+                            <div class="notification-time">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-bar" style="margin: 0 16px 16px;">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" id="marketplaceSearchInput" placeholder="Search items..." oninput="marketplaceSearchItems(this.value)">
+                </div>
+
+                <!-- Tabs -->
+                <div style="display: flex; gap: 8px; padding: 0 16px 16px; overflow-x: auto; scrollbar-width: none;">
+                    <div class="pill-nav-button active" onclick="marketplaceSwitchTab('browse')">Browse</div>
+                    <div class="pill-nav-button" onclick="marketplaceSwitchTab('selling')">My Listings</div>
+                    <div class="pill-nav-button" onclick="marketplaceSwitchTab('wishlist')">Wishlist</div>
+                    <div class="pill-nav-button" onclick="marketplaceSwitchTab('messages')">Messages</div>
+                </div>
+
+                <!-- Browse Tab -->
+                <div id="marketplace-browse-tab" class="tab-content active">
+                    <div class="section-header">
+                        <div class="section-title">Categories</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 16px 16px;">
+                        <div class="category-card" onclick="marketplaceFilterByCategory('electronics')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📱</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Electronics</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('clothing')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">👕</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Clothing</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('home')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🏠</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Home</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('books')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📚</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Books</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('sports')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">⚽</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Sports</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('toys')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🧸</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Toys</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('music')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Music</div>
+                        </div>
+                        <div class="category-card" onclick="marketplaceFilterByCategory('other')">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Other</div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <div class="section-title">Featured Listings</div>
+                        <div class="section-link" id="marketplaceResultsCount">16 items</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 16px;" id="marketplaceListingsGrid">
+                        <!-- Listings will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- My Listings Tab -->
+                <div id="marketplace-selling-tab" class="tab-content">
+                    <div class="stats-grid" style="padding: 16px; margin-bottom: 0;">
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">Sold</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$2.4K</div>
+                            <div class="stat-label">Earned</div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <div class="section-title">My Active Listings</div>
+                        <div class="section-link" onclick="marketplaceOpenModal('createListing')">+ New</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 16px;" id="marketplaceMyListingsGrid"></div>
+                </div>
+
+                <!-- Wishlist Tab -->
+                <div id="marketplace-wishlist-tab" class="tab-content">
+                    <div class="section-header">
+                        <div class="section-title">Saved Items</div>
+                        <div class="section-link" id="marketplaceWishlistCount">0 items</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 16px;" id="marketplaceWishlistGrid"></div>
+
+                    <div id="marketplaceEmptyWishlist" class="empty-state" style="display: none;">
+                        <div class="empty-icon">🔖</div>
+                        <div class="empty-title">No Saved Items</div>
+                        <div class="empty-text">Items you save will appear here</div>
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="marketplace-messages-tab" class="tab-content">
+                    <div class="message-list-item" onclick="marketplaceOpenChat('Sarah Miller', 'SM')">
+                        <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 600;">SM</div>
+                        <div class="message-content">
+                            <div class="message-name">Sarah Miller</div>
+                            <div class="message-preview">Hi! Is the MacBook still available?</div>
+                        </div>
+                        <div class="message-time">2m</div>
+                    </div>
+
+                    <div class="message-list-item" onclick="marketplaceOpenChat('Mike Johnson', 'MJ')">
+                        <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 600;">MJ</div>
+                        <div class="message-content">
+                            <div class="message-name">Mike Johnson</div>
+                            <div class="message-preview">Great condition! When can I pick it up?</div>
+                        </div>
+                        <div class="message-time">1h</div>
+                    </div>
+                </div>
+            </div>

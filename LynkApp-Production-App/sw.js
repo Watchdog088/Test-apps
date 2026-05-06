@@ -2,7 +2,7 @@
  * LynkApp Service Worker - PWA Offline Support
  * Updated: 2026-04-16 — v2.6.0: force cache refresh for UX gap fixes
  */
-const CACHE_VERSION = 'lynkapp-v2.7.0';
+const CACHE_VERSION = 'lynkapp-v2.8.0';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const DYNAMIC_CACHE = CACHE_VERSION + '-dynamic';
 
@@ -21,11 +21,19 @@ const STATIC_ASSETS = [
 ];
 
 // Install - cache static assets
+// CRITICAL FIX: Use addAll inside a catch so a single 404 does not abort the
+// entire service-worker installation and block the page from loading offline.
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then(cache => cache.addAll(STATIC_ASSETS))
-            .then(() => self.skipWaiting())
+        caches.open(STATIC_CACHE).then(cache => {
+            // Cache each asset individually — failures are non-fatal
+            const cachePromises = STATIC_ASSETS.map(url =>
+                cache.add(url).catch(err => {
+                    console.warn('[SW] Could not cache:', url, err.message);
+                })
+            );
+            return Promise.all(cachePromises);
+        }).then(() => self.skipWaiting())
     );
 });
 

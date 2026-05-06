@@ -1,0 +1,118 @@
+<div id="menu-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">Menu</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('profile')">
+                    <div class="list-item-icon">👤</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Profile</div>
+                        <div class="list-item-subtitle">View your profile</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('notifications')">
+                    <div class="list-item-icon">🔔</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Notifications</div>
+                        <div class="list-item-subtitle">5 new notifications</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('media')">
+                    <div class="list-item-icon">📹</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Camera & Video</div>
+                        <div class="list-item-subtitle">Create video content</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="switchPillTab(document.querySelector('.pill-nav-button:nth-child(3)'), 'live'); closeModal(''); openScreen('feed');">
+                    <div class="list-item-icon">🔴</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Lives</div>
+                        <div class="list-item-subtitle">Watch & go live</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('gaming')">
+                    <div class="list-item-icon">🎮</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Gaming Hub</div>
+                        <div class="list-item-subtitle">Level 42 • Play games</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('events')">
+                    <div class="list-item-icon">📅</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Events</div>
+                        <div class="list-item-subtitle">Upcoming & hosting</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('saved')">
+                    <div class="list-item-icon">🔖</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Saved</div>
+                        <div class="list-item-subtitle">Your saved items</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('settings')">
+                    <div class="list-item-icon">⚙️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Settings</div>
+                        <div class="list-item-subtitle">Account & privacy</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('marketplace')">
+                    <div class="list-item-icon">🛍️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Marketplace</div>
+                        <div class="list-item-subtitle">Buy & sell items</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('creator')">
+                    <div class="list-item-icon">✨</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Creator Profile</div>
+                        <div class="list-item-subtitle">Verification, analytics, monetization</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('business')">
+                    <div class="list-item-icon">🏢</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Business Profile</div>
+                        <div class="list-item-subtitle">Hours, location, team, products</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="openScreen('help')">
+                    <div class="list-item-icon">💡</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Help & Support</div>
+                        <div class="list-item-subtitle">Get help</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <button class="btn" style="margin-top: 20px; background: var(--error);" onclick="showToast('Logged out')">
+                    Logout
+                </button>
+            </div>

@@ -1,0 +1,63 @@
+<div id="friends-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="search-bar" style="display:flex;align-items:center;gap:8px;">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" placeholder="Search friends..." />
+                    <button class="search-post-btn" onclick="showToast('Post created! ✏️')" title="Post">✏️</button>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">All Friends</div>
+                    <div class="section-link" onclick="openModal('allFriends')">See All (234)</div>
+                </div>
+
+                <div class="friend-card">
+                    <div class="friend-avatar">👤</div>
+                    <div class="friend-info">
+                        <div class="friend-name">[User Name]</div>
+                        <div class="friend-mutual">12 mutual friends</div>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="friend-btn primary" onclick="sendMessage()">Message</button>
+                    </div>
+                </div>
+
+                <div class="friend-card">
+                    <div class="friend-avatar">😊</div>
+                    <div class="friend-info">
+                        <div class="friend-name">[User Name]</div>
+                        <div class="friend-mutual">8 mutual friends</div>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="friend-btn primary" onclick="sendMessage()">Message</button>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">People You May Know</div>
+                </div>
+
+                <div class="friend-card">
+                    <div class="friend-avatar">🎨</div>
+                    <div class="friend-info">
+                        <div class="friend-name">[User Name]</div>
+                        <div class="friend-mutual">5 mutual friends</div>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="friend-btn primary" onclick="addFriend(this)">Add Friend</button>
+                        <button class="friend-btn secondary" onclick="removeSuggestion(this)">✕</button>
+                    </div>
+                </div>
+
+                <div class="friend-card">
+                    <div class="friend-avatar">🚀</div>
+                    <div class="friend-info">
+                        <div class="friend-name">[User Name]</div>
+                        <div class="friend-mutual">3 mutual friends</div>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="friend-btn primary" onclick="addFriend(this)">Add Friend</button>
+                        <button class="friend-btn secondary" onclick="removeSuggestion(this)">✕</button>
+                    </div>
+                </div>
+            </div>

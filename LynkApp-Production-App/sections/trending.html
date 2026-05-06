@@ -1,0 +1,57 @@
+<div id="trending-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🔥 Trending</div>
+                </div>
+
+                <div class="trending-card" onclick="openModal('trendingDetails')">
+                    <div class="trending-tag">#1 TRENDING</div>
+                    <div class="trending-title">New AI Features Released</div>
+                    <div class="trending-stats">45.2K posts • Trending for 3 hours</div>
+                    <div class="post-actions" style="border-top: 1px solid var(--glass-border); margin-top: 12px;">
+                        <div class="post-action" onclick="event.stopPropagation(); toggleLikePost(this)">
+                            <span>👍</span> Like
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); openModal('comments')">
+                            <span>💬</span> Comment
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); sharePost()">
+                            <span>🔄</span> Share
+                        </div>
+                    </div>
+                </div>
+
+                <div class="trending-card" onclick="openModal('trendingDetails')">
+                    <div class="trending-tag">#2 TRENDING</div>
+                    <div class="trending-title">Tech Conference 2025</div>
+                    <div class="trending-stats">32.1K posts • Trending for 1 hour</div>
+                    <div class="post-actions" style="border-top: 1px solid var(--glass-border); margin-top: 12px;">
+                        <div class="post-action" onclick="event.stopPropagation(); toggleLikePost(this)">
+                            <span>👍</span> Like
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); openModal('comments')">
+                            <span>💬</span> Comment
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); sharePost()">
+                            <span>🔄</span> Share
+                        </div>
+                    </div>
+                </div>
+
+                <div class="trending-card" onclick="openModal('trendingDetails')">
+                    <div class="trending-tag">#3 TRENDING</div>
+                    <div class="trending-title">Climate Action Summit</div>
+                    <div class="trending-stats">28.5K posts • Trending for 5 hours</div>
+                    <div class="post-actions" style="border-top: 1px solid var(--glass-border); margin-top: 12px;">
+                        <div class="post-action" onclick="event.stopPropagation(); toggleLikePost(this)">
+                            <span>👍</span> Like
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); openModal('comments')">
+                            <span>💬</span> Comment
+                        </div>
+                        <div class="post-action" onclick="event.stopPropagation(); sharePost()">
+                            <span>🔄</span> Share
+                        </div>
+                    </div>
+                </div>
+            </div>

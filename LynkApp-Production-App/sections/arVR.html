@@ -1,0 +1,102 @@
+<div id="arVR-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🥽 AR/VR Experiences</div>
+                    <div class="section-link" onclick="openScreen('media')">← Back</div>
+                </div>
+
+                <!-- AR Filters Section - Complete with 3D Rendering -->
+                <div class="section-header">
+                    <div class="section-title">📷 AR Filters & 3D Rendering</div>
+                    <div class="section-link" onclick="window.arVR.openARCamera()" style="cursor: pointer; transition: all 0.2s;">Open AR Camera</div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 13px; color: var(--text-secondary);">
+                        ✓ Real-time AR face filters<br>
+                        ✓ 3D rendering engine<br>
+                        ✓ Face tracking & landmarks<br>
+                        ✓ Custom filter creator
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div class="card ar-filter" data-filter="Puppy Ears" onclick="window.arVR.applyFaceFilter('Puppy Ears')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">🐶</div>
+                        <div style="font-size: 12px; font-weight: 600;">Puppy Ears</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Sparkles" onclick="window.arVR.applyFaceFilter('Sparkles')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">✨</div>
+                        <div style="font-size: 12px; font-weight: 600;">Sparkles</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Crown" onclick="window.arVR.applyFaceFilter('Crown')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">👑</div>
+                        <div style="font-size: 12px; font-weight: 600;">Crown</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Rainbow" onclick="window.arVR.applyFaceFilter('Rainbow')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">🌈</div>
+                        <div style="font-size: 12px; font-weight: 600;">Rainbow</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Sunglasses" onclick="window.arVR.applyFaceFilter('Sunglasses')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">😎</div>
+                        <div style="font-size: 12px; font-weight: 600;">Sunglasses</div>
+                    </div>
+                    <div class="card ar-filter" data-filter="Heart Eyes" onclick="window.arVR.applyFaceFilter('Heart Eyes')" style="text-align: center; padding: 16px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                        <div style="font-size: 40px; margin-bottom: 8px;">😍</div>
+                        <div style="font-size: 12px; font-weight: 600;">Heart Eyes</div>
+                    </div>
+                </div>
+
+                <!-- VR Rooms -->
+                <div class="section-header">
+                    <div class="section-title">Virtual Rooms</div>
+                </div>
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Beach Paradise')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">🏖️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Beach Paradise</div>
+                        <div class="list-item-subtitle">Tropical VR environment</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Space Station')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">🚀</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Space Station</div>
+                        <div class="list-item-subtitle">Zero gravity experience</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Mountain Lodge')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">⛰️</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Mountain Lodge</div>
+                        <div class="list-item-subtitle">Alpine retreat experience</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <div class="list-item" onclick="window.arVR.enterVirtualRoom('Underwater World')" style="cursor: pointer; transition: all 0.2s;">
+                    <div class="list-item-icon">🌊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Underwater World</div>
+                        <div class="list-item-subtitle">Ocean deep dive experience</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- AR/VR Features -->
+                <div class="section-header">
+                    <div class="section-title">More Features</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="open360VideoLibrary()">🎬 360° Videos</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openARShoppingDashboard()">🛍️ Virtual Shop</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openARGamesDashboard()">🎮 AR Games</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openVRMeditationDashboard()">🧘 VR Meditation</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openCustomFilterCreator()">🎨 Custom Filter</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openVRHeadsetManager()">🥽 VR Headset</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openSpatialAudioConfig()">🎧 Spatial Audio</button>
+                    <button class="btn" style="background: var(--glass); cursor: pointer;" onclick="openHandTrackingDashboard()">👋 Hand Tracking</button>
+                </div>
+            </div>

@@ -137,6 +137,35 @@
             padding: 40px 24px;
         }
 
+        /* ============================================
+           DESKTOP/FULL-SCREEN LOGIN FIX
+           Makes login fill the entire viewport on any
+           screen size (mobile or desktop), exactly like
+           the splash screen does.
+           ============================================ */
+        #loginScreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+            min-height: unset !important;
+            margin: 0 !important;
+            overflow-y: auto !important;
+            align-items: center !important;
+            z-index: 1000 !important;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+        }
+
+        /* Center & limit width of all direct children */
+        #loginScreen > * {
+            width: 100%;
+            max-width: 480px;
+        }
+
         .login-logo-section {
             text-align: center;
             margin-bottom: 48px;
@@ -425,8 +454,14 @@
             padding-bottom: 70px;
         }
 
+        /* ==========================================
+           CRITICAL FIX: .active makes app visible
+           Without this rule, showAppAfterLogin()
+           adding .active class does NOTHING and the
+           app stays display:none → BLACK PAGE
+           ========================================== */
         .app-container.active {
-            display: block;
+            display: block !important;
         }
 
         /* Responsive Design: Expand to full width on larger screens */
@@ -2026,4 +2061,4 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-color: var(--primary);
             color: white;
-        }
+        }

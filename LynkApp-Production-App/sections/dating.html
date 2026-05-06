@@ -1,0 +1,86 @@
+<div id="dating-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">💕 Dating</div>
+                    <div class="section-link" onclick="openModal('datingSettings')">Settings</div>
+                </div>
+
+                <!-- My Dating Profile Card -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="section-header" style="margin-bottom: 12px;">
+                        <div class="section-title" style="font-size: 16px;">My Dating Profile</div>
+                        <button class="btn" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="openModal('editDatingProfile')">✏️ Edit</button>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 32px; border: 3px solid var(--glass-border); position: relative;">
+                            👤
+                            <div style="position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--success); border: 2px solid var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">John, 28</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">📍 San Francisco, CA</div>
+                            <div style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success);">✓ VERIFIED</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                        <div style="text-align: center; padding: 8px; background: var(--glass); border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--primary);">87%</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">Complete</div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: var(--glass); border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--secondary);">4.8★</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Profile Actions -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <button class="btn" style="font-size: 13px; padding: 12px;" onclick="openModal('datingPreferences')">⚙️ Preferences</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('relationshipGoals')">🎯 Goals</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('interestsHobbies')">🎨 Interests</button>
+                    <button class="btn" style="background: var(--glass); font-size: 13px; padding: 12px;" onclick="openModal('photoVerification')">📸 Verify</button>
+                </div>
+
+                <!-- Discover Matches -->
+                <div class="section-header">
+                    <div class="section-title">Discover</div>
+                </div>
+
+                <div class="dating-card">
+                    <div class="dating-card-image">👤</div>
+                    <div class="dating-card-info">
+                        <div class="dating-card-name">Sarah, 28</div>
+                        <div class="dating-card-details">📍 5 miles away • Artist & Designer</div>
+                        <div class="post-content">Love hiking, photography, and meeting new people ✨</div>
+                        <div class="dating-actions" style="justify-content: space-between;">
+                            <button class="dating-btn pass" onclick="passDatingProfile()">✕</button>
+                            <button class="dating-btn super" onclick="superLike()">⭐</button>
+                            <button class="dating-btn like" onclick="likeDatingProfile()">💚</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dating Stats -->
+                <div class="section-header">
+                    <div class="section-title">Activity</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="openModal('recentMatches')">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">New Matches</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('profileViews')">
+                        <div class="stat-value">45</div>
+                        <div class="stat-label">Profile Views</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('superLikes')">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Super Likes Left</div>
+                    </div>
+                    <div class="stat-card" onclick="openModal('todayActivity')">
+                        <div class="stat-value">23</div>
+                        <div class="stat-label">Today's Activity</div>
+                    </div>
+                </div>
+            </div>

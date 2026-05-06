@@ -28,8 +28,13 @@ class MobileAppIntegration {
         try {
             console.log('?? Initializing LynkApp Mobile App...');
             
-            // Check backend health
-            await this.checkBackendHealth();
+            // Check backend health - fire-and-forget with 3s timeout.
+            // CRITICAL FIX: do NOT await this — it calls http://localhost:3001
+            // which has a 30s timeout and hangs the entire initialization.
+            Promise.race([
+                this.checkBackendHealth(),
+                new Promise(function(resolve) { setTimeout(resolve, 3000); })
+            ]).catch(function() {});
             
             // Setup authentication listeners
             this.setupAuthListeners();

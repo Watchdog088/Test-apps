@@ -1,0 +1,135 @@
+5: var loginScreen = document.getElementById('loginScreen');
+6: if (loginScreen) {
+7: loginScreen.style.display = 'none';
+11: var appContainer = document.querySelector('.app-container');
+13: appContainer.style.display = 'block';
+19: document.querySelectorAll('.app-container, .bottom-nav, .top-nav').forEach(function(el) {
+20: el.classList.remove('hidden');
+138: document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+153: modal.classList.add('show');
+160: modal.classList.remove('show');
+168: toast.classList.add('show');
+170: toast.classList.remove('show');
+216: defaultView.style.display = 'none';
+217: resultsView.style.display = 'block';
+219: defaultView.style.display = 'block';
+220: resultsView.style.display = 'none';
+398: <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 300px; border-radius: 16px; display: flex; flex-direction: column; al
+487: <div style="width: 100%; height: 140px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 48px; position: re
+489: <div onclick="event.stopPropagation(); marketplaceToggleWishlist(${item.id})" style="position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border
+541: empty.style.display = 'block';
+543: empty.style.display = 'none';
+546: <div style="width: 100%; height: 140px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 48px; position: re
+548: <div onclick="event.stopPropagation(); marketplaceToggleWishlist(${item.id})" style="position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border
+572: <div style="width: 100%; height: 140px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+593: <div style="width: 100%; height: 300px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 100px; margin-bott
+606: <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: ce
+613: <div style="display: flex; gap: 12px; margin-top: 20px;">
+643: badge.style.display = 'flex';
+645: badge.style.display = 'none';
+669: <div style="width: 80px; height: 80px; background: ${item.gradient}; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size:
+742: <div style="width: 100%; height: 140px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 48px; position: re
+763: <div style="width: 100%; height: 140px; background: ${item.gradient}; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+781: modal.classList.add('show');
+791: modal.classList.remove('show');
+797: panel.classList.toggle('show');
+805: document.getElementById('marketplaceNotificationsBadge').style.display = 'none';
+929: document.getElementById('selectedPhotoPreview').style.display = 'block';
+937: document.getElementById('selectedPhotoPreview').style.display = 'none';
+950: document.getElementById('selectedVideoPreview').style.display = 'block';
+958: document.getElementById('selectedVideoPreview').style.display = 'none';
+971: document.getElementById('selectedLocation').style.display = 'block';
+979: document.getElementById('selectedLocation').style.display = 'none';
+1005: section.style.display = 'block';
+1007: <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6p
+1014: section.style.display = 'none';
+1062: document.getElementById('selectedPhotoPreview').style.display = 'none';
+1063: document.getElementById('selectedVideoPreview').style.display = 'none';
+1064: document.getElementById('selectedLocation').style.display = 'none';
+1065: document.getElementById('taggedPeople').style.display = 'none';
+1380: notification.classList.add('show');
+1391: notification.classList.remove('show');
+2068: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 8px; display: flex; align-items: center; justify-co
+2077: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #c0c0c0, #e8e8e8); border-radius: 8px; display: flex; align-items: center; justify-co
+2086: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #cd7f32, #e8b572); border-radius: 8px; display: flex; align-items: center; justify-co
+2095: <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 8
+2104: <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 8
+2113: <div style="width: 40px; height: 40px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 8
+2169: <div onclick="openAlbum('Electric Hearts')" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); aspect-ratio: 1; border-radius: 12px; 
+2174: <div onclick="openAlbum('Ocean Dreams')" style="background: linear-gradient(135deg, var(--success), var(--accent)); aspect-ratio: 1; border-radius: 12px; displa
+2194: <div style="display: flex; align-items: center; gap: 12px;">
+2345: <div style="width: 100%; max-width: 280px; aspect-ratio: 1; margin: 0 auto 20px; background: ${album.gradient}; border-radius: 20px; display: flex; align-items:
+2386: <div style="width: 36px; height: 36px; background: var(--glass); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 7
+2426: <div onclick="openAlbum('${relatedAlbum.name}')" style="background: ${relatedAlbum.gradient}; aspect-ratio: 1; border-radius: 12px; display: flex; flex-directio
+3131: status.style.display = 'none';
+3132: timer.style.display = 'block';
+3133: recordBtn.style.display = 'none';
+3134: sendBtn.style.display = 'block';
+3152: status.style.display = 'block';
+3153: timer.style.display = 'block';
+3174: status.style.display = 'block';
+3175: timer.style.display = 'none';
+3177: recordBtn.style.display = 'block';
+3178: sendBtn.style.display = 'none';
+3244: messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 24px;">${content}</span><span style="font-size: 14
+3246: messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;">${content}</div>`;
+3248: messageBubble.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;">${content}</div>`;
+3759: <div style="width: 120px; height: 120px; background: ${data.gradient}; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-si
+3764: <div style="display: inline-block; padding: 6px 16px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; font-size: 12px; font-weight: 600; color: var(--
+4069: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: ce
+4078: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 8px; display: flex; align-items: cente
+4087: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 8px; display: flex; align-items: center
+4312: <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: c
+4321: <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: cent
+4330: <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: cente
+4339: <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), var(--primary)); border-radius: 12px; display: flex; align-items: cent
+5077: <div style="display: inline-block; padding: 4px 12px; background: var(--primary); border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 8px;">P
+5224: <div style="display: flex; justify-content: center; gap: 12px;">
+5282: <div onclick="selectCalendarDay(${day})" style="aspect-ratio: 1; background: ${isToday ? 'rgba(79, 70, 229, 0.2)' : 'var(--glass)'}; border: 1px solid ${isToday
+5362: <div onclick="viewContent(1)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex;
+5363: <div onclick="viewContent(2)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; al
+5364: <div onclick="viewContent(3)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; ali
+5365: <div onclick="viewContent(4)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; al
+5366: <div onclick="viewContent(5)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 12px; display: flex;
+5367: <div onclick="viewContent(6)" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--error), var(--warning)); border-radius: 12px; display: flex; ali
+6171: <div style="width: 100px; height: 100px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items:
+6312: <div style="display: flex; justify-content: space-between; align-items: center;">
+6343: <div style="padding: 8px 20px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; font-size: 14px; font-weight: 700; color: var(--success); display: inli
+6435: <div style="padding: 6px 16px; background: rgba(239, 68, 68, 0.2); border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--error); display: inline-
+6446: <div style="padding: 6px 16px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--success); display: inli
+6495: <div style="width: 100%; height: 300px; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 16px; display: flex; flex-direction: 
+6542: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1877F2, #0C63D4); border-radius: 8px; display: flex; align-items: center; justify-co
+6551: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1DA1F2, #0C85D0); border-radius: 8px; display: flex; align-items: center; justify-co
+6560: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #0077B5, #005E93); border-radius: 8px; display: flex; align-items: center; justify-co
+6569: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #E1306C, #C13584); border-radius: 8px; display: flex; align-items: center; justify-co
+6578: <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FF0000, #CC0000); border-radius: 8px; display: flex; align-items: center; justify-co
+6630: <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+6690: <div style="width: 100%; height: 200px; background: ${service.gradient}; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-
+6836: <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: 
+6894: <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: ce
+7079: <div style="padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--success); display: inli
+7191: <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display
+7200: <div class="message-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), var(--accent)); display: f
+7223: <div style="width: 100%; height: 250px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; display: flex; flex-direction: 
+8146: <div style="display: flex; align-items: center; justify-content: space-between;">
+8373: <div style="display: flex; align-items: center; justify-content: space-between;">
+8540: <div style="background: linear-gradient(135deg, var(--success), var(--accent)); height: 150px; border-radius: 12px; display: flex; align-items: center; justify-
+8549: <div style="background: linear-gradient(135deg, var(--primary), #1e1b4b); height: 150px; border-radius: 12px; display: flex; align-items: center; justify-conten
+8667: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 12px; display: flex; align-items: center; justify-c
+8676: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: c
+8685: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: cent
+8698: <div style="aspect-ratio: 1; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 8px; display: flex; align-items: center; justify-content: cen
+8699: <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; just
+8700: <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify
+8701: <div style="aspect-ratio: 1; background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-c
+8748: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--success), #059669); border-radius: 12px; display: flex; align-items: center; ju
+8757: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent), #3b82f6); border-radius: 12px; display: flex; align-items: center; jus
+8766: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #78716c, #a8a29e); border-radius: 12px; display: flex; align-items: center; justify-c
+8775: <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: 12px; display: flex; align-items: center; justify-c
+9131: const loginScreen = document.getElementById('loginScreen');
+9139: splashScreen.style.display = 'none';
+9140: loginScreen.classList.remove('hidden');
+9250: document.getElementById('loginScreen').classList.add('hidden');
+9251: document.querySelector('.app-container').classList.add('active');
+9258: document.getElementById('loginScreen').classList.remove('hidden');
+9259: document.querySelector('.app-container').classList.remove('active');

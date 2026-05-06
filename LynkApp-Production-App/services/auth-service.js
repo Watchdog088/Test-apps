@@ -27,19 +27,36 @@ class AuthService {
 
     /**
      * Initialize Firebase Authentication and Firestore
+     * CRITICAL FIX: Only load Firebase CDN if a valid config is present.
+     * Loading Firebase CDN modules with an empty config keeps pending network
+     * requests open indefinitely, preventing the page from ever becoming idle
+     * and causing the browser / Puppeteer to timeout.
      */
     async initializeFirebase() {
+        // GUARD: Require a valid apiKey AND projectId before attempting ANY CDN import.
+        // If either is missing we go straight to demo/offline mode — no network requests made.
+        const cfg = window.firebaseConfig || {};
+        const hasValidConfig = !!(cfg.apiKey && cfg.projectId &&
+                                   cfg.apiKey !== 'YOUR_API_KEY' &&
+                                   cfg.projectId !== 'YOUR_PROJECT_ID');
+
+        if (!hasValidConfig) {
+            console.log('[AuthService] No valid Firebase config detected — running in demo/offline mode. App will work fully without Firebase.');
+            this.firebaseInitialized = false;
+            return; // Skip ALL CDN imports — prevents browser hang
+        }
+
         try {
-            // Initialize Firebase App
+            // Only reached when a real Firebase project config is provided.
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
-            const { getAuth, createUserWithEmailAndPassword: createUser, 
+            const { getAuth, createUserWithEmailAndPassword: createUser,
                     signInWithEmailAndPassword: signIn, signOut: signOutUser,
                     onAuthStateChanged: authStateChanged, sendPasswordResetEmail: sendReset,
-                    updateProfile: updateUserProfile } = 
+                    updateProfile: updateUserProfile } =
                 await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
-            const { getFirestore, doc: docRef, setDoc: setDocument, 
-                    getDoc: getDocument, updateDoc: updateDocument, 
-                    serverTimestamp: timestamp } = 
+            const { getFirestore, doc: docRef, setDoc: setDocument,
+                    getDoc: getDocument, updateDoc: updateDocument,
+                    serverTimestamp: timestamp } =
                 await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
 
             // Initialize Firebase
@@ -61,14 +78,15 @@ class AuthService {
             serverTimestamp = timestamp;
 
             this.firebaseInitialized = true;
-            console.log('✅ Firebase Authentication initialized');
+            console.log('[AuthService] Firebase Authentication initialized successfully');
 
             // Set up auth state listener
             this.setupAuthStateListener();
 
         } catch (error) {
-            console.error('❌ Firebase initialization failed:', error);
-            throw new Error('Failed to initialize Firebase Authentication');
+            console.error('[AuthService] Firebase initialization failed (running in demo/offline mode):', error);
+            // Do NOT re-throw — allow the app to continue in demo mode
+            this.firebaseInitialized = false;
         }
     }
 

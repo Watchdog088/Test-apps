@@ -18,10 +18,12 @@ class RealtimeService {
         this.messageQueue = [];
         this.heartbeatInterval = null;
         
-        // Auto-connect if authenticated
-        if (authService.isAuthenticated()) {
-            this.connect(authService.getToken());
-        }
+        // Auto-connect if authenticated (guard against Firebase not being ready yet)
+        // CRITICAL FIX: Never auto-connect — connecting to ws://localhost:3001 when
+        // there is no backend server causes the browser to queue repeated failed
+        // WebSocket upgrade requests that prevent the page from settling to idle.
+        // Connections are initiated explicitly only after confirmed authentication.
+        console.log('[RealtimeService] Ready — will connect after explicit authentication.');
     }
 
     /**

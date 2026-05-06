@@ -1,0 +1,194 @@
+<div id="creator-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">✨ Creator Profile</div>
+                    <div class="section-link" onclick="openModal('creatorSettings')">Settings</div>
+                </div>
+
+                <!-- Creator Profile Header -->
+                <div class="card" style="text-align: center; padding: 24px;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 4px solid var(--glass-border);">
+                        👤
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        [Current User]
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Verified Creator">✓</span>
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Premium Creator">⭐</span>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">[@username] • Content Creator</div>
+                    <div class="stats-grid" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value">245K</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">1.2M</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">8.4%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$8.9K</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px;" onclick="openModal('editCreatorProfile')">✏️ Edit</button>
+                        <button class="btn" style="flex: 1; font-size: 13px; padding: 10px; background: var(--glass);" onclick="shareCreatorProfile()">📤 Share</button>
+                    </div>
+                </div>
+
+                <!-- Verification Status -->
+                <div class="section-header">
+                    <div class="section-title">✓ Verification</div>
+                    <div class="section-link" onclick="openModal('applyVerification')">Apply</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div class="card" style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); border-color: var(--success);">
+                        <div style="font-size: 32px; margin-bottom: 8px;">✓</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Verified</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Jan 15, 2024</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('upgradePremium')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">⭐</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Premium</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Upgrade</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Influencer</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">245K / 500K</div>
+                    </div>
+                    <div class="card" style="text-align: center; padding: 20px; cursor: pointer;" onclick="openModal('becomePartner')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🎖️</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Partner</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Apply</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard -->
+                <div class="section-header">
+                    <div class="section-title">📊 Analytics</div>
+                    <div class="section-link" onclick="openModal('detailedAnalytics')">View All</div>
+                </div>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <button class="pill-nav-button active" onclick="filterCreatorAnalytics(this, '7d')">7 Days</button>
+                        <button class="pill-nav-button" onclick="filterCreatorAnalytics(this, '30d')">30 Days</button>
+                        <button class="pill-nav-button" onclick="filterCreatorAnalytics(this, '1y')">1 Year</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Total Views</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">1.23M</div>
+                            <div style="font-size: 10px; color: var(--success);">+12.5%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Engagement</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--secondary);">8.4%</div>
+                            <div style="font-size: 10px; color: var(--success);">+2.3%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">New Followers</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--accent);">+12.5K</div>
+                            <div style="font-size: 10px; color: var(--success);">+18.7%</div>
+                        </div>
+                        <div style="background: var(--glass); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Revenue</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--success);">$8,945</div>
+                            <div style="font-size: 10px; color: var(--success);">+24.2%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monetization Tools -->
+                <div class="section-header">
+                    <div class="section-title">💰 Monetization</div>
+                    <div class="section-link" onclick="openModal('monetizationDetails')">Manage</div>
+                </div>
+                <div class="list-item" onclick="openModal('subscriptions')">
+                    <div class="list-item-icon">💳</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Subscriptions</div>
+                        <div class="list-item-subtitle">4,834 subscribers • $3,245/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('donations')">
+                    <div class="list-item-icon">🎁</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Donations & Tips</div>
+                        <div class="list-item-subtitle">2,156 tips • $2,890/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('sponsorships')">
+                    <div class="list-item-icon">🤝</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Sponsorships</div>
+                        <div class="list-item-subtitle">5 active deals • $1,800/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+                <div class="list-item" onclick="openModal('merchandise')">
+                    <div class="list-item-icon">👕</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Merchandise</div>
+                        <div class="list-item-subtitle">156 products • $1,010/mo</div>
+                    </div>
+                    <div class="list-item-arrow">→</div>
+                </div>
+
+                <!-- Content Calendar -->
+                <div class="section-header">
+                    <div class="section-title">📅 Content Calendar</div>
+                    <div class="section-link" onclick="openModal('fullCalendar')">View Full</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Upcoming Posts</div>
+                    <div class="list-item" style="margin-bottom: 8px;" onclick="openModal('editScheduledPost')">
+                        <div class="list-item-icon">🎥</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Tech Review Video</div>
+                            <div class="list-item-subtitle">Dec 20, 10:00 AM</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); deleteScheduledPostMobile(1)">🗑️</button>
+                    </div>
+                    <div class="list-item" style="margin-bottom: 8px;" onclick="openModal('editScheduledPost')">
+                        <div class="list-item-icon">📸</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Behind the Scenes</div>
+                            <div class="list-item-subtitle">Dec 22, 3:00 PM</div>
+                        </div>
+                        <button class="nav-btn" onclick="event.stopPropagation(); deleteScheduledPostMobile(2)">🗑️</button>
+                    </div>
+                    <button class="btn" style="background: var(--glass); margin-top: 12px;" onclick="openModal('scheduleNewPost')">+ Schedule New Post</button>
+                </div>
+
+                <!-- Content Management -->
+                <div class="section-header">
+                    <div class="section-title">📝 Content Library</div>
+                    <div class="section-link" onclick="openModal('contentLibrary')">View All</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📸</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--success), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎥</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--warning), var(--error)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📝</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">🎬</div>
+                    <div onclick="openModal('contentDetails')" style="aspect-ratio: 1; background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer;">📱</div>
+                    <div onclick="openModal('newContent')" style="aspect-ratio: 1; background: var(--glass); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; border: 2px dashed var(--glass-border);">➕</div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">⚡ Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" onclick="openModal('scheduleNewPost')">📅 Schedule</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('contentIdeas')">💡 Ideas</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('creatorAnalytics')">📊 Analytics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openModal('payoutSettings')">💵 Payouts</button>
+                </div>
+            </div>

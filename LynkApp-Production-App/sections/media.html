@@ -1,0 +1,42 @@
+<div id="media-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🎬 Media Hub</div>
+                    <div class="section-link" onclick="openModal('mediaHubSettings')">Settings</div>
+                </div>
+
+                <!-- Media Hub Navigation -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div class="card" onclick="openScreen('musicPlayer')" style="cursor: pointer; text-align: center; padding: 24px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🎵</div>
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Music Player</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">20 features</div>
+                    </div>
+                    <div class="card" onclick="openScreen('liveStreaming')" style="cursor: pointer; text-align: center; padding: 24px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🔴</div>
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Live Streaming</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">18 features</div>
+                    </div>
+                    <div class="card" onclick="openScreen('videoCalls')" style="cursor: pointer; text-align: center; padding: 24px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📹</div>
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">Video Calls</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">15 features</div>
+                    </div>
+                    <div class="card" onclick="openScreen('arVR')" style="cursor: pointer; text-align: center; padding: 24px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🥽</div>
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">AR/VR</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">12 features</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-header">
+                    <div class="section-title">Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" onclick="window.arVR.openARCamera()">📷 AR Camera</button>
+                    <button class="btn" onclick="window.liveStreaming.startStream()">🔴 Go Live</button>
+                    <button class="btn" onclick="window.musicPlayer.openMusicLibrary()">🎵 Music Library</button>
+                    <button class="btn" onclick="window.videoCalls.startVideoCall('Friend')">📹 Video Call</button>
+                </div>
+            </div>

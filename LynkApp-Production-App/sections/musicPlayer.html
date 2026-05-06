@@ -1,0 +1,78 @@
+<div id="musicPlayer-screen" class="screen">
+                <button class="screen-back-btn" onclick="goHome()">&#8592; Back</button>
+                <div class="section-header">
+                    <div class="section-title">🎵 Music Player</div>
+                    <div class="section-link" onclick="openScreen('media')">← Back</div>
+                </div>
+
+                <!-- Now Playing -->
+                <div class="card" style="text-align: center; padding: 24px;">
+                    <div style="width: 200px; height: 200px; margin: 0 auto 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 80px;">
+                        🎵
+                    </div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;" id="musicSongTitle">Select a song</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;" id="musicTimeDisplay">0:00 / 0:00</div>
+                    
+                    <!-- Playback Controls -->
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+                        <button class="nav-btn" onclick="window.musicPlayer.toggleShuffle()">🔀</button>
+                        <button class="nav-btn" onclick="window.musicPlayer.playPreviousTrack()">⏮️</button>
+                        <button class="nav-btn" style="width: 60px; height: 60px; font-size: 32px;" id="musicPlayBtn" onclick="window.musicPlayer.togglePlayPause()">▶️</button>
+                        <button class="nav-btn" onclick="window.musicPlayer.playNextTrack()">⏭️</button>
+                        <button class="nav-btn" onclick="window.musicPlayer.cycleRepeatMode()">🔁</button>
+                    </div>
+                    
+                    <!-- Volume Control -->
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <span>🔇</span>
+                        <input type="range" min="0" max="100" value="70" style="flex: 1;" oninput="window.musicPlayer.setVolume(this.value / 100)" />
+                        <span>🔊</span>
+                    </div>
+                </div>
+
+                <!-- Music Library -->
+                <div class="section-header">
+                    <div class="section-title">Your Library</div>
+                    <div class="section-link" onclick="openSearchMusicModal()">Search</div>
+                </div>
+
+                <div class="list-item" onclick="window.musicPlayer.playMusic(1)">
+                    <div class="list-item-icon">🌟</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Starlight Dreams</div>
+                        <div class="list-item-subtitle">The Moonwalkers • 4:05</div>
+                    </div>
+                    <button class="nav-btn" id="heart-btn-1" onclick="event.stopPropagation(); toggleMusicHeart(1)">🤍</button>
+                </div>
+
+                <div class="list-item" onclick="window.musicPlayer.playMusic(2)">
+                    <div class="list-item-icon">⚡</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Electric Pulse</div>
+                        <div class="list-item-subtitle">Neon Nights • 3:18</div>
+                    </div>
+                    <button class="nav-btn" id="heart-btn-2" onclick="event.stopPropagation(); toggleMusicHeart(2)">🤍</button>
+                </div>
+
+                <div class="list-item" onclick="window.musicPlayer.playMusic(3)">
+                    <div class="list-item-icon">🌊</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">Ocean Waves</div>
+                        <div class="list-item-subtitle">Calm Collective • 5:12</div>
+                    </div>
+                    <button class="nav-btn" id="heart-btn-3" onclick="event.stopPropagation(); toggleMusicHeart(3)">🤍</button>
+                </div>
+
+                <!-- Music Features -->
+                <div class="section-header">
+                    <div class="section-title">Features</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicQueueModal()">📋 Queue</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openCreateMusicPlaylistModal()">➕ Playlist</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicLyricsModal()">📝 Lyrics</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicShareModal()">🔗 Share</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openMusicDownloadModal()">⬇️ Download</button>
+                    <button class="btn" style="background: var(--glass);" onclick="openAudioQualityModal()">⚙️ Quality</button>
+                </div>
+            </div>
