@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdUnit from '@components/ads/AdUnit';
+import useAppStore from '@store/useAppStore';
 import {
   collection, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion, arrayRemove, getDoc,
@@ -216,7 +217,27 @@ export default function FeedPage() {
   }
 
   // Filter posts by tab
-  const filteredPosts = posts; // In production: filter by Following graph, etc.
+  // ── Fix #2: Actual feed filtering per active tab ──────────────────────────
+  const followingIds = useAppStore((s) => s.followingIds);
+  const friendIds    = useAppStore((s) => s.friendIds);
+
+  const filteredPosts = (() => {
+    switch (activeFilter) {
+      case 'Trending':
+        // Sort all posts by like count descending
+        return [...posts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+      case 'Following':
+        // Show only posts from people user follows
+        if (!followingIds.length) return []; // empty → show empty state
+        return posts.filter(p => followingIds.includes(p.authorId));
+      case 'Friends':
+        // Show only posts from mutual connections
+        if (!friendIds.length) return []; // empty → show empty state
+        return posts.filter(p => friendIds.includes(p.authorId));
+      default:
+        return posts; // 'For You' — all posts
+    }
+  })();
 
   return (
     <div style={S.page}>
@@ -235,11 +256,22 @@ export default function FeedPage() {
       {/* ── Empty state ───────────────────────────────────────── */}
       {!loading && filteredPosts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 24px', color: '#475569' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-          <div style={{ fontWeight: 700, color: '#94a3b8', fontSize: 16 }}>
-            {activeFilter === 'Following' ? 'Follow people to see their posts' : 'No posts yet'}
+          <div style={{ fontSize: 48, marginBottom: 12 }}>
+            {activeFilter === 'Trending'  ? '🔥' :
+             activeFilter === 'Following' ? '👥' :
+             activeFilter === 'Friends'   ? '👫' : '📭'}
           </div>
-          <div style={{ fontSize: 13, marginTop: 6 }}>Be the first to share something ✏️</div>
+          <div style={{ fontWeight: 700, color: '#94a3b8', fontSize: 16 }}>
+            {activeFilter === 'Following' ? 'Follow people to see their posts' :
+             activeFilter === 'Friends'   ? 'Add friends to see their posts' :
+             activeFilter === 'Trending'  ? 'No trending posts yet' :
+             'No posts yet'}
+          </div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>
+            {activeFilter === 'For You' ? 'Be the first to share something ✏️' :
+             activeFilter === 'Trending' ? 'Check back soon!' :
+             'Tap + to find people to follow'}
+          </div>
         </div>
       )}
 

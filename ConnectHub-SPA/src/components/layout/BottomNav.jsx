@@ -22,12 +22,13 @@ const TABS = [
 const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace'];
 
 export default function SideNav() {
-  const navigate   = useNavigate();
-  const { pathname } = useLocation();
-  const [expanded, setExpanded] = useState(true);
+  const navigate          = useNavigate();
+  const { pathname }      = useLocation();
+  const [expanded, setExpanded]     = useState(true);
   const [friendsLive, setFriendsLive] = useState(false);
 
-  const unreadMessages = useAppStore((s) => s.unreadMessages);
+  const unreadMessages    = useAppStore((s) => s.unreadMessages);
+  const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
   const counts = { unreadMessages };
 
   // Simulate a "friend is live" state — in production this would come from Firestore
@@ -76,7 +77,7 @@ export default function SideNav() {
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => isMore ? setMoreDrawerOpen(true) : navigate(path)}
               aria-label={label}
               aria-current={active ? 'page' : undefined}
               style={{

@@ -16,9 +16,11 @@ const TITLES = {
   '/creator':'Creator','/help':'Help & Support','/menu':'Menu','/premium':'Premium',
 };
 
+// Fix #5 (minor): Touch targets ≥ 44×44px per Apple HIG (Rec #33)
 const iconBtn = {
   display:'flex', alignItems:'center', justifyContent:'center',
   padding:'6px', borderRadius:'10px',
+  minWidth:'44px', minHeight:'44px',
   background:'rgba(255,255,255,0.06)', border:'1px solid transparent',
   cursor:'pointer', lineHeight:1, fontSize:'19px',
   transition:'background 0.18s, transform 0.15s', flexShrink:0,
@@ -39,6 +41,8 @@ export default function TopNav() {
   const unreadNotifications     = useAppStore((s) => s.unreadNotifications);
   const user                    = useAppStore((s) => s.user);
   const setUser                 = useAppStore((s) => s.setUser);
+  // Fix #1: ☰ opens drawer; Fix #5: camera button for AR/VR (Rec #17)
+  const setMoreDrawerOpen       = useAppStore((s) => s.setMoreDrawerOpen);
   const [dropOpen, setDropOpen] = useState(false);
   const dropRef                 = useRef(null);
 
@@ -178,8 +182,22 @@ export default function TopNav() {
           )}
         </div>
 
-        {/* 5 ── Hamburger → Full Menu */}
-        <button onClick={() => navigate('/menu')} aria-label="Menu" style={{ ...iconBtn, background:'rgba(99,102,241,0.18)', border:'1px solid rgba(99,102,241,0.38)', fontWeight:700 }}>
+        {/* 5 ── AR/VR Camera Mode (Rec #17: accessible via camera button, not just a nav slot) */}
+        <button
+          onClick={() => navigate('/arvr')}
+          aria-label="AR Camera"
+          title="AR Camera & Filters"
+          style={{ ...iconBtn, background:'rgba(255,255,255,0.05)' }}
+        >
+          📷
+        </button>
+
+        {/* 6 ── Hamburger → opens More Drawer (Fix #1: slide-in instead of full page) */}
+        <button
+          onClick={() => setMoreDrawerOpen(true)}
+          aria-label="Menu"
+          style={{ ...iconBtn, background:'rgba(99,102,241,0.18)', border:'1px solid rgba(99,102,241,0.38)', fontWeight:700 }}
+        >
           ☰
         </button>
       </div>

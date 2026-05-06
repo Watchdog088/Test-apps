@@ -14,7 +14,10 @@ import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebas
 import { db } from '@fb/config';
 import { useAuth } from '@hooks/useAuth';
 
-const PROFILE_TABS = ['Posts', 'Reels', 'Tagged', 'Liked'];
+// Rec #14: Media Hub moved inside Profile as a tab
+// Rec #16: Video Calls accessible from Profile via 📹 icon
+// Rec #18: Business/Creator tools section inside Profile for creator accounts
+const PROFILE_TABS = ['Posts', 'Reels', 'Tagged', 'Liked', 'Media'];
 
 // ── Demo post grid data ──────────────────────────────────────────────────────
 const DEMO_GRID = [
@@ -128,6 +131,14 @@ export default function ProfilePage() {
                 >
                   💬 Message
                 </button>
+                {/* Rec #16: Video Call directly from Profile */}
+                <button
+                  onClick={() => navigate('/videocalls')}
+                  title="Start video call"
+                  style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, padding: '7px 12px', color: 'white', fontSize: 16, backdropFilter: 'blur(8px)' }}
+                >
+                  📹
+                </button>
               </>
             )}
             <button style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, padding: '7px 12px', color: 'white', fontSize: 16, backdropFilter: 'blur(8px)' }}>•••</button>
@@ -168,17 +179,45 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* ── Tab Bar: Posts | Reels | Tagged | Liked (Rec #8) ── */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* ── Creator / Business Tools Section (Rec #18: section inside Profile for creators) ── */}
+      {isOwn && (
+        <div style={{ margin: '0 16px 16px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>🎨 Creator & Business</span>
+            <button onClick={() => navigate('/creator')} style={{ fontSize: 11, color: '#818cf8', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>View Studio →</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+            {[
+              { icon: '🎨', label: 'Creator Studio', path: '/creator' },
+              { icon: '💼', label: 'Business Tools', path: '/business' },
+              { icon: '💰', label: 'Earnings',       path: '/creator' },
+              { icon: '📊', label: 'Analytics',      path: '/creator' },
+            ].map(item => (
+              <button key={item.label} onClick={() => navigate(item.path)} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                padding: '10px 4px', borderRadius: 12, background: 'rgba(99,102,241,0.08)',
+                border: '1px solid rgba(99,102,241,0.15)', cursor: 'pointer', minHeight: 44,
+              }}>
+                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <span style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab Bar: Posts | Reels | Tagged | Liked | Media (Rec #8 + #14) ── */}
+      <div style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         {PROFILE_TABS.map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            flex: 1, padding: '12px 4px', fontSize: 13, fontWeight: activeTab === tab ? 700 : 500,
+            flexShrink: 0, padding: '12px 10px', fontSize: 12, fontWeight: activeTab === tab ? 700 : 500,
             color: activeTab === tab ? '#818cf8' : '#64748b',
             background: 'none', border: 'none',
             borderBottom: activeTab === tab ? '2.5px solid #6366f1' : '2.5px solid transparent',
-            cursor: 'pointer', transition: 'all 0.15s',
+            cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+            minHeight: 44,
           }}>
-            {tab === 'Posts'   ? '⊞' : tab === 'Reels' ? '▶' : tab === 'Tagged' ? '🏷' : '❤️'}&nbsp;{tab}
+            {tab === 'Posts' ? '⊞' : tab === 'Reels' ? '▶' : tab === 'Tagged' ? '🏷' : tab === 'Liked' ? '❤️' : '🎬'}&nbsp;{tab}
           </button>
         ))}
       </div>
@@ -218,6 +257,44 @@ export default function ProfilePage() {
         <div style={{ textAlign: 'center', padding: '48px 24px', color: '#475569' }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>{activeTab === 'Tagged' ? '🏷️' : '❤️'}</div>
           <div style={{ fontWeight: 600, color: '#64748b' }}>No {activeTab.toLowerCase()} posts yet</div>
+        </div>
+      )}
+
+      {/* ── Media Hub tab (Rec #14: Media Hub moved inside Profile) ── */}
+      {activeTab === 'Media' && (
+        <div style={{ padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
+            {[
+              { icon: '🎬', label: 'Videos',      color: 'linear-gradient(135deg,#6366f1,#3b82f6)',  count: 12, path: '/media' },
+              { icon: '🎵', label: 'Music',        color: 'linear-gradient(135deg,#ec4899,#8b5cf6)',  count: 8,  path: '/music' },
+              { icon: '📸', label: 'Photos',       color: 'linear-gradient(135deg,#10b981,#6366f1)',  count: 47, path: '/media' },
+              { icon: '🎙️', label: 'Podcasts',     color: 'linear-gradient(135deg,#f59e0b,#ef4444)',  count: 3,  path: '/media' },
+              { icon: '▶️',  label: 'Reels',        color: 'linear-gradient(135deg,#14b8a6,#6366f1)',  count: 15, path: '/media' },
+              { icon: '🔴', label: 'Live Archive',  color: 'linear-gradient(135deg,#ef4444,#f97316)',  count: 6,  path: '/live'  },
+            ].map(item => (
+              <button key={item.label} onClick={() => navigate(item.path)} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 14, cursor: 'pointer', textAlign: 'left', minHeight: 44,
+              }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                  {item.icon}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{item.count} items</div>
+                </div>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => navigate('/media')} style={{
+            display: 'block', width: '100%', marginTop: 12, padding: '12px', borderRadius: 14,
+            background: 'linear-gradient(135deg,rgba(99,102,241,0.12),rgba(236,72,153,0.12))',
+            border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', fontWeight: 700, fontSize: 14,
+            cursor: 'pointer',
+          }}>
+            Open Full Media Hub 🎬
+          </button>
         </div>
       )}
 

@@ -39,6 +39,18 @@ const useAppStore = create((set, get) => ({
   })),
   setFeedLoading: (v) => set({ feedLoading: v }),
 
+  // ── Social Graph (for feed filtering) ─────────────────────
+  // followingIds: list of user IDs this user follows
+  // friendIds: mutual follows (intersection of following + followers)
+  followingIds: [],
+  friendIds: [],
+  setFollowingIds: (ids) => set({ followingIds: ids }),
+  setFriendIds: (ids) => set({ friendIds: ids }),
+
+  // ── More Drawer (Rec: slide-in instead of full page nav) ───
+  moreDrawerOpen: false,
+  setMoreDrawerOpen: (v) => set({ moreDrawerOpen: v }),
+
   // ── Active Bottom Tab ─────────────────────────────────────
   activeTab: 'feed',
   setActiveTab: (tab) => set({ activeTab: tab }),
