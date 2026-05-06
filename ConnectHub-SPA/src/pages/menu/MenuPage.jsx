@@ -1,94 +1,169 @@
-// PAGE 25 — SLIDE-OUT MENU SCREEN (14 buttons per layout reference)
+// src/pages/menu/MenuPage.jsx
+// Rec #29/#30: Reorganized into logical sections per spec.
+// Sections: DISCOVER | YOU | CREATE & EARN | ENTERTAINMENT | ACCOUNT
+// Layout: Full-page version (drawer overlay in AppShell handles slide-in behavior)
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signOut } from 'firebase/auth';
+import { useAuth } from '@hooks/useAuth';
 
-const MENU_ITEMS = [
-  { icon:'👤', label:'Profile',         path:'/profile',      color:'#6366f1' },
-  { icon:'🔔', label:'Notifications',   path:'/notifications', color:'#ec4899' },
-  { icon:'📹', label:'Video Calls',     path:'/videocalls',   color:'#3b82f6' },
-  { icon:'🔴', label:'Live Streaming',  path:'/live',         color:'#ef4444' },
-  { icon:'🎮', label:'Gaming',          path:'/gaming',       color:'#10b981' },
-  { icon:'📅', label:'Events',          path:'/events',       color:'#f59e0b' },
-  { icon:'🔖', label:'Saved',           path:'/saved',        color:'#8b5cf6' },
-  { icon:'⚙️', label:'Settings',        path:'/settings',     color:'#64748b' },
-  { icon:'🛒', label:'Marketplace',     path:'/marketplace',  color:'#ec4899' },
-  { icon:'✨', label:'Premium',         path:'/premium',      color:'#f59e0b' },
-  { icon:'🏢', label:'Business Tools',  path:'/business',     color:'#6366f1' },
-  { icon:'💡', label:'Creator Profile', path:'/creator',      color:'#10b981' },
-  { icon:'❓', label:'Help & Support',  path:'/help',         color:'#3b82f6' },
+// ── Menu sections per spec ──────────────────────────────────────────────────
+const SECTIONS = [
+  {
+    label: 'DISCOVER',
+    items: [
+      { icon: '🔍', label: 'Search & Explore', path: '/search',    desc: 'Find people, posts & more' },
+      { icon: '📈', label: 'Trending',          path: '/search',   state: { tab: 'trending' }, desc: 'What\'s hot right now' },
+      { icon: '📅', label: 'Events',            path: '/events',   desc: 'Local & online events' },
+      { icon: '👥', label: 'Groups',            path: '/groups',   desc: 'Community groups' },
+    ],
+  },
+  {
+    label: 'YOU',
+    items: [
+      { icon: '👫', label: 'Friends',      path: '/friends',       desc: 'Manage your connections' },
+      { icon: '💾', label: 'Saved',        path: '/saved',         desc: 'Bookmarked posts' },
+      { icon: '🔔', label: 'Notifications',path: '/notifications', desc: 'All your alerts' },
+      { icon: '⭐', label: 'Premium',      path: '/premium',       desc: 'Unlock exclusive features' },
+    ],
+  },
+  {
+    label: 'CREATE & EARN',
+    items: [
+      { icon: '🎨', label: 'Creator Studio',   path: '/creator',   desc: 'Manage your content' },
+      { icon: '💼', label: 'Business Tools',   path: '/business',  desc: 'Analytics & monetization' },
+      { icon: '🛒', label: 'Marketplace',      path: '/marketplace',desc: 'Buy & sell anything' },
+    ],
+  },
+  {
+    label: 'ENTERTAINMENT',
+    items: [
+      { icon: '🎵', label: 'Music Player',   path: '/music',      desc: 'Stream your playlist' },
+      { icon: '🎮', label: 'Gaming Hub',     path: '/gaming',     desc: 'Play & compete' },
+      { icon: '🎬', label: 'Media Hub',      path: '/media',      desc: 'Videos & reels' },
+      { icon: '📹', label: 'Video Calls',    path: '/videocalls', desc: 'Face-to-face calls' },
+      { icon: '🌐', label: 'AR / VR',        path: '/arvr',       desc: 'Augmented reality camera' },
+    ],
+  },
+  {
+    label: 'ACCOUNT',
+    items: [
+      { icon: '⚙️', label: 'Settings',     path: '/settings',  desc: 'App preferences' },
+      { icon: '❓', label: 'Help & Support',path: '/help',      desc: 'FAQs & contact support' },
+    ],
+  },
 ];
+
+// ── Styles ──────────────────────────────────────────────────────────────────
+const S = {
+  page:    { background: '#0a0a18', minHeight: '100vh', paddingBottom: 80 },
+  header:  { padding: '20px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' },
+  title:   { fontSize: 22, fontWeight: 800, color: '#f1f5f9', marginBottom: 2 },
+  sub:     { fontSize: 13, color: '#64748b' },
+  section: { marginBottom: 4 },
+  sectionHdr: {
+    fontSize: 10, fontWeight: 800, letterSpacing: '0.10em',
+    textTransform: 'uppercase', color: '#475569',
+    padding: '18px 16px 8px',
+  },
+  item:    {
+    display: 'flex', alignItems: 'center', gap: 14,
+    padding: '12px 16px', cursor: 'pointer',
+    transition: 'background 0.15s',
+  },
+  iconBox: {
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 20, background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.10)',
+  },
+  itemLabel: { fontWeight: 600, fontSize: 15, color: '#f1f5f9', lineHeight: 1.3 },
+  itemDesc:  { fontSize: 12, color: '#64748b', marginTop: 1 },
+  divider:   { height: 1, background: 'rgba(255,255,255,0.06)', margin: '0 16px' },
+  signOut:   {
+    margin: '8px 16px', padding: '14px 16px', borderRadius: 14,
+    display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
+    background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.20)',
+    transition: 'background 0.15s',
+  },
+};
+
+function MenuItem({ icon, label, desc, onClick }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <div
+      style={{ ...S.item, background: hover ? 'rgba(255,255,255,0.04)' : 'transparent' }}
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div style={S.iconBox}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={S.itemLabel}>{label}</div>
+        {desc && <div style={S.itemDesc}>{desc}</div>}
+      </div>
+      <span style={{ color: '#334155', fontSize: 18 }}>›</span>
+    </div>
+  );
+}
 
 export default function MenuPage() {
   const navigate = useNavigate();
-  const auth = getAuth();
-  const user = auth.currentUser;
+  const { logout } = useAuth();
+  const [hoverSignOut, setHoverSignOut] = React.useState(false);
 
-  const handleLogout = async () => {
-    try { await signOut(auth); navigate('/login'); } catch(e) { console.error(e); }
-  };
+  async function handleSignOut() {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  }
 
   return (
-    <div style={{ background:'#0f172a', minHeight:'100vh', paddingBottom:'100px' }}>
+    <div style={S.page}>
       {/* Header */}
-      <div style={{ padding:'16px', borderBottom:'1px solid #1e293b' }}>
-        <span style={{ fontSize:'20px', fontWeight:700, color:'#f1f5f9' }}>☰ Menu</span>
+      <div style={S.header}>
+        <div style={S.title}>More</div>
+        <div style={S.sub}>All features & settings</div>
       </div>
 
-      {/* User Profile Card */}
-      <div onClick={() => navigate('/profile')} style={{ margin:'16px', background:'linear-gradient(135deg,#6366f1,#ec4899)', borderRadius:'20px', padding:'20px', display:'flex', alignItems:'center', gap:'14px', cursor:'pointer' }}>
-        <div style={{ width:'56px', height:'56px', borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26px', border:'3px solid rgba(255,255,255,0.4)', flexShrink:0 }}>
-          {user?.photoURL ? <img src={user.photoURL} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} /> : '😊'}
-        </div>
-        <div style={{ flex:1 }}>
-          <div style={{ fontWeight:800, color:'white', fontSize:'17px' }}>{user?.displayName || 'Your Name'}</div>
-          <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'13px' }}>{user?.email || 'your@email.com'}</div>
-          <div style={{ marginTop:'4px' }}>
-            <span style={{ background:'rgba(255,255,255,0.2)', color:'white', fontSize:'11px', fontWeight:600, borderRadius:'10px', padding:'2px 10px' }}>View Profile →</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Menu Grid */}
-      <div style={{ padding:'0 16px' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'16px' }}>
-          {MENU_ITEMS.map(item => (
-            <div
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              style={{ background:'#1e293b', borderRadius:'16px', padding:'16px', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', transition:'all 0.2s' }}
-            >
-              <div style={{ width:'40px', height:'40px', borderRadius:'12px', background:item.color + '22', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0 }}>{item.icon}</div>
-              <span style={{ color:'#f1f5f9', fontWeight:600, fontSize:'13px' }}>{item.label}</span>
-            </div>
+      {/* Sections */}
+      {SECTIONS.map((section) => (
+        <div key={section.label} style={S.section}>
+          <div style={S.sectionHdr}>{section.label}</div>
+          {section.items.map((item, idx) => (
+            <React.Fragment key={item.label}>
+              <MenuItem
+                icon={item.icon}
+                label={item.label}
+                desc={item.desc}
+                onClick={() => navigate(item.path, item.state ? { state: item.state } : undefined)}
+              />
+              {idx < section.items.length - 1 && <div style={S.divider} />}
+            </React.Fragment>
           ))}
         </div>
+      ))}
 
-        {/* Quick Actions */}
-        <div style={{ background:'#1e293b', borderRadius:'16px', padding:'16px', marginBottom:'16px' }}>
-          <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'12px' }}>Quick Access</div>
-          <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
-            {[
-              { label:'📷 AR Camera', path:'/arvr' },
-              { label:'🔴 Go Live', path:'/live' },
-              { label:'🎵 Music', path:'/music' },
-              { label:'🎬 Media Hub', path:'/media' },
-              { label:'🔍 Search', path:'/search' },
-              { label:'👥 Friends', path:'/friends' },
-              { label:'💕 Dating', path:'/dating' },
-              { label:'👥 Groups', path:'/groups' },
-            ].map(q => (
-              <button key={q.path} onClick={() => navigate(q.path)} style={{ background:'#0f172a', color:'#94a3b8', border:'1px solid #334155', borderRadius:'20px', padding:'7px 14px', fontSize:'12px', fontWeight:500, cursor:'pointer' }}>
-                {q.label}
-              </button>
-            ))}
-          </div>
+      {/* Sign Out — separate, danger style */}
+      <div
+        style={{
+          ...S.signOut,
+          background: hoverSignOut ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.10)',
+        }}
+        onClick={handleSignOut}
+        onMouseEnter={() => setHoverSignOut(true)}
+        onMouseLeave={() => setHoverSignOut(false)}
+      >
+        <div style={{ ...S.iconBox, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)' }}>
+          🚪
         </div>
-
-        {/* Logout */}
-        <button onClick={handleLogout} style={{ width:'100%', background:'rgba(239,68,68,0.1)', color:'#ef4444', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'16px', padding:'14px', fontSize:'15px', fontWeight:700, cursor:'pointer' }}>
-          🚪 Logout
-        </button>
+        <div style={{ flex: 1 }}>
+          <div style={{ ...S.itemLabel, color: '#f87171' }}>Sign Out</div>
+          <div style={S.itemDesc}>Sign out of your account</div>
+        </div>
       </div>
     </div>
   );

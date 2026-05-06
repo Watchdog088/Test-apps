@@ -1,29 +1,40 @@
 // src/components/layout/BottomNav.jsx
-// Left-side vertical sidebar — transparent glass, retractable with a pull-tab toggle
-// position: fixed so it floats over content without disturbing the layout flow
+// Left-side vertical sidebar — Home | Live | Dating | Messages | Marketplace
+// Rec #1-4: Updated tabs per recommendation. Live has red pulsing badge.
+// Notifications removed from sidebar (TopNav only). Search removed (TopNav only).
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
 
+const NAV_WIDTH = 72; // px
+
+// ── Sidebar tabs (per recommendation: Home | Live | Dating | Messages | Marketplace)
 const TABS = [
-  { path: '/feed',          icon: '🏠', label: 'Home' },
-  { path: '/search',        icon: '🔍', label: 'Search' },
-  { path: '/messages',      icon: '💬', label: 'Messages',  badge: 'unreadMessages' },
-  { path: '/notifications', icon: '🔔', label: 'Alerts',    badge: 'unreadNotifications' },
-  { path: '/menu',          icon: '☰',  label: 'More' },
+  { path: '/feed',        icon: '🏠', label: 'Home' },
+  { path: '/live',        icon: '🔴', label: 'Live',      live: true },
+  { path: '/dating',      icon: '❤️', label: 'Dating' },
+  { path: '/messages',    icon: '💬', label: 'Messages',  badge: 'unreadMessages' },
+  { path: '/marketplace', icon: '🛒', label: 'Shop' },
+  { path: '/menu',        icon: '☰',  label: 'More' },
 ];
 
-const NAV_WIDTH = 72; // px — width of the sidebar panel
+const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace'];
 
 export default function SideNav() {
   const navigate   = useNavigate();
   const { pathname } = useLocation();
   const [expanded, setExpanded] = useState(true);
+  const [friendsLive, setFriendsLive] = useState(false);
 
-  const unreadMessages      = useAppStore((s) => s.unreadMessages);
-  const unreadNotifications = useAppStore((s) => s.unreadNotifications);
-  const counts = { unreadMessages, unreadNotifications };
+  const unreadMessages = useAppStore((s) => s.unreadMessages);
+  const counts = { unreadMessages };
+
+  // Simulate a "friend is live" state — in production this would come from Firestore
+  useEffect(() => {
+    const timer = setTimeout(() => setFriendsLive(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -36,19 +47,15 @@ export default function SideNav() {
           position: 'fixed',
           left: 0,
           top: '50%',
-          // slides fully off-screen when retracted; translateY keeps it centred
           transform: `translateY(-50%) translateX(${expanded ? '0' : `-${NAV_WIDTH}px`})`,
           transition,
           zIndex: 300,
-
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'stretch',
           gap: '4px',
           padding: '14px 6px',
           width: `${NAV_WIDTH}px`,
-
-          // glass look
           background: 'rgba(15, 12, 41, 0.42)',
           backdropFilter: 'blur(22px)',
           WebkitBackdropFilter: 'blur(22px)',
@@ -58,13 +65,13 @@ export default function SideNav() {
           boxShadow: '4px 0 24px rgba(0,0,0,0.35)',
         }}
       >
-        {TABS.map(({ path, icon, label, badge }) => {
-          const primaryPaths = ['/feed', '/search', '/messages', '/notifications'];
+        {TABS.map(({ path, icon, label, badge, live }) => {
           const isMore  = path === '/menu';
           const active  = isMore
-            ? pathname.startsWith('/menu') || !primaryPaths.some(p => pathname.startsWith(p))
+            ? pathname.startsWith('/menu') || !PRIMARY_PATHS.some(p => pathname.startsWith(p))
             : pathname.startsWith(path);
           const count   = badge ? counts[badge] : 0;
+          const showLiveBadge = live && friendsLive;
 
           return (
             <button
@@ -78,13 +85,19 @@ export default function SideNav() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '3px',
-                padding: '9px 4px',
+                // Touch target: minimum 44px height
+                minHeight: '44px',
+                padding: '10px 4px',
                 borderRadius: '14px',
                 background: active
-                  ? 'rgba(99,102,241,0.22)'
+                  ? live
+                    ? 'rgba(239,68,68,0.20)'
+                    : 'rgba(99,102,241,0.22)'
                   : 'transparent',
                 border: active
-                  ? '1px solid rgba(99,102,241,0.35)'
+                  ? live
+                    ? '1px solid rgba(239,68,68,0.40)'
+                    : '1px solid rgba(99,102,241,0.35)'
                   : '1px solid transparent',
                 opacity: active ? 1 : 0.55,
                 transform: active ? 'scale(1.05)' : 'scale(1)',
@@ -94,7 +107,7 @@ export default function SideNav() {
             >
               {/* Icon */}
               <span style={{
-                fontSize: isMore ? '17px' : '19px',
+                fontSize: isMore ? '17px' : '20px',
                 lineHeight: 1,
                 fontWeight: isMore ? 800 : 400,
               }}>
@@ -105,14 +118,16 @@ export default function SideNav() {
               <span style={{
                 fontSize: '9px',
                 fontWeight: active ? 700 : 500,
-                color: active ? '#818cf8' : '#94a3b8',
+                color: active
+                  ? live ? '#f87171' : '#818cf8'
+                  : '#94a3b8',
                 letterSpacing: '0.02em',
                 whiteSpace: 'nowrap',
               }}>
                 {label}
               </span>
 
-              {/* Unread badge */}
+              {/* Unread messages badge */}
               {count > 0 && (
                 <span style={{
                   position: 'absolute',
@@ -132,12 +147,26 @@ export default function SideNav() {
                   {count > 9 ? '9+' : count}
                 </span>
               )}
+
+              {/* 🔴 Live pulsing badge — shows when friends are live */}
+              {showLiveBadge && (
+                <span style={{
+                  position: 'absolute',
+                  top: 4, right: 4,
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  width: '8px',
+                  height: '8px',
+                  border: '1.5px solid rgba(15,12,41,0.7)',
+                  animation: 'livePulse 1.4s ease-in-out infinite',
+                }} />
+              )}
             </button>
           );
         })}
       </nav>
 
-      {/* ── Pull-tab toggle ── always anchored to the right edge of the panel ── */}
+      {/* ── Pull-tab toggle ── */}
       <button
         onClick={() => setExpanded(prev => !prev)}
         aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
@@ -145,11 +174,9 @@ export default function SideNav() {
           position: 'fixed',
           top: '50%',
           left: 0,
-          // moves with the panel: when expanded → right edge of panel; when retracted → screen edge
           transform: `translateY(-50%) translateX(${expanded ? `${NAV_WIDTH}px` : '0'})`,
           transition,
           zIndex: 301,
-
           background: 'rgba(99,102,241,0.70)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
@@ -157,7 +184,6 @@ export default function SideNav() {
           borderLeft: 'none',
           borderRadius: '0 10px 10px 0',
           boxShadow: '3px 0 12px rgba(99,102,241,0.4)',
-
           color: 'white',
           fontSize: '16px',
           fontWeight: 900,
