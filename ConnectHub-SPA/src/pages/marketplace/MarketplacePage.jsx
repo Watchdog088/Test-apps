@@ -81,7 +81,7 @@ const S = {
   tabRow:{ display:'flex', borderBottom:'1px solid #1e293b', overflowX:'auto' },
   tab:   (active) => ({
     flex:'0 0 auto', padding:'12px 18px', fontSize:'13px', fontWeight:active?700:500,
-    color:active?'#6366f1':'#64748b', borderBottom:active?'2px solid #6366f1':'2px solid transparent',
+    color:active?'#6366f1':'#64748b',
     cursor:'pointer', whiteSpace:'nowrap', background:'none', border:'none',
     borderBottom:active?'2px solid #6366f1':'2px solid transparent',
   }),

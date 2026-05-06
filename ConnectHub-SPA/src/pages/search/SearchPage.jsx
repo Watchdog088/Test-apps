@@ -78,7 +78,7 @@ export default function SearchPage() {
             flex:1, padding:'13px 4px', fontSize:14, fontWeight: topTab===t ? 700 : 500,
             color: topTab===t ? '#818cf8' : '#64748b',
             borderBottom: topTab===t ? '2.5px solid #6366f1' : '2.5px solid transparent',
-            background:'none', border:'none', borderBottom: topTab===t ? '2.5px solid #6366f1' : '2.5px solid transparent',
+            background:'none', border:'none',
             cursor:'pointer', transition:'all 0.15s',
           }}>{t}</button>
         ))}

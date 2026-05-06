@@ -24,6 +24,9 @@ const useAppStore = create((set, get) => ({
   unreadNotifications: 0,
   setUnreadMessages: (n) => set({ unreadMessages: n }),
   setUnreadNotifications: (n) => set({ unreadNotifications: n }),
+  incrementUnreadMessages: () => set((s) => ({ unreadMessages: s.unreadMessages + 1 })),
+  incrementUnreadNotifications: () => set((s) => ({ unreadNotifications: s.unreadNotifications + 1 })),
+  resetUnreadMessages: () => set({ unreadMessages: 0 }),
 
   // ── Feed State ────────────────────────────────────────────
   feedPosts: [],
