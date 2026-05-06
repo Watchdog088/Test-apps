@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdUnit from '@components/ads/AdUnit';
 import {
   collection, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion, arrayRemove, getDoc,
@@ -242,15 +243,20 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── Post cards ────────────────────────────────────────── */}
-      {!loading && filteredPosts.map(post => (
-        <PostCard
-          key={post.id}
-          post={post}
-          uid={uid}
-          onLike={handleLike}
-          onComment={(p) => navigate('/feed', { state: { commentPost: p.id } })}
-        />
+      {/* ── Post cards (with AdUnit every 4th post) ───────────── */}
+      {!loading && filteredPosts.map((post, idx) => (
+        <React.Fragment key={post.id}>
+          <PostCard
+            post={post}
+            uid={uid}
+            onLike={handleLike}
+            onComment={(p) => navigate('/feed', { state: { commentPost: p.id } })}
+          />
+          {/* Insert banner ad after every 4th post (0-indexed: positions 3,7,11…) */}
+          {(idx + 1) % 4 === 0 && (
+            <AdUnit type="banner" placement={`feed-after-post-${idx + 1}`} />
+          )}
+        </React.Fragment>
       ))}
 
       {/* ── Create Post Modal ─────────────────────────────────── */}

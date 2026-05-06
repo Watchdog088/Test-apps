@@ -1,10 +1,12 @@
 // src/components/layout/AppShell.jsx
 // Main layout wrapper: TopNav | Page content | SideNav | Mini Music Player (Rec #15)
 
-import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import TopNav    from './TopNav';
 import SideNav   from './BottomNav';   // renamed to SideNav internally
+import AdUnit    from '@components/ads/AdUnit';
+import adService from '@services/ad-service';
 
 // Routes that hide the chrome (TopNav + SideNav + MiniPlayer)
 const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
@@ -87,16 +89,70 @@ function MiniPlayer({ track, onExpand }) {
 
 // ── AppShell ────────────────────────────────────────────────────────────────
 export default function AppShell() {
-  const { pathname } = useLocation();
-  const [showMiniPlayer, setShowMiniPlayer] = useState(true);
-  const [showFullPlayer, setShowFullPlayer] = useState(false);
+  const { pathname }    = useLocation();
+  const navigate        = useNavigate();
+  const [showMiniPlayer,   setShowMiniPlayer]   = useState(true);
+  const [showFullPlayer,   setShowFullPlayer]   = useState(false);
+  const [showInterstitial, setShowInterstitial] = useState(false);
+  const [showRewarded,     setShowRewarded]     = useState(false);
+  const [coinToast,        setCoinToast]        = useState(null);
+  const prevPath = useRef(pathname);
 
   const hideChrome = CHROME_HIDDEN.some(p => pathname.startsWith(p));
 
+  // ── Initialise ad service once ─────────────────────────────
+  useEffect(() => {
+    const consent = localStorage.getItem('cookieConsent') !== 'false';
+    adService.init(consent);
+  }, []);
+
+  // ── Interstitial on route change (3-min cooldown) ──────────
+  useEffect(() => {
+    if (pathname === prevPath.current) return;
+    prevPath.current = pathname;
+    if (!hideChrome && adService.canShowInterstitial()) {
+      // Small delay so page renders first
+      const t = setTimeout(() => setShowInterstitial(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [pathname, hideChrome]);
+
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+      {/* ── Interstitial Ad Overlay ── */}
+      {showInterstitial && (
+        <AdUnit type="interstitial" onClose={() => setShowInterstitial(false)} />
+      )}
+
+      {/* ── Rewarded Ad Overlay ── */}
+      {showRewarded && (
+        <AdUnit
+          type="rewarded"
+          onReward={(coins) => {
+            setCoinToast(`+${coins} Coins earned! 🪙`);
+            setTimeout(() => setCoinToast(null), 3500);
+          }}
+          onClose={() => setShowRewarded(false)}
+        />
+      )}
+
+      {/* ── Coin toast notification ── */}
+      {coinToast && (
+        <div style={{
+          position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)',
+          background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+          color: 'white', fontWeight: 800, fontSize: 14,
+          padding: '10px 22px', borderRadius: 24, zIndex: 9990,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          {coinToast}
+        </div>
+      )}
+
       {/* ── Top Navigation Bar ── */}
-      {!hideChrome && <TopNav />}
+      {!hideChrome && <TopNav onWatchAd={() => setShowRewarded(true)} />}
 
       {/* ── Main scrollable content ── */}
       <main
