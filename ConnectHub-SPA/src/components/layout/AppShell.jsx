@@ -411,8 +411,10 @@ export default function AppShell() {
       {!hideChrome && <TopNav onWatchAd={() => setShowRewarded(true)} />}
 
       {/* ── Main content ── */}
+      {/* paddingTop accounts for fixed TopNav (56px); paddingLeft for SideNav (72px) */}
       <main style={{
         flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
+        paddingTop: hideChrome ? 0 : 'var(--top-nav-h, 56px)',
         paddingLeft: hideChrome ? 0 : 72,
         paddingBottom: mainPaddingBottom,
       }}>

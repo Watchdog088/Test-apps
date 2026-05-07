@@ -2,6 +2,55 @@
 // UX-16 FIX: Interstitials limited to max once per session after 5+ navigations
 // Prevents aggressive ad interruptions that cause high churn
 
+// ── House Ads (fallback when AdSense not loaded) ──────────────────────────────
+export const HOUSE_ADS = [
+  {
+    id: 'ha-1',
+    type: 'banner',
+    bg: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    headline: '⭐ Go Premium',
+    sub: 'Remove ads, unlock exclusive features & boost your profile',
+    cta: 'Upgrade',
+    ctaPath: '/premium',
+  },
+  {
+    id: 'ha-2',
+    type: 'banner',
+    bg: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    headline: '🎯 Lynk Dating',
+    sub: 'Find your perfect match — thousands of people nearby',
+    cta: 'Meet People',
+    ctaPath: '/dating',
+  },
+  {
+    id: 'ha-3',
+    type: 'banner',
+    bg: 'linear-gradient(135deg,#10b981,#06b6d4)',
+    headline: '🛍️ Marketplace',
+    sub: 'Buy & sell items in your community. List for free!',
+    cta: 'Browse Now',
+    ctaPath: '/marketplace',
+  },
+  {
+    id: 'ha-4',
+    type: 'banner',
+    bg: 'linear-gradient(135deg,#ec4899,#a855f7)',
+    headline: '🎬 Go Live',
+    sub: 'Start streaming to your followers right now',
+    cta: 'Go Live',
+    ctaPath: '/live',
+  },
+  {
+    id: 'ha-5',
+    type: 'banner',
+    bg: 'linear-gradient(135deg,#0ea5e9,#6366f1)',
+    headline: '👥 Find Friends',
+    sub: 'Connect with people who share your interests',
+    cta: 'Explore',
+    ctaPath: '/friends',
+  },
+];
+
 const AD_SERVICE_CONFIG = {
   enableAds: true,
   bannerRefreshInterval: 30000,
@@ -73,6 +122,34 @@ class AdService {
       rewarded:     import.meta.env.VITE_AD_REWARDED_ID     || 'rewarded-demo',
     };
     return ids[type] || 'ad-demo';
+  }
+
+  /** Returns whether ads should be shown (hidden for premium users) */
+  shouldShowAds(userProfile) {
+    if (!AD_SERVICE_CONFIG.enableAds) return false;
+    if (userProfile?.isPremium) return false;
+    return true;
+  }
+
+  /** Cycle through house ads round-robin */
+  nextHouseAd(/* type */) {
+    if (!this._houseAdIndex) this._houseAdIndex = 0;
+    const ad = HOUSE_ADS[this._houseAdIndex % HOUSE_ADS.length];
+    this._houseAdIndex++;
+    return ad;
+  }
+
+  recordBannerImpression() {
+    // Analytics hook — no-op in dev
+  }
+
+  recordRewardedImpression() {
+    // Analytics hook — no-op in dev
+  }
+
+  grantReward() {
+    // In production this would credit the user's wallet
+    console.log('[AdService] Reward granted');
   }
 }
 
