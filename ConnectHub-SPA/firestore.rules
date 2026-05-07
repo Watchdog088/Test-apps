@@ -1,0 +1,80 @@
+// firestore.rules — LIVE-BUG-05 FIX
+// Firestore Security Rules for the streams collection
+// Deploy with: firebase deploy --only firestore:rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidStream() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['title', 'category', 'status', 'userId'])
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 60
+        && data.category is string
+        && data.status in ['live', 'ended', 'scheduled']
+        && data.userId == request.auth.uid;
+    }
+
+    // ── streams collection ──────────────────────────────────────────────────
+    // LIVE-BUG-05: reads = all users; writes = only authenticated owner
+    match /streams/{streamId} {
+      // Anyone (including unauthenticated users) can read live streams
+      allow read: if true;
+
+      // Only authenticated user can create a stream for themselves
+      allow create: if isAuthenticated() && isValidStream();
+
+      // Only the stream owner can update/delete their own stream
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // ── streams/{id}/messages sub-collection ── UX-LIVE-01 (live chat)
+      match /messages/{msgId} {
+        // Anyone who can see the stream can read messages
+        allow read: if true;
+
+        // Only authenticated users can send messages
+        allow create: if isAuthenticated()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 300;
+
+        // Users can only delete their own messages
+        allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+        // No editing of chat messages
+        allow update: if false;
+      }
+
+      // ── streams/{id}/cohosts sub-collection ── IMPROVE-LIVE-04
+      match /cohosts/{coHostId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && isOwner(resource.data.streamOwnerId);
+      }
+    }
+
+    // ── users collection (general) ──────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ── Default deny ────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

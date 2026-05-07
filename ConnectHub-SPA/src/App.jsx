@@ -19,6 +19,14 @@ const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 const FeedPage          = lazy(() => import('./pages/feed/FeedPage'));
 const StoriesPage       = lazy(() => import('./pages/stories/StoriesPage'));
 const LivePage          = lazy(() => import('./pages/live/LivePage'));
+
+// Live sub-pages (LIVE-BUG-01 through LIVE-BUG-10 fixes)
+const LiveSetupPage       = lazy(() => import('./pages/live/LiveSetupPage'));
+const LiveWatchPage       = lazy(() => import('./pages/live/LiveWatchPage'));
+const LiveMonetizationPage = lazy(() => import('./pages/live/LiveMonetizationPage'));
+const LiveModerationPage  = lazy(() => import('./pages/live/LiveModerationPage'));
+const LiveSchedulePage    = lazy(() => import('./pages/live/LiveSchedulePage'));
+const LiveAnalyticsPage   = lazy(() => import('./pages/live/LiveAnalyticsPage'));
 const GroupsPage        = lazy(() => import('./pages/groups/GroupsPage'));
 const MessagesPage      = lazy(() => import('./pages/messages/MessagesPage'));
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'));
@@ -104,7 +112,14 @@ export default function App() {
             <Route index element={<Navigate to="/feed" replace />} />
             <Route path="feed"          element={<FeedPage />} />
             <Route path="stories"       element={<StoriesPage />} />
-            <Route path="live"          element={<LivePage />} />
+            <Route path="live"              element={<LivePage />} />
+            {/* LIVE-BUG-01-10 FIXES: new live sub-routes */}
+            <Route path="live/setup"        element={<LiveSetupPage />} />
+            <Route path="live/watch/:streamId" element={<LiveWatchPage />} />
+            <Route path="live/monetization" element={<LiveMonetizationPage />} />
+            <Route path="live/moderation"   element={<LiveModerationPage />} />
+            <Route path="live/schedule"     element={<LiveSchedulePage />} />
+            <Route path="live/analytics"    element={<LiveAnalyticsPage />} />
             {/* POLISH-18 FIX: /trending redirects to feed with filter param — no duplicate page */}
             <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
             <Route path="groups"        element={<GroupsPage />} />
