@@ -129,6 +129,7 @@ export default function LivePage() {
 
   const [feeds,        setFeeds]        = useState([]);
   const [vods,         setVods]         = useState([]);
+  const [clips,        setClips]        = useState([]);   // REC-11
   const [loading,      setLoading]      = useState(true);
   const [followingIds, setFollowingIds] = useState(new Set());
   const [followStates, setFollowStates] = useState({});
@@ -168,6 +169,18 @@ export default function LivePage() {
       setVods(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, () => {});
     return () => unsub();
+  }, []);
+
+  // REC-11: Load trending clips (ready clips ordered by view count)
+  useEffect(() => {
+    const { getDocs: gd } = require !== undefined
+      ? { getDocs: null }
+      : {};
+    import('firebase/firestore').then(({ getDocs: getDocs2, query: q2, collection: col2, where: wh2, orderBy: ob2, limit: lim2 }) => {
+      getDocs2(q2(col2(db, 'clips'), wh2('status','==','ready'), ob2('viewCount','desc'), lim2(10)))
+        .then(snap => setClips(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+        .catch(() => {});
+    }).catch(() => {});
   }, []);
 
   const toggleFollow = async (e, userId) => {
@@ -414,6 +427,97 @@ export default function LivePage() {
             </div>
           )}
         </div>
+
+        {/* REC-11: Trending Clips */}
+        {clips.length > 0 && (
+          <div style={{ marginBottom:'24px' }}>
+            <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase',
+              letterSpacing:'0.06em', marginBottom:'10px' }}>🔥 Trending Clips</div>
+            <div style={{ display:'flex', gap:'12px', overflowX:'auto', paddingBottom:'8px' }} role="list">
+              {clips.map(clip => (
+                <div key={clip.id} role="listitem"
+                  onClick={() => { cancelLongPress(); navigate(`/clips/${clip.id}`); }}
+                  aria-label={`Watch clip: ${clip.streamTitle}`}
+                  style={{ borderRadius:'14px', overflow:'hidden', background:'#1e293b',
+                    flexShrink:0, width:'140px', cursor:'pointer' }}>
+                  <div style={{ position:'relative', aspectRatio:'9/16', background:'linear-gradient(135deg,#1e293b,#334155)', overflow:'hidden' }}>
+                    {clip.thumbnailUrl
+                      ? <img src={clip.thumbnailUrl} alt={clip.streamTitle} loading="lazy"
+                          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                      : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px' }}>✂️</div>
+                    }
+                    <div style={{ position:'absolute', bottom:'4px', left:'4px', background:'rgba(0,0,0,0.8)',
+                      borderRadius:'4px', padding:'2px 6px', color:'white', fontSize:'9px', fontWeight:700 }}>
+                      ✂️ CLIP
+                    </div>
+                    {clip.viewCount > 0 && (
+                      <div style={{ position:'absolute', top:'4px', right:'4px', background:'rgba(0,0,0,0.7)',
+                        borderRadius:'4px', padding:'1px 5px', color:'white', fontSize:'9px' }}>
+                        👁 {clip.viewCount >= 1000 ? `${(clip.viewCount/1000).toFixed(1)}K` : clip.viewCount}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding:'6px 8px' }}>
+                    <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px',
+                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {clip.streamTitle || 'Stream Clip'}
+                    </div>
+                    <div style={{ color:'#64748b', fontSize:'10px', marginTop:'1px' }}>
+                      {clip.streamerName || 'Creator'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* REC-10: Portrait-format card section for IRL / Talk Show */}
+        {(() => {
+          const portraitFeeds = filteredFeeds.filter(f => f.category === 'irl' || f.category === 'talkshow');
+          if (portraitFeeds.length === 0) return null;
+          return (
+            <div style={{ marginBottom:'24px' }}>
+              <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase',
+                letterSpacing:'0.06em', marginBottom:'10px' }}>📍 IRL & Talk Shows</div>
+              <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px' }} role="list">
+                {portraitFeeds.map(feed => (
+                  <div key={feed.id + '-portrait'} role="listitem"
+                    onClick={() => { cancelLongPress(); navigate(`/live/watch/${feed.id}`); }}
+                    aria-label={`Watch ${feed.title} — ${fmt(feed.viewerCount)} viewers`}
+                    style={{ borderRadius:'14px', overflow:'hidden', background:'#1e293b',
+                      flexShrink:0, width:'100px', cursor:'pointer' }}>
+                    <div style={{ position:'relative', aspectRatio:'9/16',
+                      background:'linear-gradient(135deg,#1e293b,#334155)', overflow:'hidden' }}>
+                      {feed.thumbnailUrl
+                        ? <img src={feed.thumbnailUrl} alt={feed.title} loading="lazy"
+                            style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                        : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
+                              justifyContent:'center', fontSize:'22px' }}>
+                            {feed.category === 'irl' ? '📍' : '💬'}
+                          </div>
+                      }
+                      <div style={{ position:'absolute', top:'5px', left:'5px', background:'#ef4444',
+                        borderRadius:'4px', padding:'1px 5px', color:'white', fontSize:'8px', fontWeight:800 }}>
+                        ● LIVE
+                      </div>
+                      <div style={{ position:'absolute', bottom:'4px', left:0, right:0,
+                        padding:'0 5px', background:'linear-gradient(to top,rgba(0,0,0,0.7),transparent)' }}>
+                        <div style={{ color:'white', fontSize:'9px', fontWeight:700,
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {feed.title}
+                        </div>
+                        <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'8px' }}>
+                          👁 {fmt(feed.viewerCount)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* VOD Replays */}
         {vods.length > 0 && (

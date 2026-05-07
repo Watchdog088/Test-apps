@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  collection, query, where, orderBy, limit, getDocs,
+  collection, query, where, orderBy, limit, getDocs, Timestamp,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 
@@ -18,24 +18,30 @@ export default function LiveAnalyticsPage() {
   const [dateRange, setDateRange] = useState('7');   // days
   const [activeTab, setActiveTab] = useState('views'); // views | monetization
 
-  // UX-5 FIX: Load real data from Firestore
+  // REC-12: Load real data — re-queries Firestore when dateRange changes
   useEffect(() => {
     const uid = auth.currentUser?.uid;
     if (!uid) { setLoading(false); return; }
+    setLoading(true);
 
     const fetchStreams = async () => {
       try {
+        // REC-12: Build cutoff Timestamp from selected date range
+        const days = parseInt(dateRange, 10) || 7;
+        const cutoff = Timestamp.fromMillis(Date.now() - days * 24 * 60 * 60 * 1000);
+
         const q = query(
           collection(db, 'streams'),
-          where('userId', '==', uid),
+          where('userId',    '==', uid),
+          where('startedAt', '>=', cutoff),  // ← REC-12: date range filter
           orderBy('startedAt', 'desc'),
-          limit(20)
+          limit(50)
         );
         const snap = await getDocs(q);
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setStreams(docs);
 
-        // Aggregate totals
+        // Aggregate totals for the selected period
         const agg = docs.reduce((acc, s) => ({
           views:    acc.views    + (s.peakViewerCount || s.viewerCount || 0),
           watchTime:acc.watchTime+ (s.totalWatchMinutes || 0),
@@ -51,7 +57,7 @@ export default function LiveAnalyticsPage() {
     };
 
     fetchStreams();
-  }, []);
+  }, [dateRange]); // ← REC-12: re-run on date range change
 
   const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n);
   const fmtTime = m => m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;

@@ -13,10 +13,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  doc, getDoc, onSnapshot, addDoc, updateDoc, collection,
-  serverTimestamp, increment, orderBy, query, limitToLast,
+  doc, getDoc, onSnapshot, addDoc, updateDoc, setDoc, deleteDoc, collection,
+  serverTimestamp, increment, orderBy, query, limitToLast, where,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
+import { LivestreamViewer } from '@/services/livestream-webrtc';
 import useAppStore from '@store/useAppStore';
 
 // SECURITY: Simple inline sanitizer (replaces DOMPurify for no-dep build)
@@ -61,8 +62,13 @@ export default function LiveWatchPage() {
   const [pinnedMessage,   setPinnedMessage]   = useState(null);   // MISSING-5
   const [handRaised,      setHandRaised]      = useState(false);  // MISSING-4
   const [isPiP,           setIsPiP]           = useState(false);  // MISSING-2
-  const [clipLoading,     setClipLoading]     = useState(false);  // MISSING-7
+  const [clipLoading,     setClipLoading]     = useState(false);
+  const [createdClips,    setCreatedClips]    = useState([]);
+  const [showClipsPanel,  setShowClipsPanel]  = useState(false);
+  const [giftLeaders,     setGiftLeaders]     = useState([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isFullscreen,    setIsFullscreen]    = useState(false);
+  const viewerRef = useRef(null); // REC-3: WebRTC viewer instance
 
   // UX-10 FIX: Inject dynamic OG meta when stream data loads
   useEffect(() => {
@@ -124,14 +130,59 @@ export default function LiveWatchPage() {
     return () => unsub();
   }, [streamId]);
 
-  // Increment viewer on join, decrement on leave
+  // REC-3: WebRTC viewer connection
+  useEffect(() => {
+    if (!streamId || !videoRef.current || connectionState !== 'live') return;
+    const viewer = new LivestreamViewer({
+      streamId,
+      videoElement:   videoRef.current,
+      onConnected:    () => console.log('[WebRTC] viewer connected'),
+      onDisconnected: () => setConnectionState(s => s === 'live' ? 'reconnecting' : s),
+      onError:        (e) => console.warn('[WebRTC viewer]', e.message),
+    });
+    viewer.connect();
+    viewerRef.current = viewer;
+    return () => { viewer.disconnect(); viewerRef.current = null; };
+  }, [streamId, connectionState]);
+
+  // REC-4: Real-time gift leaderboard for this stream
+  useEffect(() => {
+    if (!streamId) return;
+    const q = query(
+      collection(db, 'gifts'),
+      where('streamId', '==', streamId),
+      orderBy('createdAt', 'asc'),
+      limitToLast(200)
+    );
+    const unsub = onSnapshot(q, snap => {
+      const grouped = {};
+      snap.docs.forEach(d => {
+        const g = d.data();
+        if (!grouped[g.senderId])
+          grouped[g.senderId] = { name: g.senderName || 'Viewer', coins: 0, count: 0 };
+        grouped[g.senderId].coins += g.coins || 0;
+        grouped[g.senderId].count++;
+      });
+      setGiftLeaders(Object.values(grouped).sort((a,b) => b.coins - a.coins).slice(0, 5));
+    }, () => {});
+    return () => unsub();
+  }, [streamId]);
+
+  // Increment viewer on join, decrement on leave + REC-8 presence
   useEffect(() => {
     if (!streamId || !auth.currentUser) return;
+    const uid = auth.currentUser.uid;
     updateDoc(doc(db, 'streams', streamId), { viewerCount: increment(1) });
+    // REC-8: Register viewer presence so streamer sees who's watching
+    setDoc(doc(db, 'streams', streamId, 'viewers', uid), {
+      userId:   uid,
+      userName: auth.currentUser.displayName || 'Viewer',
+      avatar:   auth.currentUser.photoURL || null,
+      joinedAt: serverTimestamp(),
+    }).catch(() => {});
     return () => {
-      updateDoc(doc(db, 'streams', streamId), {
-        viewerCount: increment(-1),
-      }).catch(() => {});
+      updateDoc(doc(db, 'streams', streamId), { viewerCount: increment(-1) }).catch(() => {});
+      deleteDoc(doc(db, 'streams', streamId, 'viewers', uid)).catch(() => {});
     };
   }, [streamId]);
 
@@ -232,7 +283,9 @@ export default function LiveWatchPage() {
         streamerId:  stream.userId,
         status:      'processing', // server-side clip processing hook
       });
-      showToast('✂️ Clip requested! Processing... check your profile.');
+      setCreatedClips(prev => [...prev, { id: clipRef.id, title: stream.title || 'Clip' }]);
+      setShowClipsPanel(true);
+      showToast('✂️ Clip created! Share or delete below.');
     } catch (e) {
       showToast('Clip failed — try again');
     } finally {
@@ -493,7 +546,92 @@ export default function LiveWatchPage() {
           style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'6px 12px', color:'#94a3b8', fontSize:'12px', fontWeight:700, cursor:clipLoading?'wait':'pointer', flexShrink:0 }}>
           {clipLoading ? '⏳' : '✂️'} Clip
         </button>
+        {/* REC-4: Gift leaderboard toggle */}
+        {giftLeaders.length > 0 && (
+          <button onClick={() => setShowLeaderboard(v => !v)} aria-pressed={showLeaderboard}
+            aria-label="View gift leaderboard"
+            style={{ background: showLeaderboard?'rgba(245,158,11,0.2)':'#1e293b',
+              border: showLeaderboard?'1px solid #f59e0b':'none',
+              borderRadius:'10px', padding:'6px 12px',
+              color: showLeaderboard?'#f59e0b':'#94a3b8',
+              fontSize:'12px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
+            🏆 Top
+          </button>
+        )}
       </div>
+
+      {/* REC-4: Gift leaderboard panel */}
+      {showLeaderboard && giftLeaders.length > 0 && (
+        <div role="region" aria-label="Top gifters leaderboard"
+          style={{ background:'rgba(245,158,11,0.07)', borderLeft:'3px solid #f59e0b',
+            padding:'8px 12px', flexShrink:0 }}>
+          <div style={{ color:'#f59e0b', fontSize:'11px', fontWeight:800, marginBottom:'6px' }}>
+            🏆 TOP GIFTERS THIS STREAM
+          </div>
+          {giftLeaders.map((l, i) => (
+            <div key={l.name + i}
+              style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
+              <span style={{ color: i===0?'#f59e0b':i===1?'#94a3b8':'#b45309',
+                fontSize:'12px', fontWeight:700, width:'16px', flexShrink:0 }}>
+                {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
+              </span>
+              <span style={{ flex:1, color:'#f1f5f9', fontSize:'12px',
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {l.name}
+              </span>
+              <span style={{ color:'#f59e0b', fontWeight:700, fontSize:'11px', flexShrink:0 }}>
+                🪙 {l.coins.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* REC-7: Clips panel with share + delete */}
+      {showClipsPanel && createdClips.length > 0 && (
+        <div role="region" aria-label="Your created clips"
+          style={{ background:'rgba(99,102,241,0.07)', borderLeft:'3px solid #6366f1',
+            padding:'8px 12px', flexShrink:0 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+            <span style={{ color:'#818cf8', fontSize:'11px', fontWeight:800 }}>✂️ YOUR CLIPS</span>
+            <button onClick={() => setShowClipsPanel(false)} aria-label="Close clips panel"
+              style={{ background:'none', border:'none', color:'#64748b', fontSize:'12px', cursor:'pointer' }}>✕</button>
+          </div>
+          {createdClips.map(clip => (
+            <div key={clip.id}
+              style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'4px' }}>
+              <span style={{ flex:1, color:'#f1f5f9', fontSize:'11px',
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {clip.title}
+              </span>
+              {/* Share */}
+              <button onClick={() => {
+                const url = `${window.location.origin}/clips/${clip.id}`;
+                if (navigator.share) navigator.share({ title: clip.title, url });
+                else { navigator.clipboard?.writeText(url); showToast('🔗 Clip link copied!'); }
+              }}
+                aria-label="Share clip"
+                style={{ background:'rgba(99,102,241,0.2)', border:'none', borderRadius:'6px',
+                  padding:'3px 8px', color:'#818cf8', fontSize:'10px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
+                Share
+              </button>
+              {/* Delete */}
+              <button onClick={async () => {
+                try {
+                  await deleteDoc(doc(db, 'streams', streamId, 'clips', clip.id));
+                  setCreatedClips(prev => prev.filter(c => c.id !== clip.id));
+                  showToast('🗑️ Clip deleted');
+                } catch { showToast('Failed to delete clip'); }
+              }}
+                aria-label="Delete clip"
+                style={{ background:'rgba(239,68,68,0.15)', border:'none', borderRadius:'6px',
+                  padding:'3px 8px', color:'#ef4444', fontSize:'10px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── CHAT ──────────────────────────────────────────────────── */}
       <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'8px 12px' }} role="log" aria-label="Live chat" aria-live="polite">

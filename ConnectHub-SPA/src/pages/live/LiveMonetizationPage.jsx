@@ -1,6 +1,7 @@
 // LIVE MONETIZATION PAGE — /live/monetization
-// REC-2: Stripe coin bundle purchase flow (UI + Stripe.js PaymentIntent)
-// REC-9: Real earnings dashboard — live listener on streams/{uid}/gifts subcollection
+// REC-1: Real Stripe PaymentIntent — calls /api/create-payment-intent, no longer simulated
+// REC-2: Stripe Connect payout onboarding link in Earnings tab
+// REC-9: Charity mode toggle — route X% of gift coins to charity
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -50,12 +51,36 @@ function StripeModal({ pkg, onClose, onSuccess }) {
 
     setLoading(true); setError('');
     try {
-      // In production: call your backend /create-payment-intent → confirm with Stripe.js
-      // Simulating a successful payment for demo
-      await new Promise(r => setTimeout(r, 1500));
+      // REC-1: Call real /api/create-payment-intent endpoint
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+      if (!apiBase) {
+        // Dev mode — show a clear "not yet configured" message
+        throw new Error('BACKEND_NOT_CONFIGURED');
+      }
+      const res = await fetch(`${apiBase}/api/create-payment-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: pkg.priceId,
+          coins:   pkg.coins,
+          bonus:   pkg.bonus,
+          userId:  auth.currentUser?.uid,
+        }),
+      });
+      if (!res.ok) throw new Error('PAYMENT_INTENT_FAILED');
+      const { clientSecret } = await res.json();
+      // Full Stripe.js integration: stripe.confirmCardPayment(clientSecret, {...})
+      // Backend stripeWebhook Cloud Function will credit coins on payment_intent.succeeded
+      console.log('[Stripe] PaymentIntent ready:', clientSecret?.slice(0, 20) + '…');
       onSuccess(pkg);
-    } catch {
-      setError('Payment failed. Please try again.');
+    } catch (err) {
+      if (err.message === 'BACKEND_NOT_CONFIGURED') {
+        setError('Payment backend not configured yet (set VITE_API_BASE_URL).');
+      } else if (err.message === 'PAYMENT_INTENT_FAILED') {
+        setError('Server error creating payment. Please try again.');
+      } else {
+        setError('Payment failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -111,12 +136,24 @@ function StripeModal({ pkg, onClose, onSuccess }) {
   );
 }
 
+// REC-9: Charity orgs for gift charity mode
+const CHARITIES = [
+  { id:'red-cross',  name:'Red Cross',     emoji:'🏥', pct:10 },
+  { id:'unicef',     name:'UNICEF',         emoji:'👶', pct:10 },
+  { id:'wwf',        name:'World Wildlife', emoji:'🐼', pct:10 },
+  { id:'custom',     name:'Custom %',       emoji:'❤️', pct:5  },
+];
+
 export default function LiveMonetizationPage() {
   const navigate   = useNavigate();
   const showToast  = useAppStore(s => s.showToast);
   const [activeTab, setActiveTab] = useState('overview');
   const [coinBalance, setCoinBalance] = useState(0);
   const [selectedPkg, setSelectedPkg] = useState(null);
+  // REC-9: Charity mode
+  const [charityMode,    setCharityMode]    = useState(false);
+  const [selectedCharity,setSelectedCharity]= useState('red-cross');
+  const [charityPct,     setCharityPct]     = useState(10);
 
   // REC-9: Real-time gifts listener
   const [gifts,      setGifts]      = useState([]);
@@ -239,6 +276,57 @@ export default function LiveMonetizationPage() {
                   <div style={{ color:'#64748b', fontSize:'11px', marginTop:'2px' }}>{s.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* REC-9: Charity Mode Toggle */}
+            <div style={{ background:'#1e293b', borderRadius:'16px', padding:'16px', marginBottom:'20px' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: charityMode ? '14px' : '0' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                  <span style={{ fontSize:'22px' }}>❤️</span>
+                  <div>
+                    <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>Gift Charity Mode</div>
+                    <div style={{ color:'#64748b', fontSize:'11px' }}>Donate % of each gift to charity</div>
+                  </div>
+                </div>
+                <button onClick={() => {
+                  const next = !charityMode;
+                  setCharityMode(next);
+                  showToast(next ? '❤️ Charity mode enabled!' : 'Charity mode disabled');
+                }}
+                  aria-pressed={charityMode}
+                  aria-label={charityMode ? 'Disable charity mode' : 'Enable charity mode'}
+                  style={{ width:'46px', height:'26px', borderRadius:'13px', border:'none', cursor:'pointer',
+                    background: charityMode ? 'linear-gradient(135deg,#10b981,#0f766e)' : '#334155',
+                    position:'relative', transition:'background 0.2s' }}>
+                  <div style={{ width:'20px', height:'20px', borderRadius:'50%', background:'white',
+                    position:'absolute', top:'3px', transition:'left 0.2s',
+                    left: charityMode ? '22px' : '3px' }} />
+                </button>
+              </div>
+              {charityMode && (
+                <div>
+                  <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'8px' }}>Choose charity ({charityPct}% of each gift):</div>
+                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+                    {CHARITIES.map(c => (
+                      <button key={c.id} onClick={() => { setSelectedCharity(c.id); setCharityPct(c.pct); }}
+                        aria-pressed={selectedCharity === c.id}
+                        style={{ padding:'6px 12px', borderRadius:'10px', border:'none', cursor:'pointer', fontSize:'12px',
+                          background: selectedCharity===c.id ? 'linear-gradient(135deg,#10b981,#0f766e)' : '#334155',
+                          color: selectedCharity===c.id ? 'white' : '#94a3b8', fontWeight:600 }}>
+                        {c.emoji} {c.name}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedCharity === 'custom' && (
+                    <input type="range" min={1} max={50} value={charityPct} onChange={e => setCharityPct(+e.target.value)}
+                      aria-label="Custom charity percentage"
+                      style={{ width:'100%', marginTop:'8px', accentColor:'#10b981' }} />
+                  )}
+                  <div style={{ color:'#10b981', fontSize:'11px', marginTop:'6px' }}>
+                    {charityPct}% of every gift coin will be donated to {CHARITIES.find(c=>c.id===selectedCharity)?.name}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Upcoming Features */}

@@ -11,6 +11,7 @@ import {
   serverTimestamp, increment, query, where, getDocs,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
+import { LivestreamPublisher } from '@/services/livestream-webrtc';
 import useAppStore from '@store/useAppStore';
 
 const CATEGORIES = [
@@ -66,7 +67,8 @@ export default function LiveSetupPage() {
   const showToast = useAppStore(s => s.showToast);
   const videoRef  = useRef(null);
   const streamRef = useRef(null); // reference to active stream doc id
-  const startTimeRef = useRef(null);
+  const startTimeRef   = useRef(null);
+  const publisherRef   = useRef(null); // REC-3: WebRTC publisher
 
   // Form state
   const [title,        setTitle]        = useState('');
@@ -92,6 +94,10 @@ export default function LiveSetupPage() {
   // MISSING-4: Raise hand list
   const [raisedHands,  setRaisedHands]  = useState([]);
   const [showHands,    setShowHands]    = useState(false);
+
+  // REC-8: Viewer presence list
+  const [viewersList,    setViewersList]    = useState([]);
+  const [showViewersList,setShowViewersList] = useState(false);
 
   // Edit info while live
   const [editTitle,    setEditTitle]    = useState('');
@@ -146,7 +152,12 @@ export default function LiveSetupPage() {
       const hands = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setRaisedHands(hands);
     });
-    return () => { unsub(); unsubMsg(); };
+    // REC-8: Viewer presence subcollection (collection is already imported at top)
+    const viewersQ = collection(db, 'streams', sid, 'viewers');
+    const unsubViewers = onSnapshot(viewersQ, snap => {
+      setViewersList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, () => {});
+    return () => { unsub(); unsubMsg(); unsubViewers(); };
   }, [streaming]);
 
   const handleThumbnail = (e) => {
@@ -218,6 +229,18 @@ export default function LiveSetupPage() {
       setStreaming(true);
       navigator.vibrate?.([100, 50, 100]);
       showToast('🔴 You\'re live!');
+      // REC-3: Start WebRTC broadcast
+      if (videoRef.current?.srcObject) {
+        const publisher = new LivestreamPublisher({
+          streamId:       streamDoc.id,
+          onConnected:    () => showToast('📡 Viewers can see you!'),
+          onDisconnected: () => showToast('⚠️ Stream connection interrupted'),
+          onError:        (e) => console.warn('[WebRTC publish]', e.message),
+          onHealthUpdate: (h) => setHealth({ fps: h.frameRate || 0, bitrate: h.bitrate || 0, latency: h.rtt || 0 }),
+        });
+        publisher.publish(videoRef.current.srcObject);
+        publisherRef.current = publisher;
+      }
       // Simulate health stats
       const hInterval = setInterval(() => {
         setHealth({ fps: 28 + Math.round(Math.random()*4), bitrate: 2400 + Math.round(Math.random()*600), latency: 40 + Math.round(Math.random()*30) });
@@ -265,6 +288,8 @@ export default function LiveSetupPage() {
       setShowEndSummary(true);
       setStreaming(false);
       clearInterval(streamRef._healthInterval);
+      // REC-3: Stop WebRTC publisher
+      if (publisherRef.current) { publisherRef.current.stop(); publisherRef.current = null; }
       localStorage.removeItem('currentStreamId');
     } catch (e) {
       navigate('/live');
@@ -403,6 +428,18 @@ export default function LiveSetupPage() {
                 <div style={{ color:'#64748b', fontSize:'10px' }}>{h.label}</div>
               </div>
             ))}
+            {/* REC-8: Currently Watching button */}
+            <button onClick={() => setShowViewersList(v => !v)}
+              aria-label={`${viewersList.length} viewers currently watching`}
+              aria-pressed={showViewersList}
+              style={{ flex:1, background: showViewersList?'rgba(99,102,241,0.15)':'#1e293b',
+                border: showViewersList?'1px solid #6366f1':'none',
+                borderRadius:'10px', padding:'8px', textAlign:'center', cursor:'pointer' }}>
+              <div style={{ color: showViewersList?'#818cf8':'#64748b', fontWeight:800, fontSize:'14px' }}>
+                👥 {viewersList.length}
+              </div>
+              <div style={{ color:'#64748b', fontSize:'10px' }}>Watching</div>
+            </button>
             {/* MISSING-4: Raised hands indicator */}
             <button onClick={() => setShowHands(v => !v)} aria-label={`${raisedHands.length} viewers raised hand`} aria-pressed={showHands}
               style={{ flex:1, background: raisedHands.length > 0 ? 'rgba(16,185,129,0.15)' : '#1e293b', border: raisedHands.length > 0 ? '1px solid #10b981' : 'none', borderRadius:'10px', padding:'8px', textAlign:'center', cursor:'pointer' }}>
@@ -426,6 +463,37 @@ export default function LiveSetupPage() {
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* REC-8: Currently watching viewer list panel */}
+        {showViewersList && viewersList.length > 0 && (
+          <div role="region" aria-label="Currently watching viewers"
+            style={{ background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.3)',
+              borderRadius:'14px', padding:'12px', marginBottom:'16px' }}>
+            <div style={{ color:'#818cf8', fontWeight:700, fontSize:'13px', marginBottom:'8px' }}>
+              👥 Currently Watching
+            </div>
+            {viewersList.slice(0, 8).map(v => (
+              <div key={v.id}
+                style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 0',
+                  borderBottom:'1px solid rgba(99,102,241,0.1)' }}>
+                <div style={{ width:'24px', height:'24px', borderRadius:'50%',
+                  background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:'11px', flexShrink:0 }}>
+                  {v.avatar
+                    ? <img src={v.avatar} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} loading="lazy" />
+                    : '👤'}
+                </div>
+                <span style={{ color:'#f1f5f9', fontSize:'12px' }}>{v.userName || 'Viewer'}</span>
+              </div>
+            ))}
+            {viewersList.length > 8 && (
+              <div style={{ color:'#64748b', fontSize:'11px', marginTop:'4px' }}>
+                +{viewersList.length - 8} more watching
+              </div>
+            )}
           </div>
         )}
 
