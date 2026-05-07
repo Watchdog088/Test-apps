@@ -265,6 +265,36 @@ export default function LivePage() {
         })}
       </div>
 
+      {/* FEATURED / EDITOR'S PICK BANNER */}
+      {!loading && feeds.length > 0 && (() => {
+        const featured = [...feeds].sort((a,b) => (b.viewerCount||0)-(a.viewerCount||0))[0];
+        return (
+          <div onClick={() => navigate(`/live/watch/${featured.id}`)}
+            style={{ margin:'12px 16px', borderRadius:'18px', overflow:'hidden', cursor:'pointer',
+              background:'linear-gradient(135deg,#1e293b,#0f172a)', border:'1px solid rgba(239,68,68,0.2)', position:'relative' }}>
+            <div style={{ position:'absolute', top:'10px', left:'10px', background:'linear-gradient(135deg,#f59e0b,#ef4444)',
+              borderRadius:'8px', padding:'3px 10px', color:'white', fontSize:'10px', fontWeight:800, zIndex:1 }}>⭐ FEATURED</div>
+            <div style={{ position:'absolute', top:'10px', right:'10px', background:'#ef4444',
+              borderRadius:'6px', padding:'2px 8px', color:'white', fontSize:'10px', fontWeight:800, zIndex:1 }}>● LIVE</div>
+            {featured.thumbnailUrl
+              ? <img src={featured.thumbnailUrl} alt={featured.title} loading="lazy"
+                  style={{ width:'100%', aspectRatio:'16/9', objectFit:'cover', display:'block', opacity:0.7 }} />
+              : <div style={{ aspectRatio:'16/9', background:'linear-gradient(135deg,#1e293b,#334155)',
+                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:'48px' }}>
+                  {['🎮','🎵','💪','🎨','📍','🍳','📚','💬'].includes(featured.category) ? featured.category : '🎥'}
+                </div>
+            }
+            <div style={{ padding:'12px 14px' }}>
+              <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'16px', marginBottom:'2px' }}>{featured.title}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                <span style={{ color:'#94a3b8', fontSize:'12px' }}>{featured.userName}</span>
+                <span style={{ color:'#ef4444', fontSize:'12px', fontWeight:700 }}>👁 {fmt(featured.viewerCount)} watching</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* REC-10: Category pills — clicking updates both state AND URL */}
       <div style={{ display:'flex', gap:'8px', padding:'10px 16px', overflowX:'auto' }}
         role="group" aria-label="Filter by category">

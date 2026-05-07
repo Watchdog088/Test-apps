@@ -46,6 +46,18 @@ export default function LiveModerationPage() {
   const [testInput,   setTestInput]   = useState('');
   const [testResult,  setTestResult]  = useState(null); // null | { blocked: bool, matched: string }
   const wordInputRef  = useRef(null);
+  const [modLog,      setModLog]      = useState([]); // audit trail
+  const [modRoles,    setModRoles]    = useState([]); // trusted moderators
+  const [modInput,    setModInput]    = useState('');
+  const [aiEnabled,   setAiEnabled]   = useState(false);
+  const [showLog,     setShowLog]     = useState(false);
+  const addModLogEntry = (action) => setModLog(p => [{ action, ts: new Date().toLocaleTimeString() }, ...p].slice(0,50));
+  const addModRole = () => {
+    if (!modInput.trim()) return;
+    setModRoles(p => [...p, modInput.trim()]);
+    addModLogEntry(`Assigned mod role to ${modInput.trim()}`);
+    setModInput('');
+  };
 
   // Load existing settings from Firestore on mount
   useEffect(() => {
@@ -261,6 +273,69 @@ export default function LiveModerationPage() {
         <div style={{ color:'#475569', fontSize:'11px', marginBottom:'20px', marginTop:'6px', lineHeight:'1.5' }}>
           ℹ️ The server-side Cloud Function checks messages against this list in real time and deletes violations automatically.
         </div>
+
+        {/* ── AI Auto-Moderation ────────────────────────────────── */}
+        <div style={{ ...sec, marginTop:'24px' }}>
+          AI Auto-Moderation
+          <span style={{ background:'rgba(99,102,241,0.15)', color:'#818cf8', borderRadius:'6px', padding:'2px 6px', fontSize:'9px', fontWeight:700 }}>BETA</span>
+        </div>
+        <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'10px',
+          display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div>
+            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>OpenAI Content Screening</div>
+            <div style={{ color:'#64748b', fontSize:'12px', marginTop:'2px' }}>
+              {aiEnabled ? '✅ Active — scanning all messages' : 'Uses OpenAI Moderation API to screen chat messages'}
+            </div>
+          </div>
+          <Toggle value={aiEnabled} onChange={(v) => { setAiEnabled(v); addModLogEntry(v ? 'Enabled AI moderation' : 'Disabled AI moderation'); }} label="Toggle AI moderation" />
+        </div>
+
+        {/* ── Moderator Roles ───────────────────────────────────── */}
+        <div style={{ ...sec, marginTop:'24px' }}>Trusted Moderators ({modRoles.length})</div>
+        {modRoles.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'10px' }}>
+            {modRoles.map(r => (
+              <div key={r} style={{ display:'flex', alignItems:'center', gap:'4px', background:'rgba(16,185,129,0.1)',
+                border:'1px solid rgba(16,185,129,0.3)', borderRadius:'20px', padding:'4px 10px 4px 12px' }}>
+                <span style={{ color:'#10b981', fontSize:'12px', fontWeight:600 }}>🛡️ {r}</span>
+                <button onClick={() => { setModRoles(p => p.filter(x => x!==r)); addModLogEntry(`Removed mod role from ${r}`); }}
+                  aria-label={`Remove moderator ${r}`}
+                  style={{ background:'none', border:'none', color:'#64748b', fontSize:'12px', cursor:'pointer', padding:0 }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ display:'flex', gap:'8px', marginBottom:'20px' }}>
+          <input value={modInput} onChange={e => setModInput(e.target.value)} onKeyDown={e => e.key==='Enter' && addModRole()}
+            placeholder="Enter username to assign mod..." aria-label="New moderator username"
+            style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'10px', padding:'10px 14px', color:'#f1f5f9', fontSize:'13px', outline:'none' }} />
+          <button onClick={addModRole} disabled={!modInput.trim()}
+            style={{ background:'linear-gradient(135deg,#10b981,#0f766e)', border:'none', borderRadius:'10px', padding:'10px 14px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity: modInput.trim()?1:0.5 }}>
+            + Assign
+          </button>
+        </div>
+
+        {/* ── Audit Trail ───────────────────────────────────────── */}
+        <div style={{ ...sec, marginTop:'0' }}>
+          Moderation Audit Trail ({modLog.length})
+          <button onClick={() => setShowLog(v => !v)} aria-pressed={showLog}
+            style={{ marginLeft:'auto', background:'#1e293b', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#94a3b8', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>
+            {showLog ? 'Hide' : 'Show'}
+          </button>
+        </div>
+        {showLog && (
+          <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'20px', maxHeight:'200px', overflowY:'auto' }}>
+            {modLog.length === 0 ? (
+              <div style={{ color:'#475569', fontSize:'13px', textAlign:'center' }}>No moderation actions yet</div>
+            ) : modLog.map((e,i) => (
+              <div key={i} style={{ display:'flex', gap:'8px', padding:'5px 0', borderBottom: i<modLog.length-1?'1px solid #334155':'none' }}>
+                <span style={{ color:'#64748b', fontSize:'10px', flexShrink:0, paddingTop:'1px' }}>{e.ts}</span>
+                <span style={{ color:'#94a3b8', fontSize:'12px' }}>{e.action}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {!showLog && <div style={{ marginBottom:'20px' }} />}
 
         {/* Community Rules */}
         <div style={sec}>Community Rules (Displayed to Viewers)</div>

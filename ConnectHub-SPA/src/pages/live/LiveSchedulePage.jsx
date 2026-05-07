@@ -25,6 +25,9 @@ export default function LiveSchedulePage() {
   const [category,  setCategory]  = useState('');
   const [saving,    setSaving]    = useState(false);
   const [savedDoc,  setSavedDoc]  = useState(null); // BUG-7 FIX: store saved doc for calendar
+  const [recurring, setRecurring] = useState('none'); // none | daily | weekly | monthly
+  const [timezone,  setTimezone]  = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York');
+  const [reminder,  setReminder]  = useState('30');  // minutes before
 
   // BUG-7 FIX: Save to Firestore
   const handleSave = async () => {
@@ -179,6 +182,45 @@ export default function LiveSchedulePage() {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Timezone display */}
+            <div style={{ background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:'12px', padding:'10px 14px', marginBottom:'14px', display:'flex', alignItems:'center', gap:'8px' }}>
+              <span style={{ fontSize:'16px' }}>🌍</span>
+              <div>
+                <div style={{ color:'#818cf8', fontSize:'12px', fontWeight:700 }}>Your Timezone</div>
+                <div style={{ color:'#94a3b8', fontSize:'12px' }}>{timezone}</div>
+              </div>
+            </div>
+
+            {/* Recurring */}
+            <div style={{ marginBottom:'14px' }}>
+              <label style={{ display:'block', fontSize:'12px', fontWeight:700, color:'#94a3b8', marginBottom:'6px' }}>Recurring (Optional)</label>
+              <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+                {[{v:'none',l:'One-time'},{v:'weekly',l:'Weekly'},{v:'daily',l:'Daily'},{v:'monthly',l:'Monthly'}].map(r => (
+                  <button key={r.v} onClick={() => setRecurring(r.v)} aria-pressed={recurring===r.v}
+                    style={{ padding:'6px 14px', borderRadius:'16px', border:'none', fontSize:'12px', fontWeight:600, cursor:'pointer',
+                      background: recurring===r.v ? 'linear-gradient(135deg,#6366f1,#7c3aed)' : '#1e293b',
+                      color: recurring===r.v ? 'white' : '#94a3b8' }}>
+                    {r.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Reminder */}
+            <div style={{ marginBottom:'14px' }}>
+              <label style={{ display:'block', fontSize:'12px', fontWeight:700, color:'#94a3b8', marginBottom:'6px' }}>Reminder Before Stream</label>
+              <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+                {[{v:'15',l:'15 min'},{v:'30',l:'30 min'},{v:'60',l:'1 hour'},{v:'1440',l:'1 day'}].map(r => (
+                  <button key={r.v} onClick={() => setReminder(r.v)} aria-pressed={reminder===r.v}
+                    style={{ padding:'6px 14px', borderRadius:'16px', border:'none', fontSize:'12px', fontWeight:600, cursor:'pointer',
+                      background: reminder===r.v ? 'linear-gradient(135deg,#10b981,#0f766e)' : '#1e293b',
+                      color: reminder===r.v ? 'white' : '#94a3b8' }}>
+                    {r.l}
+                  </button>
+                ))}
               </div>
             </div>
 

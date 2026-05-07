@@ -24,6 +24,43 @@ const CATEGORIES = [
   { id:'talkshow',  label:'Talk Show', emoji:'💬' },
 ];
 
+// Tags inline component
+function TagsInput() {
+  const [tags, setTags] = React.useState([]);
+  const [val, setVal] = React.useState('');
+  const addTag = () => {
+    const t = val.trim().replace(/^#/, '').toLowerCase();
+    if (!t || tags.includes(t) || tags.length >= 5) return;
+    setTags(p => [...p, t]);
+    setVal('');
+  };
+  return (
+    <div style={{ marginBottom:'14px' }}>
+      <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'8px' }}>
+        {tags.map(t => (
+          <span key={t} style={{ background:'rgba(99,102,241,0.2)', border:'1px solid rgba(99,102,241,0.4)',
+            borderRadius:'12px', padding:'3px 10px', color:'#818cf8', fontSize:'12px', display:'flex', alignItems:'center', gap:'4px' }}>
+            #{t}
+            <button onClick={() => setTags(p => p.filter(x => x !== t))} aria-label={`Remove tag ${t}`}
+              style={{ background:'none', border:'none', color:'#64748b', cursor:'pointer', fontSize:'12px', padding:0 }}>✕</button>
+          </span>
+        ))}
+      </div>
+      <div style={{ display:'flex', gap:'8px' }}>
+        <input value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key==='Enter' && addTag()}
+          placeholder={tags.length >= 5 ? 'Max 5 tags' : '#hashtag...'}
+          disabled={tags.length >= 5}
+          aria-label="Add stream tag"
+          style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'12px', padding:'8px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', opacity: tags.length >= 5 ? 0.5 : 1 }} />
+        <button onClick={addTag} disabled={tags.length >= 5 || !val.trim()} aria-label="Add tag"
+          style={{ background:'#334155', border:'none', borderRadius:'12px', padding:'8px 14px', color:'#f1f5f9', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity: tags.length >= 5 || !val.trim() ? 0.5 : 1 }}>
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LiveSetupPage() {
   const navigate  = useNavigate();
   const showToast = useAppStore(s => s.showToast);
@@ -441,6 +478,18 @@ export default function LiveSetupPage() {
                 📨 Invite pending for <strong>{pendingCoHostInv.name}</strong>
               </div>
             )}
+
+            {/* Tags/Hashtags */}
+            <div style={{ fontSize:'12px', fontWeight:700, color:'#94a3b8', marginBottom:'8px' }}>Tags (Optional — max 5)</div>
+            <TagsInput />
+
+            {/* Estimated Duration */}
+            <div style={{ fontSize:'12px', fontWeight:700, color:'#94a3b8', marginBottom:'8px', marginTop:'14px' }}>Estimated Duration (Optional)</div>
+            <select defaultValue="" aria-label="Estimated stream duration"
+              style={{ width:'100%', background:'#1e293b', border:'1px solid #334155', borderRadius:'12px', padding:'10px 14px', color:'#f1f5f9', fontSize:'13px', outline:'none', marginBottom:'14px', appearance:'none' }}>
+              <option value="">Select duration...</option>
+              {['30 minutes','1 hour','2 hours','3 hours','4+ hours'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
 
             {/* Quick links */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'20px' }}>

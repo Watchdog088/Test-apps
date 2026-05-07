@@ -220,3 +220,112 @@ exports.chatRateLimitEnforcer = functions.firestore
 
     return null;
   });
+
+// ── onStreamEnd: write VOD + notify followers ─────────────────────
+exports.onStreamEnd = functions.firestore
+  .document('streams/{streamId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after  = change.after.data();
+    if (before.status !== 'live' || after.status !== 'ended') return null;
+
+    const { streamId } = context.params;
+
+    // 1. Create VOD record
+    await db.collection('vods').doc(streamId).set({
+      streamId,
+      title:           after.title          || 'Live Replay',
+      userId:          after.userId,
+      userName:        after.userName,
+      userAvatar:      after.userAvatar      || null,
+      thumbnailUrl:    after.thumbnailUrl    || null,
+      category:        after.category        || 'general',
+      durationSeconds: after.durationSeconds || 0,
+      peakViewerCount: after.peakViewerCount || after.viewerCount || 0,
+      totalMessages:   after.totalMessages   || 0,
+      endedAt:         after.endedAt         || admin.firestore.FieldValue.serverTimestamp(),
+      createdAt:       admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 2. Notify followers (batch fanout — up to 200)
+    try {
+      const followersSnap = await db.collection('userFollowers')
+        .doc(after.userId).collection('followers').limit(200).get();
+      const batch = db.batch();
+      followersSnap.docs.forEach(f => {
+        const notifRef = db.collection('notifications').doc();
+        batch.set(notifRef, {
+          userId:    f.id,
+          type:      'stream_ended',
+          streamId,
+          title:     `${after.userName} just ended a stream`,
+          body:      `Watch the replay: "${after.title}"`,
+          read:      false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      await batch.commit();
+    } catch (e) {
+      console.error('[onStreamEnd] notify failed', e);
+    }
+
+    return null;
+  });
+
+// ── stripeWebhook: handle coin purchase ───────────────────────────
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+  // Require Stripe only when deployed — avoids dev-time install error
+  let stripe;
+  try { stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || ''); }
+  catch { return res.status(500).send('Stripe not configured'); }
+
+  const sig    = req.headers['stripe-signature'];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, secret);
+  } catch (err) {
+    console.error('[stripeWebhook] verify failed', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    const pi    = event.data.object;
+    const uid   = pi.metadata?.userId;
+    const coins = parseInt(pi.metadata?.coins || '0', 10);
+    const bonus = parseInt(pi.metadata?.bonus || '0', 10);
+    if (uid && coins > 0) {
+      await db.collection('users').doc(uid).update({
+        coinBalance: admin.firestore.FieldValue.increment(coins + bonus),
+      });
+      await db.collection('coinTransactions').add({
+        userId: uid, coins: coins + bonus, bonus,
+        amount: pi.amount / 100, currency: pi.currency,
+        status: 'succeeded',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.log(`[stripeWebhook] Credited ${coins + bonus} coins to ${uid}`);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+// ── cleanupEndedStreams: hide ended streams older than 24h ─────────
+exports.cleanupEndedStreams = functions.pubsub
+  .schedule('every 1 hours').onRun(async () => {
+    const cutoff    = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const staleSnap = await db.collection('streams')
+      .where('status',  '==', 'ended')
+      .where('endedAt', '<',  admin.firestore.Timestamp.fromDate(cutoff))
+      .limit(100).get();
+
+    if (staleSnap.empty) return null;
+
+    const batch = db.batch();
+    staleSnap.docs.forEach(d => batch.update(d.ref, { hiddenFromFeed: true }));
+    await batch.commit();
+    console.log(`[cleanupEndedStreams] Hid ${staleSnap.size} old streams`);
+    return null;
+  });

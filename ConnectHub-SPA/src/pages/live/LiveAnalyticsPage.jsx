@@ -15,6 +15,8 @@ export default function LiveAnalyticsPage() {
   const [streams,   setStreams]   = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [totals,    setTotals]    = useState({ views:0, watchTime:0, followers:0, messages:0 });
+  const [dateRange, setDateRange] = useState('7');   // days
+  const [activeTab, setActiveTab] = useState('views'); // views | monetization
 
   // UX-5 FIX: Load real data from Firestore
   useEffect(() => {
@@ -74,11 +76,48 @@ export default function LiveAnalyticsPage() {
     { icon:'💬', label:'Chat Messages',  val: loading ? '…' : fmt(totals.messages),  sub:'Across all streams' },
   ];
 
+  // CSV export helper
+  const exportCSV = () => {
+    const rows = [['Stream Title','Date','Peak Viewers','Duration (min)','Messages','New Followers']];
+    streams.forEach(s => {
+      rows.push([
+        `"${s.title||'Stream'}"`,
+        s.startedAt ? new Date(s.startedAt.toMillis ? s.startedAt.toMillis() : s.startedAt).toLocaleDateString() : '—',
+        s.peakViewerCount || s.viewerCount || 0,
+        s.durationSeconds ? Math.floor(s.durationSeconds/60) : 0,
+        s.totalMessages || 0,
+        s.newFollowersCount || 0,
+      ]);
+    });
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'stream-analytics.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ background:'var(--bg-primary,#0a0a18)', minHeight:'100vh', paddingBottom:'80px' }}>
       <div style={{ padding:'16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'12px' }}>
         <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
-        <span style={{ fontSize:'18px', fontWeight:800, color:'#f1f5f9' }}>📊 Stream Analytics</span>
+        <span style={{ fontSize:'18px', fontWeight:800, color:'#f1f5f9', flex:1 }}>📊 Stream Analytics</span>
+        <button onClick={exportCSV} disabled={loading || streams.length === 0}
+          aria-label="Export analytics to CSV"
+          style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'6px 12px', color:'#94a3b8', fontSize:'12px', fontWeight:700, cursor:'pointer', opacity: streams.length===0?0.4:1 }}>
+          📥 CSV
+        </button>
+      </div>
+      {/* Date range filter */}
+      <div style={{ display:'flex', gap:'6px', padding:'8px 16px', borderBottom:'1px solid #1e293b', overflowX:'auto' }}>
+        {[{v:'7',l:'7 Days'},{v:'30',l:'30 Days'},{v:'90',l:'90 Days'},{v:'all',l:'All Time'}].map(r => (
+          <button key={r.v} onClick={() => setDateRange(r.v)} aria-pressed={dateRange===r.v}
+            style={{ padding:'5px 12px', borderRadius:'16px', border:'none', fontSize:'12px', fontWeight:600, cursor:'pointer', flexShrink:0,
+              background: dateRange===r.v ? 'linear-gradient(135deg,#6366f1,#7c3aed)' : '#1e293b',
+              color: dateRange===r.v ? 'white' : '#94a3b8' }}>
+            {r.l}
+          </button>
+        ))}
       </div>
 
       <div style={{ padding:'20px 16px' }}>
