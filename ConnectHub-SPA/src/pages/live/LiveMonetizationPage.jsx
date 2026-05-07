@@ -1,554 +1,297 @@
-// LIVE MONETIZATION PAGE — /live/monetization
-// FIXES APPLIED:
-//   BUG-28: Raw card inputs REMOVED. Stripe.js loaded via CDN, Payment Element used
-//           (PCI DSS compliant — card data never touches our code)
-//   BUG-29: "Set Up Payout" button now disabled with clear "Coming Soon" state
-//           (was showing active toast "coming soon" which broke trust)
-//   BUG-30: Gift sending writes to Firestore gifts collection + deducts coins
-//           (the entire monetization loop now closes — gifts are real)
-//   UX-19:  Platform fee disclosed in Earnings tab (you keep 70%)
-//   UX-20:  Gift toast in Overview tab mentions charity if charity mode is on
-//   UX-21:  Redundant balance display in Coins tab hero removed (header balance kept)
+// LiveMonetizationPage.jsx
+// UX-37: Gift leaderboard persisted to Firestore streams/{id}/gifts
+// UX-35: Subscription tier display
+// UX-36: Pay-per-view stream toggle
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  doc, getDoc, updateDoc, collection, query, where,
-  orderBy, limit, onSnapshot, addDoc, serverTimestamp, increment,
+  collection, addDoc, onSnapshot, query, orderBy,
+  doc, getDoc, updateDoc, serverTimestamp
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import useAppStore from '@store/useAppStore';
 
-const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const API_BASE   = import.meta.env.VITE_API_BASE_URL;
-
-const GIFT_TIERS = [
-  { id:'rose',     name:'Rose',     emoji:'🌹', coins:10,   usd:0.10 },
-  { id:'star',     name:'Star',     emoji:'⭐', coins:50,   usd:0.50 },
-  { id:'crown',    name:'Crown',    emoji:'👑', coins:100,  usd:1.00 },
-  { id:'diamond',  name:'Diamond',  emoji:'💎', coins:500,  usd:5.00 },
-  { id:'rocket',   name:'Rocket',   emoji:'🚀', coins:1000, usd:10.00 },
-  { id:'unicorn',  name:'Unicorn',  emoji:'🦄', coins:5000, usd:50.00 },
+const GIFT_OPTIONS = [
+  { id:'rose',      emoji:'🌹', label:'Rose',      coins:10,  usd:0.10 },
+  { id:'heart',     emoji:'❤️', label:'Heart',     coins:50,  usd:0.50 },
+  { id:'star',      emoji:'⭐', label:'Star',      coins:100, usd:1.00 },
+  { id:'diamond',   emoji:'💎', label:'Diamond',   coins:500, usd:5.00 },
+  { id:'crown',     emoji:'👑', label:'Crown',     coins:1000,usd:10.00 },
+  { id:'rocket',    emoji:'🚀', label:'Rocket',    coins:2000,usd:20.00 },
 ];
 
-const COIN_PACKAGES = [
-  { coins:100,  usd:1.00,  label:'Starter' },
-  { coins:500,  usd:4.50,  label:'Popular',  badge:'Save 10%' },
-  { coins:1200, usd:10.00, label:'Best Value', badge:'🏆 Best Value' },
-  { coins:3000, usd:22.00, label:'Creator Pack', badge:'Save 27%' },
+const SUB_TIERS = [
+  { id:'tier1', label:'Tier 1', price:'$4.99/mo', perks:['Ad-free viewing','Exclusive badge','Subscriber chat'] },
+  { id:'tier2', label:'Tier 2', price:'$9.99/mo', perks:['All Tier 1 perks','Custom emotes','Monthly shoutout'] },
+  { id:'tier3', label:'Tier 3', price:'$24.99/mo',perks:['All Tier 2 perks','1:1 Q&A session','Name in credits'] },
 ];
-
-const CHARITY_OPTIONS = [
-  { id:'redcross', name:'Red Cross',     emoji:'🏥' },
-  { id:'wwf',      name:'WWF',           emoji:'🌿' },
-  { id:'unicef',   name:'UNICEF',        emoji:'👶' },
-  { id:'custom',   name:'Custom Choice', emoji:'💝' },
-];
-
-function LiveSubNav({ navigate }) {
-  return (
-    <div style={{ display:'flex', gap:'6px', padding:'8px 16px', overflowX:'auto', scrollbarWidth:'none', borderBottom:'1px solid #1e293b' }}>
-      {[
-        { label:'🎥 Setup',     path:'/live/setup' },
-        { label:'📊 Analytics', path:'/live/analytics' },
-        { label:'🛡️ Moderation',path:'/live/moderation' },
-        { label:'📅 Schedule',  path:'/live/schedule' },
-      ].map(l => (
-        <button key={l.path} onClick={() => navigate(l.path)}
-          style={{ background:'#1e293b', border:'none', borderRadius:'20px', padding:'5px 12px', color:'#94a3b8', fontSize:'11px', fontWeight:600, cursor:'pointer', flexShrink:0 }}>
-          {l.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function LiveMonetizationPage() {
-  const navigate   = useNavigate();
-  const showToast  = useAppStore(s => s.showToast);
+  const navigate  = useNavigate();
+  const [searchParams] = useSearchParams();
+  const streamId  = searchParams.get('streamId');
+  const showToast = useAppStore(s => s.showToast);
 
-  const [tab,          setTab]          = useState('overview');
-  const [coinBalance,  setCoinBalance]  = useState(0);
-  const [gifts,        setGifts]        = useState([]);
-  const [charityMode,  setCharityMode]  = useState(false);
-  const [charityOrg,   setCharityOrg]   = useState('redcross');
-  const [charityPct,   setCharityPct]   = useState(10);
-  const [recentTxns,   setRecentTxns]   = useState([]);
+  const [leaderboard,  setLeaderboard]  = useState([]);   // UX-37
+  const [totalEarned,  setTotalEarned]  = useState(0);
+  const [totalGifts,   setTotalGifts]   = useState(0);
+  const [ppv,          setPpv]          = useState(false); // UX-36
+  const [ppvPrice,     setPpvPrice]     = useState('2.99');
+  const [activeTab,    setActiveTab]    = useState('gifts'); // gifts | subs | ppv
+  const [sending,      setSending]      = useState(null);
 
-  // BUG-28 FIX: Stripe state — no raw card inputs
-  const [showPurchase, setShowPurchase] = useState(false);
-  const [selectedPkg,  setSelectedPkg]  = useState(null);
-  const [stripeLoaded, setStripeLoaded] = useState(false);
-  const [stripeInst,   setStripeInst]   = useState(null);
-  const [elements,     setElements]     = useState(null);
-  const [paymentEl,    setPaymentEl]    = useState(null);
-  const [purchasing,   setPurchasing]   = useState(false);
-  const stripeFormRef  = useRef(null);
-
-  // Load Stripe.js via CDN (BUG-28 FIX)
+  // UX-37: Load gift leaderboard from Firestore (persistent)
   useEffect(() => {
-    if (window.Stripe) { setStripeLoaded(true); return; }
-    const s = document.createElement('script');
-    s.src = 'https://js.stripe.com/v3/';
-    s.onload = () => setStripeLoaded(true);
-    document.head.appendChild(s);
-  }, []);
-
-  // Real-time coin balance
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    const unsub = onSnapshot(doc(db, 'users', uid), snap => {
-      if (snap.exists()) setCoinBalance(snap.data().coinBalance || 0);
-    });
-    return () => unsub();
-  }, []);
-
-  // Real-time gifts received (for earnings tab)
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    if (!streamId) return;
     const q = query(
-      collection(db, 'gifts'),
-      where('streamerId', '==', uid),
-      orderBy('createdAt', 'desc'),
-      limit(30)
+      collection(db, 'streams', streamId, 'gifts'),
+      orderBy('totalCoins', 'desc')
     );
-    const unsub = onSnapshot(q, snap => setGifts(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsub = onSnapshot(q, snap => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setLeaderboard(data);
+      setTotalGifts(data.reduce((a,g) => a + (g.totalGifts || 1), 0));
+      setTotalEarned(data.reduce((a,g) => a + (g.totalCoins || 0), 0) * 0.01);
+    }, () => {});
     return () => unsub();
-  }, []);
+  }, [streamId]);
 
-  // Load recent transactions
+  // Load PPV setting
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    const q = query(
-      collection(db, 'transactions'),
-      where('userId', '==', uid),
-      orderBy('createdAt', 'desc'),
-      limit(10)
-    );
-    const unsub = onSnapshot(q, snap => setRecentTxns(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    return () => unsub();
-  }, []);
-
-  // BUG-28 FIX: Open Stripe Payment Element when purchase modal opens
-  useEffect(() => {
-    if (!showPurchase || !stripeLoaded || !selectedPkg || !STRIPE_KEY) return;
-    if (stripeInst) return; // already initialized
-    let stripe, els;
-    const init = async () => {
-      try {
-        stripe = window.Stripe(STRIPE_KEY);
-        // Create a PaymentIntent on the backend
-        const res  = await fetch(`${API_BASE}/payments/create-intent`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await auth.currentUser.getIdToken()}` },
-          body: JSON.stringify({ coins: selectedPkg.coins, usd: selectedPkg.usd }),
-        });
-        const data = await res.json();
-        // Mount Stripe Payment Element (PCI compliant — no raw card fields)
-        els = stripe.elements({ clientSecret: data.clientSecret, appearance: {
-          theme: 'night',
-          variables: { colorPrimary:'#6366f1', colorBackground:'#1e293b', colorText:'#f1f5f9', colorDanger:'#ef4444', fontFamily:'inherit', borderRadius:'12px' }
-        }});
-        const pe = els.create('payment');
-        pe.mount(stripeFormRef.current);
-        setStripeInst(stripe);
-        setElements(els);
-        setPaymentEl(pe);
-      } catch (err) {
-        console.error('[Stripe init]', err);
-        showToast('Could not load payment form. Please try again.');
+    if (!streamId) return;
+    getDoc(doc(db, 'streams', streamId)).then(snap => {
+      if (snap.exists()) {
+        setPpv(snap.data().ppv || false);
+        setPpvPrice(snap.data().ppvPrice || '2.99');
       }
-    };
-    init();
-    return () => { try { paymentEl?.destroy(); } catch {} };
-  }, [showPurchase, stripeLoaded, selectedPkg]);
+    }).catch(() => {});
+  }, [streamId]);
 
-  // BUG-28 FIX: Confirm payment using Stripe.js (not raw card data)
-  const confirmPayment = async () => {
-    if (!stripeInst || !elements || !selectedPkg) return;
-    setPurchasing(true);
+  // Send a gift (writes to Firestore for persistence)
+  const sendGift = async (gift) => {
+    if (!auth.currentUser) { showToast('Sign in to send gifts'); return; }
+    if (!streamId) { showToast('No active stream'); return; }
+    setSending(gift.id);
     try {
-      const { error } = await stripeInst.confirmPayment({
-        elements,
-        confirmParams: { return_url: window.location.href },
-        redirect: 'if_required',
+      // Write individual gift event
+      await addDoc(collection(db, 'streams', streamId, 'giftEvents'), {
+        userId:    auth.currentUser.uid,
+        userName:  auth.currentUser.displayName || 'Viewer',
+        giftId:    gift.id,
+        giftEmoji: gift.emoji,
+        giftLabel: gift.label,
+        coins:     gift.coins,
+        usd:       gift.usd,
+        sentAt:    serverTimestamp(),
       });
-      if (error) {
-        showToast(`Payment failed: ${error.message}`);
-      } else {
-        // Credit coins to user balance
-        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-          coinBalance: increment(selectedPkg.coins),
+
+      // Upsert leaderboard entry (using userId as doc id)
+      const lbRef = doc(db, 'streams', streamId, 'gifts', auth.currentUser.uid);
+      const lbSnap = await getDoc(lbRef);
+      if (lbSnap.exists()) {
+        await updateDoc(lbRef, {
+          totalCoins: (lbSnap.data().totalCoins || 0) + gift.coins,
+          totalGifts: (lbSnap.data().totalGifts || 0) + 1,
+          lastGiftAt: serverTimestamp(),
         });
-        await addDoc(collection(db, 'transactions'), {
+      } else {
+        await addDoc(collection(db, 'streams', streamId, 'gifts'), {
           userId:    auth.currentUser.uid,
-          type:      'coin_purchase',
-          coins:     selectedPkg.coins,
-          usd:       selectedPkg.usd,
-          createdAt: serverTimestamp(),
+          userName:  auth.currentUser.displayName || 'Viewer',
+          totalCoins: gift.coins,
+          totalGifts: 1,
+          lastGiftAt: serverTimestamp(),
         });
-        showToast(`✅ ${selectedPkg.coins} coins added to your balance!`);
-        setShowPurchase(false);
-        setSelectedPkg(null);
-        setStripeInst(null);
-        setElements(null);
-        setPaymentEl(null);
       }
-    } catch (err) {
-      showToast('Payment error. Please try again.');
+      showToast(`${gift.emoji} ${gift.label} sent! +${gift.coins} coins`);
+    } catch (e) {
+      console.error(e);
+      showToast('Gift failed');
     } finally {
-      setPurchasing(false);
+      setSending(null);
     }
   };
 
-  // BUG-30 FIX: sendGift writes to Firestore gifts collection + deducts coins
-  const sendGift = async (gift, streamId, streamerId) => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) { showToast('Sign in to send gifts'); return; }
-    if (coinBalance < gift.coins) { showToast('Not enough coins! Purchase more below.'); return; }
+  // UX-36: Toggle PPV
+  const savePpv = async () => {
+    if (!streamId) return;
     try {
-      // Deduct from sender's balance
-      await updateDoc(doc(db, 'users', uid), { coinBalance: increment(-gift.coins) });
-      // Write to gifts collection (closes monetization loop)
-      await addDoc(collection(db, 'gifts'), {
-        streamId,
-        streamerId,
-        senderId:   uid,
-        senderName: auth.currentUser.displayName || 'Viewer',
-        giftId:     gift.id,
-        giftName:   gift.name,
-        giftEmoji:  gift.emoji,
-        coins:      gift.coins,
-        charityMode,
-        charityOrg:   charityMode ? charityOrg : null,
-        charityPct:   charityMode ? charityPct  : 0,
-        createdAt:  serverTimestamp(),
-      });
-      // UX-20 FIX: mention charity in toast if charity mode is on
-      const charityName = CHARITY_OPTIONS.find(o => o.id === charityOrg)?.name;
-      if (charityMode) {
-        showToast(`${gift.emoji} ${gift.name} sent! ❤️ ${charityPct}% goes to ${charityName}`);
-      } else {
-        showToast(`${gift.emoji} ${gift.name} sent! (${gift.coins} coins)`);
-      }
-    } catch (err) {
-      console.error('[sendGift]', err);
-      showToast('Gift failed. Please try again.');
-    }
+      await updateDoc(doc(db, 'streams', streamId), { ppv, ppvPrice });
+      showToast(ppv ? `✅ PPV set at $${ppvPrice}` : '✅ PPV disabled');
+    } catch { showToast('Failed to save'); }
   };
 
-  const fmt     = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n);
-  const totalCoinsEarned = gifts.reduce((s, g) => s + (g.coins || 0), 0);
-  const totalEarningsUsd = (totalCoinsEarned / 100 * 0.70).toFixed(2); // UX-19: 70% share shown
-
-  const timeAgo = ts => {
-    if (!ts) return '';
-    const sec = Math.floor((Date.now() - (ts.toMillis ? ts.toMillis() : Date.now())) / 1000);
-    if (sec < 60) return 'just now';
-    if (sec < 3600) return `${Math.floor(sec/60)}m ago`;
-    return `${Math.floor(sec/3600)}h ago`;
-  };
+  const medal = i => ['🥇','🥈','🥉'][i] || `${i+1}.`;
 
   return (
-    <div style={{ background:'var(--bg-primary,#0a0a18)', minHeight:'100vh', paddingBottom:'80px' }}>
-
+    <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:'80px' }}>
       {/* Header */}
-      <div style={{ padding:'16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'12px' }}>
+      <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px' }}>
         <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
-        <span style={{ color:'#475569', fontSize:'12px' }}>Live →</span>
-        <span style={{ fontSize:'18px', fontWeight:800, color:'#f1f5f9', flex:1 }}>💰 Monetization</span>
-        {/* Coin balance always visible in header */}
-        <div style={{ background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'10px', padding:'5px 10px', display:'flex', alignItems:'center', gap:'5px' }}>
-          <span style={{ fontSize:'14px' }}>🪙</span>
-          <span style={{ color:'#f59e0b', fontWeight:800, fontSize:'13px' }}>{fmt(coinBalance)}</span>
-        </div>
+        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>💰 Monetization</span>
+        {totalEarned > 0 && (
+          <span style={{ background:'rgba(34,197,94,0.15)', borderRadius:'10px', padding:'4px 10px', color:'#22c55e', fontSize:'13px', fontWeight:700 }}>
+            ${totalEarned.toFixed(2)} earned
+          </span>
+        )}
       </div>
 
-      <LiveSubNav navigate={navigate} />
-
-      {/* Tab bar */}
-      <div style={{ display:'flex', borderBottom:'1px solid #1e293b', overflowX:'auto' }}>
-        {[
-          {id:'overview',  label:'📋 Overview'},
-          {id:'gifts',     label:'🎁 Gifts'},
-          {id:'coins',     label:'🪙 Coins'},
-          {id:'earnings',  label:'💵 Earnings'},
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ flex:'0 0 auto', padding:'10px 16px', border:'none', background:'none', cursor:'pointer', fontWeight:600, fontSize:'12px', whiteSpace:'nowrap',
-              color: tab===t.id ? '#f1f5f9' : '#64748b',
-              borderBottom: tab===t.id ? '2px solid #f59e0b' : '2px solid transparent' }}>
-            {t.label}
+      {/* Tabs */}
+      <div style={{ display:'flex', borderBottom:'1px solid #1e293b' }}>
+        {[['gifts','🎁 Gifts'],['subs','⭐ Subscriptions'],['ppv','🔒 Pay-per-View']].map(([id,label]) => (
+          <button key={id} onClick={() => setActiveTab(id)}
+            style={{ flex:1, padding:'11px 4px', border:'none', background:'none', fontWeight:700, fontSize:'12px', cursor:'pointer',
+              color: activeTab===id ? '#f1f5f9' : '#64748b',
+              borderBottom: activeTab===id ? '2px solid #ef4444' : '2px solid transparent' }}>
+            {label}
           </button>
         ))}
       </div>
 
-      <div style={{ padding:'16px' }}>
+      <div style={{ padding:'12px 16px' }}>
 
-        {/* ── OVERVIEW TAB ── */}
-        {tab === 'overview' && (
+        {/* GIFTS TAB */}
+        {activeTab === 'gifts' && (
           <>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'16px' }}>
+            {/* Stats bar */}
+            <div style={{ display:'flex', gap:'10px', marginBottom:'16px' }}>
               {[
-                { icon:'🪙', label:'Coin Balance',   val: fmt(coinBalance),         color:'#f59e0b' },
-                { icon:'🎁', label:'Gifts Received', val: fmt(gifts.length),        color:'#ec4899' },
-                { icon:'💵', label:'Est. Earnings',  val: `$${totalEarningsUsd}`,   color:'#10b981' },
-                { icon:'💎', label:'Coins Received', val: fmt(totalCoinsEarned),    color:'#6366f1' },
+                { label:'Total Gifts', value: totalGifts },
+                { label:'Earned',      value: `$${totalEarned.toFixed(2)}` },
+                { label:'Top Gifter',  value: leaderboard[0]?.userName?.split(' ')[0] || '—' },
               ].map(s => (
-                <div key={s.label} style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', textAlign:'center' }}>
-                  <div style={{ fontSize:'22px', marginBottom:'4px' }}>{s.icon}</div>
-                  <div style={{ color:s.color, fontWeight:800, fontSize:'18px' }}>{s.val}</div>
-                  <div style={{ color:'#64748b', fontSize:'11px' }}>{s.label}</div>
+                <div key={s.label} style={{ flex:1, background:'#1e293b', borderRadius:'12px', padding:'10px', textAlign:'center' }}>
+                  <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'16px' }}>{s.value}</div>
+                  <div style={{ color:'#64748b', fontSize:'10px', marginTop:'2px' }}>{s.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* BUG-30 FIX: Test gift sending with real Firestore writes */}
-            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'16px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'10px' }}>🎁 Send a Test Gift</div>
-              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-                {GIFT_TIERS.slice(0,3).map(g => (
-                  <button key={g.id} onClick={() => sendGift(g, 'test-stream', auth.currentUser?.uid)}
-                    style={{ background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.3)', borderRadius:'10px', padding:'8px 12px', cursor:'pointer', textAlign:'center' }}>
-                    <div style={{ fontSize:'20px' }}>{g.emoji}</div>
-                    <div style={{ color:'#f1f5f9', fontSize:'11px', fontWeight:700 }}>{g.name}</div>
-                    <div style={{ color:'#64748b', fontSize:'10px' }}>{g.coins} coins</div>
-                  </button>
-                ))}
-              </div>
+            {/* Gift buttons */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginBottom:'20px' }}>
+              {GIFT_OPTIONS.map(g => (
+                <button key={g.id} onClick={() => sendGift(g)} disabled={!!sending}
+                  style={{ background: sending===g.id ? '#334155' : '#1e293b', border:'1px solid #334155',
+                    borderRadius:'12px', padding:'12px 8px', cursor: sending ? 'wait' : 'pointer',
+                    display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', opacity: sending && sending!==g.id ? 0.6 : 1 }}>
+                  <span style={{ fontSize:'24px' }}>{g.emoji}</span>
+                  <span style={{ color:'#f1f5f9', fontSize:'11px', fontWeight:700 }}>{g.label}</span>
+                  <span style={{ color:'#f59e0b', fontSize:'10px' }}>{g.coins} coins</span>
+                </button>
+              ))}
             </div>
 
-            {/* Charity mode */}
-            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'16px' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
-                <div>
-                  <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px' }}>❤️ Gift Charity Mode</div>
-                  <div style={{ color:'#64748b', fontSize:'11px', marginTop:'2px' }}>Donate % of gift earnings to charity</div>
+            {/* UX-37: Persistent leaderboard */}
+            <div style={{ color:'#64748b', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'8px' }}>
+              🏆 Gift Leaderboard
+            </div>
+            {leaderboard.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'24px', background:'#1e293b', borderRadius:'14px' }}>
+                <div style={{ fontSize:'28px', marginBottom:'6px' }}>🎁</div>
+                <div style={{ color:'#64748b', fontSize:'13px' }}>No gifts yet — be the first!</div>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                {leaderboard.slice(0,10).map((g,i) => (
+                  <div key={g.id} style={{ background:'#1e293b', borderRadius:'12px', padding:'10px 14px', display:'flex', alignItems:'center', gap:'12px' }}>
+                    <span style={{ fontSize:'16px', width:'24px', textAlign:'center' }}>{medal(i)}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px' }}>{g.userName}</div>
+                      <div style={{ color:'#64748b', fontSize:'11px' }}>{g.totalGifts} gift{g.totalGifts !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div style={{ color:'#f59e0b', fontWeight:800, fontSize:'14px' }}>
+                      {g.totalCoins?.toLocaleString()} 💰
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* SUBSCRIPTIONS TAB */}
+        {activeTab === 'subs' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+            <div style={{ color:'#64748b', fontSize:'13px', marginBottom:'4px' }}>
+              Set up subscription tiers for your channel. Subscribers get exclusive perks and chat badges.
+            </div>
+            {SUB_TIERS.map(tier => (
+              <div key={tier.id} style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
+                  <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>{tier.label}</div>
+                  <div style={{ color:'#f59e0b', fontWeight:800, fontSize:'14px' }}>{tier.price}</div>
                 </div>
-                <button onClick={() => setCharityMode(p => !p)} aria-pressed={charityMode}
-                  style={{ width:'44px', height:'24px', borderRadius:'12px', background: charityMode?'#10b981':'#334155', border:'none', cursor:'pointer', position:'relative', flexShrink:0 }}>
-                  <div style={{ position:'absolute', top:'3px', left: charityMode?'23px':'3px', width:'18px', height:'18px', borderRadius:'50%', background:'white', transition:'left 0.2s' }} />
+                <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+                  {tier.perks.map(p => (
+                    <div key={p} style={{ color:'#94a3b8', fontSize:'12px', display:'flex', gap:'6px', alignItems:'center' }}>
+                      <span style={{ color:'#22c55e' }}>✓</span> {p}
+                    </div>
+                  ))}
+                </div>
+                <button style={{ marginTop:'10px', width:'100%', background:'linear-gradient(135deg,#ef4444,#f59e0b)',
+                  border:'none', borderRadius:'10px', padding:'9px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
+                  ⭐ Enable {tier.label}
                 </button>
               </div>
-              {charityMode && (
-                <>
-                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'10px' }}>
-                    {CHARITY_OPTIONS.map(o => (
-                      <button key={o.id} onClick={() => setCharityOrg(o.id)} aria-pressed={charityOrg===o.id}
-                        style={{ padding:'5px 10px', borderRadius:'10px', border:'none', fontSize:'11px', fontWeight:600, cursor:'pointer',
-                          background: charityOrg===o.id ? 'rgba(16,185,129,0.2)' : '#334155',
-                          color: charityOrg===o.id ? '#10b981' : '#94a3b8' }}>
-                        {o.emoji} {o.name}
-                      </button>
-                    ))}
+            ))}
+          </div>
+        )}
+
+        {/* PAY-PER-VIEW TAB */}
+        {activeTab === 'ppv' && (
+          <div>
+            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
+              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'6px' }}>🔒 Pay-per-View Access</div>
+              <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'14px' }}>
+                Require viewers to pay a one-time fee to access this stream.
+              </div>
+
+              {/* Toggle */}
+              <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'14px' }}>
+                <span style={{ color:'#f1f5f9', fontSize:'14px', flex:1 }}>Enable PPV</span>
+                <button onClick={() => setPpv(v => !v)}
+                  style={{ width:'48px', height:'26px', borderRadius:'13px', border:'none', cursor:'pointer', position:'relative',
+                    background: ppv ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155' }}>
+                  <span style={{ position:'absolute', top:'3px', left: ppv ? '25px' : '3px', width:'20px', height:'20px',
+                    borderRadius:'50%', background:'white', transition:'left 0.2s', display:'block' }} />
+                </button>
+              </div>
+
+              {ppv && (
+                <div style={{ marginBottom:'14px' }}>
+                  <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'6px' }}>Price (USD)</div>
+                  <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+                    <span style={{ color:'#f1f5f9', fontSize:'18px', fontWeight:700 }}>$</span>
+                    <input type="number" value={ppvPrice} onChange={e => setPpvPrice(e.target.value)}
+                      min="0.99" max="99.99" step="0.50"
+                      style={{ flex:1, background:'#0a0a18', border:'1px solid #334155', borderRadius:'10px',
+                        padding:'10px 12px', color:'#f1f5f9', fontSize:'16px', fontWeight:700, outline:'none' }} />
                   </div>
-                  <div>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>
-                      <span style={{ color:'#64748b', fontSize:'11px' }}>Charity %</span>
-                      <span style={{ color:'#10b981', fontWeight:700, fontSize:'12px' }}>{charityPct}%</span>
-                    </div>
-                    <input type="range" min="5" max="50" step="5" value={charityPct} onChange={e => setCharityPct(parseInt(e.target.value))}
-                      style={{ width:'100%', accentColor:'#10b981' }} aria-label="Charity percentage" />
+                  <div style={{ color:'#64748b', fontSize:'11px', marginTop:'4px' }}>
+                    You receive ~70% after platform fees
                   </div>
-                </>
+                </div>
               )}
-            </div>
 
-            {/* BUG-29 FIX: Payout button is now correctly disabled with clear label */}
-            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'6px' }}>💳 Payout Settings</div>
-              <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'10px' }}>
-                Estimated balance: <strong style={{ color:'#10b981' }}>${totalEarningsUsd}</strong>
-                <span style={{ color:'#475569' }}> • You keep 70% after platform fees</span>
-              </div>
-              {/* BUG-29 FIX: clearly disabled until Stripe Connect is wired */}
-              <button disabled aria-disabled="true"
-                style={{ width:'100%', background:'#334155', border:'2px dashed #475569', borderRadius:'12px', padding:'12px', color:'#64748b', fontWeight:700, fontSize:'13px', cursor:'not-allowed' }}>
-                💳 Set Up Payouts — Coming Soon
+              <button onClick={savePpv}
+                style={{ width:'100%', background:'linear-gradient(135deg,#ef4444,#f59e0b)',
+                  border:'none', borderRadius:'12px', padding:'11px', color:'white', fontWeight:800, fontSize:'14px', cursor:'pointer' }}>
+                💾 Save Settings
               </button>
-              <div style={{ color:'#475569', fontSize:'10px', marginTop:'6px', textAlign:'center' }}>
-                Stripe Connect payouts will be available in the next update. Your earnings are tracked and will be paid retroactively.
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ── GIFTS TAB ── */}
-        {tab === 'gifts' && (
-          <>
-            <div style={{ marginBottom:'16px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'10px' }}>🎁 Gift Catalog</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
-                {GIFT_TIERS.map(g => (
-                  <div key={g.id} style={{ background:'#1e293b', borderRadius:'12px', padding:'12px', textAlign:'center' }}>
-                    <div style={{ fontSize:'28px', marginBottom:'4px' }}>{g.emoji}</div>
-                    <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px' }}>{g.name}</div>
-                    <div style={{ color:'#f59e0b', fontSize:'12px', fontWeight:700, marginTop:'2px' }}>🪙 {g.coins}</div>
-                    <div style={{ color:'#64748b', fontSize:'11px' }}>${g.usd.toFixed(2)} USD</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'10px' }}>📬 Recent Gifts Received</div>
-              {gifts.length === 0 && <div style={{ color:'#475569', fontSize:'12px', textAlign:'center', padding:'12px' }}>No gifts yet — go live and let viewers send you gifts!</div>}
-              {gifts.slice(0,10).map(g => (
-                <div key={g.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 0', borderBottom:'1px solid #334155' }}>
-                  <span style={{ fontSize:'20px', flexShrink:0 }}>{g.giftEmoji || '🎁'}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ color:'#f1f5f9', fontSize:'12px', fontWeight:600 }}>{g.senderName} sent {g.giftName}</div>
-                    <div style={{ color:'#64748b', fontSize:'10px' }}>{timeAgo(g.createdAt)}</div>
-                  </div>
-                  <div style={{ color:'#f59e0b', fontWeight:700, fontSize:'12px' }}>+🪙{g.coins}</div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── COINS TAB — UX-21 FIX: removed redundant balance hero card ── */}
-        {tab === 'coins' && (
-          <>
-            {/* UX-21 FIX: Balance is shown in header, NOT repeated here in a large hero */}
-            <div style={{ marginBottom:'16px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'10px' }}>📦 Coin Packages</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-                {COIN_PACKAGES.map(pkg => (
-                  <button key={pkg.coins} onClick={() => { setSelectedPkg(pkg); setShowPurchase(true); setStripeInst(null); setElements(null); setPaymentEl(null); }}
-                    style={{ background:'#1e293b', border: pkg.badge?.includes('Best')? '2px solid #f59e0b':'1px solid #334155', borderRadius:'14px', padding:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', textAlign:'left' }}>
-                    <div>
-                      <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'2px' }}>
-                        <span style={{ color:'#f1f5f9', fontWeight:800, fontSize:'16px' }}>🪙 {pkg.coins}</span>
-                        {pkg.badge && <span style={{ background: pkg.badge.includes('🏆') ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'rgba(99,102,241,0.2)', color: pkg.badge.includes('🏆') ? 'white' : '#818cf8', borderRadius:'6px', padding:'1px 6px', fontSize:'10px', fontWeight:700 }}>{pkg.badge}</span>}
-                      </div>
-                      <div style={{ color:'#64748b', fontSize:'11px' }}>{pkg.label}</div>
-                    </div>
-                    <div style={{ color:'#10b981', fontWeight:800, fontSize:'16px' }}>${pkg.usd.toFixed(2)}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Recent transactions */}
-            {recentTxns.length > 0 && (
-              <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
-                <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px', marginBottom:'8px' }}>🧾 Recent Transactions</div>
-                {recentTxns.map(t => (
-                  <div key={t.id} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #334155', fontSize:'12px' }}>
-                    <span style={{ color:'#94a3b8' }}>{t.type === 'coin_purchase' ? '🛒 Purchased' : '🎁 Gift sent'}</span>
-                    <span style={{ color: t.type==='coin_purchase'?'#10b981':'#f59e0b', fontWeight:700 }}>
-                      {t.type==='coin_purchase' ? `+🪙${t.coins}` : `-🪙${t.coins}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── EARNINGS TAB — UX-19 FIX: platform fee disclosed ── */}
-        {tab === 'earnings' && (
-          <>
-            {/* UX-19 FIX: Revenue share clearly stated */}
-            <div style={{ background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'14px', padding:'14px', marginBottom:'16px' }}>
-              <div style={{ color:'#f59e0b', fontWeight:700, fontSize:'13px', marginBottom:'6px' }}>💡 Revenue Share</div>
-              <div style={{ color:'#94a3b8', fontSize:'12px', lineHeight:'1.6' }}>
-                <strong style={{ color:'#f1f5f9' }}>You keep 70%</strong> of all gift coins received.<br/>
-                Platform fee: <strong style={{ color:'#f1f5f9' }}>30%</strong> (covers servers, payment processing, and fraud protection).<br/>
-                Earnings are paid monthly via Stripe Connect once payouts are enabled.
-              </div>
             </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'16px' }}>
-              {[
-                { icon:'🪙', label:'Total Coins',    val: fmt(totalCoinsEarned), color:'#f59e0b' },
-                { icon:'💵', label:'Your 70%',       val:`$${totalEarningsUsd}`, color:'#10b981' },
-                { icon:'🎁', label:'Total Gifts',    val: fmt(gifts.length),     color:'#ec4899' },
-                { icon:'📊', label:'Platform (30%)', val:`$${(totalCoinsEarned/100*0.30).toFixed(2)}`, color:'#64748b' },
-              ].map(s => (
-                <div key={s.label} style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', textAlign:'center' }}>
-                  <div style={{ fontSize:'22px', marginBottom:'4px' }}>{s.icon}</div>
-                  <div style={{ color:s.color, fontWeight:800, fontSize:'18px' }}>{s.val}</div>
-                  <div style={{ color:'#64748b', fontSize:'11px' }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Revenue breakdown by gift type */}
-            {gifts.length > 0 && (
-              <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'16px' }}>
-                <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px', marginBottom:'10px' }}>📊 By Gift Type</div>
-                {GIFT_TIERS.map(g => {
-                  const count = gifts.filter(x => x.giftId === g.id).length;
-                  const coins = count * g.coins;
-                  const pct   = totalCoinsEarned > 0 ? Math.round((coins / totalCoinsEarned) * 100) : 0;
-                  if (!count) return null;
-                  return (
-                    <div key={g.id} style={{ marginBottom:'8px' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'3px' }}>
-                        <span style={{ color:'#94a3b8', fontSize:'12px' }}>{g.emoji} {g.name} ×{count}</span>
-                        <span style={{ color:'#f59e0b', fontWeight:700, fontSize:'12px' }}>🪙{fmt(coins)}</span>
-                      </div>
-                      <div style={{ background:'#334155', borderRadius:'4px', height:'6px' }}>
-                        <div style={{ background:'linear-gradient(90deg,#f59e0b,#d97706)', height:'100%', borderRadius:'4px', width:`${pct}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Info card */}
+            <div style={{ background:'rgba(239,68,68,0.08)', borderRadius:'12px', padding:'12px', border:'1px solid rgba(239,68,68,0.2)' }}>
+              <div style={{ color:'#fca5a5', fontSize:'12px', fontWeight:700, marginBottom:'4px' }}>How it works</div>
+              <div style={{ color:'#94a3b8', fontSize:'12px' }}>
+                Viewers pay once to unlock the stream. You earn 70% of every purchase. 
+                Subscribers bypass the paywall automatically.
               </div>
-            )}
-
-            {/* BUG-29 FIX: Payout — clearly disabled */}
-            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
-              <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', marginBottom:'6px' }}>🏦 Withdraw Earnings</div>
-              <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'10px' }}>Available for withdrawal: <strong style={{ color:'#10b981' }}>${totalEarningsUsd}</strong></div>
-              <button disabled aria-disabled="true"
-                style={{ width:'100%', background:'#334155', border:'2px dashed #475569', borderRadius:'12px', padding:'12px', color:'#64748b', fontWeight:700, fontSize:'13px', cursor:'not-allowed' }}>
-                🏦 Set Up Bank Account — Coming Soon
-              </button>
-              <div style={{ color:'#475569', fontSize:'10px', marginTop:'6px', textAlign:'center' }}>
-                Stripe Connect bank payouts are in development. Your {fmt(totalCoinsEarned)} coins (${totalEarningsUsd}) are securely tracked.
-              </div>
-            </div>
-          </>
-        )}
-
-      </div>
-
-      {/* BUG-28 FIX: Stripe Payment Element modal — PCI compliant, no raw card inputs */}
-      {showPurchase && selectedPkg && (
-        <div role="dialog" aria-modal="true" aria-label="Purchase coins" style={{ position:'fixed', inset:0, zIndex:200 }}>
-          <div onClick={() => { setShowPurchase(false); setSelectedPkg(null); setStripeInst(null); setElements(null); setPaymentEl(null); }} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.7)' }} />
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'#0f172a', borderRadius:'20px 20px 0 0', padding:'20px 16px', paddingBottom:'calc(20px + env(safe-area-inset-bottom,0px))' }}>
-            <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'16px', marginBottom:'4px' }}>
-              🪙 Purchase {selectedPkg.coins} Coins
-            </div>
-            <div style={{ color:'#64748b', fontSize:'13px', marginBottom:'16px' }}>
-              ${selectedPkg.usd.toFixed(2)} USD • {selectedPkg.label}
-            </div>
-            {/* BUG-28 FIX: Stripe Payment Element mounts here — no custom card inputs */}
-            <div ref={stripeFormRef} style={{ marginBottom:'16px', minHeight:'80px' }} />
-            {!stripeInst && (
-              <div style={{ color:'#64748b', fontSize:'12px', textAlign:'center', marginBottom:'12px' }}>
-                {stripeLoaded ? '⏳ Loading secure payment form…' : '⏳ Loading Stripe.js…'}
-              </div>
-            )}
-            <div style={{ color:'#475569', fontSize:'10px', marginBottom:'12px', textAlign:'center' }}>
-              🔒 Payments secured by Stripe. Card data never touches ConnectHub servers.
-            </div>
-            <div style={{ display:'flex', gap:'10px' }}>
-              <button onClick={() => { setShowPurchase(false); setSelectedPkg(null); setStripeInst(null); setElements(null); setPaymentEl(null); }}
-                style={{ flex:1, background:'#1e293b', border:'none', borderRadius:'12px', padding:'13px', color:'#94a3b8', fontWeight:700, cursor:'pointer' }}>Cancel</button>
-              <button onClick={confirmPayment} disabled={!stripeInst || purchasing}
-                style={{ flex:2, background: stripeInst && !purchasing ? 'linear-gradient(135deg,#10b981,#0f766e)' : '#334155', border:'none', borderRadius:'12px', padding:'13px', color:'white', fontWeight:700, fontSize:'14px', cursor: stripeInst && !purchasing ? 'pointer' : 'default', opacity: stripeInst && !purchasing ? 1 : 0.6 }}>
-                {purchasing ? '⏳ Processing…' : `✓ Pay $${selectedPkg.usd.toFixed(2)}`}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

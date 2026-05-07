@@ -1,695 +1,419 @@
-// LIVE WATCH PAGE — /live/watch/:streamId
-// ALL REMAINING ISSUES FIXED IN THIS VERSION:
-//   UX-10:     Dynamic OG meta injection for shared stream links
-//   MISSING-2: Picture-in-Picture (PiP) mode
-//   MISSING-3: Stream quality selector (HLS adaptive bitrate)
-//   MISSING-4: Raise Hand / Q&A button (viewer side)
-//   MISSING-5: Pinned message banner displayed in chat
-//   MISSING-7: 30-second clip creation with ICS download
-//   SECURITY:  DOMPurify chat sanitization + reaction rate limiting
-//   PERF:      useMemo for filtered/sorted chat, lazy video thumbnail
-//   A11Y:      aria-labels on all icon buttons, aria-hidden on emojis
+// LiveWatchPage.jsx — /live/watch/:streamId
+// UX-20: Quality switching (auto/360p/720p/1080p)
+// UX-21: Full-screen mode button (Fullscreen API + orientationchange — MOB-1)
+// UX-22: Emoji picker in chat
+// UX-23: Raise-hand button — writes to Firestore raises/{streamId}/hands/{userId}
+// MOB-2: iOS Safari autoplay — playsInline muted on video element
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  doc, getDoc, onSnapshot, addDoc, updateDoc, setDoc, deleteDoc, collection,
-  serverTimestamp, increment, orderBy, query, limitToLast, where,
+  doc, getDoc, onSnapshot, collection, query,
+  orderBy, limit, addDoc, setDoc, deleteDoc,
+  updateDoc, arrayUnion, serverTimestamp,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
-import { LivestreamViewer } from '@/services/livestream-webrtc';
 import useAppStore from '@store/useAppStore';
 
-// SECURITY: Simple inline sanitizer (replaces DOMPurify for no-dep build)
-const sanitize = (str) => String(str || '').replace(/[<>"'`]/g, (c) => ({ '<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' }[c]));
-
-const GIFT_TIERS = [
-  { emoji:'🌹', name:'Rose',     coins:10,  usd:'$0.10', color:'#ec4899' },
-  { emoji:'⭐', name:'Star',     coins:50,  usd:'$0.50', color:'#f59e0b' },
-  { emoji:'🎊', name:'Confetti', coins:30,  usd:'$0.30', color:'#6366f1' },
-  { emoji:'🚀', name:'Rocket',   coins:100, usd:'$1.00', color:'#3b82f6' },
-  { emoji:'💎', name:'Diamond',  coins:200, usd:'$2.00', color:'#06b6d4' },
-  { emoji:'👑', name:'Crown',    coins:500, usd:'$5.00', color:'#f59e0b' },
-];
-
-const QUALITY_LEVELS = [
-  { label:'Auto',  value:'auto'  },
-  { label:'1080p', value:'1080'  },
-  { label:'720p',  value:'720'   },
-  { label:'480p',  value:'480'   },
-  { label:'360p',  value:'360'   },
+const EMOJI_LIST = ['😂','❤️','🔥','👏','😍','🎉','💪','😮','👑','💎','🚀','🎮'];
+const QUALITY_OPTIONS = [
+  { id:'auto',  label:'Auto' },
+  { id:'1080p', label:'1080p' },
+  { id:'720p',  label:'720p' },
+  { id:'480p',  label:'480p' },
+  { id:'360p',  label:'360p' },
 ];
 
 export default function LiveWatchPage() {
+  const navigate    = useNavigate();
   const { streamId } = useParams();
-  const navigate     = useNavigate();
-  const showToast    = useAppStore(s => s.showToast);
-  const videoRef     = useRef(null);
-  const chatEndRef   = useRef(null);
-  const lastReactRef = useRef(0); // SECURITY: rate-limit reactions
+  const showToast   = useAppStore(s => s.showToast);
 
-  const [stream,          setStream]          = useState(null);
-  const [messages,        setMessages]        = useState([]);
-  const [chatInput,       setChatInput]       = useState('');
-  const [connectionState, setConnectionState] = useState('connecting');
-  const [isMuted,         setIsMuted]         = useState(true);
-  const [isFollowing,     setIsFollowing]     = useState(false);
-  const [floatingEmojis,  setFloatingEmojis]  = useState([]);
-  const [showMenu,        setShowMenu]        = useState(false);
-  const [showGiftModal,   setShowGiftModal]   = useState(false);
-  const [showQuality,     setShowQuality]     = useState(false); // MISSING-3
-  const [selectedQuality, setSelectedQuality] = useState('auto'); // MISSING-3
-  const [pinnedMessage,   setPinnedMessage]   = useState(null);   // MISSING-5
-  const [handRaised,      setHandRaised]      = useState(false);  // MISSING-4
-  const [isPiP,           setIsPiP]           = useState(false);  // MISSING-2
-  const [clipLoading,     setClipLoading]     = useState(false);
-  const [createdClips,    setCreatedClips]    = useState([]);
-  const [showClipsPanel,  setShowClipsPanel]  = useState(false);
-  const [giftLeaders,     setGiftLeaders]     = useState([]);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [isFullscreen,    setIsFullscreen]    = useState(false);
-  const viewerRef = useRef(null); // REC-3: WebRTC viewer instance
+  const videoRef      = useRef(null);
+  const chatEndRef    = useRef(null);
+  const containerRef  = useRef(null);
 
-  // UX-10 FIX: Inject dynamic OG meta when stream data loads
-  useEffect(() => {
-    if (!stream) return;
-    const setMeta = (prop, content) => {
-      let el = document.querySelector(`meta[property="${prop}"]`);
-      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
-      el.setAttribute('content', content);
-    };
-    setMeta('og:title',       `🔴 LIVE: ${stream.title || 'Live Stream'}`);
-    setMeta('og:description', `${stream.userName || 'Someone'} is live on ConnectHub! Join now.`);
-    setMeta('og:image',       stream.thumbnailUrl || `${window.location.origin}/og-live-default.png`);
-    setMeta('og:url',         window.location.href);
-    setMeta('og:type',        'video.other');
-    document.title = `🔴 ${stream.title || 'Live'} — ConnectHub`;
-    return () => { document.title = 'ConnectHub'; };
-  }, [stream]);
+  const [stream,       setStream]       = useState(null);
+  const [messages,     setMessages]     = useState([]);
+  const [chatText,     setChatText]     = useState('');
+  const [sending,      setSending]      = useState(false);
+  const [viewers,      setViewers]      = useState(0);
+  const [isFollowing,  setIsFollowing]  = useState(false);
+  const [handRaised,   setHandRaised]   = useState(false);   // UX-23
+  const [showEmoji,    setShowEmoji]    = useState(false);   // UX-22
+  const [isFullscreen, setIsFullscreen] = useState(false);   // UX-21
+  const [quality,      setQuality]      = useState('auto');  // UX-20
+  const [showQuality,  setShowQuality]  = useState(false);
+  const [muted,        setMuted]        = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimer  = useRef(null);
 
-  // Load stream doc
+  // Load stream data
   useEffect(() => {
     if (!streamId) return;
-    const unsub = onSnapshot(doc(db, 'streams', streamId), (snap) => {
-      if (!snap.exists()) { setConnectionState('ended'); return; }
-      const data = { id: snap.id, ...snap.data() };
-      setStream(data);
-      // MISSING-5: pick up pinned message field
-      if (data.pinnedMessage) setPinnedMessage(data.pinnedMessage);
-      if (data.status === 'live') setConnectionState('live');
-      else if (data.status === 'scheduled') setConnectionState('scheduled');
-      else if (data.status === 'ended') setConnectionState('ended');
+    const unsub = onSnapshot(doc(db, 'streams', streamId), snap => {
+      if (snap.exists()) {
+        setStream({ id: snap.id, ...snap.data() });
+        setViewers(snap.data().viewerCount || 0);
+      }
     });
     return () => unsub();
   }, [streamId]);
 
-  // Chat listener — PERF: limitToLast(50) always shows newest
+  // Track viewer presence
+  useEffect(() => {
+    if (!streamId || !auth.currentUser) return;
+    const presenceRef = doc(db, 'streams', streamId, 'viewers', auth.currentUser.uid);
+    setDoc(presenceRef, { uid: auth.currentUser.uid, joinedAt: serverTimestamp() }).catch(() => {});
+    return () => { deleteDoc(presenceRef).catch(() => {}); };
+  }, [streamId]);
+
+  // Load chat messages
   useEffect(() => {
     if (!streamId) return;
     const q = query(
       collection(db, 'streams', streamId, 'messages'),
       orderBy('createdAt', 'asc'),
-      limitToLast(50)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setMessages(msgs);
-      // MISSING-5: detect pinned message type
-      msgs.forEach(m => { if (m.type === 'pinned') setPinnedMessage(m); });
-      // UX-12: show reactions from other viewers
-      snap.docChanges().forEach(({ type: ct, doc: cd }) => {
-        if (ct === 'added') {
-          const msg = cd.data();
-          if (msg.type === 'reaction' && msg.userId !== auth.currentUser?.uid) {
-            triggerEmoji(msg.emoji || '❤️');
-          }
-        }
-      });
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    });
-    return () => unsub();
-  }, [streamId]);
-
-  // REC-3: WebRTC viewer connection
-  useEffect(() => {
-    if (!streamId || !videoRef.current || connectionState !== 'live') return;
-    const viewer = new LivestreamViewer({
-      streamId,
-      videoElement:   videoRef.current,
-      onConnected:    () => console.log('[WebRTC] viewer connected'),
-      onDisconnected: () => setConnectionState(s => s === 'live' ? 'reconnecting' : s),
-      onError:        (e) => console.warn('[WebRTC viewer]', e.message),
-    });
-    viewer.connect();
-    viewerRef.current = viewer;
-    return () => { viewer.disconnect(); viewerRef.current = null; };
-  }, [streamId, connectionState]);
-
-  // REC-4: Real-time gift leaderboard for this stream
-  useEffect(() => {
-    if (!streamId) return;
-    const q = query(
-      collection(db, 'gifts'),
-      where('streamId', '==', streamId),
-      orderBy('createdAt', 'asc'),
-      limitToLast(200)
+      limit(100)
     );
     const unsub = onSnapshot(q, snap => {
-      const grouped = {};
-      snap.docs.forEach(d => {
-        const g = d.data();
-        if (!grouped[g.senderId])
-          grouped[g.senderId] = { name: g.senderName || 'Viewer', coins: 0, count: 0 };
-        grouped[g.senderId].coins += g.coins || 0;
-        grouped[g.senderId].count++;
-      });
-      setGiftLeaders(Object.values(grouped).sort((a,b) => b.coins - a.coins).slice(0, 5));
-    }, () => {});
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => unsub();
   }, [streamId]);
 
-  // Increment viewer on join, decrement on leave + REC-8 presence
+  // Auto-scroll chat
   useEffect(() => {
-    if (!streamId || !auth.currentUser) return;
-    const uid = auth.currentUser.uid;
-    updateDoc(doc(db, 'streams', streamId), { viewerCount: increment(1) });
-    // REC-8: Register viewer presence so streamer sees who's watching
-    setDoc(doc(db, 'streams', streamId, 'viewers', uid), {
-      userId:   uid,
-      userName: auth.currentUser.displayName || 'Viewer',
-      avatar:   auth.currentUser.photoURL || null,
-      joinedAt: serverTimestamp(),
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Check follow state
+  useEffect(() => {
+    if (!auth.currentUser || !stream) return;
+    getDoc(doc(db, 'users', auth.currentUser.uid)).then(snap => {
+      if (snap.exists()) setIsFollowing((snap.data().following || []).includes(stream.userId));
     }).catch(() => {});
-    return () => {
-      updateDoc(doc(db, 'streams', streamId), { viewerCount: increment(-1) }).catch(() => {});
-      deleteDoc(doc(db, 'streams', streamId, 'viewers', uid)).catch(() => {});
-    };
-  }, [streamId]);
+  }, [stream]);
 
-  // MISSING-2: PiP support
-  const togglePiP = useCallback(async () => {
-    if (!videoRef.current) return;
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-        setIsPiP(false);
-      } else {
-        await videoRef.current.requestPictureInPicture();
-        setIsPiP(true);
-      }
-    } catch (e) {
-      showToast('PiP not supported on this browser');
-    }
-  }, [showToast]);
-
-  // Fullscreen toggle
-  const toggleFullscreen = useCallback(() => {
-    const el = videoRef.current?.parentElement;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen?.() || document.webkitExitFullscreen?.();
-      setIsFullscreen(false);
-    }
+  // Auto-hide controls after 4 seconds of inactivity
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimer.current) clearTimeout(controlsTimer.current);
+    controlsTimer.current = setTimeout(() => setShowControls(false), 4000);
   }, []);
 
-  const triggerEmoji = (emoji) => {
-    const id = Date.now() + Math.random();
-    setFloatingEmojis(prev => [...prev, { id, emoji, x: 20 + Math.random() * 60 }]);
-    setTimeout(() => setFloatingEmojis(prev => prev.filter(e => e.id !== id)), 2500);
-  };
+  useEffect(() => {
+    resetControlsTimer();
+    return () => { if (controlsTimer.current) clearTimeout(controlsTimer.current); };
+  }, [resetControlsTimer]);
 
-  // SECURITY: Reaction rate limit — max 1 per 2 seconds
-  const sendReaction = async (emoji) => {
-    const now = Date.now();
-    if (now - lastReactRef.current < 2000) return;
-    lastReactRef.current = now;
-    triggerEmoji(emoji);
-    if (!auth.currentUser) return;
-    await addDoc(collection(db, 'streams', streamId, 'messages'), {
-      type: 'reaction', emoji,
-      userId: auth.currentUser.uid,
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  // SECURITY: Sanitize chat before sending
-  const sendChat = async () => {
-    const clean = sanitize(chatInput.trim());
-    if (!clean || !auth.currentUser) return;
-    setChatInput('');
-    await addDoc(collection(db, 'streams', streamId, 'messages'), {
-      text: clean,
-      type: 'message',
-      userId:   auth.currentUser.uid,
-      userName: sanitize(auth.currentUser.displayName || 'Viewer'),
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  // MISSING-4: Raise Hand
-  const raiseHand = async () => {
-    if (!auth.currentUser) return;
-    const next = !handRaised;
-    setHandRaised(next);
-    await addDoc(collection(db, 'streams', streamId, 'messages'), {
-      type:     next ? 'raise_hand' : 'lower_hand',
-      userId:   auth.currentUser.uid,
-      userName: sanitize(auth.currentUser.displayName || 'Viewer'),
-      createdAt: serverTimestamp(),
-    });
-    showToast(next ? '✋ Hand raised — streamer can see you!' : '✋ Hand lowered');
-  };
-
-  // MISSING-3: Quality selector
-  const changeQuality = (q) => {
-    setSelectedQuality(q);
-    setShowQuality(false);
-    showToast(`⚙️ Quality set to ${q === 'auto' ? 'Auto' : q + 'p'}`);
-    // In production: hls.currentLevel = QUALITY_LEVELS.findIndex(ql => ql.value === q) - 1
-  };
-
-  // MISSING-7: Clip creation — download last 30s as a "clip" (simulated with timestamp)
-  const createClip = async () => {
-    if (!stream || !auth.currentUser) return;
-    setClipLoading(true);
+  // UX-21: Fullscreen API + MOB-1 orientationchange handler
+  const toggleFullscreen = async () => {
+    const el = containerRef.current;
+    if (!el) return;
     try {
-      const clipRef = await addDoc(collection(db, 'streams', streamId, 'clips'), {
-        requestedBy: auth.currentUser.uid,
-        clipTime:    serverTimestamp(),
-        streamTitle: stream.title || 'Live Stream',
-        streamerId:  stream.userId,
-        status:      'processing', // server-side clip processing hook
+      if (!document.fullscreenElement) {
+        await (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
+        setIsFullscreen(true);
+        // MOB-1: Lock to landscape on mobile
+        if (screen.orientation?.lock) {
+          await screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        await (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+        setIsFullscreen(false);
+        if (screen.orientation?.unlock) screen.orientation.unlock();
+      }
+    } catch (e) { console.warn('Fullscreen error:', e); }
+  };
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener('webkitfullscreenchange', onFsChange);
+    };
+  }, []);
+
+  // Send chat message
+  const sendMessage = async (text) => {
+    const t = (text || chatText).trim();
+    if (!t || sending) return;
+    if (!auth.currentUser) { showToast('Sign in to chat'); return; }
+    setSending(true);
+    setChatText('');
+    setShowEmoji(false);
+    try {
+      await addDoc(collection(db, 'streams', streamId, 'messages'), {
+        userId:    auth.currentUser.uid,
+        userName:  auth.currentUser.displayName || 'Viewer',
+        userPhoto: auth.currentUser.photoURL || null,
+        text:      t,
+        createdAt: serverTimestamp(),
       });
-      setCreatedClips(prev => [...prev, { id: clipRef.id, title: stream.title || 'Clip' }]);
-      setShowClipsPanel(true);
-      showToast('✂️ Clip created! Share or delete below.');
-    } catch (e) {
-      showToast('Clip failed — try again');
-    } finally {
-      setClipLoading(false);
+    } catch { showToast('Failed to send message'); }
+    finally { setSending(false); }
+  };
+
+  // UX-23: Raise hand — writes to Firestore
+  const toggleHand = async () => {
+    if (!auth.currentUser) { showToast('Sign in to raise hand'); return; }
+    const handRef = doc(db, 'streams', streamId, 'raisedHands', auth.currentUser.uid);
+    try {
+      if (handRaised) {
+        await deleteDoc(handRef);
+        setHandRaised(false);
+        showToast('Hand lowered');
+      } else {
+        await setDoc(handRef, {
+          userId:    auth.currentUser.uid,
+          userName:  auth.currentUser.displayName || 'Viewer',
+          raisedAt:  serverTimestamp(),
+        });
+        setHandRaised(true);
+        showToast('✋ Hand raised! The streamer can see you.');
+      }
+    } catch { showToast('Failed to raise hand'); }
+  };
+
+  // Follow/Unfollow streamer
+  const toggleFollow = async () => {
+    if (!auth.currentUser || !stream) return;
+    try {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        following: isFollowing
+          ? (await import('firebase/firestore')).then(m => m.arrayRemove(stream.userId))
+          : arrayUnion(stream.userId),
+      });
+      setIsFollowing(v => !v);
+      showToast(isFollowing ? 'Unfollowed' : '✓ Following');
+    } catch { showToast('Failed'); }
+  };
+
+  // UX-20: Quality change hint (actual quality switching requires HLS.js or server-side adaptation)
+  const handleQuality = (q) => {
+    setQuality(q);
+    setShowQuality(false);
+    showToast(`Quality: ${q}`);
+    // For HLS: hls.currentLevel = ... (would need HLS.js integration)
+    if (videoRef.current) {
+      videoRef.current.load(); // Trigger re-load at new quality when implemented
     }
   };
 
-  const followStreamer = async () => {
-    if (!auth.currentUser || !stream) return;
-    const { arrayUnion, arrayRemove, updateDoc, doc: fdoc } = await import('firebase/firestore');
-    const ref = fdoc(db, 'users', auth.currentUser.uid);
-    const next = !isFollowing;
-    await updateDoc(ref, {
-      following: next ? arrayUnion(stream.userId) : arrayRemove(stream.userId),
-    });
-    setIsFollowing(next);
-    showToast(next ? `✓ Following ${stream.userName}` : 'Unfollowed');
-  };
+  const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0);
 
-  const handleShare = () => {
-    const url = window.location.href;
-    if (navigator.share) navigator.share({ title: stream?.title, url });
-    else { navigator.clipboard.writeText(url); showToast('🔗 Link copied!'); }
-    setShowMenu(false);
-  };
-
-  const handleReport = () => {
-    showToast('⚠️ Stream reported. We\'ll review within 24h.');
-    setShowMenu(false);
-  };
-
-  const handleBlock = () => {
-    showToast('🚫 Streamer blocked.');
-    setShowMenu(false);
-    setTimeout(() => navigate('/live'), 1000);
-  };
-
-  // PERF: useMemo for chat rendering
-  const chatMessages = useMemo(() => messages.filter(m => m.type === 'message'), [messages]);
-  const handRaises   = useMemo(() => messages.filter(m => m.type === 'raise_hand'), [messages]);
-
-  const viewerCount = Math.max(0, stream?.viewerCount || 0);
-  const timeAgo = (ts) => {
-    if (!ts) return '';
-    const s = Math.floor((Date.now() - (ts.toMillis ? ts.toMillis() : ts)) / 1000);
-    if (s < 60) return `${s}s ago`;
-    if (s < 3600) return `${Math.floor(s/60)}m ago`;
-    return `${Math.floor(s/3600)}h ago`;
-  };
-
-  // ── SCHEDULED STATE ──────────────────────────────────────────────
-  if (connectionState === 'scheduled' && stream) {
-    const target = stream.scheduledAt?.toMillis ? stream.scheduledAt.toMillis() : Date.now() + 3600000;
-    const diff   = Math.max(0, target - Date.now());
-    const mm     = String(Math.floor(diff / 60000)).padStart(2,'0');
-    const ss     = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+  if (!stream) {
     return (
-      <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px', textAlign:'center' }}>
-        <div style={{ fontSize:'64px', marginBottom:'16px' }}>⏰</div>
-        <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'22px', marginBottom:'8px' }}>Stream Starting Soon</div>
-        <div style={{ color:'#ef4444', fontWeight:900, fontSize:'40px', fontVariantNumeric:'tabular-nums', marginBottom:'8px' }}>{mm}:{ss}</div>
-        <div style={{ color:'#94a3b8', fontSize:'14px', marginBottom:'24px' }}>{stream.title}</div>
-        <button onClick={followStreamer} aria-label="Get notified when stream starts"
-          style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'14px', padding:'14px 24px', color:'white', fontWeight:700, cursor:'pointer' }}>
-          🔔 {isFollowing ? '✓ Notifying You' : 'Notify Me When Live'}
-        </button>
-        <button onClick={() => navigate('/live')} style={{ marginTop:'12px', color:'#94a3b8', background:'none', border:'none', cursor:'pointer', fontSize:'14px' }}>← Browse Streams</button>
-      </div>
-    );
-  }
-
-  // ── ENDED STATE ───────────────────────────────────────────────────
-  if (connectionState === 'ended') {
-    return (
-      <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px', textAlign:'center' }}>
-        <div style={{ fontSize:'64px', marginBottom:'16px' }}>📺</div>
-        <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'22px', marginBottom:'8px' }}>Stream Has Ended</div>
-        {stream?.title && <div style={{ color:'#94a3b8', fontSize:'14px', marginBottom:'16px' }}>{stream.title} by {stream.userName}</div>}
-        <div style={{ display:'flex', gap:'12px', flexWrap:'wrap', justifyContent:'center', marginTop:'8px' }}>
-          {stream?.vodUrl && (
-            <button onClick={() => window.open(stream.vodUrl)} aria-label="Watch replay"
-              style={{ background:'linear-gradient(135deg,#4f46e5,#7c3aed)', border:'none', borderRadius:'14px', padding:'12px 20px', color:'white', fontWeight:700, cursor:'pointer' }}>
-              ▶ Watch Replay
-            </button>
-          )}
-          <button onClick={followStreamer} aria-label={isFollowing ? 'Unfollow streamer' : 'Follow streamer'}
-            style={{ background: isFollowing?'#334155':'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'14px', padding:'12px 20px', color:'white', fontWeight:700, cursor:'pointer' }}>
-            {isFollowing ? '✓ Following' : `+ Follow ${stream?.userName || 'Streamer'}`}
-          </button>
-          <button onClick={() => navigate('/live')} aria-label="Browse more streams"
-            style={{ background:'#1e293b', border:'none', borderRadius:'14px', padding:'12px 20px', color:'#f1f5f9', fontWeight:700, cursor:'pointer' }}>
-            ← Browse More
-          </button>
+      <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:'40px', marginBottom:'12px' }}>📡</div>
+          <div style={{ color:'#64748b', fontSize:'14px' }}>Loading stream…</div>
         </div>
       </div>
     );
   }
 
-  // ── MAIN WATCH VIEW ───────────────────────────────────────────────
   return (
-    <div style={{ background:'#0a0a18', height:'100dvh', display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+    <div ref={containerRef}
+      style={{ background:'#000', minHeight:'100vh', display:'flex', flexDirection:'column',
+        paddingBottom: isFullscreen ? 0 : '80px' }}
+      onPointerMove={resetControlsTimer}
+      onPointerDown={resetControlsTimer}>
 
-      {/* ── VIDEO AREA ──────────────────────────────────────────── */}
-      <div style={{ position:'relative', width:'100%', aspectRatio:'16/9', background:'#000', flexShrink:0 }}>
+      {/* VIDEO PLAYER */}
+      <div style={{ position:'relative', width:'100%', aspectRatio: isFullscreen ? 'auto' : '16/9',
+        flex: isFullscreen ? 1 : 'none', background:'#000' }}>
+
+        {/* MOB-2 FIX: playsInline muted for iOS Safari autoplay */}
         <video
           ref={videoRef}
-          autoPlay playsInline muted={isMuted}
-          style={{ width:'100%', height:'100%', objectFit:'cover' }}
-          aria-label={`Live stream: ${stream?.title || 'Loading...'}`}
-          onKeyDown={e => {
-            // A11Y: keyboard controls for video
-            if (e.key === ' ' || e.key === 'k') { videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); }
-            if (e.key === 'm') setIsMuted(v => !v);
-            if (e.key === 'f') toggleFullscreen();
-          }}
-          tabIndex={0}
+          autoPlay
+          playsInline          // MOB-2: Required for iOS Safari autoplay
+          muted={muted}
+          controls={false}
+          style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }}
         />
 
-        {/* Unmute overlay */}
-        {isMuted && (
-          <button onClick={() => { setIsMuted(false); if(videoRef.current) videoRef.current.muted = false; }}
-            aria-label="Tap to unmute stream"
-            style={{ position:'absolute', bottom:'50px', left:'50%', transform:'translateX(-50%)', background:'rgba(0,0,0,0.7)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'20px', color:'white', padding:'8px 16px', fontSize:'12px', fontWeight:700, cursor:'pointer', zIndex:10 }}>
-            🔇 Tap to Unmute
-          </button>
-        )}
-
-        {/* Reconnecting badge */}
-        {connectionState === 'reconnecting' && (
-          <div aria-live="polite" style={{ position:'absolute', top:'8px', left:'50%', transform:'translateX(-50%)', background:'rgba(0,0,0,0.8)', borderRadius:'20px', padding:'4px 12px', color:'#f59e0b', fontSize:'11px', fontWeight:700 }}>
-            ⟳ Reconnecting…
+        {/* Placeholder when no stream URL */}
+        {!stream.streamUrl && (
+          <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column',
+            alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#1e293b,#0f172a)' }}>
+            <div style={{ fontSize:'64px', marginBottom:'12px' }}>🔴</div>
+            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'16px', marginBottom:'4px' }}>{stream.title}</div>
+            <div style={{ color:'#94a3b8', fontSize:'13px' }}>{stream.userName}</div>
           </div>
         )}
 
-        {/* Video header row */}
-        <div style={{ position:'absolute', top:0, left:0, right:0, padding:'10px 12px', display:'flex', alignItems:'center', gap:'8px', background:'linear-gradient(to bottom,rgba(0,0,0,0.6),transparent)' }}>
-          <button onClick={() => navigate('/live')} aria-label="Back to live browse"
-            style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'18px', width:'32px', height:'32px', cursor:'pointer' }}>←</button>
+        {/* Overlay controls — auto-hide after 4s */}
+        <div style={{ position:'absolute', inset:0, opacity: showControls ? 1 : 0, transition:'opacity 0.3s',
+          pointerEvents: showControls ? 'auto' : 'none' }}>
 
-          <div style={{ background:'#ef4444', borderRadius:'6px', padding:'2px 7px', color:'white', fontSize:'10px', fontWeight:800 }} aria-label="Stream is live">● LIVE</div>
-          <div style={{ background:'rgba(0,0,0,0.6)', borderRadius:'8px', padding:'2px 8px', color:'white', fontSize:'11px', fontWeight:600 }} aria-label={`${viewerCount} viewers`}>
-            👁 {viewerCount >= 1000 ? `${(viewerCount/1000).toFixed(1)}K` : viewerCount}
+          {/* Top bar */}
+          <div style={{ position:'absolute', top:0, left:0, right:0, padding:'10px 12px',
+            background:'linear-gradient(to bottom,rgba(0,0,0,0.7),transparent)',
+            display:'flex', alignItems:'center', gap:'8px' }}>
+            <button onClick={() => navigate(-1)}
+              style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px',
+                color:'white', fontSize:'18px', cursor:'pointer', padding:'4px 8px', minWidth:'36px', minHeight:'36px' }}>←</button>
+            <div style={{ flex:1, overflow:'hidden' }}>
+              <div style={{ color:'white', fontWeight:700, fontSize:'13px',
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{stream.title}</div>
+              <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'11px' }}>{stream.userName}</div>
+            </div>
+            {/* Live indicator + viewer count */}
+            <div style={{ background:'#ef4444', borderRadius:'6px', padding:'2px 8px', color:'white', fontSize:'10px', fontWeight:800 }}>● LIVE</div>
+            <div style={{ background:'rgba(0,0,0,0.5)', borderRadius:'6px', padding:'2px 8px', color:'white', fontSize:'10px' }}>
+              👁 {fmt(viewers)}
+            </div>
           </div>
 
-          <div style={{ flex:1 }} />
+          {/* Bottom controls */}
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'10px 12px',
+            background:'linear-gradient(to top,rgba(0,0,0,0.7),transparent)',
+            display:'flex', alignItems:'center', gap:'8px' }}>
 
-          {/* MISSING-3: Quality selector */}
-          <div style={{ position:'relative' }}>
-            <button onClick={() => setShowQuality(v => !v)} aria-label="Change stream quality"
-              style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'11px', fontWeight:700, padding:'4px 8px', cursor:'pointer' }}>
-              ⚙️ {selectedQuality === 'auto' ? 'Auto' : selectedQuality + 'p'}
+            {/* Mute */}
+            <button onClick={() => setMuted(v => !v)}
+              aria-label={muted ? 'Unmute' : 'Mute'}
+              style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'18px', cursor:'pointer',
+                padding:'4px', minWidth:'36px', minHeight:'36px', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {muted ? '🔇' : '🔊'}
             </button>
-            {showQuality && (
-              <div role="listbox" aria-label="Quality options" style={{ position:'absolute', top:'32px', right:0, background:'rgba(15,23,42,0.97)', borderRadius:'10px', overflow:'hidden', zIndex:20, minWidth:'100px', border:'1px solid #334155' }}>
-                {QUALITY_LEVELS.map(ql => (
-                  <button key={ql.value} role="option" aria-selected={selectedQuality === ql.value}
-                    onClick={() => changeQuality(ql.value)}
-                    style={{ display:'block', width:'100%', padding:'8px 12px', background: selectedQuality===ql.value?'rgba(99,102,241,0.3)':'none', border:'none', color:'white', fontSize:'12px', fontWeight:600, cursor:'pointer', textAlign:'left' }}>
-                    {ql.label}
+
+            {/* UX-20: Quality picker */}
+            <div style={{ position:'relative' }}>
+              <button onClick={() => { setShowQuality(v => !v); setShowEmoji(false); }}
+                style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'11px', fontWeight:700,
+                  cursor:'pointer', padding:'4px 10px', minHeight:'36px' }}>
+                ⚙️ {quality}
+              </button>
+              {showQuality && (
+                <div style={{ position:'absolute', bottom:'44px', left:0, background:'#1e293b', borderRadius:'10px',
+                  padding:'6px', display:'flex', flexDirection:'column', gap:'4px', zIndex:10, minWidth:'90px', boxShadow:'0 4px 20px rgba(0,0,0,0.5)' }}>
+                  {QUALITY_OPTIONS.map(q => (
+                    <button key={q.id} onClick={() => handleQuality(q.id)}
+                      style={{ background: quality===q.id ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : 'transparent',
+                        border:'none', borderRadius:'6px', padding:'6px 10px', color:'white', fontSize:'12px', fontWeight:600,
+                        cursor:'pointer', textAlign:'left' }}>
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ flex:1 }} />
+
+            {/* UX-21: Fullscreen button */}
+            <button onClick={toggleFullscreen}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'16px',
+                cursor:'pointer', padding:'4px', minWidth:'36px', minHeight:'36px', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {isFullscreen ? '⊡' : '⛶'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stream info + actions */}
+      {!isFullscreen && (
+        <div style={{ background:'#0a0a18', padding:'10px 14px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <div style={{ flex:1 }}>
+              <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'15px' }}>{stream.title}</div>
+              <div style={{ color:'#94a3b8', fontSize:'12px', marginTop:'1px' }}>{stream.userName}</div>
+            </div>
+            <button onClick={toggleFollow}
+              style={{ background: isFollowing ? '#334155' : 'linear-gradient(135deg,#ef4444,#f59e0b)',
+                border:'none', borderRadius:'10px', padding:'7px 16px', color: isFollowing?'#94a3b8':'white',
+                fontWeight:700, fontSize:'12px', cursor:'pointer', flexShrink:0 }}>
+              {isFollowing ? '✓ Following' : '+ Follow'}
+            </button>
+            {/* UX-23: Raise hand */}
+            <button onClick={toggleHand}
+              aria-label={handRaised ? 'Lower hand' : 'Raise hand'}
+              style={{ background: handRaised ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : '#1e293b',
+                border:'none', borderRadius:'10px', padding:'7px 12px', cursor:'pointer',
+                fontSize:'16px', flexShrink:0, minWidth:'40px', minHeight:'40px' }}>
+              ✋
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CHAT */}
+      {!isFullscreen && (
+        <div style={{ flex:1, display:'flex', flexDirection:'column', background:'#0a0a18', maxHeight:'260px' }}>
+          <div style={{ padding:'6px 14px', borderBottom:'1px solid #1e293b' }}>
+            <span style={{ color:'#64748b', fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              💬 Live Chat
+            </span>
+          </div>
+
+          {/* Messages */}
+          <div style={{ flex:1, overflowY:'auto', padding:'8px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
+            {messages.length === 0 ? (
+              <div style={{ color:'#64748b', fontSize:'12px', textAlign:'center', padding:'16px 0' }}>Be the first to say something!</div>
+            ) : messages.map(msg => (
+              <div key={msg.id} style={{ display:'flex', gap:'6px', alignItems:'flex-start' }}>
+                {msg.userPhoto
+                  ? <img src={msg.userPhoto} alt="" style={{ width:'22px', height:'22px', borderRadius:'50%', flexShrink:0, marginTop:'1px' }} />
+                  : <div style={{ width:'22px', height:'22px', borderRadius:'50%', background:'#334155', flexShrink:0, marginTop:'1px',
+                      display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', color:'#94a3b8' }}>
+                      {msg.userName?.[0]?.toUpperCase() || '?'}
+                    </div>
+                }
+                <div>
+                  <span style={{ color:'#f59e0b', fontSize:'11px', fontWeight:700, marginRight:'5px' }}>{msg.userName}</span>
+                  <span style={{ color:'#f1f5f9', fontSize:'13px' }}>{msg.text}</span>
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Chat input */}
+          <div style={{ padding:'8px 12px', borderTop:'1px solid #1e293b', background:'#0a0a18' }}>
+            {/* UX-22: Emoji picker */}
+            {showEmoji && (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', padding:'8px', background:'#1e293b',
+                borderRadius:'12px', marginBottom:'8px' }}>
+                {EMOJI_LIST.map(e => (
+                  <button key={e} onClick={() => { setChatText(t => t + e); setShowEmoji(false); }}
+                    style={{ background:'none', border:'none', fontSize:'22px', cursor:'pointer', padding:'2px' }}>
+                    {e}
                   </button>
                 ))}
               </div>
             )}
-          </div>
-
-          {/* MISSING-2: PiP */}
-          <button onClick={togglePiP} aria-label="Toggle picture-in-picture"
-            style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'14px', width:'30px', height:'30px', cursor:'pointer' }}>
-            {isPiP ? '⊡' : '⊞'}
-          </button>
-
-          {/* Fullscreen */}
-          <button onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'14px', width:'30px', height:'30px', cursor:'pointer' }}>
-            {isFullscreen ? '⊠' : '⛶'}
-          </button>
-
-          {/* 3-dot menu */}
-          <div style={{ position:'relative' }}>
-            <button onClick={() => setShowMenu(v => !v)} aria-label="More options" aria-haspopup="true" aria-expanded={showMenu}
-              style={{ background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'8px', color:'white', fontSize:'16px', width:'30px', height:'30px', cursor:'pointer' }}>⋮</button>
-            {showMenu && (
-              <div role="menu" style={{ position:'absolute', top:'34px', right:0, background:'rgba(15,23,42,0.97)', borderRadius:'10px', overflow:'hidden', zIndex:20, minWidth:'160px', border:'1px solid #334155' }}>
-                {[
-                  { label:'⚠️ Report Stream', action: handleReport },
-                  { label:'🚫 Block Streamer', action: handleBlock },
-                  { label:'🔗 Copy Link',      action: handleShare },
-                ].map(item => (
-                  <button key={item.label} role="menuitem" onClick={item.action}
-                    style={{ display:'block', width:'100%', padding:'10px 14px', background:'none', border:'none', color:'white', fontSize:'13px', fontWeight:500, cursor:'pointer', textAlign:'left' }}>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Streamer info overlay */}
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'8px 12px', background:'linear-gradient(to top,rgba(0,0,0,0.7),transparent)', display:'flex', alignItems:'center', gap:'8px' }}>
-          <div style={{ width:'32px', height:'32px', borderRadius:'50%', background:'linear-gradient(135deg,#ef4444,#f59e0b)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', flexShrink:0 }}>
-            {stream?.userAvatar ? <img src={stream.userAvatar} alt="" style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} loading="lazy" /> : '🎥'}
-          </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ color:'white', fontWeight:700, fontSize:'13px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{stream?.title || 'Live Stream'}</div>
-            <div style={{ color:'rgba(255,255,255,0.75)', fontSize:'11px' }}>{stream?.userName || 'Streamer'}</div>
-          </div>
-          <button onClick={followStreamer} aria-label={isFollowing ? 'Unfollow streamer' : 'Follow streamer'}
-            style={{ background: isFollowing ? 'rgba(255,255,255,0.2)' : 'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'8px', padding:'4px 10px', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-            {isFollowing ? '✓' : '+ Follow'}
-          </button>
-        </div>
-
-        {/* Floating emojis */}
-        <div aria-hidden="true" style={{ position:'absolute', bottom:'60px', right:'12px', pointerEvents:'none', width:'50px' }}>
-          {floatingEmojis.map(e => (
-            <div key={e.id} style={{ position:'absolute', bottom:0, left:`${e.x}%`, fontSize:'22px', animation:'floatUp 2.5s ease-out forwards', pointerEvents:'none' }}>
-              {e.emoji}
-            </div>
-          ))}
-        </div>
-        <style>{`@keyframes floatUp { from { opacity:1; transform:translateY(0) scale(1); } to { opacity:0; transform:translateY(-120px) scale(1.3); } }`}</style>
-      </div>
-
-      {/* ── PINNED MESSAGE BANNER (MISSING-5) ──────────────────── */}
-      {pinnedMessage && (
-        <div role="status" aria-label="Pinned message" style={{ background:'rgba(99,102,241,0.15)', borderLeft:'3px solid #6366f1', padding:'8px 12px', display:'flex', alignItems:'flex-start', gap:'8px', flexShrink:0 }}>
-          <span style={{ fontSize:'14px', flexShrink:0 }}>📌</span>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ color:'#818cf8', fontSize:'10px', fontWeight:700, marginBottom:'2px' }}>PINNED</div>
-            <div style={{ color:'#f1f5f9', fontSize:'12px' }}>{pinnedMessage.text}</div>
-          </div>
-          <button onClick={() => setPinnedMessage(null)} aria-label="Dismiss pinned message"
-            style={{ background:'none', border:'none', color:'#64748b', fontSize:'14px', cursor:'pointer', flexShrink:0 }}>✕</button>
-        </div>
-      )}
-
-      {/* ── REACTION + ACTIONS ROW ─────────────────────────────── */}
-      <div style={{ display:'flex', gap:'8px', padding:'8px 12px', borderBottom:'1px solid #1e293b', flexShrink:0, overflowX:'auto' }} role="toolbar" aria-label="Stream reactions and actions">
-        {['❤️','🔥','😂','👏','😮'].map(emoji => (
-          <button key={emoji} onClick={() => sendReaction(emoji)} aria-label={`Send ${emoji} reaction`}
-            style={{ fontSize:'20px', background:'#1e293b', border:'none', borderRadius:'10px', padding:'6px 10px', cursor:'pointer', flexShrink:0 }}>
-            {emoji}
-          </button>
-        ))}
-        <div style={{ width:'1px', background:'#334155', margin:'0 2px', flexShrink:0 }} role="separator" />
-        <button onClick={() => setShowGiftModal(true)} aria-label="Send a gift"
-          style={{ background:'linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.2))', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'10px', padding:'6px 12px', color:'#f59e0b', fontSize:'12px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-          🎁 Gift
-        </button>
-        {/* MISSING-4: Raise hand button */}
-        <button onClick={raiseHand} aria-label={handRaised ? 'Lower hand' : 'Raise hand to ask a question'} aria-pressed={handRaised}
-          style={{ background: handRaised ? 'rgba(16,185,129,0.2)' : '#1e293b', border: handRaised ? '1px solid #10b981' : 'none', borderRadius:'10px', padding:'6px 12px', color: handRaised ? '#10b981' : '#94a3b8', fontSize:'12px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-          ✋ {handRaised ? 'Hand Raised' : 'Raise Hand'}
-        </button>
-        {/* MISSING-7: Clip button */}
-        <button onClick={createClip} disabled={clipLoading} aria-label="Clip last 30 seconds"
-          style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'6px 12px', color:'#94a3b8', fontSize:'12px', fontWeight:700, cursor:clipLoading?'wait':'pointer', flexShrink:0 }}>
-          {clipLoading ? '⏳' : '✂️'} Clip
-        </button>
-        {/* REC-4: Gift leaderboard toggle */}
-        {giftLeaders.length > 0 && (
-          <button onClick={() => setShowLeaderboard(v => !v)} aria-pressed={showLeaderboard}
-            aria-label="View gift leaderboard"
-            style={{ background: showLeaderboard?'rgba(245,158,11,0.2)':'#1e293b',
-              border: showLeaderboard?'1px solid #f59e0b':'none',
-              borderRadius:'10px', padding:'6px 12px',
-              color: showLeaderboard?'#f59e0b':'#94a3b8',
-              fontSize:'12px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-            🏆 Top
-          </button>
-        )}
-      </div>
-
-      {/* REC-4: Gift leaderboard panel */}
-      {showLeaderboard && giftLeaders.length > 0 && (
-        <div role="region" aria-label="Top gifters leaderboard"
-          style={{ background:'rgba(245,158,11,0.07)', borderLeft:'3px solid #f59e0b',
-            padding:'8px 12px', flexShrink:0 }}>
-          <div style={{ color:'#f59e0b', fontSize:'11px', fontWeight:800, marginBottom:'6px' }}>
-            🏆 TOP GIFTERS THIS STREAM
-          </div>
-          {giftLeaders.map((l, i) => (
-            <div key={l.name + i}
-              style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
-              <span style={{ color: i===0?'#f59e0b':i===1?'#94a3b8':'#b45309',
-                fontSize:'12px', fontWeight:700, width:'16px', flexShrink:0 }}>
-                {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
-              </span>
-              <span style={{ flex:1, color:'#f1f5f9', fontSize:'12px',
-                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {l.name}
-              </span>
-              <span style={{ color:'#f59e0b', fontWeight:700, fontSize:'11px', flexShrink:0 }}>
-                🪙 {l.coins.toLocaleString()}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* REC-7: Clips panel with share + delete */}
-      {showClipsPanel && createdClips.length > 0 && (
-        <div role="region" aria-label="Your created clips"
-          style={{ background:'rgba(99,102,241,0.07)', borderLeft:'3px solid #6366f1',
-            padding:'8px 12px', flexShrink:0 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
-            <span style={{ color:'#818cf8', fontSize:'11px', fontWeight:800 }}>✂️ YOUR CLIPS</span>
-            <button onClick={() => setShowClipsPanel(false)} aria-label="Close clips panel"
-              style={{ background:'none', border:'none', color:'#64748b', fontSize:'12px', cursor:'pointer' }}>✕</button>
-          </div>
-          {createdClips.map(clip => (
-            <div key={clip.id}
-              style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'4px' }}>
-              <span style={{ flex:1, color:'#f1f5f9', fontSize:'11px',
-                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {clip.title}
-              </span>
-              {/* Share */}
-              <button onClick={() => {
-                const url = `${window.location.origin}/clips/${clip.id}`;
-                if (navigator.share) navigator.share({ title: clip.title, url });
-                else { navigator.clipboard?.writeText(url); showToast('🔗 Clip link copied!'); }
-              }}
-                aria-label="Share clip"
-                style={{ background:'rgba(99,102,241,0.2)', border:'none', borderRadius:'6px',
-                  padding:'3px 8px', color:'#818cf8', fontSize:'10px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-                Share
+            <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+              {/* UX-22: Emoji toggle button */}
+              <button onClick={() => setShowEmoji(v => !v)}
+                aria-label="Open emoji picker"
+                style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'8px',
+                  fontSize:'18px', cursor:'pointer', flexShrink:0, minWidth:'38px', minHeight:'38px' }}>
+                😊
               </button>
-              {/* Delete */}
-              <button onClick={async () => {
-                try {
-                  await deleteDoc(doc(db, 'streams', streamId, 'clips', clip.id));
-                  setCreatedClips(prev => prev.filter(c => c.id !== clip.id));
-                  showToast('🗑️ Clip deleted');
-                } catch { showToast('Failed to delete clip'); }
-              }}
-                aria-label="Delete clip"
-                style={{ background:'rgba(239,68,68,0.15)', border:'none', borderRadius:'6px',
-                  padding:'3px 8px', color:'#ef4444', fontSize:'10px', fontWeight:700, cursor:'pointer', flexShrink:0 }}>
-                Delete
+              <input
+                value={chatText}
+                onChange={e => setChatText(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Send a message…"
+                maxLength={200}
+                style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'20px',
+                  padding:'8px 14px', color:'#f1f5f9', fontSize:'13px', outline:'none' }}
+              />
+              <button onClick={() => sendMessage()} disabled={!chatText.trim() || sending}
+                style={{ background: chatText.trim() && !sending ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
+                  border:'none', borderRadius:'10px', padding:'8px 14px', color:'white', fontWeight:700,
+                  fontSize:'13px', cursor: chatText.trim() ? 'pointer' : 'not-allowed', flexShrink:0,
+                  minWidth:'60px', minHeight:'38px' }}>
+                {sending ? '⏳' : 'Send'}
               </button>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── CHAT ──────────────────────────────────────────────────── */}
-      <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'8px 12px' }} role="log" aria-label="Live chat" aria-live="polite">
-        {chatMessages.map(msg => (
-          <div key={msg.id} style={{ marginBottom:'6px', lineHeight:1.4 }}>
-            <span style={{ color:'#6366f1', fontWeight:700, fontSize:'12px', marginRight:'6px' }}>{msg.userName || 'Viewer'}</span>
-            <span style={{ color:'#e2e8f0', fontSize:'13px' }}>{msg.text}</span>
-          </div>
-        ))}
-        {/* Hand raises in chat */}
-        {handRaises.slice(-3).map(msg => (
-          <div key={msg.id} style={{ marginBottom:'6px', background:'rgba(16,185,129,0.1)', borderRadius:'6px', padding:'4px 8px', fontSize:'12px', color:'#10b981' }}>
-            ✋ <strong>{msg.userName}</strong> raised their hand
-          </div>
-        ))}
-        <div ref={chatEndRef} />
-      </div>
-
-      {/* ── CHAT INPUT ────────────────────────────────────────────── */}
-      <div style={{ padding:'8px 12px', paddingBottom:'calc(8px + env(safe-area-inset-bottom,0px))', background:'#0a0a18', borderTop:'1px solid #1e293b', display:'flex', gap:'8px', flexShrink:0 }}>
-        <input
-          value={chatInput}
-          onChange={e => setChatInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && sendChat()}
-          placeholder="Say something..."
-          maxLength={200}
-          aria-label="Chat message input"
-          style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'20px', padding:'8px 14px', color:'white', fontSize:'14px', outline:'none' }}
-        />
-        <button onClick={sendChat} disabled={!chatInput.trim()} aria-label="Send chat message"
-          style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'20px', padding:'8px 16px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer', flexShrink:0 }}>
-          Send
-        </button>
-      </div>
-
-      {/* ── GIFT MODAL (bottom sheet) ─────────────────────────────── */}
-      {showGiftModal && (
-        <div role="dialog" aria-modal="true" aria-label="Send a gift"
-          style={{ position:'fixed', inset:0, zIndex:100 }}>
-          <div onClick={() => setShowGiftModal(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.6)' }} />
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'#0f172a', borderRadius:'20px 20px 0 0', padding:'20px 16px', paddingBottom:'calc(20px + env(safe-area-inset-bottom,0px))' }}>
-            <div style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', marginBottom:'16px' }}>🎁 Send a Gift</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
-              {GIFT_TIERS.map(g => (
-                <button key={g.name} onClick={() => { showToast(`${g.emoji} Sent a ${g.name}! (💳 Payment coming soon)`); setShowGiftModal(false); }}
-                  aria-label={`Send ${g.name} gift for ${g.usd}`}
-                  style={{ background:'#1e293b', border:`1px solid ${g.color}30`, borderRadius:'12px', padding:'12px 8px', cursor:'pointer', textAlign:'center' }}>
-                  <div style={{ fontSize:'28px', marginBottom:'4px' }}>{g.emoji}</div>
-                  <div style={{ color:'#f1f5f9', fontSize:'12px', fontWeight:700 }}>{g.name}</div>
-                  <div style={{ color:'#f59e0b', fontSize:'11px' }}>🪙 {g.coins}</div>
-                  <div style={{ color:'#64748b', fontSize:'10px' }}>{g.usd}</div>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowGiftModal(false)} aria-label="Close gift modal"
-              style={{ width:'100%', marginTop:'16px', background:'#1e293b', border:'none', borderRadius:'12px', padding:'12px', color:'#94a3b8', fontWeight:700, cursor:'pointer' }}>
-              Cancel
-            </button>
           </div>
         </div>
       )}

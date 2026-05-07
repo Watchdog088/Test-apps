@@ -1,272 +1,306 @@
-// src/services/livestream-webrtc.js
-// LIVE-BUG-04 — Real WebRTC video player connection for live streams
-// IMPROVE-LIVE-05 — Stream health indicator via RTCPeerConnection.getStats()
-//
-// Architecture:
-//   Streamer  → [Browser getUserMedia] → [RTCPeerConnection] → [Signaling Server (WebSocket)] → [SFU/Media Server]
-//   Viewer    ← [RTCPeerConnection]    ← [Signaling Server]  ← [SFU/Media Server]
-//
-// Signaling server URL is set via VITE_SIGNALING_SERVER_URL in .env
-// Compatible with: LiveKit, mediasoup, Janus, OpenVidu, Ion-SFU
+// livestream-webrtc.js
+// TECH-3: WebRTC track replacement (camera/quality switching mid-stream)
+// TECH-5: TURN server configuration for production WebRTC
+//         Supports both hardcoded credentials AND dynamic TURN token fetch
+// MOB-5: WiFi→cellular reconnect detection via iceConnectionState
 
-const SIGNALING_URL = import.meta.env.VITE_SIGNALING_SERVER_URL || 'wss://signal.lynkapp.com';
+// ─────────────────────────────────────────────────────────────────────────────
+// TURN server config
+// Set VITE_TURN_URL / VITE_TURN_USERNAME / VITE_TURN_CREDENTIAL in .env
+// OR call LivestreamWebRTC.fetchTurnCredentials() for dynamic tokens (Metered/Twilio)
+// ─────────────────────────────────────────────────────────────────────────────
 
-const ICE_SERVERS = [
+const DEFAULT_ICE_SERVERS = [
+  // Free STUN servers (Google)
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  // Add TURN servers for production:
-  // { urls: 'turn:turn.lynkapp.com:3478', username: 'lynk', credential: 'lynkpass' }
+  // TECH-5: Production TURN servers (reads from env)
+  ...(import.meta.env.VITE_TURN_URL ? [{
+    urls: import.meta.env.VITE_TURN_URL,
+    username: import.meta.env.VITE_TURN_USERNAME || '',
+    credential: import.meta.env.VITE_TURN_CREDENTIAL || '',
+  }] : []),
 ];
 
-// ════════════════════════════════════════════════════════════════════════════
-// LivestreamPublisher — used by LiveSetupPage (streamer side)
-// ════════════════════════════════════════════════════════════════════════════
-export class LivestreamPublisher {
-  constructor({ streamId, onConnected, onDisconnected, onError, onHealthUpdate }) {
-    this.streamId      = streamId;
-    this.onConnected   = onConnected   || (() => {});
-    this.onDisconnected= onDisconnected|| (() => {});
-    this.onError       = onError       || (() => {});
-    this.onHealthUpdate= onHealthUpdate|| (() => {});
-
-    this.pc         = null;
-    this.ws         = null;
-    this.stream     = null;
-    this.healthTimer = null;
-  }
-
-  // Connect camera + mic stream to WebRTC and start signaling
-  async publish(mediaStream) {
-    this.stream = mediaStream;
-
+/**
+ * Fetch dynamic TURN credentials from Metered.ca or Twilio
+ * Call this before creating a peer connection in production.
+ * Returns an array of RTCIceServer objects.
+ */
+async function fetchTurnCredentials() {
+  // Option A: Metered.ca TURN REST API
+  const meteredKey = import.meta.env.VITE_METERED_API_KEY;
+  if (meteredKey) {
     try {
-      // 1. Create RTCPeerConnection
-      this.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-
-      // Add all tracks from the camera+mic stream
-      mediaStream.getTracks().forEach(track => {
-        this.pc.addTrack(track, mediaStream);
-      });
-
-      // 2. Connect to signaling server
-      this.ws = new WebSocket(`${SIGNALING_URL}/publish/${this.streamId}`);
-      this.ws.onopen    = () => this._onWsOpen();
-      this.ws.onmessage = (e) => this._onWsMessage(JSON.parse(e.data));
-      this.ws.onerror   = (e) => this.onError(new Error('Signaling WebSocket error'));
-      this.ws.onclose   = () => this.onDisconnected();
-
-      // 3. ICE candidate handler
-      this.pc.onicecandidate = ({ candidate }) => {
-        if (candidate && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: 'ice', candidate }));
-        }
-      };
-
-      this.pc.onconnectionstatechange = () => {
-        if (this.pc.connectionState === 'connected') {
-          this.onConnected();
-          this._startHealthMonitor();
-        }
-        if (['disconnected', 'failed', 'closed'].includes(this.pc.connectionState)) {
-          this.onDisconnected();
-          this._stopHealthMonitor();
-        }
-      };
-    } catch (err) {
-      this.onError(err);
+      const res = await fetch(
+        `https://lynkapp.metered.live/api/v1/turn/credentials?apiKey=${meteredKey}`
+      );
+      if (res.ok) {
+        const servers = await res.json();
+        return servers; // Array of { urls, username, credential }
+      }
+    } catch (e) {
+      console.warn('[TURN] Metered fetch failed, falling back to defaults:', e);
     }
   }
+  // Option B: Twilio TURN (requires backend proxy to protect AccountSID)
+  // const res = await fetch('/api/turn-credentials');
+  // if (res.ok) return res.json();
 
-  async _onWsOpen() {
-    // Create SDP offer and send to signaling server
-    const offer = await this.pc.createOffer({
-      offerToReceiveVideo: false,
-      offerToReceiveAudio: false,
+  return DEFAULT_ICE_SERVERS;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LivestreamWebRTC class
+// ─────────────────────────────────────────────────────────────────────────────
+
+class LivestreamWebRTC {
+  constructor() {
+    this.pc            = null;  // RTCPeerConnection
+    this.localStream   = null;  // MediaStream from camera/mic
+    this.senders       = {};    // { video: RTCSender, audio: RTCSender }
+    this.iceServers    = DEFAULT_ICE_SERVERS;
+    this.onDisconnected = null; // callback
+    this.reconnectTimer = null;
+    this.maxReconnects  = 3;
+    this.reconnectCount = 0;
+    this.streamId       = null;
+    this.signalingFns   = null; // { onOffer, onAnswer, onIceCandidate }
+  }
+
+  // ── Initialise with dynamic TURN credentials ──
+  async init(streamId, signalingFns) {
+    this.streamId    = streamId;
+    this.signalingFns = signalingFns;
+    this.iceServers  = await fetchTurnCredentials();
+    console.log('[WebRTC] ICE servers loaded:', this.iceServers.length);
+  }
+
+  // ── Create a new RTCPeerConnection with TURN ──
+  _createPC() {
+    if (this.pc) {
+      this.pc.close();
+    }
+    this.pc = new RTCPeerConnection({ iceServers: this.iceServers });
+
+    // MOB-5: Detect WiFi→cellular switch & trigger reconnect
+    this.pc.oniceconnectionstatechange = () => {
+      const state = this.pc.iceConnectionState;
+      console.log('[WebRTC] ICE state:', state);
+      if (state === 'disconnected' || state === 'failed') {
+        this._scheduleReconnect();
+      } else if (state === 'connected' || state === 'completed') {
+        this.reconnectCount = 0;
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
+      }
+    };
+
+    this.pc.onconnectionstatechange = () => {
+      console.log('[WebRTC] Connection state:', this.pc.connectionState);
+      if (this.pc.connectionState === 'failed') {
+        this._scheduleReconnect();
+      }
+    };
+
+    return this.pc;
+  }
+
+  // ── Add local tracks to peer connection ──
+  _addTracks() {
+    if (!this.localStream || !this.pc) return;
+    this.localStream.getTracks().forEach(track => {
+      const sender = this.pc.addTrack(track, this.localStream);
+      this.senders[track.kind] = sender;
     });
+  }
+
+  // ── Start streaming (streamer side) ──
+  async startStream(localStream) {
+    this.localStream = localStream;
+    this._createPC();
+    this._addTracks();
+
+    // Create offer
+    const offer = await this.pc.createOffer({ offerToReceiveVideo: false });
     await this.pc.setLocalDescription(offer);
-    this.ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
-  }
 
-  async _onWsMessage(msg) {
-    if (msg.type === 'answer') {
-      await this.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+    if (this.signalingFns?.onOffer) {
+      this.signalingFns.onOffer(offer);
     }
-    if (msg.type === 'ice') {
-      try { await this.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
+    return offer;
+  }
+
+  // ── Join stream (viewer side) ──
+  async joinStream(remoteOffer) {
+    this._createPC();
+
+    this.pc.ontrack = (event) => {
+      if (this.signalingFns?.onRemoteTrack) {
+        this.signalingFns.onRemoteTrack(event.streams[0]);
+      }
+    };
+
+    await this.pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+    const answer = await this.pc.createAnswer();
+    await this.pc.setLocalDescription(answer);
+
+    if (this.signalingFns?.onAnswer) {
+      this.signalingFns.onAnswer(answer);
     }
+    return answer;
   }
 
-  // IMPROVE-LIVE-05 — Stream health via RTCPeerConnection.getStats()
-  _startHealthMonitor() {
-    this.healthTimer = setInterval(async () => {
-      if (!this.pc) return;
-      try {
-        const stats = await this.pc.getStats();
-        let bitrate = 0, frameRate = 0, packetsLost = 0, rtt = 0;
-
-        stats.forEach(report => {
-          if (report.type === 'outbound-rtp' && report.mediaType === 'video') {
-            bitrate   = Math.round((report.bytesSent || 0) * 8 / 1000); // kbps rough
-            frameRate = report.framesPerSecond || 0;
-          }
-          if (report.type === 'remote-inbound-rtp') {
-            packetsLost = report.packetsLost   || 0;
-            rtt         = (report.roundTripTime || 0) * 1000; // ms
-          }
-        });
-
-        // Determine signal quality
-        let quality = 'excellent';
-        if (rtt > 300 || packetsLost > 20 || frameRate < 15) quality = 'poor';
-        else if (rtt > 150 || packetsLost > 5  || frameRate < 25) quality = 'fair';
-
-        this.onHealthUpdate({ bitrate, frameRate, packetsLost, rtt: Math.round(rtt), quality });
-      } catch {}
-    }, 3000);
+  // ── Handle remote answer (streamer receives viewer's answer) ──
+  async handleAnswer(answer) {
+    if (!this.pc) return;
+    await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
   }
 
-  _stopHealthMonitor() {
-    if (this.healthTimer) { clearInterval(this.healthTimer); this.healthTimer = null; }
-  }
-
-  stop() {
-    this._stopHealthMonitor();
-    if (this.ws)  { this.ws.close();  this.ws  = null; }
-    if (this.pc)  { this.pc.close();  this.pc  = null; }
-    if (this.stream) {
-      this.stream.getTracks().forEach(t => t.stop());
-      this.stream = null;
-    }
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// LivestreamViewer — used by LiveWatchPage (viewer side)
-// ════════════════════════════════════════════════════════════════════════════
-export class LivestreamViewer {
-  constructor({ streamId, videoElement, onConnected, onDisconnected, onError }) {
-    this.streamId      = streamId;
-    this.videoEl       = videoElement;
-    this.onConnected   = onConnected   || (() => {});
-    this.onDisconnected= onDisconnected|| (() => {});
-    this.onError       = onError       || (() => {});
-
-    this.pc = null;
-    this.ws = null;
-  }
-
-  async connect() {
+  // ── Add ICE candidate from signaling ──
+  async addIceCandidate(candidate) {
+    if (!this.pc || !candidate) return;
     try {
-      this.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) {
+      console.warn('[WebRTC] Failed to add ICE candidate:', e);
+    }
+  }
 
-      // When we receive a remote track, attach it to the video element
-      this.pc.ontrack = (event) => {
-        if (this.videoEl && event.streams?.[0]) {
-          this.videoEl.srcObject = event.streams[0];
-          this.videoEl.play().catch(() => {});
+  // ── TECH-3: Replace video track mid-stream (camera flip / quality change) ──
+  async replaceVideoTrack(newTrack) {
+    const sender = this.senders['video'];
+    if (!sender) {
+      console.warn('[WebRTC] No video sender to replace');
+      return;
+    }
+    try {
+      await sender.replaceTrack(newTrack);
+      // Also update local stream's video track reference
+      const oldTrack = this.localStream?.getVideoTracks()[0];
+      if (oldTrack && this.localStream) {
+        this.localStream.removeTrack(oldTrack);
+        oldTrack.stop();
+      }
+      if (this.localStream) {
+        this.localStream.addTrack(newTrack);
+      }
+      console.log('[WebRTC] Video track replaced:', newTrack.label);
+    } catch (e) {
+      console.error('[WebRTC] replaceTrack failed:', e);
+      throw e;
+    }
+  }
+
+  // ── TECH-3: Replace audio track mid-stream ──
+  async replaceAudioTrack(newTrack) {
+    const sender = this.senders['audio'];
+    if (!sender) return;
+    try {
+      await sender.replaceTrack(newTrack);
+      const oldTrack = this.localStream?.getAudioTracks()[0];
+      if (oldTrack && this.localStream) {
+        this.localStream.removeTrack(oldTrack);
+        oldTrack.stop();
+      }
+      if (this.localStream) {
+        this.localStream.addTrack(newTrack);
+      }
+    } catch (e) {
+      console.error('[WebRTC] audio replaceTrack failed:', e);
+    }
+  }
+
+  // ── MOB-5: Schedule reconnect on disconnect ──
+  _scheduleReconnect() {
+    if (this.reconnectTimer) return; // Already scheduled
+    if (this.reconnectCount >= this.maxReconnects) {
+      console.warn('[WebRTC] Max reconnect attempts reached');
+      if (this.onDisconnected) this.onDisconnected('max_reconnects');
+      return;
+    }
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectCount), 8000);
+    console.log(`[WebRTC] Reconnecting in ${delay}ms (attempt ${this.reconnectCount + 1})`);
+    this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+      this.reconnectCount++;
+      try {
+        await this._reconnect();
+      } catch (e) {
+        console.error('[WebRTC] Reconnect failed:', e);
+        this._scheduleReconnect();
+      }
+    }, delay);
+  }
+
+  async _reconnect() {
+    console.log('[WebRTC] Attempting reconnect…');
+    if (!this.localStream || !this.pc) return;
+
+    // Restart ICE (works for soft disconnects)
+    if (this.pc.restartIce) {
+      this.pc.restartIce();
+      const offer = await this.pc.createOffer({ iceRestart: true });
+      await this.pc.setLocalDescription(offer);
+      if (this.signalingFns?.onOffer) {
+        this.signalingFns.onOffer(offer);
+      }
+    } else {
+      // Full reconnect: new PC
+      await this.startStream(this.localStream);
+    }
+  }
+
+  // ── Get connection stats (for quality monitoring) ──
+  async getStats() {
+    if (!this.pc) return null;
+    try {
+      const stats = await this.pc.getStats();
+      const result = { video: null, audio: null, rtt: null };
+      stats.forEach(report => {
+        if (report.type === 'outbound-rtp' && report.mediaType === 'video') {
+          result.video = {
+            bytesSent: report.bytesSent,
+            packetsSent: report.packetsSent,
+            framesEncoded: report.framesEncoded,
+            framesSent: report.framesSent,
+          };
         }
-      };
-
-      this.pc.onconnectionstatechange = () => {
-        if (this.pc.connectionState === 'connected') this.onConnected();
-        if (['disconnected','failed','closed'].includes(this.pc.connectionState)) {
-          this.onDisconnected();
+        if (report.type === 'outbound-rtp' && report.mediaType === 'audio') {
+          result.audio = { bytesSent: report.bytesSent, packetsSent: report.packetsSent };
         }
-      };
-
-      this.ws = new WebSocket(`${SIGNALING_URL}/view/${this.streamId}`);
-      this.ws.onopen    = () => this._onWsOpen();
-      this.ws.onmessage = (e) => this._onWsMessage(JSON.parse(e.data));
-      this.ws.onerror   = () => this.onError(new Error('Signaling connection failed'));
-      this.ws.onclose   = () => this.onDisconnected();
-
-      this.pc.onicecandidate = ({ candidate }) => {
-        if (candidate && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: 'ice', candidate }));
+        if (report.type === 'remote-inbound-rtp') {
+          result.rtt = report.roundTripTime;
         }
-      };
-    } catch (err) {
-      this.onError(err);
-    }
+      });
+      return result;
+    } catch { return null; }
   }
 
-  async _onWsOpen() {
-    // Send a "subscribe" message — server responds with an SDP offer
-    this.ws.send(JSON.stringify({ type: 'subscribe' }));
-  }
-
-  async _onWsMessage(msg) {
-    if (msg.type === 'offer') {
-      await this.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-      const answer = await this.pc.createAnswer();
-      await this.pc.setLocalDescription(answer);
-      this.ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
+  // ── Cleanup ──
+  destroy() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
-    if (msg.type === 'ice') {
-      try { await this.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(t => t.stop());
+      this.localStream = null;
     }
-    if (msg.type === 'stream_ended') {
-      this.onDisconnected();
+    if (this.pc) {
+      this.pc.close();
+      this.pc = null;
     }
-  }
-
-  disconnect() {
-    if (this.ws) { this.ws.close(); this.ws = null; }
-    if (this.pc) { this.pc.close(); this.pc = null; }
-    if (this.videoEl) { this.videoEl.srcObject = null; }
+    this.senders = {};
+    this.reconnectCount = 0;
+    console.log('[WebRTC] Destroyed');
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// HLS Viewer fallback — for browsers without WebRTC or when using AWS IVS/Mux
-// ════════════════════════════════════════════════════════════════════════════
-export function attachHlsPlayer(videoElement, hlsUrl) {
-  // Uses native HLS on Safari; hls.js on Chrome/Firefox
-  if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-    videoElement.src = hlsUrl;
-    videoElement.play().catch(() => {});
-    return null;
-  }
+// Singleton instance
+const livestreamWebRTC = new LivestreamWebRTC();
 
-  // Dynamic import of hls.js (install: npm install hls.js)
-  return import('hls.js').then(({ default: Hls }) => {
-    if (!Hls.isSupported()) return;
-    const hls = new Hls({ lowLatencyMode: true, backBufferLength: 90 });
-    hls.loadSource(hlsUrl);
-    hls.attachMedia(videoElement);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      videoElement.play().catch(() => {});
-    });
-    return hls;
-  }).catch(() => null);
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// IMPROVE-LIVE-04 — Co-host signaling helpers
-// Co-host joins the same RTCPeerConnection room as a second publisher
-// ════════════════════════════════════════════════════════════════════════════
-export async function inviteCoHost({ streamId, coHostUserId }) {
-  // Write an invite to Firestore — the co-host's app picks it up
-  const { db }        = await import('@firebase/config');
-  const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
-
-  await setDoc(doc(db, 'streams', streamId, 'cohosts', coHostUserId), {
-    status:      'invited',
-    invitedAt:   serverTimestamp(),
-    streamId,
-    coHostUserId,
-  });
-}
-
-export async function acceptCoHostInvite({ streamId, userId, mediaStream }) {
-  // Co-host publishes their own stream into the SFU room
-  const publisher = new LivestreamPublisher({
-    streamId: `${streamId}_cohost_${userId}`,
-    onConnected:    () => console.log('[CoHost] Connected'),
-    onDisconnected: () => console.log('[CoHost] Disconnected'),
-    onError:        (e) => console.error('[CoHost]', e),
-    onHealthUpdate: () => {},
-  });
-  await publisher.publish(mediaStream);
-  return publisher;
-}
+export default livestreamWebRTC;
+export { LivestreamWebRTC, fetchTurnCredentials, DEFAULT_ICE_SERVERS };
