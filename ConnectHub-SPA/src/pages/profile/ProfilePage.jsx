@@ -1,4 +1,5 @@
 // src/pages/profile/ProfilePage.jsx
+// REC-7: Clips tab — reads clips/{uid}/items, shows duration + thumbnail grid
 // BUG-05 FIX: useParams() reads :uid; isOwn computed correctly
 // UX-11 FIX: Follower counts default to 0, formatted with formatCount()
 // POLISH-03 FIX: Edit Profile navigates to /settings
@@ -8,7 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@fb/config';
 import { useAuth } from '@hooks/useAuth';
 import { ProfileSkeleton, TabSkeleton } from '@components/common/SkeletonLoader';
@@ -32,7 +33,8 @@ const DEMO_GRID = [
   { id:'g9', emoji:'🌍', color:'linear-gradient(135deg,#a1c4fd,#c2e9fb)' },
 ];
 
-const TABS = ['Posts', 'Reels', 'Tagged', 'Liked'];
+// REC-7: Added Clips tab
+const TABS = ['Posts', 'Reels', 'Tagged', 'Liked', 'Clips'];
 
 export default function ProfilePage() {
   const { uid: paramUid } = useParams();        // BUG-05: read URL param
@@ -43,10 +45,13 @@ export default function ProfilePage() {
   const isOwn = !paramUid || paramUid === user?.uid;
   const targetUid = paramUid || user?.uid;
 
-  const [profile, setProfile]   = useState(null);
-  const [loading, setLoading]   = useState(true);
+  const [profile,   setProfile]   = useState(null);
+  const [loading,   setLoading]   = useState(true);
   const [activeTab, setActiveTab] = useState('Posts');
-  const [tabLoading, setTabLoading] = useState(false); // POLISH-09
+  const [tabLoading,setTabLoading]= useState(false);
+  // REC-7: clips state
+  const [clips,     setClips]     = useState([]);
+  const [clipsLoaded, setClipsLoaded] = useState(false);
 
   useEffect(() => {
     if (!targetUid) { setLoading(false); return; }
@@ -61,6 +66,20 @@ export default function ProfilePage() {
       setLoading(false);
     })();
   }, [targetUid]);
+
+  // REC-7: lazy-load clips when tab is first opened
+  useEffect(() => {
+    if (activeTab !== 'Clips' || clipsLoaded || !targetUid) return;
+    (async () => {
+      try {
+        const snap = await getDocs(
+          query(collection(db, 'clips'), where('userId', '==', targetUid), orderBy('createdAt', 'desc'))
+        );
+        setClips(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch { setClips([]); }
+      setClipsLoaded(true);
+    })();
+  }, [activeTab, clipsLoaded, targetUid]);
 
   // POLISH-09: brief skeleton on tab switch
   function handleTabChange(tab) {
@@ -177,13 +196,65 @@ export default function ProfilePage() {
           <div style={{ color:'#64748b', fontWeight:600 }}>No tagged posts</div>
           <div style={{ fontSize:13, color:'#475569', marginTop:6 }}>Posts you're tagged in will appear here</div>
         </div>
-      ) : (
+      ) : activeTab === 'Liked' ? (
         <div style={{ textAlign:'center', padding:'48px 24px', color:'#475569' }}>
           <div style={{ fontSize:48, marginBottom:12 }}>❤️</div>
           <div style={{ color:'#64748b', fontWeight:600 }}>No liked posts</div>
           <div style={{ fontSize:13, color:'#475569', marginTop:6 }}>Start engaging with posts to see them here</div>
         </div>
-      )}
+
+      ) : activeTab === 'Clips' ? (
+        /* REC-7: Clips gallery — shows stream clips from Firestore */
+        clips.length === 0 && clipsLoaded ? (
+          <div style={{ textAlign:'center', padding:'48px 24px' }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>✂️</div>
+            <div style={{ color:'#64748b', fontWeight:600 }}>No clips yet</div>
+            <div style={{ fontSize:13, color:'#475569', marginTop:6 }}>Clips are saved highlights from your live streams</div>
+            {isOwn && (
+              <button onClick={() => navigate('/live/setup')}
+                style={{ marginTop:16, background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none',
+                  borderRadius:12, padding:'10px 20px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
+                🔴 Start a Live Stream
+              </button>
+            )}
+          </div>
+        ) : !clipsLoaded ? (
+          <TabSkeleton rows={3} />
+        ) : (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:2, padding:'2px' }}>
+            {clips.map(clip => (
+              <div key={clip.id}
+                onClick={() => navigate(`/live/watch/${clip.streamId}?t=${clip.startTime}`)}
+                style={{ position:'relative', aspectRatio:'16/9', background:'#1e293b',
+                  overflow:'hidden', cursor:'pointer' }}>
+                {clip.thumbnailUrl
+                  ? <img src={clip.thumbnailUrl} alt={clip.title} loading="lazy"
+                      style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  : <div style={{ width:'100%', height:'100%', display:'flex',
+                      alignItems:'center', justifyContent:'center',
+                      background:'linear-gradient(135deg,#1e293b,#334155)', fontSize:'28px' }}>✂️</div>
+                }
+                {/* Duration badge */}
+                {clip.durationSeconds && (
+                  <div style={{ position:'absolute', bottom:'4px', right:'4px',
+                    background:'rgba(0,0,0,0.8)', borderRadius:'4px', padding:'1px 5px',
+                    color:'white', fontSize:'10px', fontWeight:600 }}>
+                    {Math.floor(clip.durationSeconds / 60)}:{String(clip.durationSeconds % 60).padStart(2,'0')}
+                  </div>
+                )}
+                {/* View count */}
+                {clip.viewCount > 0 && (
+                  <div style={{ position:'absolute', bottom:'4px', left:'4px',
+                    background:'rgba(0,0,0,0.7)', borderRadius:'4px', padding:'1px 5px',
+                    color:'#94a3b8', fontSize:'9px' }}>
+                    👁 {clip.viewCount >= 1000 ? `${(clip.viewCount/1000).toFixed(1)}K` : clip.viewCount}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      ) : null}
     </div>
   );
 }
