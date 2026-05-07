@@ -21,12 +21,16 @@ const StoriesPage       = lazy(() => import('./pages/stories/StoriesPage'));
 const LivePage          = lazy(() => import('./pages/live/LivePage'));
 
 // Live sub-pages (LIVE-BUG-01 through LIVE-BUG-10 fixes)
-const LiveSetupPage       = lazy(() => import('./pages/live/LiveSetupPage'));
-const LiveWatchPage       = lazy(() => import('./pages/live/LiveWatchPage'));
-const LiveMonetizationPage = lazy(() => import('./pages/live/LiveMonetizationPage'));
-const LiveModerationPage  = lazy(() => import('./pages/live/LiveModerationPage'));
-const LiveSchedulePage    = lazy(() => import('./pages/live/LiveSchedulePage'));
-const LiveAnalyticsPage   = lazy(() => import('./pages/live/LiveAnalyticsPage'));
+const LiveSetupPage          = lazy(() => import('./pages/live/LiveSetupPage'));
+const LiveWatchPage          = lazy(() => import('./pages/live/LiveWatchPage'));
+const LiveMonetizationPage   = lazy(() => import('./pages/live/LiveMonetizationPage'));
+const LiveModerationPage     = lazy(() => import('./pages/live/LiveModerationPage'));
+const LiveSchedulePage       = lazy(() => import('./pages/live/LiveSchedulePage'));
+const LiveAnalyticsPage      = lazy(() => import('./pages/live/LiveAnalyticsPage'));
+// BUG-04 FIX: New page — bell icon on /live now has a destination
+const LiveNotificationsPage  = lazy(() => import('./pages/live/LiveNotificationsPage'));
+// BUG-05 FIX: New page — clip cards on /live now have a destination
+const ClipViewerPage         = lazy(() => import('./pages/live/ClipViewerPage'));
 const GroupsPage        = lazy(() => import('./pages/groups/GroupsPage'));
 const MessagesPage      = lazy(() => import('./pages/messages/MessagesPage'));
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'));
@@ -120,6 +124,10 @@ export default function App() {
             <Route path="live/moderation"   element={<LiveModerationPage />} />
             <Route path="live/schedule"     element={<LiveSchedulePage />} />
             <Route path="live/analytics"    element={<LiveAnalyticsPage />} />
+            {/* BUG-04 FIX: /live/notifications — bell icon destination */}
+            <Route path="live/notifications" element={<LiveNotificationsPage />} />
+            {/* BUG-05 FIX: /clips/:clipId — trending clips destination */}
+            <Route path="clips/:clipId"      element={<ClipViewerPage />} />
             {/* POLISH-18 FIX: /trending redirects to feed with filter param — no duplicate page */}
             <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
             <Route path="groups"        element={<GroupsPage />} />
