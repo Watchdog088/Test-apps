@@ -1,204 +1,172 @@
 // src/components/layout/TopNav.jsx
-// Avatar click → dropdown: Profile | Notifications | Settings | Help | Sign Out
+// POLISH-14 FIX: Brand name is "LynkApp" on Feed page
+// POLISH-19 FIX: LynkApp logo shown in top-left on Feed; page title elsewhere
+// POLISH-17 FIX: Search icon active state (accent color when on /search)
+// UX-14 FIX: Removed duplicate ☰ button from TopNav — it stays in SideNav only
+// POLISH-11 FIX: Avatar touch target 44×44px
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '@fb/config';
+import { useAuth } from '@hooks/useAuth';
 import useAppStore from '@store/useAppStore';
 
-const TITLES = {
-  '/feed':'ConnectHub','/stories':'Stories','/live':'Live','/trending':'Trending',
-  '/groups':'Groups','/messages':'Messages','/notifications':'Notifications',
-  '/profile':'Profile','/friends':'Friends','/dating':'Dating',
-  '/events':'Events','/gaming':'Gaming','/marketplace':'Marketplace',
-  '/media':'Media Hub','/music':'Music','/videocalls':'Video Calls',
-  '/livestream':'Live Stream','/arvr':'AR / VR','/saved':'Saved',
-  '/search':'Search','/settings':'Settings','/business':'Business Tools',
-  '/creator':'Creator','/help':'Help & Support','/menu':'Menu','/premium':'Premium',
-};
+// POLISH-19: LynkApp logo SVG component
+function LynkLogo() {
+  return (
+    <span style={{
+      fontSize:'22px', fontWeight:900, letterSpacing:'-0.5px',
+      background:'linear-gradient(135deg,#6366f1,#ec4899)',
+      WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
+      display:'flex', alignItems:'center', gap:6, userSelect:'none',
+    }}>
+      ⚡ LynkApp
+    </span>
+  );
+}
 
-// Fix #5 (minor): Touch targets ≥ 44×44px per Apple HIG (Rec #33)
-const iconBtn = {
-  display:'flex', alignItems:'center', justifyContent:'center',
-  padding:'6px', borderRadius:'10px',
-  minWidth:'44px', minHeight:'44px',
-  background:'rgba(255,255,255,0.06)', border:'1px solid transparent',
-  cursor:'pointer', lineHeight:1, fontSize:'19px',
-  transition:'background 0.18s, transform 0.15s', flexShrink:0,
+const PAGE_TITLES = {
+  '/feed':          null,          // uses logo instead
+  '/stories':       '📖 Stories',
+  '/live':          '🔴 Live',
+  '/groups':        '👥 Groups',
+  '/messages':      '💬 Messages',
+  '/notifications': '🔔 Notifications',
+  '/profile':       '👤 Profile',
+  '/friends':       '👫 Friends',
+  '/dating':        '💕 Dating',
+  '/events':        '📅 Events',
+  '/gaming':        '🎮 Gaming',
+  '/marketplace':   '🛍 Marketplace',
+  '/media':         '🎬 Media Hub',
+  '/music':         '🎵 Music',
+  '/videocalls':    '📹 Video Calls',
+  '/arvr':          '🥽 AR/VR',
+  '/saved':         '🔖 Saved',
+  '/search':        '🔍 Search',
+  '/settings':      '⚙️ Settings',
+  '/business':      '💼 Business',
+  '/creator':       '🎨 Creator Studio',
+  '/help':          '❓ Help & Support',
+  '/menu':          '☰ Menu',
+  '/premium':       '⭐ Premium',
+  '/trending':      '🔥 Trending',
 };
-
-const DROPDOWN_ITEMS = [
-  { icon:'👤', label:'My Profile',    path:'/profile'       },
-  { icon:'🔔', label:'Notifications', path:'/notifications' },
-  { icon:'⭐', label:'Premium',       path:'/premium'       },
-  { icon:'⚙️', label:'Settings',      path:'/settings'      },
-  { icon:'❓', label:'Help & Support',path:'/help'          },
-  { icon:'🚪', label:'Sign Out',      path:null, signOut:true },
-];
 
 export default function TopNav() {
-  const { pathname }            = useLocation();
-  const navigate                = useNavigate();
-  const unreadNotifications     = useAppStore((s) => s.unreadNotifications);
-  const user                    = useAppStore((s) => s.user);
-  const setUser                 = useAppStore((s) => s.setUser);
-  // Fix #1: ☰ opens drawer; Fix #5: camera button for AR/VR (Rec #17)
-  const setMoreDrawerOpen       = useAppStore((s) => s.setMoreDrawerOpen);
-  const [dropOpen, setDropOpen] = useState(false);
-  const dropRef                 = useRef(null);
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const { user }  = useAuth();
+  const { unreadNotifications, setCreatePostOpen } = useAppStore();
 
-  const base  = '/' + pathname.split('/')[1];
-  const title = TITLES[base] || 'ConnectHub';
+  const path = location.pathname;
+  const isFeed   = path === '/feed' || path === '/';
+  const isSearch = path.startsWith('/search');
 
-  const displayName = user?.displayName || user?.email || 'You';
-  const photoURL    = user?.photoURL || null;
-  const initials    = displayName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+  async function handleSignOut() {
+    try { await signOut(auth); navigate('/login', { replace: true }); } catch {}
+  }
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handler = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleDropItem = (item) => {
-    setDropOpen(false);
-    if (item.signOut) {
-      // Firebase sign-out if available
-      try { import('firebase/auth').then(m => m.getAuth && m.signOut(m.getAuth())); } catch(_) {}
-      setUser(null);
-      navigate('/login');
-    } else if (item.path) {
-      navigate(item.path);
-    }
-  };
+  const pageTitle = PAGE_TITLES[path] || PAGE_TITLES[`/${path.split('/')[1]}`] || 'LynkApp';
 
   return (
     <header style={{
-      height:'var(--top-nav-h)', display:'flex', alignItems:'center',
-      justifyContent:'space-between', padding:'0 12px',
-      background:'rgba(15,12,41,0.95)', backdropFilter:'blur(20px)',
-      WebkitBackdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.1)',
-      flexShrink:0, zIndex:100, position:'relative',
+      position:'fixed', top:0, left:0, right:0, zIndex:200,
+      height:'var(--top-nav-h, 56px)',
+      background:'rgba(10,10,24,0.92)', backdropFilter:'blur(20px)',
+      borderBottom:'1px solid rgba(255,255,255,0.07)',
+      display:'flex', alignItems:'center', justifyContent:'space-between',
+      padding:'0 16px',
     }}>
-
-      {/* ── Left: title ── */}
-      <span onClick={() => navigate('/feed')} style={{
-        fontWeight:700, fontSize:'18px', cursor:'pointer',
-        background:'linear-gradient(135deg,#6366f1,#ec4899)',
-        WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
-        backgroundClip:'text', flexShrink:0,
-      }}>
-        {title}
-      </span>
-
-      {/* ── Right icons ── */}
-      <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
-
-        {/* 1 ── Profile Avatar (with dropdown) */}
-        <div ref={dropRef} style={{ position:'relative' }}>
-          <button
-            onClick={() => setDropOpen(o => !o)}
-            aria-label="Account menu"
-            style={{
-              ...iconBtn, padding:0, width:'34px', height:'34px',
-              borderRadius:'50%', overflow:'hidden',
-              border: dropOpen ? '2px solid #6366f1' : '2px solid rgba(99,102,241,0.55)',
-              background: photoURL ? 'transparent' : 'linear-gradient(135deg,#6366f1,#ec4899)',
-              flexShrink:0,
-            }}
-          >
-            {photoURL ? (
-              <img src={photoURL} alt={displayName} style={{ width:'100%', height:'100%', objectFit:'cover' }} referrerPolicy="no-referrer" />
-            ) : (
-              <span style={{ fontSize:'12px', fontWeight:800, color:'white', lineHeight:1, letterSpacing:'-0.5px' }}>
-                {initials || '😊'}
+      {/* Left: Logo on Feed, page title elsewhere */}
+      {/* UX-13 FIX: Personalised greeting on Feed showing user's first name */}
+      <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+        {isFeed ? (
+          <div style={{ display:'flex', flexDirection:'column', gap:1 }}>
+            <LynkLogo />
+            {user?.displayName && (
+              <span style={{ fontSize:11, color:'#64748b', fontWeight:500, paddingLeft:2 }}>
+                Hi, {user.displayName.split(' ')[0]} 👋
               </span>
             )}
-          </button>
+          </div>
+        ) : (
+          <span style={{
+            fontSize:'17px', fontWeight:800, color:'#f1f5f9',
+            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+          }}>
+            {pageTitle}
+          </span>
+        )}
+      </div>
 
-          {/* ── Dropdown ── */}
-          {dropOpen && (
-            <div style={{
-              position:'absolute', top:'calc(100% + 8px)', right:0,
-              background:'rgba(15,12,41,0.97)', border:'1px solid rgba(99,102,241,0.3)',
-              borderRadius:16, padding:'6px', minWidth:200,
-              boxShadow:'0 16px 48px rgba(0,0,0,0.7)', zIndex:500,
-              backdropFilter:'blur(20px)',
-            }}>
-              {/* User info header */}
-              <div style={{ padding:'10px 12px 8px', borderBottom:'1px solid rgba(255,255,255,0.08)', marginBottom:4 }}>
-                <div style={{ fontWeight:700, color:'#f1f5f9', fontSize:14 }}>{displayName}</div>
-                {user?.email && <div style={{ color:'#64748b', fontSize:11, marginTop:2 }}>{user.email}</div>}
-              </div>
-
-              {DROPDOWN_ITEMS.map(item => (
-                <button
-                  key={item.label}
-                  onClick={() => handleDropItem(item)}
-                  style={{
-                    display:'flex', alignItems:'center', gap:10, width:'100%',
-                    padding:'9px 12px', borderRadius:10, border:'none',
-                    background:'none', color: item.signOut ? '#ef4444' : '#cbd5e1',
-                    fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left',
-                    transition:'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                >
-                  <span style={{ fontSize:16 }}>{item.icon}</span>
-                  {item.label}
-                  {item.path === '/notifications' && unreadNotifications > 0 && (
-                    <span style={{ marginLeft:'auto', background:'#ef4444', color:'white', borderRadius:10, fontSize:10, fontWeight:800, padding:'1px 6px' }}>
-                      {unreadNotifications}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 2 ── Create Post */}
-        <button onClick={() => navigate('/feed')} aria-label="Create post" style={{ ...iconBtn, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.28)' }}>
+      {/* Right icons */}
+      <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+        {/* ✏️ Create Post — BUG-07 FIX */}
+        <button
+          onClick={() => setCreatePostOpen(true)}
+          aria-label="Create post"
+          style={{
+            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+            background:'transparent', border:'none', color:'#94a3b8', fontSize:20,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          }}>
           ✏️
         </button>
 
-        {/* 3 ── Search */}
-        <button onClick={() => navigate('/search')} aria-label="Search" style={iconBtn}>🔍</button>
+        {/* 🔍 Search — POLISH-17 FIX: active state */}
+        <button
+          onClick={() => navigate('/search')}
+          aria-label="Search"
+          style={{
+            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+            background: isSearch ? 'rgba(99,102,241,0.18)' : 'transparent',
+            border:'none',
+            color: isSearch ? '#818cf8' : '#94a3b8',
+            fontSize:20,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          }}>
+          🔍
+        </button>
 
-        {/* 4 ── Notifications with badge */}
-        <div style={{ position:'relative' }}>
-          <button onClick={() => navigate('/notifications')} aria-label="Notifications" style={iconBtn}>🔔</button>
+        {/* 🔔 Notifications badge */}
+        <button
+          onClick={() => navigate('/notifications')}
+          aria-label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
+          style={{
+            position:'relative', minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+            background:'transparent', border:'none', color:'#94a3b8', fontSize:20,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          }}>
+          🔔
           {unreadNotifications > 0 && (
             <span style={{
-              position:'absolute', top:0, right:2,
-              background:'#ef4444', color:'white', borderRadius:'50%',
-              fontSize:'9px', fontWeight:800, width:'15px', height:'15px',
+              position:'absolute', top:6, right:4, minWidth:17, height:17, borderRadius:'50%',
+              background:'linear-gradient(135deg,#ef4444,#dc2626)', border:'2px solid #0a0a18',
+              color:'white', fontSize:9, fontWeight:800,
               display:'flex', alignItems:'center', justifyContent:'center',
-              pointerEvents:'none', border:'1.5px solid rgba(15,12,41,0.8)',
             }}>
               {unreadNotifications > 9 ? '9+' : unreadNotifications}
             </span>
           )}
-        </div>
-
-        {/* 5 ── AR/VR Camera Mode (Rec #17: accessible via camera button, not just a nav slot) */}
-        <button
-          onClick={() => navigate('/arvr')}
-          aria-label="AR Camera"
-          title="AR Camera & Filters"
-          style={{ ...iconBtn, background:'rgba(255,255,255,0.05)' }}
-        >
-          📷
         </button>
 
-        {/* 6 ── Hamburger → opens More Drawer (Fix #1: slide-in instead of full page) */}
+        {/* Avatar — POLISH-11 FIX: 44×44px */}
         <button
-          onClick={() => setMoreDrawerOpen(true)}
-          aria-label="Menu"
-          style={{ ...iconBtn, background:'rgba(99,102,241,0.18)', border:'1px solid rgba(99,102,241,0.38)', fontWeight:700 }}
-        >
-          ☰
+          onClick={() => navigate('/profile')}
+          aria-label="Profile"
+          style={{
+            width:44, height:44, borderRadius:'50%', overflow:'hidden',
+            background:'linear-gradient(135deg,#6366f1,#ec4899)',
+            border:'2px solid rgba(99,102,241,0.4)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:16, fontWeight:800, color:'white', cursor:'pointer',
+            flexShrink:0,
+          }}>
+          {user?.photoURL
+            ? <img src={user.photoURL} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            : (user?.displayName?.[0]?.toUpperCase() || '?')}
         </button>
       </div>
     </header>

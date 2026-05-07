@@ -1,7 +1,7 @@
 // src/components/layout/BottomNav.jsx
 // Left-side vertical sidebar — Home | Live | Dating | Messages | Marketplace
-// Rec #1-4: Updated tabs per recommendation. Live has red pulsing badge.
-// Notifications removed from sidebar (TopNav only). Search removed (TopNav only).
+// UX-01 FIX: Sidebar defaults to collapsed (false) on mobile viewports < 640px
+// BUG-06 FIX: Removed fake timer for live badge; only shows when real data says so
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -24,17 +24,27 @@ const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace']
 export default function SideNav() {
   const navigate          = useNavigate();
   const { pathname }      = useLocation();
-  const [expanded, setExpanded]     = useState(true);
+
+  // UX-01 FIX: Default to collapsed on mobile (< 640px), expanded on desktop
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const [expanded, setExpanded] = useState(!isMobile);
+
+  // BUG-06 FIX: friendsLive defaults false; would be set by a real Firestore query
+  // For now we leave it false — no fake timer, no misleading badge
   const [friendsLive, setFriendsLive] = useState(false);
 
   const unreadMessages    = useAppStore((s) => s.unreadMessages);
   const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
   const counts = { unreadMessages };
 
-  // Simulate a "friend is live" state — in production this would come from Firestore
+  // BUG-06 FIX: In production, replace this with a real Firestore listener:
+  // e.g. query(collection(db,'streams'), where('isLive','==',true), where('userId','in', followingIds))
+  // For now we leave friendsLive=false to avoid fake "live" badges
   useEffect(() => {
-    const timer = setTimeout(() => setFriendsLive(true), 3000);
-    return () => clearTimeout(timer);
+    // Real implementation would be something like:
+    // const q = query(collection(db,'streams'), where('isLive','==',true));
+    // const unsub = onSnapshot(q, snap => setFriendsLive(snap.size > 0));
+    // return unsub;
   }, []);
 
   const transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -149,7 +159,7 @@ export default function SideNav() {
                 </span>
               )}
 
-              {/* 🔴 Live pulsing badge — shows when friends are live */}
+              {/* 🔴 Live pulsing badge — only shows when real streams exist */}
               {showLiveBadge && (
                 <span style={{
                   position: 'absolute',

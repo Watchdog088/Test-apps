@@ -1,7 +1,10 @@
 // src/components/layout/AppShell.jsx
-// Fix #1: MoreDrawer — slides up from bottom on ☰ tap, covers ~75% screen height (Rec spec)
-// Fix #15: Persistent Mini Music Player bar above chrome
-// Ad service: interstitial + rewarded
+// BUG-01 FIX: MoreDrawer Sign Out now calls Firebase signOut()
+// BUG-07 FIX: Create post button opens createPostOpen modal via store
+// BUG-08 FIX: ChatThread uses calc height to account for top/bottom chrome
+// UX-02 FIX: paddingBottom accounts for mini player + safe area insets
+// UX-15 FIX: Added Toast renderer component
+// POLISH-08 FIX: Music player progress bar now animates
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -14,9 +17,55 @@ import useAppStore from '@store/useAppStore';
 const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
 const DEMO_TRACK = { title: 'Blinding Lights', artist: 'The Weeknd', emoji: '🎵' };
 
-// ── Mini Music Player (Rec #15) ──────────────────────────────────────────────
+// ── UX-15 FIX: Toast renderer ────────────────────────────────────────────────
+function ToastRenderer() {
+  const toast = useAppStore((s) => s.toast);
+  if (!toast) return null;
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 80,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'rgba(30, 27, 60, 0.97)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      color: '#f1f5f9',
+      fontWeight: 600,
+      fontSize: 14,
+      padding: '10px 20px',
+      borderRadius: 24,
+      zIndex: 9990,
+      boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+      border: '1px solid rgba(99,102,241,0.3)',
+      whiteSpace: 'nowrap',
+      maxWidth: '90vw',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      animation: 'fadeIn 0.2s ease',
+      pointerEvents: 'none',
+    }}>
+      {toast}
+    </div>
+  );
+}
+
+// ── POLISH-08 FIX: Mini Music Player with animated progress bar ──────────────
 function MiniPlayer({ track, onExpand }) {
   const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(35); // percent
+
+  useEffect(() => {
+    if (!playing) return;
+    const interval = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) { setPlaying(false); return 0; }
+        return p + 0.5;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, [playing]);
+
   return (
     <div onClick={onExpand} style={{
       position:'fixed', bottom:0, left:0, right:0, height:56,
@@ -34,8 +83,9 @@ function MiniPlayer({ track, onExpand }) {
         <div style={{ fontWeight:700, fontSize:13, color:'#f1f5f9', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{track.title}</div>
         <div style={{ fontSize:11, color:'#64748b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{track.artist}</div>
       </div>
+      {/* POLISH-08 FIX: Animated progress bar */}
       <div style={{ position:'absolute', bottom:0, left:0, right:0, height:2, background:'rgba(255,255,255,0.06)' }}>
-        <div style={{ width:'35%', height:'100%', background:'linear-gradient(90deg,#6366f1,#ec4899)' }} />
+        <div style={{ width:`${progress}%`, height:'100%', background:'linear-gradient(90deg,#6366f1,#ec4899)', transition:'width 0.5s linear' }} />
       </div>
       <button onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}
         style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)',
@@ -97,13 +147,24 @@ const DRAWER_SECTIONS = [
   },
 ];
 
-// ── More Drawer Component (Rec: slides up from bottom, ~75% screen height) ───
+// ── BUG-01 FIX: More Drawer — Sign Out calls Firebase signOut ─────────────────
 function MoreDrawer({ open, onClose }) {
   const navigate = useNavigate();
+  const setUser  = useAppStore((s) => s.setUser);
 
   const go = (path, state) => {
     onClose();
     navigate(path, state ? { state } : undefined);
+  };
+
+  const handleSignOut = async () => {
+    onClose();
+    try {
+      const { getAuth, signOut } = await import('firebase/auth');
+      await signOut(getAuth());
+    } catch (_) {}
+    setUser(null);
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -194,11 +255,11 @@ function MoreDrawer({ open, onClose }) {
           </div>
         ))}
 
-        {/* Sign Out */}
+        {/* BUG-01 FIX: Sign Out now properly signs out */}
         <div style={{ padding:'16px 16px 0' }}>
           <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:12 }} />
           <button
-            onClick={() => { onClose(); navigate('/menu'); }}
+            onClick={handleSignOut}
             style={{
               display:'flex', alignItems:'center', justifyContent:'center', gap:8,
               width:'100%', padding:'13px', borderRadius:14,
@@ -206,7 +267,7 @@ function MoreDrawer({ open, onClose }) {
               color:'#f87171', fontSize:14, fontWeight:700, cursor:'pointer', minHeight:44,
             }}
           >
-            🚪 Sign Out / Full Menu →
+            🚪 Sign Out
           </button>
         </div>
       </div>
@@ -214,8 +275,26 @@ function MoreDrawer({ open, onClose }) {
   );
 }
 
-// ── Full Music Player Modal ───────────────────────────────────────────────────
+// ── POLISH-08 FIX: Full Music Player Modal with animated progress ─────────────
 function FullMusicPlayer({ track, onClose }) {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(35);
+
+  useEffect(() => {
+    if (!playing) return;
+    const interval = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) { setPlaying(false); return 0; }
+        return p + 0.5;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, [playing]);
+
+  const totalSecs = 212; // 3:32
+  const currentSecs = Math.round((progress / 100) * totalSecs);
+  const fmt = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:600,
       display:'flex', alignItems:'flex-end', backdropFilter:'blur(6px)' }}
@@ -233,16 +312,21 @@ function FullMusicPlayer({ track, onClose }) {
           <div style={{ fontWeight:800, fontSize:20, color:'#f1f5f9' }}>{track.title}</div>
           <div style={{ fontSize:14, color:'#64748b', marginTop:4 }}>{track.artist}</div>
         </div>
+        {/* Animated progress */}
         <div style={{ height:4, background:'rgba(255,255,255,0.09)', borderRadius:2, marginBottom:8 }}>
-          <div style={{ width:'35%', height:'100%', borderRadius:2, background:'linear-gradient(90deg,#6366f1,#ec4899)' }} />
+          <div style={{ width:`${progress}%`, height:'100%', borderRadius:2, background:'linear-gradient(90deg,#6366f1,#ec4899)', transition:'width 0.5s linear' }} />
         </div>
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'#475569', marginBottom:28 }}>
-          <span>1:24</span><span>3:32</span>
+          <span>{fmt(currentSecs)}</span><span>{fmt(totalSecs)}</span>
         </div>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:32 }}>
           <button style={{ fontSize:26, color:'#64748b' }}>⏮</button>
-          <button style={{ width:60, height:60, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)',
-            border:'none', color:'white', fontSize:24, display:'flex', alignItems:'center', justifyContent:'center' }}>▶</button>
+          <button
+            onClick={() => setPlaying(p => !p)}
+            style={{ width:60, height:60, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)',
+              border:'none', color:'white', fontSize:24, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            {playing ? '⏸' : '▶'}
+          </button>
           <button style={{ fontSize:26, color:'#64748b' }}>⏭</button>
         </div>
         <button onClick={onClose} style={{ display:'block', margin:'24px auto 0', color:'#64748b', fontSize:14 }}>
@@ -282,6 +366,13 @@ export default function AppShell() {
       return () => clearTimeout(t);
     }
   }, [pathname, hideChrome]);
+
+  // UX-02 FIX: paddingBottom accounts for mini player (56px) + bottom bar (56px) + safe area
+  const mainPaddingBottom = hideChrome
+    ? 0
+    : showMiniPlayer
+      ? 'calc(56px + 56px + env(safe-area-inset-bottom, 0px))'
+      : 'calc(56px + env(safe-area-inset-bottom, 0px))';
 
   return (
     <div style={{ height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -323,7 +414,7 @@ export default function AppShell() {
       <main style={{
         flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
         paddingLeft: hideChrome ? 0 : 72,
-        paddingBottom: hideChrome ? 0 : 56,
+        paddingBottom: mainPaddingBottom,
       }}>
         <Outlet />
       </main>
@@ -343,6 +434,9 @@ export default function AppShell() {
 
       {/* ── More Drawer (Fix #1: slide-in instead of full page, Rec spec) ── */}
       <MoreDrawer open={moreDrawerOpen} onClose={() => setMoreDrawerOpen(false)} />
+
+      {/* ── UX-15 FIX: Toast Renderer ── */}
+      <ToastRenderer />
     </div>
   );
 }

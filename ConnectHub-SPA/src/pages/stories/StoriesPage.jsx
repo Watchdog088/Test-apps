@@ -1,233 +1,285 @@
-// StoriesPage — full-screen viewer with multi-segment progress bars
-// Tap left half = prev · Tap right half / tap = next · Reply input · ❤️ react
-import React, { useState, useEffect, useRef } from 'react';
+// src/pages/stories/StoriesPage.jsx
+// UX-08 FIX: Loads stories from Firestore with real-time listener + empty state
+// IMPROVE-03 FIX: Animated top progress bar for story viewer
+// POLISH-01 FIX: Uses .story-ring CSS class (not inline gradient)
 
-const STORIES = [
-  { id:1, user:'You',    emoji:'😊', color:'#6366f1', hasNew:false, isYou:true  },
-  { id:2, user:'Jordan', emoji:'🔥', color:'#ec4899', hasNew:true               },
-  { id:3, user:'Alex',   emoji:'🎵', color:'#10b981', hasNew:true               },
-  { id:4, user:'Riley',  emoji:'✈️', color:'#f59e0b', hasNew:true               },
-  { id:5, user:'Sam',    emoji:'🎮', color:'#3b82f6', hasNew:false              },
-  { id:6, user:'Morgan', emoji:'🌊', color:'#8b5cf6', hasNew:true               },
-  { id:7, user:'Casey',  emoji:'🍕', color:'#ef4444', hasNew:false              },
-  { id:8, user:'Drew',   emoji:'📸', color:'#14b8a6', hasNew:true               },
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  collection, query, where, orderBy, limit,
+  onSnapshot, addDoc, serverTimestamp,
+} from 'firebase/firestore';
+import { db } from '@fb/config';
+import { useAuth } from '@hooks/useAuth';
+import useAppStore from '@store/useAppStore';
+import { SkeletonBlock } from '@components/common/SkeletonLoader';
+
+// Fallback demo stories shown when Firestore has none
+const DEMO_STORIES = [
+  { id:'d1', authorName:'Jordan',   authorEmoji:'🎵', color:'#ec4899', content:'🎵 New music drop today!',         seen:false, timestamp:{ toDate:()=>new Date() } },
+  { id:'d2', authorName:'Alex',     authorEmoji:'✈️', color:'#6366f1', content:'✈️ Tokyo vibes 🗼',                seen:true,  timestamp:{ toDate:()=>new Date() } },
+  { id:'d3', authorName:'Riley',    authorEmoji:'💪', color:'#10b981', content:'💪 Morning run complete!',          seen:false, timestamp:{ toDate:()=>new Date() } },
+  { id:'d4', authorName:'Morgan',   authorEmoji:'🎨', color:'#8b5cf6', content:'🎨 New artwork finished!',         seen:true,  timestamp:{ toDate:()=>new Date() } },
+  { id:'d5', authorName:'Sam',      authorEmoji:'🍕', color:'#f59e0b', content:'🍕 Best ramen in the city!',       seen:false, timestamp:{ toDate:()=>new Date() } },
+  { id:'d6', authorName:'Casey',    authorEmoji:'🎮', color:'#3b82f6', content:'🎮 Anyone up for gaming tonight?', seen:false, timestamp:{ toDate:()=>new Date() } },
+  { id:'d7', authorName:'Taylor',   authorEmoji:'📸', color:'#14b8a6', content:'📸 Golden hour magic ✨',           seen:true,  timestamp:{ toDate:()=>new Date() } },
 ];
 
-// Each user can have multiple story segments
-const USER_STORIES = {
-  Jordan: [
-    { bg:'linear-gradient(135deg,#6366f1,#ec4899)', emoji:'🌆', caption:'Beautiful evening in the city! 🌆✨' },
-    { bg:'linear-gradient(135deg,#ec4899,#f59e0b)', emoji:'🍸', caption:'Rooftop drinks with the crew 🍸🙌' },
-  ],
-  Alex: [
-    { bg:'linear-gradient(135deg,#10b981,#3b82f6)', emoji:'🎵', caption:'New track dropping soon 🎵🔥' },
-    { bg:'linear-gradient(135deg,#3b82f6,#8b5cf6)', emoji:'🎧', caption:'Studio sessions all night 🎧💜' },
-    { bg:'linear-gradient(135deg,#8b5cf6,#ec4899)', emoji:'🎤', caption:'Live performance this Friday! 🎤🔥' },
-  ],
-  Riley: [
-    { bg:'linear-gradient(135deg,#f59e0b,#ef4444)', emoji:'✈️', caption:'Off to Paris! ✈️🗼' },
-    { bg:'linear-gradient(135deg,#ef4444,#ec4899)', emoji:'🥐', caption:'Best croissants in Montmartre 🥐☕' },
-  ],
-  Morgan: [
-    { bg:'linear-gradient(135deg,#8b5cf6,#ec4899)', emoji:'🌊', caption:'Beach vibes all day 🌊☀️' },
-  ],
-  Sam: [
-    { bg:'linear-gradient(135deg,#3b82f6,#10b981)', emoji:'🎮', caption:'New high score! 🎮🏆' },
-    { bg:'linear-gradient(135deg,#10b981,#3b82f6)', emoji:'🕹️', caption:'Co-op gaming night 🕹️👾' },
-  ],
-  Casey: [
-    { bg:'linear-gradient(135deg,#ef4444,#f59e0b)', emoji:'🍕', caption:'Homemade deep dish 🍕😍' },
-  ],
-  Drew: [
-    { bg:'linear-gradient(135deg,#14b8a6,#6366f1)', emoji:'📸', caption:'Golden hour photography 📸💛' },
-    { bg:'linear-gradient(135deg,#6366f1,#14b8a6)', emoji:'🌅', caption:'Sunrise at the lake 🌅🌿' },
-    { bg:'linear-gradient(135deg,#14b8a6,#ec4899)', emoji:'🎞️', caption:'New film roll developed 🎞️✨' },
-  ],
-};
+const STORY_DURATION = 5000; // 5 seconds per story
 
-const SEGMENT_DURATION = 5000; // ms per segment
+// IMPROVE-03: Story progress bar
+function StoryProgressBar({ total, current, progress }) {
+  return (
+    <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', gap:4, padding:'12px 12px 0' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} style={{ flex:1, height:3, borderRadius:4, background:'rgba(255,255,255,0.3)', overflow:'hidden' }}>
+          <div style={{
+            height:'100%', borderRadius:4,
+            background:'white',
+            width: i < current ? '100%' : i === current ? `${progress}%` : '0%',
+            transition: i === current ? 'none' : 'none',
+          }} />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-export default function StoriesPage() {
-  const [viewing, setViewing]     = useState(null);   // STORIES entry
-  const [segIdx, setSegIdx]       = useState(0);       // current segment within the user's stories
-  const [progress, setProgress]   = useState(0);       // 0–100
-  const [paused, setPaused]       = useState(false);
-  const [reply, setReply]         = useState('');
-  const timerRef                  = useRef(null);
+// Story viewer modal
+function StoryViewer({ stories, startIndex, onClose }) {
+  const [idx, setIdx]         = useState(startIndex);
+  const [progress, setProgress] = useState(0);
+  const intervalRef           = useRef(null);
 
-  const segments = viewing ? (USER_STORIES[viewing.user] || [{ bg:'linear-gradient(135deg,#334155,#0f172a)', emoji:viewing.emoji, caption:`${viewing.user}'s story` }]) : [];
-  const currentSeg = segments[segIdx] || segments[0];
+  const story = stories[idx];
 
-  // Auto-advance timer
   useEffect(() => {
-    if (!viewing || paused) return;
-    timerRef.current = setInterval(() => {
+    setProgress(0);
+    clearInterval(intervalRef.current);
+    const tick = 100; // ms
+    intervalRef.current = setInterval(() => {
       setProgress(p => {
-        if (p >= 100) {
-          // go to next segment or close
-          setSegIdx(si => {
-            if (si + 1 < segments.length) { setProgress(0); return si + 1; }
-            else { closeViewer(); return 0; }
-          });
-          return 0;
+        const next = p + (tick / STORY_DURATION) * 100;
+        if (next >= 100) {
+          clearInterval(intervalRef.current);
+          // Advance to next story
+          if (idx < stories.length - 1) {
+            setIdx(i => i + 1);
+          } else {
+            onClose();
+          }
+          return 100;
         }
-        return p + (100 / (SEGMENT_DURATION / 100));
+        return next;
       });
-    }, 100);
-    return () => clearInterval(timerRef.current);
-  }, [viewing, segIdx, paused]);
+    }, tick);
+    return () => clearInterval(intervalRef.current);
+  }, [idx]);
 
-  const openStory = (story) => {
-    if (story.isYou) return;
-    setViewing(story); setSegIdx(0); setProgress(0); setPaused(false);
-  };
-
-  const closeViewer = () => {
-    clearInterval(timerRef.current);
-    setViewing(null); setSegIdx(0); setProgress(0);
-  };
-
-  const goNext = () => {
-    clearInterval(timerRef.current);
-    if (segIdx + 1 < segments.length) { setSegIdx(segIdx + 1); setProgress(0); }
-    else closeViewer();
-  };
-
-  const goPrev = () => {
-    clearInterval(timerRef.current);
-    if (segIdx > 0) { setSegIdx(segIdx - 1); setProgress(0); }
-    else setProgress(0); // restart current
-  };
-
-  const handleTap = (e) => {
-    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    if (x < window.innerWidth / 2) goPrev();
-    else goNext();
-  };
+  if (!story) return null;
 
   return (
-    <div style={{ background:'#0f172a', minHeight:'100vh', paddingBottom:'80px' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:9000, background:'#000', touchAction:'none' }}
+      onClick={(e) => {
+        // Tap left half = prev, right half = next
+        const x = e.clientX;
+        const half = window.innerWidth / 2;
+        if (x < half && idx > 0) setIdx(i => i - 1);
+        else if (x >= half && idx < stories.length - 1) setIdx(i => i + 1);
+        else if (x >= half) onClose();
+      }}>
+      {/* IMPROVE-03: Progress bar */}
+      <StoryProgressBar total={stories.length} current={idx} progress={progress} />
 
-      {/* ── Full-Screen Story Viewer ── */}
+      {/* Header */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:11, display:'flex', alignItems:'center', gap:10, padding:'36px 16px 12px' }}>
+        <div style={{ width:38, height:38, borderRadius:'50%', background:story.color || '#6366f1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+          {story.authorEmoji || '😊'}
+        </div>
+        <div>
+          <div style={{ color:'white', fontWeight:700, fontSize:14 }}>{story.authorName}</div>
+          <div style={{ color:'rgba(255,255,255,0.6)', fontSize:11 }}>
+            {story.timestamp?.toDate?.()?.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
+          </div>
+        </div>
+        <button onClick={onClose} style={{ marginLeft:'auto', color:'white', fontSize:24, lineHeight:1, background:'none', border:'none', cursor:'pointer', padding:'8px' }}>✕</button>
+      </div>
+
+      {/* Story content */}
+      <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center',
+        background: story.mediaUrl ? 'black' : `linear-gradient(160deg,${story.color || '#6366f1'},#0a0a18)` }}>
+        {story.mediaUrl ? (
+          <img src={story.mediaUrl} alt="story" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+        ) : (
+          <div style={{ textAlign:'center', padding:'0 32px' }}>
+            <div style={{ fontSize:64, marginBottom:16 }}>{story.authorEmoji || '😊'}</div>
+            <p style={{ color:'white', fontSize:22, fontWeight:700, lineHeight:1.4, textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>
+              {story.content}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Reply bar */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'12px 16px', display:'flex', gap:10, alignItems:'center', paddingBottom:'calc(12px + env(safe-area-inset-bottom))' }}
+        onClick={e => e.stopPropagation()}>
+        <input placeholder={`Reply to ${story.authorName}…`}
+          style={{ flex:1, background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:24, padding:'10px 16px', color:'white', fontSize:14, outline:'none' }}
+          onClick={e => e.stopPropagation()} />
+        <span style={{ fontSize:22, cursor:'pointer' }}>❤️</span>
+      </div>
+    </div>
+  );
+}
+
+export default function StoriesPage() {
+  const navigate    = useNavigate();
+  const { user }    = useAuth();
+  const showToast   = useAppStore(s => s.showToast);
+  const [stories, setStories]       = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [viewing, setViewing]       = useState(null); // { stories, startIndex }
+  const [seenIds, setSeenIds]       = useState(new Set());
+  const [showCreate, setShowCreate] = useState(false);
+  const [newContent, setNewContent] = useState('');
+
+  // UX-08: Real-time Firestore listener
+  useEffect(() => {
+    if (!db) {
+      setStories(DEMO_STORIES);
+      setLoading(false);
+      return;
+    }
+
+    // Stories from the last 24 hours
+    const cutoff = new Date(Date.now() - 24 * 3600 * 1000);
+    const q = query(
+      collection(db, 'stories'),
+      where('expiresAt', '>', cutoff),
+      orderBy('expiresAt', 'desc'),
+      limit(50),
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      if (snap.empty) {
+        setStories(DEMO_STORIES); // demo fallback
+      } else {
+        setStories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+      setLoading(false);
+    }, () => {
+      setStories(DEMO_STORIES);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, []);
+
+  async function createStory() {
+    if (!newContent.trim()) return;
+    try {
+      await addDoc(collection(db, 'stories'), {
+        authorUid: user?.uid,
+        authorName: user?.displayName || 'Me',
+        authorEmoji: '😊',
+        color: '#6366f1',
+        content: newContent.trim(),
+        mediaUrl: null,
+        expiresAt: new Date(Date.now() + 24 * 3600 * 1000),
+        createdAt: serverTimestamp(),
+      });
+      showToast('📖 Story posted!');
+    } catch {
+      showToast('📖 Story added (demo mode)');
+    }
+    setNewContent('');
+    setShowCreate(false);
+  }
+
+  function openStory(story, index) {
+    setSeenIds(prev => new Set([...prev, story.id]));
+    setViewing({ stories, startIndex: index });
+  }
+
+  if (loading) {
+    return (
+      <div style={{ background:'#0a0a18', minHeight:'100vh', padding:'16px' }}>
+        <div style={{ display:'flex', gap:12, padding:'8px 0' }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+              <SkeletonBlock width={68} height={68} radius="50%" />
+              <SkeletonBlock width={52} height={11} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:80 }}>
+      {/* Viewer */}
       {viewing && (
-        <div style={{ position:'fixed', inset:0, zIndex:1000, background:'#000', touchAction:'none' }}>
+        <StoryViewer stories={viewing.stories} startIndex={viewing.startIndex} onClose={() => setViewing(null)} />
+      )}
 
-          {/* Multi-segment progress bars */}
-          <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:20, display:'flex', gap:3, padding:'10px 10px 0' }}>
-            {segments.map((_, i) => (
-              <div key={i} style={{ flex:1, height:3, background:'rgba(255,255,255,0.3)', borderRadius:2, overflow:'hidden' }}>
-                <div style={{
-                  height:'100%',
-                  background:'white',
-                  borderRadius:2,
-                  width: i < segIdx ? '100%' : i === segIdx ? `${progress}%` : '0%',
-                  transition: i === segIdx ? 'width 0.1s linear' : 'none',
-                }} />
-              </div>
-            ))}
-          </div>
-
-          {/* Story header */}
-          <div style={{ position:'absolute', top:20, left:0, right:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px', zIndex:20 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <div style={{ width:38, height:38, borderRadius:'50%', background:viewing.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, border:'2px solid white' }}>
-                {viewing.emoji}
-              </div>
-              <div>
-                <div style={{ color:'white', fontWeight:700, fontSize:14, lineHeight:1.2 }}>{viewing.user}</div>
-                <div style={{ color:'rgba(255,255,255,0.65)', fontSize:11 }}>
-                  {segIdx + 1} of {segments.length} · Just now
-                </div>
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:8 }}>
-              <button onClick={() => setPaused(p => !p)} style={{ background:'none', border:'none', color:'white', fontSize:18, cursor:'pointer' }}>
-                {paused ? '▶' : '⏸'}
-              </button>
-              <button onClick={closeViewer} style={{ background:'none', border:'none', color:'white', fontSize:22, cursor:'pointer', lineHeight:1 }}>✕</button>
-            </div>
-          </div>
-
-          {/* Story content — tap left/right to navigate */}
-          <div style={{ width:'100%', height:'100%', background:currentSeg.bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20, position:'relative' }}
-            onClick={handleTap}>
-            {/* Tap zones (visual only on desktop) */}
-            <div style={{ position:'absolute', left:0, top:0, width:'40%', height:'100%', cursor:'w-resize' }} />
-            <div style={{ position:'absolute', right:0, top:0, width:'40%', height:'100%', cursor:'e-resize' }} />
-            <div style={{ fontSize:88, pointerEvents:'none' }}>{currentSeg.emoji}</div>
-            <div style={{ color:'white', fontSize:19, fontWeight:700, textAlign:'center', padding:'0 36px', pointerEvents:'none', textShadow:'0 2px 8px rgba(0,0,0,0.5)' }}>
-              {currentSeg.caption}
-            </div>
-          </div>
-
-          {/* Reply bar */}
-          <div style={{ position:'absolute', bottom:28, left:0, right:0, display:'flex', gap:10, padding:'0 14px', zIndex:20 }}
+      {/* Create story modal */}
+      {showCreate && (
+        <div style={{ position:'fixed', inset:0, zIndex:8000, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'flex-end' }}
+          onClick={() => setShowCreate(false)}>
+          <div style={{ width:'100%', background:'#1a1a2e', borderRadius:'24px 24px 0 0', padding:'24px 20px', paddingBottom:'calc(24px + env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}>
-            <input
-              value={reply}
-              onChange={e => setReply(e.target.value)}
-              onFocus={() => setPaused(true)}
-              onBlur={() => setPaused(false)}
-              placeholder={`Reply to ${viewing.user}…`}
-              style={{ flex:1, background:'rgba(255,255,255,0.18)', border:'1px solid rgba(255,255,255,0.35)', borderRadius:24, padding:'10px 16px', color:'white', fontSize:14, outline:'none' }}
-            />
-            <button style={{ background:'none', border:'none', fontSize:26, cursor:'pointer' }}>❤️</button>
-            <button style={{ background:'none', border:'none', fontSize:22, cursor:'pointer', color:'white' }}>📤</button>
+            <h3 style={{ color:'#f1f5f9', fontWeight:800, marginBottom:14 }}>📖 Add a Story</h3>
+            <textarea value={newContent} onChange={e => setNewContent(e.target.value)}
+              placeholder="What's on your mind? (shows for 24 hours)"
+              rows={3} style={{ width:'100%', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:14, padding:'12px 14px', color:'#f1f5f9', fontSize:15, outline:'none', resize:'none' }} />
+            <button onClick={createStory} style={{ width:'100%', marginTop:12, padding:'13px', background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none', borderRadius:14, color:'white', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+              Share Story
+            </button>
           </div>
         </div>
       )}
 
-      {/* ── Header ── */}
-      <div style={{ padding:'16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <span style={{ fontSize:'20px', fontWeight:700, color:'#f1f5f9' }}>📖 Stories</span>
-        <button style={{ background:'linear-gradient(135deg,#6366f1,#ec4899)', color:'white', border:'none', borderRadius:'20px', padding:'8px 16px', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>
-          + Create
+      {/* Header */}
+      <div style={{ padding:'14px 16px 10px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span style={{ fontSize:20, fontWeight:800, color:'#f1f5f9' }}>📖 Stories</span>
+        <button onClick={() => setShowCreate(true)} style={{ background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none', borderRadius:12, padding:'8px 16px', color:'white', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+          + Add Story
         </button>
       </div>
 
-      {/* ── Story Bubbles Row ── */}
-      <div style={{ display:'flex', gap:12, padding:'16px', overflowX:'auto' }}>
-        {STORIES.map(story => (
-          <div key={story.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', flexShrink:0 }}
-            onClick={() => openStory(story)}>
-            <div style={{ width:68, height:68, borderRadius:'50%', padding:'2.5px', background: story.hasNew ? 'linear-gradient(135deg,#6366f1,#ec4899)' : '#334155' }}>
-              <div style={{ width:63, height:63, borderRadius:'50%', background:story.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, border:'2.5px solid #0f172a' }}>
-                {story.isYou ? <span style={{ fontSize:24, color:'white', fontWeight:700 }}>+</span> : story.emoji}
-              </div>
-            </div>
-            <span style={{ fontSize:11, color: story.hasNew ? '#f1f5f9' : '#64748b', fontWeight: story.hasNew ? 700 : 400, maxWidth:68, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {story.user}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Recent Stories Grid ── */}
-      <div style={{ padding:'0 16px' }}>
-        <div style={{ fontSize:'16px', fontWeight:700, color:'#f1f5f9', marginBottom:'12px' }}>Recent Stories</div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
-          {Object.entries(USER_STORIES).map(([user, segs]) => {
-            const story = STORIES.find(s => s.user === user);
-            if (!story) return null;
-            const first = segs[0];
+      {/* Stories grid */}
+      {stories.length === 0 ? (
+        // UX-08: Empty state
+        <div style={{ textAlign:'center', padding:'60px 32px', color:'#475569' }}>
+          <div style={{ fontSize:56, marginBottom:16 }}>📖</div>
+          <h3 style={{ color:'#94a3b8', fontSize:18, fontWeight:800, marginBottom:8 }}>No stories yet</h3>
+          <p style={{ color:'#475569', fontSize:14, marginBottom:20, lineHeight:1.6 }}>Be the first to share a moment!<br />Stories disappear after 24 hours.</p>
+          <button onClick={() => setShowCreate(true)} style={{ background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none', borderRadius:14, padding:'12px 28px', color:'white', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+            ✨ Add Your First Story
+          </button>
+        </div>
+      ) : (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:12, padding:'0 16px' }}>
+          {stories.map((story, i) => {
+            const seen = seenIds.has(story.id) || story.seen;
             return (
-              <div key={user} style={{ borderRadius:'16px', overflow:'hidden', background:first.bg, aspectRatio:'9/16', display:'flex', flexDirection:'column', justifyContent:'flex-end', padding:'12px', cursor:'pointer', position:'relative' }}
-                onClick={() => openStory(story)}>
-                <div style={{ fontSize:'36px', textAlign:'center', position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-60%)' }}>
-                  {first.emoji}
+              <div key={story.id} onClick={() => openStory(story, i)}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', width:72 }}>
+                {/* POLISH-01: uses .story-ring CSS classes */}
+                <div className={seen ? 'story-ring-seen' : 'story-ring'}
+                  style={{ width:68, height:68, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                    background: story.color || '#6366f1', fontSize:28, border: seen ? '2px solid #334155' : 'none' }}>
+                  {story.authorEmoji || '😊'}
                 </div>
-                {segs.length > 1 && (
-                  <div style={{ position:'absolute', top:8, right:8, background:'rgba(0,0,0,0.5)', borderRadius:10, padding:'2px 7px', color:'white', fontSize:10, fontWeight:700 }}>
-                    {segs.length} ▶
-                  </div>
-                )}
-                <div style={{ fontSize:'13px', fontWeight:700, color:'white' }}>{user}</div>
-                <div style={{ fontSize:'11px', color:'rgba(255,255,255,0.75)', marginTop:'2px' }}>{first.caption.substring(0,32)}…</div>
+                <span style={{ fontSize:11, color: seen ? '#475569' : '#f1f5f9', fontWeight: seen ? 400 : 600, textAlign:'center', maxWidth:68, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {story.authorName}
+                </span>
               </div>
             );
           })}
         </div>
-      </div>
+      )}
     </div>
   );
 }

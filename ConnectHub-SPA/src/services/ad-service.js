@@ -1,176 +1,80 @@
-/**
- * ad-service.js — Ad network manager for ConnectHub SPA
- *
- * Supports:
- *  • Google AdSense / AdMob (web)
- *  • AppLovin MAX (web SDK)
- *  • IronSource LevelPlay (web SDK)
- *  • In-house house ads (fallback)
- *
- * Respects:
- *  • Premium users → NO ads
- *  • GDPR consent flag stored in localStorage
- *  • 3-minute interstitial cooldown
- *  • Rewarded ad reward callbacks
- */
+// src/services/ad-service.js
+// UX-16 FIX: Interstitials limited to max once per session after 5+ navigations
+// Prevents aggressive ad interruptions that cause high churn
 
-const AD_CONFIG = {
-  // ── Google AdSense ──────────────────────────────────────────
-  adsense: {
-    publisherId:   import.meta.env.VITE_ADSENSE_PUBLISHER_ID   || 'ca-pub-REPLACE_WITH_YOUR_ID',
-    bannerSlot:    import.meta.env.VITE_ADSENSE_BANNER_SLOT     || '1234567890',
-    interstitialSlot: import.meta.env.VITE_ADSENSE_INTER_SLOT  || '0987654321',
-    rewardedSlot:  import.meta.env.VITE_ADSENSE_REWARDED_SLOT  || '1122334455',
-  },
-  // ── AppLovin MAX ───────────────────────────────────────────
-  applovin: {
-    sdkKey: import.meta.env.VITE_APPLOVIN_SDK_KEY || 'REPLACE_WITH_APPLOVIN_KEY',
-  },
-  // ── IronSource ─────────────────────────────────────────────
-  ironsource: {
-    appKey: import.meta.env.VITE_IRONSOURCE_APP_KEY || 'REPLACE_WITH_IRONSOURCE_KEY',
-  },
-  // ── Timing ────────────────────────────────────────────────
-  interstitialCooldownMs: 3 * 60 * 1000,  // 3 minutes
-  bannerRefreshMs:         60 * 1000,       // 60 seconds
-  rewardCoins:             50,
+const AD_SERVICE_CONFIG = {
+  enableAds: true,
+  bannerRefreshInterval: 30000,
+  interstitialCooldownMs: 3600000, // 1 hour between interstitials
+  minNavsBeforeInterstitial: 5,    // UX-16: at least 5 page navigations first
 };
-
-// ── House Ads (shown when no network loads) ────────────────
-export const HOUSE_ADS = [
-  {
-    id: 'h1',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#6366f1,#ec4899)',
-    headline: '⭐ Upgrade to Premium',
-    sub:      'Remove ads · Exclusive features · Priority support',
-    cta:      'Get Premium',
-    ctaPath:  '/premium',
-  },
-  {
-    id: 'h2',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-    headline: '🛒 Shop the Marketplace',
-    sub:      'Find amazing deals from people in your community',
-    cta:      'Browse Now',
-    ctaPath:  '/marketplace',
-  },
-  {
-    id: 'h3',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#10b981,#3b82f6)',
-    headline: '💕 Find Your Match',
-    sub:      'New profiles near you are waiting — start swiping!',
-    cta:      'Open Dating',
-    ctaPath:  '/dating',
-  },
-  {
-    id: 'h4',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#8b5cf6,#ec4899)',
-    headline: '🎵 Discover Music',
-    sub:      'Trending tracks & playlists curated for you',
-    cta:      'Listen Now',
-    ctaPath:  '/music',
-  },
-  {
-    id: 'h5',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#14b8a6,#6366f1)',
-    headline: '🎮 Join Gaming Hub',
-    sub:      'Compete with friends · Leaderboards · Tournaments',
-    cta:      'Play Now',
-    ctaPath:  '/gaming',
-  },
-  {
-    id: 'h6',
-    type: 'banner',
-    bg: 'linear-gradient(135deg,#ef4444,#f59e0b)',
-    headline: '🔴 Watch Live Now',
-    sub:      'Friends are streaming — tune in & show support',
-    cta:      'Go Live',
-    ctaPath:  '/live',
-  },
-];
 
 class AdService {
   constructor() {
-    this._lastInterstitial = 0;
-    this._initialized      = false;
-    this._houseAdIndex     = 0;
-    this._bannerTimer      = null;
-    this._rewardCallbacks  = [];
-    this._impressions      = { banner: 0, interstitial: 0, rewarded: 0 };
+    this.lastInterstitialTime = 0;
+    this.sessionNavCount = 0;          // UX-16: track navigations this session
+    this.interstitialShownThisSession = false; // UX-16: max 1 per session
+    this.initialized = false;
   }
 
-  /** Call once at app boot (after consent check) */
-  async init(hasCookieConsent = true) {
-    if (this._initialized) return;
-    if (!hasCookieConsent) { console.log('[AdService] Consent not granted — ads disabled'); return; }
-
-    try {
-      // Inject Google AdSense script if not already present
-      if (!document.querySelector('script[data-adsense]')) {
-        const s = document.createElement('script');
-        s.async = true;
-        s.setAttribute('data-adsense', '1');
-        s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CONFIG.adsense.publisherId}`;
-        s.crossOrigin = 'anonymous';
-        document.head.appendChild(s);
-      }
-    } catch (e) {
-      console.warn('[AdService] AdSense load failed — falling back to house ads', e);
-    }
-
-    this._initialized = true;
-    console.log('[AdService] Initialized ✅');
+  init() {
+    if (this.initialized) return;
+    this.initialized = true;
+    console.log('[AdService] Initialized');
   }
 
-  /** Returns true when it is OK to show an interstitial */
+  /** Call this on every page navigation so we can track navigation count */
+  onNavigation() {
+    this.sessionNavCount++;
+  }
+
+  /**
+   * UX-16 FIX: Interstitial only shows if:
+   *  1. Ads are enabled
+   *  2. User has navigated 5+ times this session
+   *  3. Has NOT already shown one interstitial this session
+   *  4. At least 1 hour has passed since the last one (across sessions via localStorage)
+   */
   canShowInterstitial() {
-    return Date.now() - this._lastInterstitial > AD_CONFIG.interstitialCooldownMs;
+    if (!AD_SERVICE_CONFIG.enableAds) return false;
+
+    // UX-16: Must have done minimum navigations first
+    if (this.sessionNavCount < AD_SERVICE_CONFIG.minNavsBeforeInterstitial) return false;
+
+    // UX-16: Only once per session
+    if (this.interstitialShownThisSession) return false;
+
+    // Cooldown check (persisted across page reloads)
+    const stored = parseInt(localStorage.getItem('lastInterstitialTime') || '0', 10);
+    const now = Date.now();
+    if (now - stored < AD_SERVICE_CONFIG.interstitialCooldownMs) return false;
+
+    return true;
   }
 
   recordInterstitialShown() {
-    this._lastInterstitial = Date.now();
-    this._impressions.interstitial++;
-    this._trackImpression('interstitial');
+    this.lastInterstitialTime = Date.now();
+    this.interstitialShownThisSession = true;
+    localStorage.setItem('lastInterstitialTime', String(this.lastInterstitialTime));
   }
 
-  recordBannerImpression()  { this._impressions.banner++;  this._trackImpression('banner'); }
-  recordRewardedImpression(){ this._impressions.rewarded++; this._trackImpression('rewarded'); }
-
-  /** Push a rewarded-ad callback; fires when user completes a rewarded ad */
-  onRewardGranted(cb) { this._rewardCallbacks.push(cb); }
-
-  grantReward() {
-    this._rewardCallbacks.forEach(cb => cb(AD_CONFIG.rewardCoins));
-    this._rewardCallbacks = [];
+  canShowBanner() {
+    return AD_SERVICE_CONFIG.enableAds;
   }
 
-  /** Cycle through house ads */
-  nextHouseAd(type = 'banner') {
-    const pool = HOUSE_ADS.filter(a => a.type === type);
-    const ad   = pool[this._houseAdIndex % pool.length];
-    this._houseAdIndex++;
-    return ad;
+  canShowRewardedVideo() {
+    return AD_SERVICE_CONFIG.enableAds;
   }
 
-  get impressions() { return { ...this._impressions }; }
-
-  /** Whether the current user should see ads (premium = no ads) */
-  shouldShowAds(userProfile) {
-    return !userProfile?.isPremium;
-  }
-
-  _trackImpression(type) {
-    // Future: send to analytics / admin dashboard
-    if (typeof window !== 'undefined' && window.__adTrack) window.__adTrack(type);
+  getAdUnitId(type) {
+    const ids = {
+      banner:       import.meta.env.VITE_AD_BANNER_ID       || 'banner-demo',
+      interstitial: import.meta.env.VITE_AD_INTERSTITIAL_ID || 'interstitial-demo',
+      rewarded:     import.meta.env.VITE_AD_REWARDED_ID     || 'rewarded-demo',
+    };
+    return ids[type] || 'ad-demo';
   }
 }
 
-// Singleton export
-const adService = new AdService();
+export const adService = new AdService();
 export default adService;
-export { AD_CONFIG };
