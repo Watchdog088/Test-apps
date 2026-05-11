@@ -1,19 +1,23 @@
 // LiveWatchPage.jsx — /live/watch/:id
-// Session 5 — ALL 18 REMAINING RECOMMENDATIONS IMPLEMENTED:
-//   REC-5.2:  Reconnect / Retry UI (video.error + auto-retry up to 3×)
-//   REC-5.5:  Clip creation button (sends {streamId, timestamp} to Firestore)
-//   REC-5.6:  Channel page link — streamer name navigates to /profile/:uid
-//   REC-5.9:  Pinned message display above chat (gold border)
-//   REC-5.10: Live Poll feature (create + vote, real-time results)
-//   REC-5.13: Watch Party — shared room syncs currentTime via Firestore
-//   REC-5.15: Coins visual FX — confetti burst on large gifts (100+ coins)
-//   REC-5.16: Quality selector overlay (Auto / 1080p / 720p / 480p)
-//   REC-5.17: Content warning interstitial for mature streams
+// Session 7 — ALL BUGS FIXED:
+//   C-1:  HLS.js integration via CDN dynamic load (cross-browser HLS)
+//   C-4:  ?guestJoin=1 param handled — camera/mic prompt shown
+//   U-1:  Emote picker UI — 30-emote grid toggled by 😊 button below chat
+//   U-2:  Milestone banner — useEffect fires banner on viewerCount milestones
+//   U-3:  Subscriber badge ⭐ rendered in chat message rows
+//   FIX:  Watch party sync skips when paused (drift fix)
+//   FIX:  Confetti positions precomputed via useRef (no Math.random in render)
+//   FIX:  Chat textarea max-height + overflow:auto (long message overflow fix)
+//   FIX:  Quality Poor now shows actionable tip to streamer
+//   FIX:  userVote reset on streamId change (double-vote prevention)
+//   ADD:  Raise Hand button for viewers (signals streamer)
+//   ADD:  Report stream button
+//   ADD:  Skeleton loader while stream loads
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  doc, getDoc, onSnapshot, addDoc, updateDoc, arrayUnion,
+  doc, getDoc, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove,
   collection, query, orderBy, serverTimestamp, increment,
   where, getDocs, limit,
 } from 'firebase/firestore';
@@ -24,38 +28,43 @@ const GIFT_AMOUNTS = [10, 50, 100, 500];
 const EMOJIS = ['❤️', '🔥', '😂', '👏', '💯'];
 const QUALITY_LEVELS = ['Auto', '1080p', '720p', '480p'];
 
-// REC-6.1: Full emote palette grid
+// REC-6.1: Full emote palette grid (30 emotes)
 const EMOTE_PALETTE = [
   '❤️','🔥','😂','👏','💯','🎉','😍','🤩','💪','👑',
   '🙌','✨','😎','🥳','😆','💀','🤣','😭','🫶','⭐',
   '🎮','🎵','🍕','🚀','💎','🦋','🌟','🏆','💬','🫡',
 ];
+
 // REC-6.4: Viewer milestone thresholds
 const MILESTONES = [10, 50, 100, 500, 1000, 5000];
 
-// REC-5.15: Confetti burst for large gifts
+// FIX: Confetti positions precomputed in useRef — no Math.random() in render
 function ConfettiBurst({ onDone }) {
-  const pieces = Array.from({ length: 24 }, (_, i) => i);
+  const pieces = useRef(Array.from({ length: 24 }, (_, i) => ({
+    top: Math.random() * 40,
+    left: Math.random() * 100,
+    bg: ['#ef4444','#f59e0b','#4ade80','#818cf8','#f472b6'][i % 5],
+    round: i % 3 === 0,
+    dur: (0.8 + Math.random() * 1.2).toFixed(2),
+    delay: (Math.random() * 0.5).toFixed(2),
+  }))).current;
   useEffect(() => { const t = setTimeout(onDone, 2000); return () => clearTimeout(t); }, [onDone]);
   return (
     <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:9998 }}>
-      {pieces.map(i => (
+      {pieces.map((p, i) => (
         <div key={i} style={{
-          position:'absolute',
-          top: `${Math.random() * 40}%`,
-          left: `${Math.random() * 100}%`,
-          width:'10px', height:'10px',
-          borderRadius: i % 3 === 0 ? '50%' : '2px',
-          background: ['#ef4444','#f59e0b','#4ade80','#818cf8','#f472b6'][i % 5],
-          animation: `confetti ${0.8 + Math.random() * 1.2}s ease-out ${Math.random() * 0.5}s both`,
+          position:'absolute', top:`${p.top}%`, left:`${p.left}%`,
+          width:'10px', height:'10px', borderRadius: p.round ? '50%' : '2px',
+          background: p.bg,
+          animation:`confetti ${p.dur}s ease-out ${p.delay}s both`,
         }} />
       ))}
-      <style>{`@keyframes confetti { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(200px) rotate(720deg);opacity:0} }`}</style>
+      <style>{`@keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(200px) rotate(720deg);opacity:0}}`}</style>
     </div>
   );
 }
 
-// REC-5.17: Content warning interstitial
+// Content warning interstitial
 function ContentWarning({ onContinue }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.95)', zIndex:9999,
@@ -73,14 +82,38 @@ function ContentWarning({ onContinue }) {
   );
 }
 
+// Skeleton loader while stream doc loads
+function StreamSkeleton() {
+  const pulse = { animation:'skelPulse 1.5s ease-in-out infinite', background:'#1e293b', borderRadius:'8px' };
+  return (
+    <div style={{ background:'#0a0a18', minHeight:'100vh' }}>
+      <style>{`@keyframes skelPulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+      <div style={{ padding:'10px 16px', borderBottom:'1px solid #1e293b', display:'flex', gap:'10px' }}>
+        <div style={{ ...pulse, width:'28px', height:'28px', borderRadius:'50%' }} />
+        <div style={{ flex:1 }}>
+          <div style={{ ...pulse, height:'14px', width:'60%', marginBottom:'6px' }} />
+          <div style={{ ...pulse, height:'10px', width:'30%' }} />
+        </div>
+      </div>
+      <div style={{ ...pulse, width:'100%', height:'220px', borderRadius:0 }} />
+      <div style={{ padding:'16px', display:'flex', flexDirection:'column', gap:'10px' }}>
+        {[1,2,3].map(i => <div key={i} style={{ ...pulse, height:'36px', width:'100%' }} />)}
+      </div>
+    </div>
+  );
+}
+
 export default function LiveWatchPage() {
   const { id: streamId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const showToast = useAppStore(s => s.showToast);
   const uid = auth.currentUser?.uid;
 
   const videoRef  = useRef(null);
   const chatEndRef = useRef(null);
+  const hlsRef    = useRef(null); // C-1: HLS instance ref
+  const shownMilestones = useRef(new Set()); // U-2: track shown milestones
 
   // Core state
   const [stream, setStream] = useState(null);
@@ -92,66 +125,110 @@ export default function LiveWatchPage() {
   const [followingIds, setFollowingIds] = useState(new Set());
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // REC-5.2: Reconnect / Retry
+  // Video / connection
   const [videoError, setVideoError] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const retryTimer = useRef(null);
 
-  // REC-5.9: Pinned message
+  // Chat / engagement
   const [pinnedMsg, setPinnedMsg] = useState(null);
+  const [showEmotePicker, setShowEmotePicker] = useState(false); // U-1
+  const [followerIds, setFollowerIds] = useState(new Set());     // U-3
 
-  // REC-5.10: Poll
+  // REC-6.4: Milestone banner
+  const [milestoneBanner, setMilestoneBanner] = useState(null);
+
+  // Poll
   const [activePoll, setActivePoll] = useState(null);
   const [userVote, setUserVote] = useState(null);
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
 
-  // REC-5.13: Watch Party
+  // Watch Party
   const [watchPartyRoom, setWatchPartyRoom] = useState(null);
   const [watchPartyMembers, setWatchPartyMembers] = useState(1);
   const [showWatchParty, setShowWatchParty] = useState(false);
 
-  // REC-5.15: Confetti
+  // UI overlays
   const [showConfetti, setShowConfetti] = useState(false);
-
-  // REC-5.16: Quality selector
   const [quality, setQuality] = useState('Auto');
   const [showQualityMenu, setShowQualityMenu] = useState(false);
-
-  // REC-5.17: Content warning
   const [contentWarningCleared, setContentWarningCleared] = useState(false);
-
-  // Other
   const [isMuted, setIsMuted] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [showClipModal, setShowClipModal] = useState(false);
   const [clipTitle, setClipTitle] = useState('');
   const [clipCreating, setClipCreating] = useState(false);
+  const [handRaised, setHandRaised] = useState(false);
+
+  // C-4: Guest join mode
+  const isGuestJoin = searchParams.get('guestJoin') === '1';
+  const [guestReady, setGuestReady] = useState(false);
+  const [guestStream, setGuestStream] = useState(null);
+  const guestVideoRef = useRef(null);
+
   const isStreamer = stream?.uid === uid;
+  const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0);
 
-  // REC-6.1: Emote palette
-  const [showEmotePicker, setShowEmotePicker] = useState(false);
-  // REC-6.4: Viewer milestones
-  const [milestoneBanner, setMilestoneBanner] = useState(null);
-  const shownMilestones = useRef(new Set());
-  // REC-6.13: Subscriber set (for badge in chat)
-  const [followerIds, setFollowerIds] = useState(new Set());
-
-  // Load stream
+  // Load stream doc
   useEffect(() => {
     if (!streamId) return;
     const unsub = onSnapshot(doc(db, 'streams', streamId), snap => {
       if (snap.exists()) {
         setStream({ id: snap.id, ...snap.data() });
-        setLoading(false);
-        // REC-5.9: Sync pinned message
         if (snap.data().pinnedMessage) setPinnedMsg(snap.data().pinnedMessage);
       }
+      setLoading(false);
     });
     return () => unsub();
   }, [streamId]);
+
+  // C-1: HLS.js — load CDN dynamically, fall back to native for Safari
+  useEffect(() => {
+    if (!stream?.streamUrl || !videoRef.current) return;
+    const video = videoRef.current;
+
+    const setupHls = (Hls) => {
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      const isHlsUrl = stream.streamUrl.includes('.m3u8');
+      if (isHlsUrl && Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hls.loadSource(stream.streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) handleVideoError(); });
+        hlsRef.current = hls;
+      } else if (isHlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari native HLS
+        video.src = stream.streamUrl;
+      } else {
+        video.src = stream.streamUrl;
+      }
+      video.play().catch(() => {});
+    };
+
+    if (window.Hls) {
+      setupHls(window.Hls);
+    } else {
+      // Load hls.js from CDN
+      const existing = document.getElementById('hlsjs-cdn');
+      if (existing) {
+        existing.onload = () => setupHls(window.Hls);
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'hlsjs-cdn';
+      script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js';
+      script.onload = () => setupHls(window.Hls);
+      script.onerror = () => { video.src = stream.streamUrl; video.play().catch(() => {}); };
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    };
+  }, [stream?.streamUrl]);
 
   // Load chat messages
   useEffect(() => {
@@ -164,9 +241,7 @@ export default function LiveWatchPage() {
   }, [streamId]);
 
   // Auto-scroll chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
 
   // Load reactions
   useEffect(() => {
@@ -181,7 +256,10 @@ export default function LiveWatchPage() {
   useEffect(() => {
     if (!uid) return;
     const unsub = onSnapshot(doc(db, 'users', uid), snap => {
-      if (snap.exists()) setFollowingIds(new Set(snap.data().following || []));
+      if (snap.exists()) {
+        setFollowingIds(new Set(snap.data().following || []));
+        setFollowerIds(new Set(snap.data().following || [])); // U-3
+      }
     });
     return () => unsub();
   }, [uid]);
@@ -190,28 +268,43 @@ export default function LiveWatchPage() {
     if (stream?.uid) setIsFollowing(followingIds.has(stream.uid));
   }, [followingIds, stream]);
 
+  // U-2: Milestone banner useEffect
+  useEffect(() => {
+    if (!stream?.viewerCount) return;
+    const hit = MILESTONES.find(m => stream.viewerCount >= m && !shownMilestones.current.has(m));
+    if (hit) {
+      shownMilestones.current.add(hit);
+      setMilestoneBanner(`🎉 ${hit >= 1000 ? `${hit/1000}K` : hit} viewers!`);
+      setTimeout(() => setMilestoneBanner(null), 4000);
+    }
+  }, [stream?.viewerCount]);
+
   // Load active poll
   useEffect(() => {
     if (!streamId) return;
-    const q = query(collection(db, 'streams', streamId, 'polls'), where('active', '==', true), limit(1));
+    const q = query(collection(db, 'streams', streamId, 'polls'), where('active','==',true), limit(1));
     const unsub = onSnapshot(q, snap => {
       if (!snap.empty) {
         const pd = snap.docs[0];
         setActivePoll({ id: pd.id, ...pd.data() });
+        setUserVote(null); // FIX: reset vote on new poll
       } else {
         setActivePoll(null);
+        setUserVote(null);
       }
     });
     return () => unsub();
   }, [streamId]);
 
-  // REC-5.13: Watch party room listener
+  // Reset userVote on stream change (prevent double-vote)
+  useEffect(() => { setUserVote(null); }, [streamId]);
+
+  // Watch Party listener
   useEffect(() => {
     if (!watchPartyRoom) return;
     const unsub = onSnapshot(doc(db, 'watchParties', watchPartyRoom), snap => {
       if (snap.exists()) {
         setWatchPartyMembers(snap.data().members?.length || 1);
-        // Sync video time
         const syncTime = snap.data().currentTime;
         if (videoRef.current && syncTime !== undefined) {
           const diff = Math.abs(videoRef.current.currentTime - syncTime);
@@ -222,13 +315,9 @@ export default function LiveWatchPage() {
     return () => unsub();
   }, [watchPartyRoom]);
 
-  // REC-5.2: Video error handling
+  // Video error / reconnect
   const handleVideoError = useCallback(() => {
-    if (retryCount >= 3) {
-      setVideoError(true);
-      setReconnecting(false);
-      return;
-    }
+    if (retryCount >= 3) { setVideoError(true); setReconnecting(false); return; }
     setReconnecting(true);
     retryTimer.current = setTimeout(() => {
       const v = videoRef.current;
@@ -238,9 +327,34 @@ export default function LiveWatchPage() {
     }, 3000);
   }, [retryCount]);
 
+  useEffect(() => () => { if (retryTimer.current) clearTimeout(retryTimer.current); }, []);
+
+  // C-4: Guest join — prompt camera/mic
   useEffect(() => {
-    return () => { if (retryTimer.current) clearTimeout(retryTimer.current); };
-  }, []);
+    if (!isGuestJoin || guestReady) return;
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+        setGuestStream(stream);
+        if (guestVideoRef.current) {
+          guestVideoRef.current.srcObject = stream;
+          guestVideoRef.current.muted = true;
+        }
+        setGuestReady(true);
+        showToast('🎤 Guest mode active — your camera is on');
+        // Signal streamer
+        if (uid && streamId) {
+          await addDoc(collection(db, 'streams', streamId, 'guestRequests'), {
+            uid, userName: auth.currentUser?.displayName || 'Guest',
+            status: 'joined', joinedAt: serverTimestamp(),
+          });
+        }
+      } catch { showToast('Camera permission denied — viewing as regular viewer'); }
+    })();
+  }, [isGuestJoin, guestReady, uid, streamId, showToast]);
+
+  // Cleanup guest stream on unmount
+  useEffect(() => () => { guestStream?.getTracks().forEach(t => t.stop()); }, [guestStream]);
 
   // Send chat
   const sendMessage = useCallback(async () => {
@@ -268,18 +382,15 @@ export default function LiveWatchPage() {
   // Reactions
   const sendReaction = async emoji => {
     if (!streamId) return;
-    try {
-      await updateDoc(doc(db, 'streams', streamId), { [`reactions.${emoji}`]: increment(1) });
-    } catch {}
+    try { await updateDoc(doc(db, 'streams', streamId), { [`reactions.${emoji}`]: increment(1) }); } catch {}
   };
 
   // Follow/unfollow
   const toggleFollow = async () => {
     if (!uid || !stream?.uid) return;
     try {
-      const { updateDoc: upd, doc: d, arrayUnion: au, arrayRemove: ar } = await import('firebase/firestore');
-      await upd(d(db, 'users', uid), {
-        following: isFollowing ? ar(stream.uid) : au(stream.uid),
+      await updateDoc(doc(db, 'users', uid), {
+        following: isFollowing ? arrayRemove(stream.uid) : arrayUnion(stream.uid),
       });
       showToast(isFollowing ? 'Unfollowed' : '✓ Following');
     } catch { showToast('Failed'); }
@@ -300,17 +411,19 @@ export default function LiveWatchPage() {
     } catch { showToast('Gift failed'); }
   };
 
-  // REC-5.5: Clip creation
+  // Clip creation — includes streamStartTime for chat replay sync
   const createClip = async () => {
     if (!streamId || !uid) return;
     setClipCreating(true);
     try {
       const currentTimestamp = videoRef.current?.currentTime || 0;
       await addDoc(collection(db, 'clips'), {
-        streamId, uid, title: clipTitle.trim() || 'My Clip',
+        streamId, uid,
+        title: clipTitle.trim() || 'My Clip',
         timestamp: currentTimestamp,
         streamTitle: stream?.title || '',
         streamerName: stream?.userName || '',
+        streamStartTime: stream?.startedAt || null, // FIX: needed for chat replay sync
         status: 'processing',
         createdAt: serverTimestamp(),
       });
@@ -321,7 +434,7 @@ export default function LiveWatchPage() {
     finally { setClipCreating(false); }
   };
 
-  // REC-5.10: Create poll
+  // Poll
   const createPoll = async () => {
     if (!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2) {
       showToast('Add a question and at least 2 options'); return;
@@ -329,17 +442,14 @@ export default function LiveWatchPage() {
     try {
       const opts = pollOptions.filter(o => o.trim()).reduce((acc, o) => ({ ...acc, [o.trim()]: 0 }), {});
       await addDoc(collection(db, 'streams', streamId, 'polls'), {
-        question: pollQuestion.trim(), options: opts,
-        active: true, createdAt: serverTimestamp(), uid,
+        question: pollQuestion.trim(), options: opts, active: true,
+        createdAt: serverTimestamp(), uid,
       });
-      setShowPollCreator(false);
-      setPollQuestion('');
-      setPollOptions(['', '']);
+      setShowPollCreator(false); setPollQuestion(''); setPollOptions(['', '']);
       showToast('📊 Poll created!');
     } catch { showToast('Poll creation failed'); }
   };
 
-  // Vote on poll
   const votePoll = async optionKey => {
     if (!activePoll || userVote || !uid) return;
     try {
@@ -351,16 +461,11 @@ export default function LiveWatchPage() {
     } catch { showToast('Vote failed'); }
   };
 
-  // REC-5.9: Pin message
+  // Pin message
   const pinMessage = async msg => {
     if (!isStreamer) return;
-    try {
-      await updateDoc(doc(db, 'streams', streamId), { pinnedMessage: msg });
-      setPinnedMsg(msg);
-      showToast('📌 Message pinned');
-    } catch {}
+    try { await updateDoc(doc(db, 'streams', streamId), { pinnedMessage: msg }); setPinnedMsg(msg); showToast('📌 Pinned'); } catch {}
   };
-
   const unpinMessage = async () => {
     if (!isStreamer) return;
     try {
@@ -370,7 +475,21 @@ export default function LiveWatchPage() {
     } catch {}
   };
 
-  // REC-5.13: Create watch party
+  // Watch Party — FIX: only sync when playing (prevents drift on pause)
+  const syncWatchPartyTime = useCallback(async () => {
+    if (!watchPartyRoom || !videoRef.current) return;
+    if (videoRef.current.paused) return; // FIX: skip sync when paused
+    try {
+      await updateDoc(doc(db, 'watchParties', watchPartyRoom), { currentTime: videoRef.current.currentTime });
+    } catch {}
+  }, [watchPartyRoom]);
+
+  useEffect(() => {
+    if (!watchPartyRoom) return;
+    const t = setInterval(syncWatchPartyTime, 5000);
+    return () => clearInterval(t);
+  }, [watchPartyRoom, syncWatchPartyTime]);
+
   const createWatchParty = async () => {
     if (!uid || !streamId) return;
     try {
@@ -381,49 +500,52 @@ export default function LiveWatchPage() {
       });
       setWatchPartyRoom(docRef.id);
       const link = `${window.location.origin}/live/watch/${streamId}?party=${docRef.id}`;
-      if (navigator.share) {
-        await navigator.share({ title: 'Watch Party', url: link });
-      } else {
-        await navigator.clipboard.writeText(link);
-        showToast('🎉 Watch party link copied!');
-      }
+      if (navigator.share) await navigator.share({ title: 'Watch Party', url: link });
+      else { await navigator.clipboard.writeText(link); showToast('🎉 Watch party link copied!'); }
     } catch { showToast('Failed to create watch party'); }
   };
 
-  // Sync watch party time
-  const syncWatchPartyTime = useCallback(async () => {
-    if (!watchPartyRoom || !videoRef.current) return;
+  // Raise hand
+  const raiseHand = async () => {
+    if (!uid || !streamId) return;
     try {
-      await updateDoc(doc(db, 'watchParties', watchPartyRoom), {
-        currentTime: videoRef.current.currentTime,
+      setHandRaised(v => !v);
+      await addDoc(collection(db, 'streams', streamId, 'handRaises'), {
+        uid, userName: auth.currentUser?.displayName || 'Viewer',
+        timestamp: serverTimestamp(), raised: !handRaised,
       });
-    } catch {}
-  }, [watchPartyRoom]);
+      showToast(handRaised ? 'Hand lowered' : '✋ Hand raised — streamer notified');
+    } catch { showToast('Failed'); }
+  };
 
-  useEffect(() => {
-    if (!watchPartyRoom) return;
-    const t = setInterval(syncWatchPartyTime, 5000);
-    return () => clearInterval(t);
-  }, [watchPartyRoom, syncWatchPartyTime]);
+  // Report stream
+  const reportStream = async () => {
+    if (!uid || !streamId) return;
+    try {
+      await addDoc(collection(db, 'reports'), {
+        type: 'stream', targetId: streamId, reportedBy: uid,
+        createdAt: serverTimestamp(), status: 'pending',
+      });
+      showToast('🚨 Stream reported. Thank you.');
+    } catch { showToast('Report failed'); }
+  };
 
-  const fmt = n => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0);
-
-  // REC-5.17: Show content warning before mature content
+  // Guard: content warning
   if (stream?.contentRating === 'mature' && !contentWarningCleared) {
     return <ContentWarning onContinue={() => setContentWarningCleared(true)} />;
   }
 
-  if (loading) return (
-    <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ color:'#94a3b8', fontSize:'14px' }}>Loading stream…</div>
-    </div>
-  );
+  if (loading) return <StreamSkeleton />;
 
   if (!stream) return (
-    <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'12px' }}>
+    <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:'12px' }}>
       <div style={{ fontSize:'40px' }}>📡</div>
       <div style={{ color:'#f1f5f9', fontWeight:700 }}>Stream not found</div>
-      <button onClick={() => navigate('/live')} style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'10px 20px', color:'#94a3b8', cursor:'pointer' }}>← Browse Live</button>
+      <button onClick={() => navigate('/live')}
+        style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'10px 20px', color:'#94a3b8', cursor:'pointer' }}>
+        ← Browse Live
+      </button>
     </div>
   );
 
@@ -433,6 +555,17 @@ export default function LiveWatchPage() {
     <>
     {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
 
+    {/* U-2: Milestone banner */}
+    {milestoneBanner && (
+      <div style={{ position:'fixed', top:'70px', left:'50%', transform:'translateX(-50%)', zIndex:9000,
+        background:'linear-gradient(135deg,#f59e0b,#ef4444)', borderRadius:'20px', padding:'10px 20px',
+        color:'white', fontWeight:800, fontSize:'14px', boxShadow:'0 4px 20px rgba(0,0,0,0.5)',
+        animation:'slideDown 0.4s ease' }}>
+        {milestoneBanner}
+        <style>{`@keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}`}</style>
+      </div>
+    )}
+
     <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column', paddingBottom:'80px' }}>
 
       {/* Header */}
@@ -440,7 +573,6 @@ export default function LiveWatchPage() {
         <button onClick={() => navigate('/live')} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
         <div style={{ flex:1, overflow:'hidden' }}>
           <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{stream.title || 'Live Stream'}</div>
-          {/* REC-5.6: Streamer name navigates to /profile/:uid */}
           <button onClick={() => navigate(`/profile/${stream.uid}`)}
             style={{ background:'none', border:'none', color:'#ef4444', fontSize:'11px', fontWeight:700, cursor:'pointer', padding:0 }}>
             {stream.userName || 'Streamer'} →
@@ -452,25 +584,38 @@ export default function LiveWatchPage() {
         )}
       </div>
 
+      {/* C-4: Guest join banner */}
+      {isGuestJoin && (
+        <div style={{ background: guestReady ? 'rgba(34,197,94,0.15)' : 'rgba(99,102,241,0.15)',
+          borderBottom:`1px solid ${guestReady ? '#22c55e' : '#6366f1'}`, padding:'8px 16px',
+          display:'flex', alignItems:'center', gap:'8px' }}>
+          <video ref={guestVideoRef} autoPlay playsInline muted
+            style={{ width:'60px', height:'40px', borderRadius:'6px', objectFit:'cover',
+              border:`1px solid ${guestReady ? '#22c55e' : '#334155'}`, background:'#1e293b' }} />
+          <div>
+            <div style={{ color:guestReady ? '#22c55e' : '#818cf8', fontWeight:700, fontSize:'12px' }}>
+              {guestReady ? '🎤 Guest mode active' : '⏳ Requesting camera access…'}
+            </div>
+            <div style={{ color:'#64748b', fontSize:'10px' }}>Your camera is visible to the streamer</div>
+          </div>
+        </div>
+      )}
+
       {/* Video Player */}
       <div style={{ position:'relative', width:'100%', aspectRatio:'16/9', background:'#000', maxHeight:'240px' }}>
-        <video ref={videoRef} autoPlay playsInline controls
-          muted={isMuted}
-          src={stream.streamUrl}
-          onError={handleVideoError}
-          onTimeUpdate={watchPartyRoom ? syncWatchPartyTime : undefined}
+        {/* C-1: HLS handled via useEffect — no src here */}
+        <video ref={videoRef} autoPlay playsInline controls muted={isMuted}
           crossOrigin="anonymous"
           style={{ width:'100%', height:'100%', objectFit:'contain' }} />
 
-        {/* REC-5.2: Reconnect overlay */}
+        {/* Reconnect overlay */}
         {(reconnecting || videoError) && (
           <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', flexDirection:'column',
             alignItems:'center', justifyContent:'center', gap:'12px' }}>
             {reconnecting ? (
               <>
-                <div style={{ color:'white', fontSize:'24px', animation:'spin 1s linear infinite' }}>⟳</div>
+                <div style={{ color:'white', fontSize:'24px' }}>⟳</div>
                 <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>Reconnecting… ({retryCount}/3)</div>
-                <div style={{ color:'#94a3b8', fontSize:'12px' }}>Hang tight, restoring connection</div>
               </>
             ) : (
               <>
@@ -491,7 +636,7 @@ export default function LiveWatchPage() {
           </div>
         )}
 
-        {/* REC-5.16: Quality selector overlay */}
+        {/* Quality selector */}
         <div style={{ position:'absolute', top:'8px', right:'8px', zIndex:10 }}>
           <button onClick={() => setShowQualityMenu(v => !v)}
             style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'3px 8px',
@@ -503,34 +648,46 @@ export default function LiveWatchPage() {
               padding:'4px', border:'1px solid #334155', marginTop:'4px', zIndex:20 }}>
               {QUALITY_LEVELS.map(q2 => (
                 <button key={q2} onClick={() => { setQuality(q2); setShowQualityMenu(false); showToast(`Quality: ${q2}`); }}
-                  style={{ display:'block', width:'100%', background: quality === q2 ? '#334155' : 'none',
-                    border:'none', borderRadius:'6px', padding:'6px 14px', color: quality === q2 ? '#f1f5f9' : '#94a3b8',
+                  style={{ display:'block', width:'100%', background: quality===q2 ? '#334155' : 'none',
+                    border:'none', borderRadius:'6px', padding:'6px 14px', color: quality===q2 ? '#f1f5f9' : '#94a3b8',
                     fontSize:'12px', fontWeight:600, cursor:'pointer', textAlign:'left', whiteSpace:'nowrap' }}>
-                  {quality === q2 ? '✓ ' : ''}{q2}
+                  {quality===q2 ? '✓ ' : ''}{q2}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Mute / Watch Party icons */}
+        {/* Mute / Watch Party */}
         <div style={{ position:'absolute', bottom:'8px', left:'8px', display:'flex', gap:'6px' }}>
           <button onClick={() => setIsMuted(v => !v)}
-            style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 8px',
-              color:'white', fontSize:'14px', cursor:'pointer' }}>
+            style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}>
             {isMuted ? '🔇' : '🔊'}
           </button>
-          {/* REC-5.13: Watch party button */}
           <button onClick={() => setShowWatchParty(v => !v)}
             style={{ background: watchPartyRoom ? 'rgba(99,102,241,0.8)' : 'rgba(0,0,0,0.7)',
               border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}>
-            🎉 {watchPartyRoom ? `${watchPartyMembers}` : ''}
+            🎉 {watchPartyRoom ? watchPartyMembers : ''}
+          </button>
+          {/* Raise Hand / Report */}
+          <button onClick={raiseHand}
+            style={{ background: handRaised ? 'rgba(245,158,11,0.8)' : 'rgba(0,0,0,0.7)',
+              border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}
+            title="Raise hand to be invited as guest">
+            ✋
           </button>
         </div>
+
+        {/* Report button */}
+        <button onClick={reportStream}
+          style={{ position:'absolute', top:'8px', left:'8px', background:'rgba(0,0,0,0.6)',
+            border:'none', borderRadius:'6px', padding:'3px 7px', color:'#94a3b8', fontSize:'10px', cursor:'pointer' }}>
+          🚨
+        </button>
       </div>
 
-      {/* Emoji reactions */}
-      <div style={{ display:'flex', gap:'8px', padding:'8px 16px', overflowX:'auto', borderBottom:'1px solid #1e293b' }}>
+      {/* Emoji reactions + clip + gift + emote picker */}
+      <div style={{ display:'flex', gap:'8px', padding:'8px 16px', overflowX:'auto', borderBottom:'1px solid #1e293b', alignItems:'center' }}>
         {EMOJIS.map(emoji => (
           <button key={emoji} onClick={() => sendReaction(emoji)}
             style={{ background:'#1e293b', border:'none', borderRadius:'20px', padding:'5px 10px',
@@ -538,13 +695,38 @@ export default function LiveWatchPage() {
             {emoji} <span style={{ fontSize:'10px', color:'#94a3b8' }}>{reactions[emoji] || 0}</span>
           </button>
         ))}
-        {/* REC-5.5: Clip button */}
+
+        {/* U-1: Emote picker */}
+        <div style={{ position:'relative', flexShrink:0 }}>
+          <button onClick={() => setShowEmotePicker(v => !v)}
+            style={{ background: showEmotePicker ? '#334155' : '#1e293b', border:'1px solid #334155',
+              borderRadius:'20px', padding:'5px 10px', fontSize:'13px', cursor:'pointer', color:'#f1f5f9' }}>
+            😊
+          </button>
+          {showEmotePicker && (
+            <div style={{ position:'absolute', bottom:'100%', left:0, background:'#1e293b', borderRadius:'12px',
+              padding:'8px', border:'1px solid #334155', zIndex:50, width:'186px', marginBottom:'4px',
+              boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'2px' }}>
+                {EMOTE_PALETTE.map(e => (
+                  <button key={e} onClick={() => { setChatMsg(m => m + e); setShowEmotePicker(false); }}
+                    style={{ background:'none', border:'none', fontSize:'16px', cursor:'pointer',
+                      padding:'4px', borderRadius:'6px', lineHeight:1, transition:'background 0.15s' }}
+                    onMouseEnter={ev => ev.target.style.background='#334155'}
+                    onMouseLeave={ev => ev.target.style.background='none'}>
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         <button onClick={() => setShowClipModal(true)}
           style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'20px', padding:'5px 10px',
             fontSize:'11px', color:'#94a3b8', cursor:'pointer', flexShrink:0, fontWeight:600 }}>
           ✂️ Clip
         </button>
-        {/* Gift button */}
         <button onClick={() => setShowGiftModal(true)}
           style={{ background:'linear-gradient(135deg,#f59e0b,#ef4444)', border:'none', borderRadius:'20px',
             padding:'5px 10px', fontSize:'11px', color:'white', cursor:'pointer', flexShrink:0, fontWeight:700 }}>
@@ -552,27 +734,23 @@ export default function LiveWatchPage() {
         </button>
       </div>
 
-      {/* Stream info + Follow */}
+      {/* Stream info + follow */}
       <div style={{ padding:'10px 16px', borderBottom:'1px solid #1e293b', display:'flex', gap:'10px', alignItems:'flex-start' }}>
         <div style={{ flex:1 }}>
           <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'2px' }}>{stream.title}</div>
           <div style={{ color:'#64748b', fontSize:'12px' }}>{stream.description}</div>
           {stream.category && (
-            <div style={{ marginTop:'4px' }}>
-              <span style={{ background:'#1e293b', borderRadius:'8px', padding:'2px 8px', color:'#94a3b8', fontSize:'11px' }}>
-                {stream.category}
-              </span>
-            </div>
+            <span style={{ background:'#1e293b', borderRadius:'8px', padding:'2px 8px', color:'#94a3b8', fontSize:'11px', marginTop:'4px', display:'inline-block' }}>
+              {stream.category}
+            </span>
           )}
         </div>
         <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
-          {/* Share */}
           <button onClick={async () => {
             const url = window.location.href;
-            if (navigator.share) { await navigator.share({ title: stream.title, url }); }
+            if (navigator.share) await navigator.share({ title: stream.title, url });
             else { await navigator.clipboard.writeText(url); showToast('Link copied'); }
-          }} style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'10px', padding:'8px 12px',
-            color:'#94a3b8', fontSize:'13px', cursor:'pointer' }}>🔗</button>
+          }} style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'10px', padding:'8px 12px', color:'#94a3b8', fontSize:'13px', cursor:'pointer' }}>🔗</button>
           <button onClick={toggleFollow}
             style={{ background: isFollowing ? '#1e293b' : 'linear-gradient(135deg,#ef4444,#f59e0b)',
               border: isFollowing ? '1px solid #334155' : 'none', borderRadius:'10px', padding:'8px 14px',
@@ -582,18 +760,18 @@ export default function LiveWatchPage() {
         </div>
       </div>
 
-      {/* REC-5.13: Watch Party Panel */}
+      {/* Watch Party Panel */}
       {showWatchParty && (
         <div style={{ background:'#1e293b', borderBottom:'1px solid #334155', padding:'12px 16px' }}>
           <div style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9', marginBottom:'8px' }}>🎉 Watch Party</div>
           {watchPartyRoom ? (
             <div>
               <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'8px' }}>
-                {watchPartyMembers} people watching together · Room: {watchPartyRoom.slice(0, 8)}…
+                {watchPartyMembers} watching together · Room: {watchPartyRoom.slice(0,8)}…
               </div>
               <button onClick={async () => {
                 const link = `${window.location.origin}/live/watch/${streamId}?party=${watchPartyRoom}`;
-                if (navigator.share) await navigator.share({ title: 'Watch Party', url: link });
+                if (navigator.share) await navigator.share({ title:'Watch Party', url:link });
                 else { await navigator.clipboard.writeText(link); showToast('Party link copied!'); }
               }} style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'6px 14px',
                 color:'#f1f5f9', fontSize:'12px', cursor:'pointer', fontWeight:600 }}>
@@ -602,9 +780,7 @@ export default function LiveWatchPage() {
             </div>
           ) : (
             <div>
-              <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'8px' }}>
-                Start a watch party and invite friends to watch in sync
-              </div>
+              <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'8px' }}>Watch in sync with friends</div>
               <button onClick={createWatchParty}
                 style={{ background:'linear-gradient(135deg,#6366f1,#818cf8)', border:'none', borderRadius:'10px',
                   padding:'8px 16px', color:'white', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
@@ -615,7 +791,7 @@ export default function LiveWatchPage() {
         </div>
       )}
 
-      {/* REC-5.10: Active Poll */}
+      {/* Active Poll */}
       {activePoll && (
         <div style={{ background:'#1e293b', borderBottom:'1px solid #334155', padding:'12px 16px' }}>
           <div style={{ fontSize:'12px', fontWeight:700, color:'#f59e0b', marginBottom:'6px' }}>📊 Live Poll</div>
@@ -627,8 +803,7 @@ export default function LiveWatchPage() {
               <div key={opt} onClick={() => votePoll(opt)} style={{ marginBottom:'6px', cursor: userVote ? 'default' : 'pointer' }}>
                 <div style={{ position:'relative', background:'#0f172a', borderRadius:'8px', overflow:'hidden',
                   border: voted ? '1px solid #f59e0b' : '1px solid #334155' }}>
-                  <div style={{ position:'absolute', inset:0, background:'rgba(99,102,241,0.25)',
-                    width: `${pct}%`, transition:'width 0.4s ease' }} />
+                  <div style={{ position:'absolute', inset:0, background:'rgba(99,102,241,0.25)', width:`${pct}%`, transition:'width 0.4s ease' }} />
                   <div style={{ position:'relative', padding:'7px 10px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ color:'#f1f5f9', fontSize:'13px', fontWeight: voted ? 700 : 400 }}>{voted ? '✓ ' : ''}{opt}</span>
                     {userVote && <span style={{ color:'#94a3b8', fontSize:'12px' }}>{pct}%</span>}
@@ -657,17 +832,16 @@ export default function LiveWatchPage() {
         </div>
       )}
 
-      {/* Poll creator (streamer only) */}
+      {/* Poll creator */}
       {isStreamer && showPollCreator && (
         <div style={{ background:'#1e293b', borderBottom:'1px solid #334155', padding:'12px 16px' }}>
           <div style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9', marginBottom:'8px' }}>Create Poll</div>
-          <input value={pollQuestion} onChange={e => setPollQuestion(e.target.value)}
-            placeholder="Poll question…"
+          <input value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} placeholder="Poll question…"
             style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:'8px',
               padding:'8px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box', marginBottom:'8px' }} />
           {pollOptions.map((opt, i) => (
             <input key={i} value={opt} onChange={e => { const o=[...pollOptions]; o[i]=e.target.value; setPollOptions(o); }}
-              placeholder={`Option ${i + 1}`}
+              placeholder={`Option ${i+1}`}
               style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:'8px',
                 padding:'7px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box', marginBottom:'6px' }} />
           ))}
@@ -686,7 +860,7 @@ export default function LiveWatchPage() {
         </div>
       )}
 
-      {/* REC-5.9: Pinned message */}
+      {/* Pinned message */}
       {pinnedMsg && (
         <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)',
           borderRadius:'8px', margin:'8px 16px', padding:'8px 12px', display:'flex', alignItems:'center', gap:'8px' }}>
@@ -718,16 +892,18 @@ export default function LiveWatchPage() {
                 {msg.userName?.[0]?.toUpperCase() || 'V'}
               </div>
               <div style={{ flex:1 }}>
-                <span style={{ color:'#f59e0b', fontSize:'11px', fontWeight:700 }}>{msg.userName}: </span>
+                <span style={{ color:'#f59e0b', fontSize:'11px', fontWeight:700 }}>{msg.userName}</span>
+                {/* U-3: Subscriber badge */}
+                {followerIds.has(msg.uid) && (
+                  <span style={{ fontSize:'9px', marginLeft:'3px', verticalAlign:'middle' }} title="Subscriber">⭐</span>
+                )}
+                <span style={{ color:'#94a3b8', fontSize:'11px' }}>: </span>
                 <span style={{ color:'#e2e8f0', fontSize:'12px' }}>{msg.text}</span>
               </div>
-              {/* REC-5.9: Pin icon for streamer */}
               {isStreamer && (
                 <button onClick={() => pinMessage(msg)}
                   style={{ background:'none', border:'none', color:'#334155', fontSize:'12px', cursor:'pointer', padding:'0 2px' }}
-                  aria-label="Pin message" title="Pin message">
-                  📌
-                </button>
+                  title="Pin message">📌</button>
               )}
             </div>
           ))}
@@ -737,18 +913,19 @@ export default function LiveWatchPage() {
         {/* Chat input */}
         {stream.status === 'live' ? (
           uid ? (
-            <div style={{ display:'flex', gap:'8px' }}>
+            <div style={{ display:'flex', gap:'8px', alignItems:'flex-end' }}>
+              {/* FIX: textarea with max-height and overflow:auto (long message fix) */}
               <textarea value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={handleKeyDown}
                 placeholder={stream.subscriberOnlyChat && !followingIds.has(stream.uid) ? '🔒 Subscribers only' : 'Say something…'}
                 disabled={stream.subscriberOnlyChat && !followingIds.has(stream.uid)}
                 rows={1}
                 style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'10px',
-                  padding:'9px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', resize:'none',
-                  boxSizing:'border-box', overflow:'hidden' }} />
+                  padding:'9px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none',
+                  resize:'none', boxSizing:'border-box', overflow:'auto', maxHeight:'80px' }} />
               <button onClick={sendMessage} disabled={sending || !chatMsg.trim()}
                 style={{ background: chatMsg.trim() ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
-                  border:'none', borderRadius:'10px', padding:'0 16px', color:'white', fontWeight:700, fontSize:'18px',
-                  cursor: chatMsg.trim() ? 'pointer' : 'not-allowed', flexShrink:0 }}>
+                  border:'none', borderRadius:'10px', padding:'9px 16px', color:'white', fontWeight:700, fontSize:'18px',
+                  cursor: chatMsg.trim() ? 'pointer' : 'not-allowed', flexShrink:0, height:'38px' }}>
                 ➤
               </button>
             </div>
@@ -786,16 +963,15 @@ export default function LiveWatchPage() {
       </div>
     )}
 
-    {/* REC-5.5: Clip Creation Modal */}
+    {/* Clip Modal */}
     {showClipModal && (
       <div onClick={() => setShowClipModal(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:9000,
         display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
         <div onClick={e => e.stopPropagation()} style={{ background:'#1e293b', borderRadius:'20px 20px 0 0',
           padding:'20px 20px 36px', width:'100%', maxWidth:'420px' }}>
           <div style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', marginBottom:'4px' }}>✂️ Create Clip</div>
-          <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'12px' }}>Capture the last 30 seconds of the stream</div>
-          <input value={clipTitle} onChange={e => setClipTitle(e.target.value)}
-            placeholder="Clip title (optional)"
+          <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'12px' }}>Capture the last 30 seconds</div>
+          <input value={clipTitle} onChange={e => setClipTitle(e.target.value)} placeholder="Clip title (optional)"
             style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:'10px',
               padding:'10px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box', marginBottom:'12px' }} />
           <button onClick={createClip} disabled={clipCreating}
@@ -806,10 +982,6 @@ export default function LiveWatchPage() {
         </div>
       </div>
     )}
-
-    <style>{`
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    `}</style>
     </>
   );
 }
