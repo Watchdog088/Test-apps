@@ -718,7 +718,45 @@ export default function LivePage() {
 
       </div>
     </div>
-    <style>{`@keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }`}</style>
+
+    {/* MISS-L01: Go Live FAB — fixed bottom-right, always visible */}
+    <button
+      onClick={() => navigate('/live/setup')}
+      aria-label="Go Live"
+      style={{
+        position: 'fixed',
+        bottom: '76px', // above bottom nav
+        right: '16px',
+        width: '56px',
+        height: '56px',
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg,#ef4444,#dc2626)',
+        border: 'none',
+        boxShadow: '0 4px 20px rgba(239,68,68,0.5)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 900,
+        animation: 'fabPulse 2s infinite',
+      }}
+    >
+      <span style={{ fontSize: '22px', lineHeight: 1 }}>🔴</span>
+    </button>
+
+    <style>{`
+      @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
+      @keyframes liveRingPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.7), 0 0 0 0 rgba(239,68,68,0.4); }
+        70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0), 0 0 0 14px rgba(239,68,68,0); }
+        100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 0 0 0 rgba(239,68,68,0); }
+      }
+      @keyframes fabPulse {
+        0%,100% { box-shadow: 0 4px 20px rgba(239,68,68,0.5); }
+        50%     { box-shadow: 0 4px 28px rgba(239,68,68,0.8), 0 0 0 6px rgba(239,68,68,0.15); }
+      }
+      .live-ring { animation: liveRingPulse 1.5s infinite; }
+    `}</style>
     </>
   );
 }
