@@ -106,6 +106,16 @@ export default function LiveSetupPage() {
     Education:'📚', Art:'🎨', Cooking:'🍳', Tech:'💻', Fitness:'💪', Other:'✨',
   };
 
+  // REC-6.15: SEO suggestions by category (tap-to-use chips)
+  const SEO_SUGGESTIONS = {
+    Gaming: ['🎮 Epic Gaming Session!','🔴 Ranked Grind Live','🎯 Going for Diamond Today'],
+    Music: ['🎵 Chill Music Session','🎸 Live Jam Session','🎤 Singing & Vibing Live'],
+    'Just Chatting': ['💬 Sunday Chill Chat','☕ Coffee & Conversation','🗣️ Community Hangout'],
+    Sports: ['⚽ Watch Party Live!','🏋️ Workout Stream','🎽 Sports Commentary'],
+    Education: ['📚 Study with Me','💡 Teaching What I Know','🧠 Learning in Public'],
+    default: ['🔴 Live Now!','✨ Come Hang Out','🎉 Join the Fun'],
+  };
+
   // REC-5.4: Generate guest invite link
   const inviteGuest = useCallback(async () => {
     if (!streamId) { showToast('Go live first to invite a guest'); return; }
@@ -119,6 +129,29 @@ export default function LiveSetupPage() {
       showToast('🔗 Guest invite link copied!');
     }
   }, [streamId, showToast]);
+
+  // REC-6.2: Stream raid — send viewers to another channel at end
+  const performRaid = useCallback(async () => {
+    if (!raidTarget.trim() || !streamId) return;
+    setRaiding(true);
+    try {
+      await updateDoc(doc(db, 'streams', streamId), { status: 'raiding', raidTarget: raidTarget.trim() });
+      showToast(`🚀 Raiding @${raidTarget}! Ending in 3s…`);
+      setTimeout(() => endStream(), 3000);
+    } catch { showToast('Raid failed'); setRaiding(false); }
+  }, [raidTarget, streamId, showToast, endStream]);
+
+  // REC-6.9: Save live title mid-stream
+  const saveLiveTitle = useCallback(async () => {
+    if (!liveTitle.trim() || !streamId) return;
+    setTitleSaving(true);
+    try {
+      await updateDoc(doc(db, 'streams', streamId), { title: liveTitle.trim() });
+      showToast('✓ Title updated!');
+      setEditingTitle(false);
+    } catch { showToast('Failed to update title'); }
+    finally { setTitleSaving(false); }
+  }, [liveTitle, streamId, showToast]);
 
   // Request camera permission on mount
   useEffect(() => {
@@ -350,6 +383,26 @@ export default function LiveSetupPage() {
               {title.length}/60
             </span>
           </div>
+          {/* REC-6.15: SEO suggestion chips */}
+          {!isStreaming && (
+            <div style={{ marginTop:'6px' }}>
+              <button onClick={() => setShowSeoSuggestions(v => !v)}
+                style={{ background:'none', border:'none', color:'#64748b', fontSize:'11px', cursor:'pointer', padding:0 }}>
+                💡 Title ideas for {category}
+              </button>
+              {showSeoSuggestions && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'6px' }}>
+                  {(SEO_SUGGESTIONS[category] || SEO_SUGGESTIONS.default).map(s => (
+                    <button key={s} onClick={() => { setTitle(s.slice(0,60)); setShowSeoSuggestions(false); }}
+                      style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'20px',
+                        padding:'4px 10px', color:'#94a3b8', fontSize:'11px', cursor:'pointer' }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div>
@@ -380,13 +433,34 @@ export default function LiveSetupPage() {
         </div>
 
         {!isStreaming ? (
-          <button onClick={startStream} disabled={isStarting || !camGranted || !title.trim()}
-            style={{ background: camGranted && title.trim() ? 'linear-gradient(135deg,#ef4444,#dc2626)' : '#334155',
-              border:'none', borderRadius:'14px', padding:'16px', color:'white', fontWeight:800, fontSize:'16px',
-              cursor: camGranted && title.trim() ? 'pointer' : 'not-allowed', letterSpacing:'0.02em',
-              boxShadow: camGranted && title.trim() ? '0 4px 20px rgba(239,68,68,0.4)' : 'none' }}>
-            {isStarting ? '⏳ Starting…' : '🔴 Go Live'}
-          </button>
+          <>
+            {/* REC-6.5: Preview mode toggle — test camera/mic without going live */}
+            <div style={{ display:'flex', alignItems:'center', gap:'10px', background:'#1e293b', borderRadius:'10px', padding:'10px 12px', border:'1px solid #334155' }}>
+              <div style={{ flex:1 }}>
+                <div style={{ color:'#f1f5f9', fontSize:'12px', fontWeight:700 }}>🔍 Test Mode</div>
+                <div style={{ color:'#64748b', fontSize:'10px' }}>Preview camera + mic without going live</div>
+              </div>
+              <button onClick={() => setPreviewMode(v => !v)}
+                style={{ background: previewMode ? '#22c55e' : '#334155', border:'none', borderRadius:'20px',
+                  width:'40px', height:'22px', cursor:'pointer', position:'relative', transition:'background 0.2s' }}>
+                <div style={{ position:'absolute', top:'3px', left: previewMode ? '20px' : '4px',
+                  width:'16px', height:'16px', borderRadius:'50%', background:'white', transition:'left 0.2s' }} />
+              </button>
+            </div>
+            {previewMode && (
+              <div style={{ background:'rgba(34,197,94,0.1)', border:'1px solid #22c55e', borderRadius:'10px', padding:'10px 12px' }}>
+                <div style={{ color:'#22c55e', fontSize:'12px', fontWeight:700 }}>✓ Test mode active</div>
+                <div style={{ color:'#64748b', fontSize:'11px' }}>Camera is on but you are NOT live. Only you can see this preview.</div>
+              </div>
+            )}
+            <button onClick={startStream} disabled={isStarting || !camGranted || !title.trim() || previewMode}
+              style={{ background: (camGranted && title.trim() && !previewMode) ? 'linear-gradient(135deg,#ef4444,#dc2626)' : '#334155',
+                border:'none', borderRadius:'14px', padding:'16px', color:'white', fontWeight:800, fontSize:'16px',
+                cursor: (camGranted && title.trim() && !previewMode) ? 'pointer' : 'not-allowed', letterSpacing:'0.02em',
+                boxShadow: (camGranted && title.trim() && !previewMode) ? '0 4px 20px rgba(239,68,68,0.4)' : 'none' }}>
+              {isStarting ? '⏳ Starting…' : previewMode ? '🔍 In Test Mode' : '🔴 Go Live'}
+            </button>
+          </>
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
             {/* Live controls */}
@@ -404,7 +478,97 @@ export default function LiveSetupPage() {
                 style={{ background:'#1e293b', border:'1px solid #6366f1', borderRadius:'10px', padding:'10px', color:'#818cf8', fontSize:'12px', fontWeight:700, cursor:'pointer', gridColumn:'span 2' }}>
                 🎤 Invite Guest Co-Host{guestLink ? ' (link copied!)' : ''}
               </button>
+              {/* REC-6.7: Dashboard overlay toggle */}
+              <button onClick={() => setShowDashboard(v => !v)}
+                style={{ background: showDashboard ? '#334155' : '#1e293b', border:`1px solid ${showDashboard ? '#6366f1' : '#334155'}`, borderRadius:'10px', padding:'10px', color: showDashboard ? '#818cf8' : '#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+                📊 Dashboard
+              </button>
+              {/* REC-6.2: Raid button */}
+              <button onClick={() => setShowRaidPanel(v => !v)}
+                style={{ background:'#1e293b', border:'1px solid #f59e0b', borderRadius:'10px', padding:'10px', color:'#f59e0b', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+                🚀 Raid
+              </button>
             </div>
+
+            {/* REC-6.7: Live Dashboard Panel */}
+            {showDashboard && (
+              <div style={{ background:'#0f172a', border:'1px solid #334155', borderRadius:'12px', padding:'12px' }}>
+                <div style={{ fontSize:'11px', fontWeight:700, color:'#64748b', textTransform:'uppercase', marginBottom:'8px' }}>📊 Live Dashboard</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px', marginBottom:'8px' }}>
+                  <div style={{ background:'#1e293b', borderRadius:'8px', padding:'8px', textAlign:'center' }}>
+                    <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'18px' }}>{viewerCount}</div>
+                    <div style={{ color:'#64748b', fontSize:'10px' }}>Viewers</div>
+                  </div>
+                  <div style={{ background:'#1e293b', borderRadius:'8px', padding:'8px', textAlign:'center' }}>
+                    <div style={{ color: quality?.color || '#64748b', fontWeight:800, fontSize:'12px' }}>{quality?.label || '—'}</div>
+                    <div style={{ color:'#64748b', fontSize:'10px' }}>Quality</div>
+                  </div>
+                  <div style={{ background:'#1e293b', borderRadius:'8px', padding:'8px', textAlign:'center' }}>
+                    <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'14px' }}>{quality?.bitrate || 0}</div>
+                    <div style={{ color:'#64748b', fontSize:'10px' }}>kbps</div>
+                  </div>
+                </div>
+                {/* REC-6.9: Inline title edit */}
+                <div style={{ marginBottom:'8px' }}>
+                  <div style={{ fontSize:'10px', color:'#64748b', marginBottom:'4px', fontWeight:700 }}>LIVE TITLE EDIT</div>
+                  {editingTitle ? (
+                    <div style={{ display:'flex', gap:'6px' }}>
+                      <input value={liveTitle} onChange={e => setLiveTitle(e.target.value.slice(0,60))}
+                        placeholder="New title…"
+                        style={{ flex:1, background:'#1e293b', border:'1px solid #6366f1', borderRadius:'8px',
+                          padding:'7px 10px', color:'#f1f5f9', fontSize:'12px', outline:'none' }} />
+                      <button onClick={saveLiveTitle} disabled={titleSaving}
+                        style={{ background:'#6366f1', border:'none', borderRadius:'8px', padding:'7px 12px', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+                        {titleSaving ? '⏳' : '✓'}
+                      </button>
+                      <button onClick={() => setEditingTitle(false)}
+                        style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'7px 10px', color:'#94a3b8', fontSize:'12px', cursor:'pointer' }}>✕</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setLiveTitle(title); setEditingTitle(true); }}
+                      style={{ background:'#1e293b', border:'1px dashed #334155', borderRadius:'8px', padding:'7px 12px', color:'#64748b', fontSize:'12px', cursor:'pointer', width:'100%', textAlign:'left' }}>
+                      ✏️ {title || 'Edit title…'}
+                    </button>
+                  )}
+                </div>
+                {/* REC-6.12: Sound meter VU bars */}
+                <div>
+                  <div style={{ fontSize:'10px', color:'#64748b', marginBottom:'4px', fontWeight:700 }}>🎤 MIC LEVEL</div>
+                  <div style={{ display:'flex', gap:'2px', height:'16px', alignItems:'flex-end' }}>
+                    {Array.from({ length: 20 }, (_, i) => (
+                      <div key={i} style={{
+                        flex:1, borderRadius:'1px',
+                        background: i < Math.round(soundLevel * 20)
+                          ? (i < 14 ? '#4ade80' : i < 17 ? '#f59e0b' : '#ef4444')
+                          : '#1e293b',
+                        height: `${40 + i * 3}%`,
+                        transition:'background 0.1s',
+                      }} />
+                    ))}
+                  </div>
+                  {soundLevel === 0 && <div style={{ color:'#334155', fontSize:'10px', marginTop:'2px' }}>Start stream to activate mic meter</div>}
+                </div>
+              </div>
+            )}
+
+            {/* REC-6.2: Raid Panel */}
+            {showRaidPanel && (
+              <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'12px', padding:'12px' }}>
+                <div style={{ fontSize:'12px', fontWeight:700, color:'#f59e0b', marginBottom:'8px' }}>🚀 Raid Another Streamer</div>
+                <div style={{ color:'#64748b', fontSize:'11px', marginBottom:'8px' }}>Send your viewers to another live channel when you're done.</div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <input value={raidTarget} onChange={e => setRaidTarget(e.target.value)} placeholder="@username or channel name"
+                    style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'8px',
+                      padding:'8px 12px', color:'#f1f5f9', fontSize:'12px', outline:'none' }} />
+                  <button onClick={performRaid} disabled={raiding || !raidTarget.trim()}
+                    style={{ background:'linear-gradient(135deg,#f59e0b,#ef4444)', border:'none', borderRadius:'8px',
+                      padding:'8px 14px', color:'white', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+                    {raiding ? '⏳' : 'Raid!'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* BUG-S05: End Stream destroys camera */}
             <button onClick={endStream} disabled={isStopping}
               style={{ background:'rgba(239,68,68,0.15)', border:'2px solid #ef4444', borderRadius:'14px', padding:'14px',

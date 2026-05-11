@@ -45,18 +45,34 @@ service cloud.firestore {
         // Anyone who can see the stream can read messages
         allow read: if true;
 
-        // Only authenticated users can send messages
+        // Only authenticated, non-banned users can send messages (C-3 FIX)
         allow create: if isAuthenticated()
           && request.resource.data.userId == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 300;
+          && request.resource.data.text.size() <= 300
+          && !(get(/databases/$(database)/documents/streams/$(streamId)).data.bannedUsers.hasAny([request.auth.uid]));
 
         // Users can only delete their own messages
         allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
 
         // No editing of chat messages
         allow update: if false;
+      }
+
+      // ── streams/{id}/guestRequests — C-4: guest join flow
+      match /guestRequests/{reqId} {
+        allow read: if isAuthenticated()
+          && (resource.data.uid == request.auth.uid
+              || get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid);
+        allow create: if isAuthenticated();
+      }
+
+      // ── streams/{id}/handRaises — viewer raise-hand signal
+      match /handRaises/{raiseId} {
+        allow read: if isAuthenticated()
+          && get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid;
+        allow create: if isAuthenticated();
       }
 
       // ── streams/{id}/cohosts sub-collection ── IMPROVE-LIVE-04
