@@ -79,6 +79,27 @@ export default function LiveSetupPage() {
   const [overlayPos,       setOverlayPos]       = useState('bottom-left');
   const [showOverlayPanel, setShowOverlayPanel] = useState(false);
 
+  // REC-6.2: Stream Raid
+  const [showRaidPanel,    setShowRaidPanel]    = useState(false);
+  const [raidTarget,       setRaidTarget]       = useState('');
+  const [raiding,          setRaiding]          = useState(false);
+  // REC-6.5: Preview mode
+  const [previewMode,      setPreviewMode]      = useState(false);
+  // REC-6.7: Streamer dashboard overlay
+  const [showDashboard,    setShowDashboard]    = useState(false);
+  // REC-6.8: Multi-guest (up to 4)
+  const [guests,           setGuests]           = useState([]); // [{uid, name, link}]
+  // REC-6.9: Title live edit mid-stream
+  const [editingTitle,     setEditingTitle]     = useState(false);
+  const [liveTitle,        setLiveTitle]        = useState('');
+  const [titleSaving,      setTitleSaving]      = useState(false);
+  // REC-6.12: Ambient sound meter
+  const [soundLevel,       setSoundLevel]       = useState(0);
+  const soundMeterRef      = useRef(null);
+  const analyserRef        = useRef(null);
+  // REC-6.15: SEO title suggestions
+  const [showSeoSuggestions, setShowSeoSuggestions] = useState(false);
+
   // REC-5.7: Category emoji map
   const CATEGORY_EMOJIS = {
     Gaming:'🎮', Music:'🎵', 'Just Chatting':'💬', Sports:'⚽',
