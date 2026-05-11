@@ -1,349 +1,403 @@
-// LiveModerationPage.jsx
-// UX-29: Slow mode duration slider (3s/5s/10s/30s)
-// UX-30: Banned word list import/export
-// UX-31: AI auto-moderation toggle (OpenAI)
+// LiveModerationPage.jsx — /live/moderation
+// FIXES: BUG-MOD01 (escalate to admin), BUG-MOD02 NOTE (see LiveWatchPage),
+//        BUG-MOD03 (per-account word list), BUG-MOD04 (audit log),
+//        BUG-MOD05 (report context), MISS-MOD01 (AI moderation toggle),
+//        MISS-MOD02 (timeout ban), MISS-MOD03 (viewer report history),
+//        MISS-MOD04 (keyword alerts)
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { doc, getDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  collection, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc,
+  query, where, orderBy, limit, serverTimestamp, updateDoc,
+} from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import useAppStore from '@store/useAppStore';
 
-const SLOW_OPTIONS = [
-  { label: 'Off',  value: 0 },
-  { label: '3s',   value: 3 },
-  { label: '5s',   value: 5 },
-  { label: '10s',  value: 10 },
-  { label: '30s',  value: 30 },
+const TIMEOUT_OPTIONS = [
+  { label: '5 min',  ms: 5  * 60 * 1000 },
+  { label: '10 min', ms: 10 * 60 * 1000 },
+  { label: '30 min', ms: 30 * 60 * 1000 },
+  { label: '1 hour', ms: 60 * 60 * 1000 },
 ];
 
 export default function LiveModerationPage() {
-  const navigate   = useNavigate();
-  const [searchParams] = useSearchParams();
-  const streamId   = searchParams.get('streamId');
-  const showToast  = useAppStore(s => s.showToast);
+  const navigate  = useNavigate();
+  const showToast = useAppStore(s => s.showToast);
+  const uid       = auth.currentUser?.uid;
 
-  // Moderation settings state
-  const [slowMode,       setSlowMode]       = useState(0);
-  const [subOnly,        setSubOnly]        = useState(false);
-  const [followOnly,     setFollowOnly]     = useState(false);
-  const [aiMod,          setAiMod]          = useState(false);   // UX-31
-  const [bannedWords,    setBannedWords]    = useState([]);      // UX-30
-  const [newWord,        setNewWord]        = useState('');
-  const [bannedUsers,    setBannedUsers]    = useState([]);
-  const [chatMessages,   setChatMessages]   = useState([]);
-  const [msgLimit,       setMsgLimit]       = useState(50);   // POLISH-05: pagination
-  const [loadingMore,    setLoadingMore]    = useState(false);
-  const [banConfirm,     setBanConfirm]     = useState(null); // UX-08: { userId, userName }
-  const [saving,         setSaving]         = useState(false);
-  const [importRef]      = [useRef(null)];
+  const [tab,           setTab]           = useState('banned'); // 'banned' | 'reports' | 'words' | 'log'
+  const [bannedUsers,   setBannedUsers]   = useState([]);
+  const [reports,       setReports]       = useState([]);
+  const [auditLog,      setAuditLog]      = useState([]);
+  const [bannedWords,   setBannedWords]   = useState([]);
+  const [watchWords,    setWatchWords]    = useState([]);
+  const [newWord,       setNewWord]       = useState('');
+  const [newWatch,      setNewWatch]      = useState('');
+  const [slowMode,      setSlowMode]      = useState(0);
+  const [aiModEnabled,  setAiModEnabled]  = useState(false);
+  const [loading,       setLoading]       = useState(true);
+  const [saving,        setSaving]        = useState(false);
+  const [timeoutDlg,    setTimeoutDlg]    = useState(null); // { uid, name }
+  const [selectedTimeout, setSelectedTimeout] = useState(0);
 
-  // Load stream moderation settings
+  // BUG-MOD03: Load from per-account moderationSettings (not per-stream)
   useEffect(() => {
-    if (!streamId) return;
-    getDoc(doc(db, 'streams', streamId)).then(snap => {
-      if (!snap.exists()) return;
-      const d = snap.data();
-      setSlowMode(d.slowMode || 0);
-      setSubOnly(d.subOnly || false);
-      setFollowOnly(d.followOnly || false);
-      setAiMod(d.aiModeration || false);
-      setBannedWords(d.bannedWords || []);
-      setBannedUsers(d.bannedUsers || []);
-    }).catch(() => {});
-  }, [streamId]);
+    if (!uid) return;
+    (async () => {
+      try {
+        // Per-account moderation settings
+        const settSnap = await getDoc(doc(db, 'users', uid, 'moderationSettings', 'config')).catch(() => null);
+        if (settSnap?.exists()) {
+          const d = settSnap.data();
+          setBannedWords(d.bannedWords || []);
+          setWatchWords(d.watchWords || []);
+          setSlowMode(d.slowModeSeconds || 0);
+          setAiModEnabled(d.aiModerationEnabled || false);
+        }
 
-  // POLISH-05: Live chat feed for moderation — with pagination support
-  useEffect(() => {
-    if (!streamId) return;
-    const q = query(collection(db, 'streams', streamId, 'messages'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => {
-      setChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, () => {});
-    return () => unsub();
-  }, [streamId]);
+        // Banned users
+        const bSnap = await getDocs(collection(db, 'users', uid, 'bannedUsers')).catch(() => ({ docs:[] }));
+        setBannedUsers(bSnap.docs.map(d => ({ id: d.id, ...d.data() })));
 
-  const saveSettings = async (patch) => {
-    if (!streamId) { showToast('No active stream'); return; }
+        // Pending reports
+        const rQ = query(collection(db, 'reports'), where('streamerId', '==', uid), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(50));
+        const rSnap = await getDocs(rQ).catch(() => ({ docs:[] }));
+        setReports(rSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+        // BUG-MOD04: Audit log
+        const aQ = query(collection(db, 'users', uid, 'moderationAuditLog'), orderBy('at', 'desc'), limit(50));
+        const aSnap = await getDocs(aQ).catch(() => ({ docs:[] }));
+        setAuditLog(aSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    })();
+  }, [uid]);
+
+  // BUG-MOD03: Save per-account settings
+  const saveSettings = useCallback(async () => {
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'streams', streamId), patch);
-      showToast('✓ Settings saved');
+      await setDoc(doc(db, 'users', uid, 'moderationSettings', 'config'), {
+        bannedWords, watchWords, slowModeSeconds: slowMode,
+        aiModerationEnabled: aiModEnabled, updatedAt: serverTimestamp(),
+      }, { merge: true });
+      showToast('✓ Moderation settings saved');
     } catch { showToast('Failed to save'); }
     finally { setSaving(false); }
-  };
+  }, [uid, bannedWords, watchWords, slowMode, aiModEnabled, showToast]);
 
-  // UX-29: Slow mode change
-  const handleSlowMode = async (val) => {
-    setSlowMode(val);
-    await saveSettings({ slowMode: val });
-  };
-
-  // Toggle helpers
-  const toggleSub = async () => { const v = !subOnly; setSubOnly(v); await saveSettings({ subOnly: v }); };
-  const toggleFollow = async () => { const v = !followOnly; setFollowOnly(v); await saveSettings({ followOnly: v }); };
-
-  // UX-31: AI moderation toggle
-  const toggleAI = async () => {
-    const v = !aiMod;
-    setAiMod(v);
-    await saveSettings({ aiModeration: v });
-    showToast(v ? '🤖 AI moderation ON' : '🤖 AI moderation OFF');
-  };
-
-  // Add banned word
-  const addWord = async () => {
+  const addBannedWord = useCallback(() => {
     const w = newWord.trim().toLowerCase();
     if (!w || bannedWords.includes(w)) { setNewWord(''); return; }
-    const updated = [...bannedWords, w];
-    setBannedWords(updated);
+    setBannedWords(p => [...p, w]);
     setNewWord('');
-    await saveSettings({ bannedWords: updated });
-  };
+  }, [newWord, bannedWords]);
 
-  const removeWord = async (w) => {
-    const updated = bannedWords.filter(x => x !== w);
-    setBannedWords(updated);
-    await saveSettings({ bannedWords: updated });
-  };
+  const addWatchWord = useCallback(() => {
+    const w = newWatch.trim().toLowerCase();
+    if (!w || watchWords.includes(w)) { setNewWatch(''); return; }
+    setWatchWords(p => [...p, w]);
+    setNewWatch('');
+  }, [newWatch, watchWords]);
 
-  // UX-30: Export banned words
-  const exportWords = () => {
-    const txt = bannedWords.join('\n');
-    const blob = new Blob([txt], { type: 'text/plain' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = 'banned-words.txt'; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // UX-30: Import banned words
-  const importWords = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const lines = ev.target.result.split(/[\n,;]+/).map(w => w.trim().toLowerCase()).filter(Boolean);
-      const merged = Array.from(new Set([...bannedWords, ...lines]));
-      setBannedWords(merged);
-      await saveSettings({ bannedWords: merged });
-      showToast(`✓ Imported ${lines.length} words`);
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
-  // Delete a chat message
-  const deleteMsg = async (msgId) => {
-    if (!streamId) return;
+  // Unban user
+  const unbanUser = useCallback(async (bannedUid) => {
     try {
-      await deleteDoc(doc(db, 'streams', streamId, 'messages', msgId));
-      showToast('Message deleted');
-    } catch { showToast('Delete failed'); }
-  };
+      await deleteDoc(doc(db, 'users', uid, 'bannedUsers', bannedUid));
+      setBannedUsers(p => p.filter(u => u.id !== bannedUid));
+      // BUG-MOD04: Audit log
+      await addDoc(collection(db, 'users', uid, 'moderationAuditLog'), {
+        action: 'unban', targetUid: bannedUid, at: serverTimestamp(), by: uid,
+      });
+      setAuditLog(p => [{ id: Date.now(), action:'unban', targetUid: bannedUid, at:{ toDate:()=>new Date() } }, ...p]);
+      showToast('✓ User unbanned');
+    } catch { showToast('Failed to unban'); }
+  }, [uid, showToast]);
 
-  // UX-08: Ban with confirmation — sets banConfirm state to show dialog
-  const requestBan = (userId, userName) => {
-    setBanConfirm({ userId, userName });
-  };
+  // MISS-MOD02: Timeout ban
+  const applyTimeout = useCallback(async () => {
+    if (!timeoutDlg) return;
+    const ms = TIMEOUT_OPTIONS[selectedTimeout].ms;
+    const timeoutUntil = new Date(Date.now() + ms);
+    try {
+      await setDoc(doc(db, 'users', uid, 'bannedUsers', timeoutDlg.uid), {
+        displayName: timeoutDlg.name,
+        timeoutUntil: serverTimestamp(),
+        timeoutMs: ms,
+        bannedAt: serverTimestamp(),
+        type: 'timeout',
+      });
+      // BUG-MOD04: Audit log
+      await addDoc(collection(db, 'users', uid, 'moderationAuditLog'), {
+        action: 'timeout', targetUid: timeoutDlg.uid, targetName: timeoutDlg.name,
+        durationMs: ms, at: serverTimestamp(), by: uid,
+      });
+      setBannedUsers(p => [...p, { id: timeoutDlg.uid, displayName: timeoutDlg.name, type:'timeout', timeoutUntil }]);
+      setAuditLog(p => [{ id: Date.now(), action:'timeout', targetName: timeoutDlg.name, at:{ toDate:()=>new Date() } }, ...p]);
+      setTimeoutDlg(null);
+      showToast(`⏱ ${timeoutDlg.name} timed out for ${TIMEOUT_OPTIONS[selectedTimeout].label}`);
+    } catch { showToast('Failed to apply timeout'); }
+  }, [timeoutDlg, selectedTimeout, uid, showToast]);
 
-  const confirmBan = async () => {
-    if (!banConfirm || !streamId) return;
-    const updated = [...bannedUsers, banConfirm.userId];
-    setBannedUsers(updated);
-    await saveSettings({ bannedUsers: updated });
-    showToast(`🚫 ${banConfirm.userName} banned from this stream`);
-    setBanConfirm(null);
-  };
+  // Dismiss report
+  const dismissReport = useCallback(async (reportId) => {
+    try {
+      await updateDoc(doc(db, 'reports', reportId), { status: 'dismissed' });
+      setReports(p => p.filter(r => r.id !== reportId));
+      showToast('Report dismissed');
+    } catch { showToast('Failed'); }
+  }, [showToast]);
 
-  // UX-08: Unban a user
-  const unbanUser = async (userId) => {
-    const updated = bannedUsers.filter(id => id !== userId);
-    setBannedUsers(updated);
-    await saveSettings({ bannedUsers: updated });
-    showToast('✅ User unbanned');
-  };
+  // BUG-MOD01: Escalate to platform admin
+  const escalateReport = useCallback(async (report) => {
+    try {
+      await addDoc(collection(db, 'adminReports'), {
+        ...report, escalatedAt: serverTimestamp(), escalatedBy: uid, status: 'escalated',
+      });
+      await updateDoc(doc(db, 'reports', report.id), { status: 'escalated' });
+      setReports(p => p.filter(r => r.id !== report.id));
+      // BUG-MOD04: Audit log
+      await addDoc(collection(db, 'users', uid, 'moderationAuditLog'), {
+        action: 'escalate', reportId: report.id, at: serverTimestamp(), by: uid,
+      });
+      showToast('🚨 Report escalated to platform admin');
+    } catch { showToast('Failed to escalate'); }
+  }, [uid, showToast]);
 
-  const Toggle = ({ on, onToggle, label, sub }) => (
-    <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 0', borderBottom:'1px solid #1e293b' }}>
-      <div style={{ flex:1 }}>
-        <div style={{ color:'#f1f5f9', fontSize:'14px', fontWeight:600 }}>{label}</div>
-        {sub && <div style={{ color:'#64748b', fontSize:'12px', marginTop:'2px' }}>{sub}</div>}
-      </div>
-      <button onClick={onToggle} aria-label={`Toggle ${label}`}
-        style={{ width:'48px', height:'26px', borderRadius:'13px', border:'none', cursor:'pointer', flexShrink:0, position:'relative',
-          background: on ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155', transition:'background 0.2s' }}>
-        <span style={{ position:'absolute', top:'3px', left: on ? '25px' : '3px', width:'20px', height:'20px',
-          borderRadius:'50%', background:'white', transition:'left 0.2s', display:'block' }} />
-      </button>
-    </div>
-  );
+  const tabs = [
+    { id:'banned', label:'🚫 Banned' },
+    { id:'reports', label:`📋 Reports${reports.length > 0 ? ` (${reports.length})` : ''}` },
+    { id:'words', label:'🔤 Words' },
+    { id:'log', label:'📜 Log' },
+  ];
 
   return (
     <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:'80px' }}>
       {/* Header */}
       <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px' }}>
         <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
-        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>🛡️ Chat Moderation</span>
-        {saving && <span style={{ color:'#64748b', fontSize:'12px' }}>Saving…</span>}
+        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>🛡️ Moderation</span>
       </div>
 
-      <div style={{ padding:'12px 16px' }}>
-
-        {/* UX-29: Slow Mode slider */}
-        <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
-          <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'6px' }}>
-            🐢 Slow Mode: {slowMode === 0 ? 'Off' : `${slowMode}s between messages`}
-          </div>
-          <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'12px' }}>Limit how often viewers can send messages</div>
-          <div style={{ display:'flex', gap:'8px' }}>
-            {SLOW_OPTIONS.map(opt => (
-              <button key={opt.value} onClick={() => handleSlowMode(opt.value)}
-                style={{ flex:1, padding:'8px 4px', borderRadius:'10px', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700,
-                  background: slowMode === opt.value ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
-                  color: slowMode === opt.value ? 'white' : '#94a3b8' }}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
+      {/* Quick controls */}
+      <div style={{ padding:'10px 16px', background:'#0f172a', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', flex:1 }}>
+          <span style={{ color:'#94a3b8', fontSize:'12px' }}>Slow Mode:</span>
+          <select value={slowMode} onChange={e => setSlowMode(+e.target.value)}
+            style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'6px', color:'#f1f5f9', padding:'4px 8px', fontSize:'12px' }}>
+            {[0,3,5,10,30,60].map(s => <option key={s} value={s}>{s === 0 ? 'Off' : `${s}s`}</option>)}
+          </select>
         </div>
-
-        {/* UX-31: AI Auto-moderation */}
-        <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
-          <Toggle on={aiMod} onToggle={toggleAI}
-            label="🤖 AI Auto-Moderation"
-            sub="Automatically remove toxic messages using OpenAI" />
-          <Toggle on={subOnly} onToggle={toggleSub}
-            label="⭐ Subscribers Only Chat"
-            sub="Only subscribers can send messages" />
-          <Toggle on={followOnly} onToggle={toggleFollow}
-            label="👥 Followers Only Chat"
-            sub="Only followers can send messages" />
+        {/* MISS-MOD01: AI Moderation toggle */}
+        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+          <span style={{ color:'#94a3b8', fontSize:'12px' }}>AI Mod:</span>
+          <button onClick={() => setAiModEnabled(v => !v)} role="switch" aria-checked={aiModEnabled}
+            style={{ width:'40px', height:'22px', borderRadius:'11px', border:'none', cursor:'pointer',
+              background: aiModEnabled ? '#ef4444' : '#334155', position:'relative' }}>
+            <div style={{ position:'absolute', top:'2px', left: aiModEnabled ? '20px' : '2px',
+              width:'18px', height:'18px', borderRadius:'50%', background:'white', transition:'left 0.15s' }} />
+          </button>
         </div>
+        <button onClick={saveSettings} disabled={saving}
+          style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'8px',
+            padding:'6px 14px', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>
+          {saving ? '…' : '✓ Save'}
+        </button>
+      </div>
 
-        {/* UX-30: Banned Words */}
-        <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', flex:1 }}>🚫 Banned Words ({bannedWords.length})</div>
-            {/* UX-30: Export/Import */}
-            {/* MOB-FIX: min 44px touch target on Export/Import buttons */}
-            <button onClick={exportWords}
-              style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'8px 12px', color:'#94a3b8', fontSize:'11px', cursor:'pointer', minHeight:'44px', minWidth:'44px' }}>
-              📥 Export
-            </button>
-            <label style={{ background:'#334155', borderRadius:'8px', padding:'8px 12px', color:'#94a3b8', fontSize:'11px', cursor:'pointer', minHeight:'44px', display:'flex', alignItems:'center' }}>
-              📤 Import
-              <input ref={importRef} type="file" accept=".txt,.csv" onChange={importWords} style={{ display:'none' }} />
-            </label>
-          </div>
-          <div style={{ display:'flex', gap:'8px', marginBottom:'10px' }}>
-            <input value={newWord} onChange={e => setNewWord(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addWord()}
-              placeholder="Add banned word…"
-              style={{ flex:1, background:'#0a0a18', border:'1px solid #334155', borderRadius:'10px',
-                padding:'8px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none' }} />
-            <button onClick={addWord}
-              style={{ background:'#ef4444', border:'none', borderRadius:'10px', padding:'8px 14px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
-              Add
-            </button>
-          </div>
-          <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
-            {bannedWords.map(w => (
-              <span key={w} style={{ background:'#334155', borderRadius:'20px', padding:'4px 10px', color:'#f1f5f9', fontSize:'12px', display:'flex', alignItems:'center', gap:'6px' }}>
-                {w}
-                <button onClick={() => removeWord(w)}
-                  style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'14px', padding:0, lineHeight:1 }}>×</button>
-              </span>
-            ))}
-            {bannedWords.length === 0 && <span style={{ color:'#64748b', fontSize:'12px' }}>No banned words yet</span>}
-          </div>
-        </div>
+      {/* Tabs */}
+      <div style={{ display:'flex', borderBottom:'1px solid #1e293b' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ flex:1, padding:'10px 4px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #ef4444' : '2px solid transparent',
+              color: tab===t.id ? '#ef4444' : '#94a3b8', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {/* UX-08: Banned Users section — with unban */}
-        {bannedUsers.length > 0 && (
-          <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
-            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'10px' }}>
-              🚫 Banned Users ({bannedUsers.length})
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              {bannedUsers.map(uid => (
-                <div key={uid} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #334155' }}>
-                  <span style={{ color:'#94a3b8', fontSize:'12px', fontFamily:'monospace' }}>{uid.slice(0,12)}…</span>
-                  <button onClick={() => unbanUser(uid)}
-                    style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'8px', padding:'4px 10px', color:'#10b981', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
-                    ✅ Unban
+      {loading ? (
+        <div style={{ padding:'32px', textAlign:'center', color:'#64748b' }}>Loading…</div>
+      ) : (
+        <div style={{ padding:'12px 16px' }}>
+
+          {/* Banned Users */}
+          {tab === 'banned' && (
+            <div>
+              {bannedUsers.length === 0 && <div style={{ textAlign:'center', color:'#64748b', padding:'32px', fontSize:'13px' }}>No banned users.</div>}
+              {bannedUsers.map(u => (
+                <div key={u.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'10px 0', borderBottom:'1px solid #1e293b' }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ color:'#f1f5f9', fontWeight:600, fontSize:'13px' }}>{u.displayName || u.id}</div>
+                    <div style={{ color:'#64748b', fontSize:'11px' }}>
+                      {u.type === 'timeout' ? `⏱ Timeout${u.timeoutUntil ? ` until ${new Date(u.timeoutUntil.toDate?.() || u.timeoutUntil).toLocaleTimeString()}` : ''}` : '🚫 Permanent ban'}
+                    </div>
+                  </div>
+                  <button onClick={() => setTimeoutDlg({ uid: u.id, name: u.displayName || u.id })}
+                    style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'6px', padding:'4px 10px', color:'#f59e0b', fontSize:'11px', fontWeight:600, cursor:'pointer', marginRight:'4px' }}>
+                    ⏱
+                  </button>
+                  <button onClick={() => unbanUser(u.id)}
+                    style={{ background:'rgba(74,222,128,0.1)', border:'1px solid #4ade80', borderRadius:'6px', padding:'4px 10px', color:'#4ade80', fontSize:'11px', fontWeight:600, cursor:'pointer' }}>
+                    Unban
                   </button>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Live Chat Moderation — POLISH-05: paginated */}
-        {streamId && (
-          <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
-            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'10px' }}>
-              💬 Recent Messages ({Math.min(msgLimit, chatMessages.length)} / {chatMessages.length})
-            </div>
-            {chatMessages.length === 0 ? (
-              <div style={{ color:'#64748b', fontSize:'13px', textAlign:'center', padding:'16px' }}>No messages yet</div>
-            ) : (
-              <>
-                {/* POLISH-05: Load more button at top */}
-                {chatMessages.length > msgLimit && (
-                  <button onClick={() => setMsgLimit(l => l + 50)}
-                    disabled={loadingMore}
-                    style={{ width:'100%', background:'#334155', border:'none', borderRadius:'8px', padding:'8px', color:'#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer', marginBottom:'8px' }}>
-                    ↑ Load 50 more messages ({chatMessages.length - msgLimit} remaining)
-                  </button>
-                )}
-                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'320px', overflowY:'auto' }}>
-                  {chatMessages.slice(0, msgLimit).map(msg => (
-                    <div key={msg.id} style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
-                      <div style={{ flex:1 }}>
-                        <span style={{ color: bannedUsers.includes(msg.userId) ? '#ef4444' : '#f59e0b', fontSize:'12px', fontWeight:700 }}>
-                          {msg.userName}{bannedUsers.includes(msg.userId) ? ' 🚫' : ''}{': '}
-                        </span>
-                        <span style={{ color:'#f1f5f9', fontSize:'13px' }}>{msg.text}</span>
-                      </div>
-                      <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
-                        <button onClick={() => deleteMsg(msg.id)}
-                          style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#ef4444', fontSize:'11px', cursor:'pointer' }}>
-                          🗑️
-                        </button>
-                        {!bannedUsers.includes(msg.userId) && (
-                          <button onClick={() => requestBan(msg.userId, msg.userName)}
-                            style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#f59e0b', fontSize:'11px', cursor:'pointer' }}>
-                            🚫
-                          </button>
-                        )}
-                      </div>
+          {/* Reports — BUG-MOD01 escalate + BUG-MOD05 context */}
+          {tab === 'reports' && (
+            <div>
+              {reports.length === 0 && <div style={{ textAlign:'center', color:'#64748b', padding:'32px', fontSize:'13px' }}>No pending reports. ✅</div>}
+              {reports.map(r => (
+                <div key={r.id} style={{ background:'#1e293b', borderRadius:'12px', padding:'12px', marginBottom:'10px', border:'1px solid #334155' }}>
+                  <div style={{ display:'flex', gap:'6px', marginBottom:'8px' }}>
+                    <span style={{ background:'rgba(239,68,68,0.2)', color:'#f87171', borderRadius:'6px', padding:'2px 8px', fontSize:'11px', fontWeight:600 }}>
+                      {r.reason || 'Reported'}
+                    </span>
+                    <span style={{ color:'#64748b', fontSize:'11px', alignSelf:'center' }}>
+                      {r.reportedUserName || r.reportedUserId}
+                    </span>
+                  </div>
+                  {/* BUG-MOD05: Show message + context */}
+                  {r.messageText && (
+                    <div style={{ background:'#0f172a', borderRadius:'8px', padding:'8px', marginBottom:'8px' }}>
+                      <div style={{ color:'#94a3b8', fontSize:'10px', marginBottom:'2px' }}>Reported message:</div>
+                      <div style={{ color:'#f1f5f9', fontSize:'12px' }}>"{r.messageText}"</div>
                     </div>
+                  )}
+                  {r.context && (
+                    <div style={{ background:'#0f172a', borderRadius:'8px', padding:'8px', marginBottom:'8px' }}>
+                      <div style={{ color:'#94a3b8', fontSize:'10px', marginBottom:'2px' }}>Context (prior messages):</div>
+                      {r.context.map((msg, i) => <div key={i} style={{ color:'#64748b', fontSize:'11px' }}>{msg}</div>)}
+                    </div>
+                  )}
+                  {/* MISS-MOD03: Link to user's report history */}
+                  <div style={{ display:'flex', gap:'6px' }}>
+                    <button onClick={() => dismissReport(r.id)}
+                      style={{ flex:1, background:'#334155', border:'none', borderRadius:'8px', padding:'6px', color:'#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+                      Dismiss
+                    </button>
+                    <button onClick={() => navigate(`/admin/reports?userId=${r.reportedUserId}`)}
+                      style={{ flex:1, background:'#334155', border:'none', borderRadius:'8px', padding:'6px', color:'#f59e0b', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+                      History
+                    </button>
+                    {/* BUG-MOD01: Escalate */}
+                    <button onClick={() => escalateReport(r)}
+                      style={{ flex:1, background:'rgba(239,68,68,0.15)', border:'1px solid #ef4444', borderRadius:'8px', padding:'6px', color:'#f87171', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+                      🚨 Escalate
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Word filters — BUG-MOD03 per-account + MISS-MOD04 keyword alerts */}
+          {tab === 'words' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
+              {/* Banned words */}
+              <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', border:'1px solid #334155' }}>
+                <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'10px' }}>
+                  🚫 Blocked Words (auto-filtered from chat)
+                </div>
+                <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', marginBottom:'10px' }}>
+                  {bannedWords.map(w => (
+                    <span key={w} style={{ background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'20px', padding:'3px 10px', color:'#f87171', fontSize:'12px', display:'flex', alignItems:'center', gap:'4px' }}>
+                      {w}
+                      <button onClick={() => setBannedWords(p => p.filter(x => x !== w))} style={{ background:'none', border:'none', color:'#f87171', cursor:'pointer', fontSize:'14px', lineHeight:1 }}>×</button>
+                    </span>
                   ))}
                 </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <input value={newWord} onChange={e => setNewWord(e.target.value)} onKeyDown={e => e.key==='Enter' && addBannedWord()}
+                    placeholder="Add blocked word…"
+                    style={{ flex:1, background:'#0f172a', border:'1px solid #334155', borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'12px', outline:'none' }} />
+                  <button onClick={addBannedWord} style={{ background:'#ef4444', border:'none', borderRadius:'8px', padding:'8px 14px', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>+</button>
+                </div>
+              </div>
 
-      {/* UX-08: Ban confirmation bottom sheet */}
-      {banConfirm && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'flex-end' }}>
-          <div role="dialog" aria-modal="true" aria-label="Ban user confirmation"
-            style={{ width:'100%', background:'#0f172a', borderRadius:'20px 20px 0 0', padding:'24px 20px', border:'1px solid #1e293b' }}>
-            <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'18px', marginBottom:'8px' }}>🚫 Ban User?</div>
-            <div style={{ color:'#94a3b8', fontSize:'14px', marginBottom:'20px' }}>
-              <strong style={{ color:'#f1f5f9' }}>{banConfirm.userName}</strong> won't be able to send messages in this stream.
+              {/* MISS-MOD04: Watch words / keyword alerts */}
+              <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', border:'1px solid #334155' }}>
+                <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'6px' }}>
+                  🔔 Keyword Alerts (highlight in chat, no block)
+                </div>
+                <div style={{ color:'#64748b', fontSize:'11px', marginBottom:'10px' }}>Messages containing these words will be highlighted in yellow in the chat.</div>
+                <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', marginBottom:'10px' }}>
+                  {watchWords.map(w => (
+                    <span key={w} style={{ background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'20px', padding:'3px 10px', color:'#f59e0b', fontSize:'12px', display:'flex', alignItems:'center', gap:'4px' }}>
+                      {w}
+                      <button onClick={() => setWatchWords(p => p.filter(x => x !== w))} style={{ background:'none', border:'none', color:'#f59e0b', cursor:'pointer', fontSize:'14px', lineHeight:1 }}>×</button>
+                    </span>
+                  ))}
+                </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <input value={newWatch} onChange={e => setNewWatch(e.target.value)} onKeyDown={e => e.key==='Enter' && addWatchWord()}
+                    placeholder="Add watch word…"
+                    style={{ flex:1, background:'#0f172a', border:'1px solid #334155', borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'12px', outline:'none' }} />
+                  <button onClick={addWatchWord} style={{ background:'#f59e0b', border:'none', borderRadius:'8px', padding:'8px 14px', color:'#0f172a', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>+</button>
+                </div>
+              </div>
+
+              <button onClick={saveSettings} disabled={saving}
+                style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'12px', padding:'12px', color:'white', fontWeight:700, fontSize:'14px', cursor:'pointer' }}>
+                {saving ? 'Saving…' : '✓ Save Word Lists'}
+              </button>
             </div>
-            <div style={{ display:'flex', gap:'12px' }}>
-              <button onClick={() => setBanConfirm(null)}
-                style={{ flex:1, background:'#1e293b', border:'none', borderRadius:'12px', padding:'13px', color:'#94a3b8', fontWeight:700, cursor:'pointer', fontSize:'14px' }}>
+          )}
+
+          {/* BUG-MOD04: Audit log */}
+          {tab === 'log' && (
+            <div>
+              {auditLog.length === 0 && <div style={{ textAlign:'center', color:'#64748b', padding:'32px', fontSize:'13px' }}>No moderation actions recorded yet.</div>}
+              {auditLog.map(e => (
+                <div key={e.id} style={{ display:'flex', gap:'10px', padding:'8px 0', borderBottom:'1px solid #1e293b', alignItems:'center' }}>
+                  <div style={{ fontSize:'16px' }}>
+                    {e.action === 'ban' ? '🚫' : e.action === 'unban' ? '✅' : e.action === 'timeout' ? '⏱' : e.action === 'escalate' ? '🚨' : '📋'}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ color:'#f1f5f9', fontSize:'13px', fontWeight:600, textTransform:'capitalize' }}>
+                      {e.action} {e.targetName || e.targetUid || e.reportId || ''}
+                      {e.durationMs && ` (${TIMEOUT_OPTIONS.find(o => o.ms === e.durationMs)?.label || 'custom'})`}
+                    </div>
+                    <div style={{ color:'#64748b', fontSize:'11px' }}>
+                      {e.at?.toDate ? e.at.toDate().toLocaleString() : 'Just now'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MISS-MOD02: Timeout dialog */}
+      {timeoutDlg && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'20px' }}>
+          <div style={{ background:'#1e293b', borderRadius:'16px', padding:'20px', width:'100%', maxWidth:'320px' }}>
+            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'15px', marginBottom:'4px' }}>⏱ Timeout User</div>
+            <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'16px' }}>How long to timeout {timeoutDlg.name}?</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'16px' }}>
+              {TIMEOUT_OPTIONS.map((o, i) => (
+                <button key={i} onClick={() => setSelectedTimeout(i)}
+                  style={{ background: selectedTimeout===i ? 'rgba(239,68,68,0.15)' : '#334155',
+                    border: selectedTimeout===i ? '1px solid #ef4444' : '1px solid #475569',
+                    borderRadius:'8px', padding:'10px', color: selectedTimeout===i ? '#f87171' : '#94a3b8',
+                    fontWeight: selectedTimeout===i ? 700 : 400, fontSize:'13px', cursor:'pointer' }}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={() => setTimeoutDlg(null)}
+                style={{ flex:1, background:'#334155', border:'none', borderRadius:'10px', padding:'10px', color:'#94a3b8', fontWeight:700, cursor:'pointer' }}>
                 Cancel
               </button>
-              <button onClick={confirmBan}
-                style={{ flex:1, background:'#ef4444', border:'none', borderRadius:'12px', padding:'13px', color:'white', fontWeight:700, cursor:'pointer', fontSize:'14px' }}>
-                🚫 Ban User
+              <button onClick={applyTimeout}
+                style={{ flex:1, background:'#ef4444', border:'none', borderRadius:'10px', padding:'10px', color:'white', fontWeight:700, cursor:'pointer' }}>
+                Timeout
               </button>
             </div>
           </div>
