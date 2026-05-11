@@ -1,355 +1,385 @@
-// ClipViewerPage.jsx — /clips/:id
-// FIXES APPLIED (Beta Test Round):
-//   BUG-C01 / MISS-C01: Share button (navigator.share + clipboard fallback)
-//   BUG-C02:            Download button (anchor click)
-//   BUG-C03:            Related clips rail (queries top 10 clips excluding current)
-//   BUG-C04 / MISS-C03: Comment section + emoji reactions bar
-//   MISS-C02:           Video looping toggle
-//   UX:                 View count increment on mount, like toggle, back nav
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import {
-  doc, getDoc, collection, query, orderBy, limit, getDocs,
-  updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, where,
-} from 'firebase/firestore';
+// ClipViewerPage.jsx — REC-6.3: Clip Editor (trim tool), REC-6.14: Chat Replay on VOD
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { doc, onSnapshot, collection, query, orderBy, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import useAppStore from '@store/useAppStore';
 
-const REACTIONS = ['🔥','❤️','😂','😮','👏','🎉'];
+// REC-6.3: Trim Tool — drag start/end handles on timeline
+function ClipTrimTool({ duration, trimStart, trimEnd, onChangeTrim }) {
+  const barRef = useRef(null);
+  const dragging = useRef(null);
+
+  const handlePointerDown = (handle, e) => {
+    e.preventDefault();
+    dragging.current = handle;
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerup', handlePointerUp);
+  };
+
+  const handlePointerMove = e => {
+    if (!dragging.current || !barRef.current) return;
+    const rect = barRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const pct = x / rect.width;
+    const t = Math.round(pct * duration * 10) / 10;
+    if (dragging.current === 'start') onChangeTrim(Math.min(t, trimEnd - 1), trimEnd);
+    else onChangeTrim(trimStart, Math.max(t, trimStart + 1));
+  };
+
+  const handlePointerUp = () => {
+    dragging.current = null;
+    document.removeEventListener('pointermove', handlePointerMove);
+    document.removeEventListener('pointerup', handlePointerUp);
+  };
+
+  const startPct = duration > 0 ? (trimStart / duration) * 100 : 0;
+  const endPct = duration > 0 ? (trimEnd / duration) * 100 : 100;
+  const fmtT = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+
+  return (
+    <div style={{ padding:'0 0 8px' }}>
+      <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px', marginBottom:'8px' }}>✂️ Trim Clip</div>
+      <div style={{ position:'relative', height:'36px', margin:'0 8px' }} ref={barRef}>
+        {/* Timeline track */}
+        <div style={{ position:'absolute', top:'50%', left:0, right:0, height:'6px',
+          transform:'translateY(-50%)', background:'#334155', borderRadius:'3px' }} />
+        {/* Selected range */}
+        <div style={{ position:'absolute', top:'50%', height:'6px',
+          transform:'translateY(-50%)', background:'#ef4444', borderRadius:'3px',
+          left:`${startPct}%`, width:`${endPct - startPct}%` }} />
+        {/* Start handle */}
+        <div onPointerDown={e => handlePointerDown('start', e)}
+          style={{ position:'absolute', top:'50%', transform:'translate(-50%,-50%)',
+            left:`${startPct}%`, width:'18px', height:'28px', background:'#ef4444',
+            borderRadius:'4px', cursor:'ew-resize', zIndex:2, border:'2px solid white',
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ width:'2px', height:'12px', background:'white', borderRadius:'1px' }} />
+        </div>
+        {/* End handle */}
+        <div onPointerDown={e => handlePointerDown('end', e)}
+          style={{ position:'absolute', top:'50%', transform:'translate(-50%,-50%)',
+            left:`${endPct}%`, width:'18px', height:'28px', background:'#ef4444',
+            borderRadius:'4px', cursor:'ew-resize', zIndex:2, border:'2px solid white',
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ width:'2px', height:'12px', background:'white', borderRadius:'1px' }} />
+        </div>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', marginTop:'4px', padding:'0 4px' }}>
+        <span style={{ color:'#94a3b8', fontSize:'10px' }}>{fmtT(trimStart)}</span>
+        <span style={{ color:'#64748b', fontSize:'10px' }}>{fmtT(duration)}</span>
+        <span style={{ color:'#94a3b8', fontSize:'10px' }}>{fmtT(trimEnd)}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function ClipViewerPage() {
-  const navigate    = useNavigate();
-  const { clipId }  = useParams();
-  const showToast   = useAppStore(s => s.showToast);
-  const videoRef    = useRef(null);
+  const { id: clipId } = useParams();
+  const navigate = useNavigate();
+  const showToast = useAppStore(s => s.showToast);
+  const uid = auth.currentUser?.uid;
 
-  const [clip,         setClip]         = useState(null);
-  const [loading,      setLoading]      = useState(true);
-  const [related,      setRelated]      = useState([]);
-  const [comments,     setComments]     = useState([]);
-  const [commentText,  setCommentText]  = useState('');
-  const [sendingCmt,   setSendingCmt]   = useState(false);
-  const [liked,        setLiked]        = useState(false);
-  const [looping,      setLooping]      = useState(true);
-  const [sharing,      setSharing]      = useState(false);
-  const [myReaction,   setMyReaction]   = useState(null);
-  const [reactions,    setReactions]    = useState({ '🔥':0,'❤️':0,'😂':0,'😮':0,'👏':0,'🎉':0 });
+  const videoRef = useRef(null);
+  const [clip, setClip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(30);
 
-  // Load clip + increment view count
+  // REC-6.3: Trim state
+  const [showTrimTool, setShowTrimTool] = useState(false);
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(30);
+  const [trimSaving, setTrimSaving] = useState(false);
+
+  // REC-6.14: Chat replay messages from parent stream
+  const [chatReplay, setChatReplay] = useState([]);
+  const [visibleChat, setVisibleChat] = useState([]);
+  const [showChatReplay, setShowChatReplay] = useState(false);
+
+  // Load clip doc
   useEffect(() => {
     if (!clipId) return;
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, 'clips', clipId));
-        if (!snap.exists()) { setLoading(false); return; }
+    const unsub = onSnapshot(doc(db, 'clips', clipId), snap => {
+      if (snap.exists()) {
         const data = { id: snap.id, ...snap.data() };
         setClip(data);
-        setLiked(data.likes?.includes(auth.currentUser?.uid));
-        setReactions(prev => ({ ...prev, ...(data.reactions || {}) }));
-        // Increment view count
-        await updateDoc(doc(db, 'clips', clipId), {
-          viewCount: (data.viewCount || 0) + 1,
-        }).catch(() => {});
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    })();
+        if (data.trimEnd) setTrimEnd(data.trimEnd);
+        if (data.trimStart != null) setTrimStart(data.trimStart);
+      }
+      setLoading(false);
+    });
+    return () => unsub();
   }, [clipId]);
 
-  // Load related clips
+  // REC-6.14: Load chat messages from the parent stream for replay
   useEffect(() => {
-    if (!clip) return;
-    (async () => {
-      try {
-        const q = query(
-          collection(db, 'clips'),
-          where('status', '==', 'ready'),
-          orderBy('viewCount', 'desc'),
-          limit(11)
-        );
-        const snap = await getDocs(q);
-        setRelated(snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .filter(c => c.id !== clipId)
-          .slice(0, 10));
-      } catch (e) { console.error(e); }
-    })();
-  }, [clip, clipId]);
+    if (!clip?.streamId) return;
+    const q = query(
+      collection(db, 'streams', clip.streamId, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+    const unsub = onSnapshot(q, snap => {
+      setChatReplay(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [clip?.streamId]);
 
-  // Load comments
+  // REC-6.14: Sync visible chat messages to video current time + clip offset
   useEffect(() => {
+    if (!showChatReplay || chatReplay.length === 0 || !clip?.timestamp) return;
+    const clipOffset = clip.timestamp; // stream time when clip starts
+    const now = currentTime + clipOffset;
+    // Only show messages timestamped before the current playback position
+    const visible = chatReplay.filter(msg => {
+      const t = msg.timestamp?.seconds || 0;
+      const streamStart = clip.streamStartTime?.seconds || 0;
+      const relTime = t - streamStart;
+      return relTime <= now + 5; // 5s buffer
+    });
+    setVisibleChat(visible.slice(-20)); // show last 20
+  }, [currentTime, chatReplay, clip, showChatReplay]);
+
+  const handleVideoLoaded = () => {
+    const v = videoRef.current;
+    if (v) {
+      const d = v.duration || 30;
+      setDuration(d);
+      setTrimEnd(clip?.trimEnd || d);
+      setTrimStart(clip?.trimStart || 0);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const t = videoRef.current.currentTime;
+      setCurrentTime(t);
+      // Enforce trim end boundary
+      if (t >= trimEnd) {
+        videoRef.current.pause();
+        setPlaying(false);
+      }
+    }
+  };
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (playing) { v.pause(); setPlaying(false); }
+    else {
+      if (v.currentTime < trimStart || v.currentTime >= trimEnd) v.currentTime = trimStart;
+      v.play().then(() => setPlaying(true)).catch(() => {});
+    }
+  };
+
+  // REC-6.3: Save trim to Firestore
+  const saveTrim = async () => {
     if (!clipId) return;
-    (async () => {
-      try {
-        const q = query(
-          collection(db, 'clips', clipId, 'comments'),
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
-        const snap = await getDocs(q);
-        setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { console.error(e); }
-    })();
-  }, [clipId]);
-
-  // MISS-C01 / BUG-C01: Share
-  const handleShare = useCallback(async () => {
-    setSharing(true);
-    const url = window.location.href;
-    const title = clip?.streamTitle || 'Check out this clip!';
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        showToast('🔗 Link copied!');
-      }
-    } catch (e) {
-      if (e.name !== 'AbortError') {
-        try { await navigator.clipboard.writeText(url); showToast('🔗 Link copied!'); }
-        catch { showToast('Share not supported on this device'); }
-      }
-    } finally { setSharing(false); }
-  }, [clip, showToast]);
-
-  // BUG-C02: Download
-  const handleDownload = useCallback(() => {
-    if (!clip?.clipUrl) { showToast('Clip URL not available'); return; }
-    const a = document.createElement('a');
-    a.href = clip.clipUrl;
-    a.download = `clip-${clip.streamTitle || clipId}.webm`;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast('⬇️ Downloading clip…');
-  }, [clip, clipId, showToast]);
-
-  // Like toggle
-  const toggleLike = useCallback(async () => {
-    if (!auth.currentUser) { showToast('Sign in to like'); return; }
-    const uid = auth.currentUser.uid;
-    const next = !liked;
-    setLiked(next);
+    setTrimSaving(true);
     try {
       await updateDoc(doc(db, 'clips', clipId), {
-        likes: next ? arrayUnion(uid) : arrayRemove(uid),
+        trimStart, trimEnd,
+        trimmedDuration: trimEnd - trimStart,
+        updatedAt: serverTimestamp(),
       });
-    } catch { setLiked(!next); }
-  }, [liked, clipId, showToast]);
+      showToast('✂️ Trim saved!');
+      setShowTrimTool(false);
+    } catch { showToast('Save failed'); }
+    finally { setTrimSaving(false); }
+  };
 
-  // MISS-C03: Reaction
-  const handleReaction = useCallback(async (emoji) => {
-    if (!auth.currentUser) { showToast('Sign in to react'); return; }
-    const prev = myReaction;
-    setMyReaction(emoji === prev ? null : emoji);
-    setReactions(r => {
-      const next = { ...r };
-      if (prev) next[prev] = Math.max(0, (next[prev] || 0) - 1);
-      if (emoji !== prev) next[emoji] = (next[emoji] || 0) + 1;
-      return next;
-    });
+  const shareClip = async () => {
+    const url = window.location.href;
     try {
-      const update = {};
-      if (prev) update[`reactions.${prev}`] = Math.max(0, (reactions[prev] || 0) - 1);
-      if (emoji !== prev) update[`reactions.${emoji}`] = (reactions[emoji] || 0) + 1;
-      await updateDoc(doc(db, 'clips', clipId), update);
-    } catch { /* revert silently */ }
-  }, [myReaction, reactions, clipId, showToast]);
+      if (navigator.share) await navigator.share({ title: clip?.title || 'Clip', url });
+      else { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
+    } catch {}
+  };
 
-  // BUG-C04: Send comment
-  const sendComment = useCallback(async () => {
-    if (!commentText.trim() || sendingCmt) return;
-    if (!auth.currentUser) { showToast('Sign in to comment'); return; }
-    setSendingCmt(true);
-    try {
-      const ref = await addDoc(collection(db, 'clips', clipId, 'comments'), {
-        text: commentText.trim(),
-        userId: auth.currentUser.uid,
-        userName: auth.currentUser.displayName || 'Viewer',
-        avatar: auth.currentUser.photoURL || null,
-        createdAt: serverTimestamp(),
-      });
-      setComments(prev => [{
-        id: ref.id,
-        text: commentText.trim(),
-        userName: auth.currentUser.displayName || 'Viewer',
-        avatar: auth.currentUser.photoURL || null,
-        createdAt: { toMillis: () => Date.now() },
-      }, ...prev]);
-      setCommentText('');
-    } catch { showToast('Failed to post comment'); }
-    finally { setSendingCmt(false); }
-  }, [commentText, sendingCmt, clipId, showToast]);
-
-  const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0);
+  const fmtT = s => `${Math.floor((s||0)/60)}:${String(Math.floor((s||0)%60)).padStart(2,'0')}`;
 
   if (loading) return (
     <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ color:'#64748b', fontSize:'14px' }}>Loading clip…</div>
+      <div style={{ color:'#94a3b8' }}>Loading clip…</div>
     </div>
   );
 
   if (!clip) return (
-    <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'12px' }}>
-      <div style={{ fontSize:'36px' }}>🎬</div>
+    <div style={{ background:'#0a0a18', minHeight:'100vh', display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:'12px' }}>
+      <div style={{ fontSize:'40px' }}>✂️</div>
       <div style={{ color:'#f1f5f9', fontWeight:700 }}>Clip not found</div>
-      <button onClick={() => navigate('/live')} style={{ background:'#ef4444', border:'none', borderRadius:'10px', padding:'10px 20px', color:'white', fontWeight:700, cursor:'pointer' }}>
-        Back to Live
+      <button onClick={() => navigate('/live')}
+        style={{ background:'#1e293b', border:'none', borderRadius:'10px', padding:'10px 20px', color:'#94a3b8', cursor:'pointer' }}>
+        ← Browse Live
       </button>
     </div>
   );
 
+  const isOwner = clip.uid === uid;
+
   return (
     <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:'80px' }}>
       {/* Header */}
-      <div style={{ padding:'12px 16px', display:'flex', alignItems:'center', gap:'10px', borderBottom:'1px solid #1e293b' }}>
-        <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer', padding:'4px' }}>←</button>
-        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>✂️ Clip</span>
-        {/* BUG-C01 / MISS-C01: Share button */}
-        <button onClick={handleShare} disabled={sharing} aria-label="Share clip"
-          style={{ background:'#1e293b', border:'none', borderRadius:'8px', padding:'6px 12px',
-            color:'#f1f5f9', fontSize:'13px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:'6px' }}>
-          🔗 Share
+      <div style={{ padding:'10px 16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px' }}>
+        <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
+        <div style={{ flex:1 }}>
+          <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>{clip.title || 'Clip'}</div>
+          <div style={{ color:'#64748b', fontSize:'11px' }}>{clip.streamerName}</div>
+        </div>
+        <button onClick={shareClip}
+          style={{ background:'#1e293b', border:'none', borderRadius:'8px', padding:'6px 12px', color:'#94a3b8', fontSize:'12px', cursor:'pointer' }}>
+          📤 Share
         </button>
       </div>
 
-      {/* Video player */}
-      <div style={{ position:'relative', background:'#000', aspectRatio:'9/16', maxHeight:'55vh', overflow:'hidden' }}>
-        <video ref={videoRef} src={clip.clipUrl} autoPlay muted={false}
-          loop={looping} playsInline controls
-          style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }}
-        />
-        {/* MISS-C02: Loop toggle */}
-        <button onClick={() => setLooping(v => !v)} aria-label={looping ? 'Disable loop' : 'Enable loop'}
-          style={{ position:'absolute', top:'8px', right:'8px', background: looping ? 'rgba(239,68,68,0.85)' : 'rgba(0,0,0,0.6)',
-            border:'none', borderRadius:'8px', padding:'4px 8px', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
-          {looping ? '🔁 Loop' : '🔁 Once'}
-        </button>
-      </div>
+      {/* Video Player */}
+      <div style={{ position:'relative', width:'100%', aspectRatio:'16/9', background:'#000', maxHeight:'260px' }}>
+        <video ref={videoRef}
+          src={clip.videoUrl || clip.hlsUrl}
+          onLoadedMetadata={handleVideoLoaded}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={() => setPlaying(false)}
+          playsInline
+          style={{ width:'100%', height:'100%', objectFit:'contain' }} />
 
-      {/* Clip info */}
-      <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b' }}>
-        <div style={{ fontWeight:800, fontSize:'16px', color:'#f1f5f9', marginBottom:'4px' }}>
-          {clip.streamTitle || 'Stream Clip'}
-        </div>
-        <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'10px' }}>
-          by {clip.streamerName || 'Creator'} · {fmt(clip.viewCount)} views
+        {/* Play/pause overlay */}
+        <div onClick={togglePlay} style={{ position:'absolute', inset:0, display:'flex',
+          alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          {!playing && (
+            <div style={{ width:'56px', height:'56px', borderRadius:'50%', background:'rgba(0,0,0,0.7)',
+              display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}>▶</div>
+          )}
         </div>
 
-        {/* Action row */}
-        <div style={{ display:'flex', gap:'8px', marginBottom:'12px' }}>
-          <button onClick={toggleLike} aria-label={liked ? 'Unlike' : 'Like'}
-            style={{ flex:1, background: liked ? 'rgba(239,68,68,0.15)' : '#1e293b', border: liked ? '1px solid #ef4444' : '1px solid #334155',
-              borderRadius:'10px', padding:'8px', color: liked ? '#ef4444' : '#94a3b8', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>
-            {liked ? '❤️ Liked' : '🤍 Like'} {clip.likes?.length > 0 ? `(${fmt(clip.likes.length)})` : ''}
-          </button>
-          {/* BUG-C02: Download */}
-          <button onClick={handleDownload} aria-label="Download clip"
-            style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'10px',
-              padding:'8px', color:'#94a3b8', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>
-            ⬇️ Download
-          </button>
-          <button onClick={() => clip.streamId && navigate(`/live/watch/${clip.streamId}`)}
-            style={{ flex:1, background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none',
-              borderRadius:'10px', padding:'8px', color:'white', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
-            📺 Watch Stream
-          </button>
-        </div>
-
-        {/* MISS-C03: Emoji reactions bar */}
-        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-          {REACTIONS.map(emoji => (
-            <button key={emoji} onClick={() => handleReaction(emoji)}
-              aria-label={`React with ${emoji}`} aria-pressed={myReaction === emoji}
-              style={{ background: myReaction === emoji ? 'rgba(99,102,241,0.2)' : '#1e293b',
-                border: myReaction === emoji ? '1px solid #818cf8' : '1px solid #334155',
-                borderRadius:'20px', padding:'4px 10px', cursor:'pointer',
-                fontSize:'13px', color:'#f1f5f9', display:'flex', alignItems:'center', gap:'4px' }}>
-              {emoji} {reactions[emoji] > 0 && <span style={{ fontSize:'11px', color:'#94a3b8' }}>{reactions[emoji]}</span>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* BUG-C04: Comment section */}
-      <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b' }}>
-        <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'10px' }}>
-          💬 Comments ({comments.length})
-        </div>
-        {auth.currentUser && (
-          <div style={{ display:'flex', gap:'8px', marginBottom:'12px' }}>
-            <input value={commentText} onChange={e => setCommentText(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendComment()}
-              placeholder="Add a comment…" aria-label="Add comment"
-              style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'10px',
-                padding:'8px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none' }} />
-            <button onClick={sendComment} disabled={sendingCmt || !commentText.trim()}
-              style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'10px',
-                padding:'8px 14px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer',
-                opacity: (sendingCmt || !commentText.trim()) ? 0.5 : 1 }}>
-              {sendingCmt ? '…' : 'Post'}
-            </button>
-          </div>
-        )}
-        {!auth.currentUser && (
-          <div style={{ textAlign:'center', padding:'16px', color:'#64748b', fontSize:'13px' }}>
-            <button onClick={() => navigate('/login')} style={{ color:'#ef4444', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>Sign in</button> to comment
-          </div>
-        )}
-        {comments.slice(0, 20).map(c => (
-          <div key={c.id} style={{ display:'flex', gap:'8px', marginBottom:'10px' }}>
-            <div style={{ width:'28px', height:'28px', borderRadius:'50%', background:'#1e293b',
-              flexShrink:0, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px' }}>
-              {c.avatar ? <img src={c.avatar} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : '👤'}
-            </div>
-            <div style={{ flex:1 }}>
-              <span style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px', marginRight:'6px' }}>{c.userName}</span>
-              <span style={{ color:'#94a3b8', fontSize:'12px' }}>{c.text}</span>
-            </div>
-          </div>
-        ))}
-        {comments.length === 0 && (
-          <div style={{ textAlign:'center', color:'#64748b', fontSize:'13px', padding:'16px' }}>No comments yet. Be the first!</div>
-        )}
-      </div>
-
-      {/* BUG-C03: Related clips rail */}
-      {related.length > 0 && (
-        <div style={{ padding:'12px 16px' }}>
-          <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'10px' }}>
-            🔥 More Clips
-          </div>
-          <div style={{ display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'8px' }} role="list">
-            {related.map(r => (
-              <div key={r.id} role="listitem"
-                onClick={() => navigate(`/clips/${r.id}`)}
-                aria-label={`Watch clip: ${r.streamTitle}`}
-                style={{ flexShrink:0, width:'130px', borderRadius:'12px', overflow:'hidden',
-                  background:'#1e293b', cursor:'pointer', border:'1px solid #334155' }}>
-                <div style={{ position:'relative', aspectRatio:'9/16', background:'linear-gradient(135deg,#1e293b,#334155)' }}>
-                  {r.thumbnailUrl
-                    ? <img src={r.thumbnailUrl} alt={r.streamTitle} loading="lazy"
-                        style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
-                    : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px' }}>✂️</div>
-                  }
-                  <div style={{ position:'absolute', bottom:'4px', right:'4px', background:'rgba(0,0,0,0.8)',
-                    borderRadius:'4px', padding:'1px 5px', color:'white', fontSize:'9px' }}>
-                    👁 {r.viewCount >= 1000 ? `${(r.viewCount/1000).toFixed(1)}K` : r.viewCount || 0}
-                  </div>
-                </div>
-                <div style={{ padding:'6px 8px' }}>
-                  <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'11px',
-                    overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {r.streamTitle || 'Clip'}
-                  </div>
-                  <div style={{ color:'#64748b', fontSize:'10px', marginTop:'2px' }}>{r.streamerName || 'Creator'}</div>
-                </div>
+        {/* REC-6.14: Chat replay overlay */}
+        {showChatReplay && visibleChat.length > 0 && (
+          <div style={{ position:'absolute', bottom:'8px', left:'8px', right:'8px', maxHeight:'120px',
+            overflowY:'auto', display:'flex', flexDirection:'column', gap:'2px', pointerEvents:'none' }}>
+            {visibleChat.slice(-8).map(msg => (
+              <div key={msg.id} style={{ background:'rgba(0,0,0,0.75)', borderRadius:'6px',
+                padding:'3px 8px', display:'inline-flex', gap:'4px', alignSelf:'flex-start' }}>
+                <span style={{ color:'#f59e0b', fontSize:'10px', fontWeight:700 }}>{msg.userName}:</span>
+                <span style={{ color:'#f1f5f9', fontSize:'10px' }}>{msg.text}</span>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Time display */}
+        <div style={{ position:'absolute', top:'8px', right:'8px', background:'rgba(0,0,0,0.7)',
+          borderRadius:'4px', padding:'2px 6px', color:'white', fontSize:'10px', fontWeight:700 }}>
+          {fmtT(currentTime)} / {fmtT(trimEnd - trimStart)}
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height:'3px', background:'#1e293b', position:'relative' }}>
+        <div style={{ position:'absolute', top:0, left:0, height:'100%', background:'#ef4444',
+          width:`${duration > 0 ? ((currentTime - trimStart) / (trimEnd - trimStart)) * 100 : 0}%`,
+          transition:'width 0.2s linear' }} />
+      </div>
+
+      {/* Controls row */}
+      <div style={{ display:'flex', gap:'8px', padding:'10px 16px', borderBottom:'1px solid #1e293b' }}>
+        <button onClick={togglePlay}
+          style={{ background:'linear-gradient(135deg,#ef4444,#dc2626)', border:'none', borderRadius:'10px',
+            padding:'8px 16px', color:'white', fontWeight:800, fontSize:'14px', cursor:'pointer' }}>
+          {playing ? '⏸' : '▶'}
+        </button>
+
+        {/* REC-6.3: Trim button — owner only */}
+        {isOwner && (
+          <button onClick={() => setShowTrimTool(v => !v)}
+            style={{ background: showTrimTool ? '#334155' : '#1e293b', border:'1px solid #334155',
+              borderRadius:'10px', padding:'8px 14px', color: showTrimTool ? '#f1f5f9' : '#94a3b8',
+              fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+            ✂️ Trim
+          </button>
+        )}
+
+        {/* REC-6.14: Chat replay toggle */}
+        <button onClick={() => setShowChatReplay(v => !v)}
+          style={{ background: showChatReplay ? '#334155' : '#1e293b', border:'1px solid #334155',
+            borderRadius:'10px', padding:'8px 14px', color: showChatReplay ? '#f1f5f9' : '#94a3b8',
+            fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+          💬 {showChatReplay ? 'Hide Chat' : 'Chat Replay'}
+        </button>
+
+        <button onClick={shareClip}
+          style={{ marginLeft:'auto', background:'#1e293b', border:'1px solid #334155', borderRadius:'10px',
+            padding:'8px 14px', color:'#94a3b8', fontSize:'12px', cursor:'pointer' }}>
+          📤
+        </button>
+      </div>
+
+      {/* REC-6.3: Trim tool panel */}
+      {showTrimTool && isOwner && (
+        <div style={{ background:'#1e293b', borderBottom:'1px solid #334155', padding:'14px 16px' }}>
+          <ClipTrimTool
+            duration={duration}
+            trimStart={trimStart}
+            trimEnd={trimEnd}
+            onChangeTrim={(s, e) => {
+              setTrimStart(s);
+              setTrimEnd(e);
+              if (videoRef.current) videoRef.current.currentTime = s;
+            }}
+          />
+          <div style={{ display:'flex', gap:'8px', marginTop:'10px' }}>
+            <button onClick={saveTrim} disabled={trimSaving}
+              style={{ background:'linear-gradient(135deg,#22c55e,#16a34a)', border:'none', borderRadius:'8px',
+                padding:'8px 18px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
+              {trimSaving ? '⏳ Saving…' : '💾 Save Trim'}
+            </button>
+            <button onClick={() => { setTrimStart(0); setTrimEnd(duration); }}
+              style={{ background:'none', border:'1px solid #334155', borderRadius:'8px', padding:'8px 14px',
+                color:'#64748b', fontSize:'12px', cursor:'pointer' }}>
+              Reset
+            </button>
+          </div>
+          <div style={{ color:'#64748b', fontSize:'11px', marginTop:'6px' }}>
+            Clip length: {fmtT(trimEnd - trimStart)} (was {fmtT(duration)})
+          </div>
         </div>
       )}
+
+      {/* Clip info */}
+      <div style={{ padding:'14px 16px' }}>
+        <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'15px', marginBottom:'4px' }}>{clip.title}</div>
+        <div style={{ color:'#64748b', fontSize:'12px', marginBottom:'10px' }}>
+          From: {clip.streamTitle || 'Live Stream'} · {fmtT(clip.timestamp)} timestamp
+        </div>
+
+        {/* REC-6.14: Chat replay info */}
+        <div style={{ background:'#1e293b', borderRadius:'10px', padding:'10px 12px' }}>
+          <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'12px', marginBottom:'4px' }}>💬 Chat Replay</div>
+          <div style={{ color:'#64748b', fontSize:'11px', marginBottom:'8px' }}>
+            {chatReplay.length > 0
+              ? `${chatReplay.length} messages from the original stream. Enable Chat Replay to see messages as they appeared.`
+              : 'No chat history available for this stream.'}
+          </div>
+          {!showChatReplay && chatReplay.length > 0 && (
+            <button onClick={() => { setShowChatReplay(true); showToast('Chat replay enabled!'); }}
+              style={{ background:'linear-gradient(135deg,#6366f1,#818cf8)', border:'none', borderRadius:'8px',
+                padding:'7px 14px', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>
+              Enable Chat Replay
+            </button>
+          )}
+          {showChatReplay && (
+            <div style={{ maxHeight:'180px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'4px' }}>
+              {visibleChat.map(msg => (
+                <div key={msg.id} style={{ display:'flex', gap:'6px' }}>
+                  <span style={{ color:'#f59e0b', fontSize:'11px', fontWeight:700, flexShrink:0 }}>{msg.userName}:</span>
+                  <span style={{ color:'#e2e8f0', fontSize:'12px' }}>{msg.text}</span>
+                </div>
+              ))}
+              {visibleChat.length === 0 && <div style={{ color:'#334155', fontSize:'12px' }}>Play the clip to see chat</div>}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -24,6 +24,15 @@ const GIFT_AMOUNTS = [10, 50, 100, 500];
 const EMOJIS = ['❤️', '🔥', '😂', '👏', '💯'];
 const QUALITY_LEVELS = ['Auto', '1080p', '720p', '480p'];
 
+// REC-6.1: Full emote palette grid
+const EMOTE_PALETTE = [
+  '❤️','🔥','😂','👏','💯','🎉','😍','🤩','💪','👑',
+  '🙌','✨','😎','🥳','😆','💀','🤣','😭','🫶','⭐',
+  '🎮','🎵','🍕','🚀','💎','🦋','🌟','🏆','💬','🫡',
+];
+// REC-6.4: Viewer milestone thresholds
+const MILESTONES = [10, 50, 100, 500, 1000, 5000];
+
 // REC-5.15: Confetti burst for large gifts
 function ConfettiBurst({ onDone }) {
   const pieces = Array.from({ length: 24 }, (_, i) => i);
@@ -121,6 +130,14 @@ export default function LiveWatchPage() {
   const [clipTitle, setClipTitle] = useState('');
   const [clipCreating, setClipCreating] = useState(false);
   const isStreamer = stream?.uid === uid;
+
+  // REC-6.1: Emote palette
+  const [showEmotePicker, setShowEmotePicker] = useState(false);
+  // REC-6.4: Viewer milestones
+  const [milestoneBanner, setMilestoneBanner] = useState(null);
+  const shownMilestones = useRef(new Set());
+  // REC-6.13: Subscriber set (for badge in chat)
+  const [followerIds, setFollowerIds] = useState(new Set());
 
   // Load stream
   useEffect(() => {
