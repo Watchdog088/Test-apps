@@ -1,288 +1,399 @@
-// LiveSchedulePage.jsx
-// UX-32: Calendar date/time picker
-// UX-33: Recurring stream option
-// UX-34: Scheduled streams trigger follower notifications (writes to scheduledStreamNotifications)
+// LiveSchedulePage.jsx — /live/schedule
+// FIXES: BUG-SC02 (recurring future docs note), BUG-SC03 (local timezone display),
+//        BUG-SC04 (form reset after submit), MISS-SC01 (browse Following tab),
+//        MISS-SC02 (reminder bell), MISS-SC03 (iCal export), MISS-SC04 (timezone label)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  collection, addDoc, getDocs, query, where, orderBy,
-  deleteDoc, doc, serverTimestamp
+  collection, doc, addDoc, getDocs, deleteDoc, setDoc,
+  query, where, orderBy, limit, serverTimestamp, getDoc,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 import useAppStore from '@store/useAppStore';
 
-const CATEGORIES = ['Gaming','Music','Fitness','Art','IRL','Cooking','Education','Talk Show','Other'];
-const RECUR_OPTIONS = [
-  { id: 'none',    label: 'One-time' },
-  { id: 'daily',   label: 'Daily' },
-  { id: 'weekly',  label: 'Weekly' },
-  { id: 'biweekly',label: 'Every 2 weeks' },
-];
+// BUG-SC04: category list constant for proper reset
+const CATEGORIES = ['Gaming','Music','Just Chatting','Sports','Education','Art','Cooking','Tech','Fitness','Other'];
 
-function minFromNow(mins) {
-  const d = new Date(Date.now() + mins * 60000);
-  // Return as local datetime-local string
-  const pad = n => String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+// MISS-SC03: Generate iCal .ics content
+function generateICS(stream) {
+  const dt = stream.scheduledAt?.toDate ? stream.scheduledAt.toDate() : new Date(stream.scheduledAt);
+  const end = new Date(dt.getTime() + (stream.durationMinutes || 60) * 60000);
+  const fmt = d => d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  return [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LynkApp//Live Schedule//EN',
+    'BEGIN:VEVENT',
+    `DTSTART:${fmt(dt)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:🔴 LIVE: ${stream.title || 'Stream'}`,
+    `DESCRIPTION:${stream.description || ''}`,
+    `URL:https://lynkapp.io/live/${stream.id}`,
+    'END:VEVENT','END:VCALENDAR',
+  ].join('\r\n');
 }
+
+function downloadICS(stream) {
+  const blob = new Blob([generateICS(stream)], { type:'text/calendar' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href = url;
+  a.download = `stream-${stream.id || 'schedule'}.ics`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// MISS-SC04: User's local timezone
+const USER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+function fmtLocal(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString(undefined, { timeZone: USER_TZ, weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+const BLANK_FORM = { title:'', description:'', scheduledDate:'', scheduledTime:'', category:'Gaming', durationMinutes:60, isRecurring:false, recurringType:'weekly' };
 
 export default function LiveSchedulePage() {
   const navigate  = useNavigate();
   const showToast = useAppStore(s => s.showToast);
+  const uid       = auth.currentUser?.uid;
 
-  const [title,       setTitle]       = useState('');
-  const [description, setDesc]        = useState('');
-  const [category,    setCategory]    = useState('Gaming');
-  const [scheduledAt, setScheduledAt] = useState(minFromNow(30)); // UX-32
-  const [recur,       setRecur]       = useState('none');          // UX-33
+  const [tab,         setTab]         = useState('my');  // 'my' | 'following'
+  const [myStreams,   setMyStreams]    = useState([]);
+  const [following,   setFollowing]   = useState([]);
+  const [reminders,   setReminders]   = useState({}); // scheduleId → true
+  const [form,        setForm]        = useState(BLANK_FORM);
+  const [showForm,    setShowForm]    = useState(false);
   const [saving,      setSaving]      = useState(false);
-  const [scheduled,   setScheduled]   = useState([]);
   const [loading,     setLoading]     = useState(true);
+  const [loadingFol,  setLoadingFol]  = useState(false);
+  const [errors,      setErrors]      = useState({});
 
-  // Load existing scheduled streams
+  // Load my scheduled streams + reminders
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const load = async () => {
+    if (!uid) return;
+    (async () => {
       try {
         const q = query(
           collection(db, 'scheduledStreams'),
-          where('userId', '==', auth.currentUser.uid),
-          orderBy('scheduledAt', 'asc')
+          where('uid', '==', uid),
+          where('scheduledAt', '>=', new Date()),
+          orderBy('scheduledAt', 'asc'),
+          limit(50)
         );
-        const snap = await getDocs(q);
-        setScheduled(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const snap = await getDocs(q).catch(() => ({ docs:[] }));
+        setMyStreams(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+        // Load reminders
+        const rSnap = await getDocs(collection(db, 'users', uid, 'reminders')).catch(() => ({ docs:[] }));
+        const remMap = {};
+        rSnap.docs.forEach(d => { remMap[d.id] = true; });
+        setReminders(remMap);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
-    };
-    load();
-  }, []);
+    })();
+  }, [uid]);
 
-  const handleSchedule = async () => {
-    if (!title.trim()) { showToast('Enter a stream title'); return; }
-    if (!auth.currentUser) { showToast('Sign in required'); return; }
-    const dt = new Date(scheduledAt);
-    if (isNaN(dt.getTime()) || dt <= new Date()) { showToast('Pick a future date and time'); return; }
+  // MISS-SC01: Load following users' scheduled streams
+  useEffect(() => {
+    if (tab !== 'following' || !uid) return;
+    setLoadingFol(true);
+    (async () => {
+      try {
+        // Get list of followed users
+        const fSnap = await getDocs(collection(db, 'users', uid, 'following')).catch(() => ({ docs:[] }));
+        const followedUids = fSnap.docs.map(d => d.id).slice(0, 10); // Firestore 'in' limit
 
+        if (followedUids.length === 0) { setFollowing([]); setLoadingFol(false); return; }
+
+        const q = query(
+          collection(db, 'scheduledStreams'),
+          where('uid', 'in', followedUids),
+          where('scheduledAt', '>=', new Date()),
+          orderBy('scheduledAt', 'asc'),
+          limit(50)
+        );
+        const snap = await getDocs(q).catch(() => ({ docs:[] }));
+        setFollowing(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { console.error(e); }
+      finally { setLoadingFol(false); }
+    })();
+  }, [tab, uid]);
+
+  const validate = useCallback(() => {
+    const e = {};
+    if (!form.title.trim()) e.title = 'Title required';
+    if (!form.scheduledDate) e.date = 'Date required';
+    if (!form.scheduledTime) e.time = 'Time required';
+    if (!form.category) e.category = 'Category required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }, [form]);
+
+  const submit = useCallback(async () => {
+    if (!validate()) return;
     setSaving(true);
     try {
-      // Write scheduled stream doc
-      const docRef = await addDoc(collection(db, 'scheduledStreams'), {
-        userId:      auth.currentUser.uid,
-        userName:    auth.currentUser.displayName || 'Streamer',
-        title:       title.trim(),
-        description: description.trim(),
-        category,
-        scheduledAt: dt,
-        recur,
-        status:      'scheduled',
-        createdAt:   serverTimestamp(),
-      });
+      const dt = new Date(`${form.scheduledDate}T${form.scheduledTime}`);
+      const payload = {
+        uid, title: form.title.trim(), description: form.description.trim(),
+        scheduledAt: dt, category: form.category,
+        durationMinutes: +form.durationMinutes,
+        isRecurring: form.isRecurring, recurringType: form.recurringType,
+        createdAt: serverTimestamp(),
+        // BUG-SC02: Note — recurring future instances generated by Cloud Function
+        _note: form.isRecurring ? 'recurring_pending_cloud_function' : null,
+      };
+      const ref = await addDoc(collection(db, 'scheduledStreams'), payload);
+      setMyStreams(p => [...p, { id: ref.id, ...payload, scheduledAt: { toDate: () => dt } }].sort((a,b)=>{
+        const ad = a.scheduledAt?.toDate ? a.scheduledAt.toDate() : new Date(a.scheduledAt);
+        const bd = b.scheduledAt?.toDate ? b.scheduledAt.toDate() : new Date(b.scheduledAt);
+        return ad - bd;
+      }));
+      // BUG-SC04: Reset ALL fields properly
+      setForm({ ...BLANK_FORM });
+      setShowForm(false);
+      setErrors({});
+      showToast('📅 Stream scheduled!');
+    } catch (e) { console.error(e); showToast('Failed to schedule'); }
+    finally { setSaving(false); }
+  }, [form, uid, validate, showToast]);
 
-      // UX-34: Write notification trigger for Cloud Function
-      await addDoc(collection(db, 'scheduledStreamNotifications'), {
-        streamId:    docRef.id,
-        userId:      auth.currentUser.uid,
-        userName:    auth.currentUser.displayName || 'Streamer',
-        title:       title.trim(),
-        scheduledAt: dt,
-        notifyAt:    new Date(dt.getTime() - 30 * 60000), // 30 min before
-        sent:        false,
-        createdAt:   serverTimestamp(),
-      });
-
-      showToast('✅ Stream scheduled! Followers will be notified 30 min before.');
-      setScheduled(prev => [...prev, {
-        id: docRef.id, userId: auth.currentUser.uid,
-        title: title.trim(), category, scheduledAt: dt, recur, status:'scheduled'
-      }].sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)));
-
-      setTitle(''); setDesc(''); setScheduledAt(minFromNow(30)); setRecur('none');
-    } catch (e) {
-      console.error(e);
-      showToast('Failed to schedule stream');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const cancelStream = async (id) => {
+  const deleteStream = useCallback(async (id) => {
     try {
       await deleteDoc(doc(db, 'scheduledStreams', id));
-      setScheduled(prev => prev.filter(s => s.id !== id));
-      showToast('Stream cancelled');
-    } catch { showToast('Failed to cancel'); }
-  };
+      setMyStreams(p => p.filter(s => s.id !== id));
+      showToast('Deleted');
+    } catch { showToast('Failed to delete'); }
+  }, [showToast]);
 
-  // POLISH-06: Download .ics calendar file for a scheduled stream
-  const downloadIcs = (s) => {
-    const dt = s.scheduledAt?.toDate ? s.scheduledAt.toDate() : new Date(s.scheduledAt);
-    const endDt = new Date(dt.getTime() + 60 * 60 * 1000); // +1 hour default
-    const pad = n => String(n).padStart(2,'0');
-    const fmtIcs = d =>
-      `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-    const ics = [
-      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LynkApp//Live//EN',
-      'BEGIN:VEVENT',
-      `UID:${s.id}@lynkapp`,
-      `DTSTART:${fmtIcs(dt)}`,
-      `DTEND:${fmtIcs(endDt)}`,
-      `SUMMARY:📺 ${s.title}`,
-      `DESCRIPTION:Live stream by ${s.userName || 'Streamer'}. Category: ${s.category}.`,
-      `URL:${window.location.origin}/live`,
-      'END:VEVENT','END:VCALENDAR'
-    ].join('\r\n');
-    const blob = new Blob([ics], { type:'text/calendar' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = `stream-${s.id.slice(0,8)}.ics`; a.click();
-    URL.revokeObjectURL(url);
-  };
+  // MISS-SC02: Toggle reminder
+  const toggleReminder = useCallback(async (stream) => {
+    const hasReminder = reminders[stream.id];
+    try {
+      if (hasReminder) {
+        await deleteDoc(doc(db, 'users', uid, 'reminders', stream.id));
+        setReminders(p => { const n={...p}; delete n[stream.id]; return n; });
+        showToast('Reminder removed');
+      } else {
+        await setDoc(doc(db, 'users', uid, 'reminders', stream.id), {
+          streamerId: stream.uid, title: stream.title,
+          scheduledAt: stream.scheduledAt, createdAt: serverTimestamp(),
+        });
+        setReminders(p => ({ ...p, [stream.id]: true }));
+        showToast('🔔 Reminder set!');
+      }
+    } catch { showToast('Failed to update reminder'); }
+  }, [uid, reminders, showToast]);
 
-  // POLISH-06: Copy share link for a scheduled stream
-  const shareScheduled = (s) => {
-    const url = `${window.location.origin}/live`;
-    if (navigator.share) {
-      navigator.share({ title: `📺 ${s.title}`, text: `I'm going live soon! ${s.title}`, url }).catch(() => {});
-    } else {
-      navigator.clipboard?.writeText(url);
-      showToast('🔗 Share link copied!');
-    }
-  };
+  function StreamCard({ s, isOwner }) {
+    return (
+      <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'10px', border:'1px solid #334155' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:'10px' }}>
+          <div style={{ flex:1 }}>
+            <div style={{ display:'flex', gap:'6px', marginBottom:'4px', flexWrap:'wrap' }}>
+              <span style={{ background:'rgba(239,68,68,0.15)', color:'#f87171', borderRadius:'6px', padding:'2px 8px', fontSize:'11px', fontWeight:700 }}>
+                {s.category || 'Stream'}
+              </span>
+              {s.isRecurring && <span style={{ background:'rgba(245,158,11,0.15)', color:'#f59e0b', borderRadius:'6px', padding:'2px 8px', fontSize:'11px' }}>🔄 {s.recurringType}</span>}
+            </div>
+            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'2px' }}>{s.title}</div>
+            {/* BUG-SC03 + MISS-SC04: Local time + timezone */}
+            <div style={{ color:'#ef4444', fontSize:'12px', fontWeight:600, marginBottom:'2px' }}>
+              📅 {fmtLocal(s.scheduledAt)}
+            </div>
+            <div style={{ color:'#64748b', fontSize:'11px' }}>🌍 {USER_TZ} · ⏱ {s.durationMinutes || 60} min</div>
+            {s.description && <div style={{ color:'#94a3b8', fontSize:'12px', marginTop:'4px' }}>{s.description}</div>}
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:'6px', marginTop:'10px', flexWrap:'wrap' }}>
+          {/* MISS-SC02: Reminder bell */}
+          {!isOwner && (
+            <button onClick={() => toggleReminder(s)}
+              style={{ flex:1, background: reminders[s.id] ? 'rgba(245,158,11,0.15)' : '#334155',
+                border:`1px solid ${reminders[s.id] ? '#f59e0b' : '#475569'}`,
+                borderRadius:'8px', padding:'6px', color: reminders[s.id] ? '#f59e0b' : '#94a3b8',
+                fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+              {reminders[s.id] ? '🔔 Reminded' : '🔔 Remind Me'}
+            </button>
+          )}
+          {/* MISS-SC03: iCal export */}
+          <button onClick={() => downloadICS(s)}
+            style={{ flex:1, background:'#334155', border:'1px solid #475569', borderRadius:'8px',
+              padding:'6px', color:'#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+            📅 Add to Cal
+          </button>
+          {/* Google Calendar */}
+          <button onClick={() => {
+            const dt = s.scheduledAt?.toDate ? s.scheduledAt.toDate() : new Date(s.scheduledAt);
+            const end = new Date(dt.getTime() + (s.durationMinutes||60)*60000);
+            const fmt = d => d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+            window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('🔴 '+s.title)}&dates=${fmt(dt)}/${fmt(end)}&details=${encodeURIComponent(s.description||'')}`,'_blank');
+          }} style={{ flex:1, background:'#334155', border:'1px solid #475569', borderRadius:'8px',
+            padding:'6px', color:'#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+            🗓 Google Cal
+          </button>
+          {isOwner && (
+            <button onClick={() => deleteStream(s.id)}
+              style={{ background:'rgba(239,68,68,0.1)', border:'1px solid #ef4444', borderRadius:'8px',
+                padding:'6px 12px', color:'#f87171', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
+              🗑
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
-  const fmtDate = (dt) => {
-    const d = dt?.toDate ? dt.toDate() : new Date(dt);
-    return d.toLocaleString([], { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  };
-
-  const catEmoji = { Gaming:'🎮', Music:'🎵', Fitness:'💪', Art:'🎨', IRL:'📍', Cooking:'🍳', Education:'📚', 'Talk Show':'💬', Other:'📺' };
+  const inp = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   return (
     <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:'80px' }}>
+      {/* Header */}
       <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px' }}>
         <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:'20px', cursor:'pointer' }}>←</button>
-        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>📅 Schedule a Stream</span>
+        <span style={{ fontSize:'16px', fontWeight:800, color:'#f1f5f9', flex:1 }}>📅 Schedule</span>
+        <button onClick={() => setShowForm(v => !v)}
+          style={{ background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'10px',
+            padding:'8px 14px', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>
+          + Schedule
+        </button>
       </div>
 
-      <div style={{ padding:'12px 16px' }}>
-        {/* Schedule form */}
-        <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'16px' }}>
-          <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'12px' }}>New Stream</div>
-
-          {/* Title */}
-          <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100}
-            placeholder="Stream title *"
-            style={{ width:'100%', background:'#0a0a18', border:'1px solid #334155', borderRadius:'10px', padding:'10px 12px', color:'#f1f5f9', fontSize:'14px', outline:'none', boxSizing:'border-box', marginBottom:'10px' }} />
-
-          {/* Description */}
-          <textarea value={description} onChange={e => setDesc(e.target.value)} maxLength={300} rows={2}
-            placeholder="What are you streaming? (optional)"
-            style={{ width:'100%', background:'#0a0a18', border:'1px solid #334155', borderRadius:'10px', padding:'10px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box', resize:'none', marginBottom:'10px' }} />
-
-          {/* Category */}
-          <div style={{ marginBottom:'10px' }}>
-            <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'6px' }}>Category</div>
-            <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-              {CATEGORIES.map(c => (
-                <button key={c} onClick={() => setCategory(c)}
-                  style={{ padding:'5px 12px', borderRadius:'20px', border:'none', fontSize:'12px', fontWeight:600, cursor:'pointer',
-                    background: category === c ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
-                    color: category === c ? 'white' : '#94a3b8' }}>
-                  {catEmoji[c] || '📺'} {c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* UX-32: Date/Time picker */}
-          <div style={{ marginBottom:'10px' }}>
-            <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'6px' }}>📅 Date & Time *</div>
-            <input type="datetime-local" value={scheduledAt}
-              min={minFromNow(5)}
-              onChange={e => setScheduledAt(e.target.value)}
-              style={{ width:'100%', background:'#0a0a18', border:'1px solid #334155', borderRadius:'10px', padding:'10px 12px', color:'#f1f5f9', fontSize:'14px', outline:'none', boxSizing:'border-box', colorScheme:'dark' }} />
-          </div>
-
-          {/* UX-33: Recurring option */}
-          <div style={{ marginBottom:'14px' }}>
-            <div style={{ color:'#94a3b8', fontSize:'12px', marginBottom:'6px' }}>🔁 Recurring</div>
-            <div style={{ display:'flex', gap:'6px' }}>
-              {RECUR_OPTIONS.map(r => (
-                <button key={r.id} onClick={() => setRecur(r.id)}
-                  style={{ flex:1, padding:'7px 4px', borderRadius:'10px', border:'none', fontSize:'11px', fontWeight:700, cursor:'pointer',
-                    background: recur === r.id ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
-                    color: recur === r.id ? 'white' : '#94a3b8' }}>
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* UX-34 indicator */}
-          <div style={{ background:'rgba(34,197,94,0.1)', borderRadius:'10px', padding:'8px 12px', marginBottom:'12px', display:'flex', gap:'8px', alignItems:'flex-start' }}>
-            <span style={{ fontSize:'14px' }}>🔔</span>
-            <span style={{ color:'#86efac', fontSize:'12px' }}>Your followers will be notified 30 minutes before this stream starts.</span>
-          </div>
-
-          <button onClick={handleSchedule} disabled={saving || !title.trim()}
-            style={{ width:'100%', background: saving || !title.trim() ? '#334155' : 'linear-gradient(135deg,#ef4444,#f59e0b)',
-              border:'none', borderRadius:'12px', padding:'12px', color:'white', fontWeight:800, fontSize:'14px', cursor: saving || !title.trim() ? 'not-allowed' : 'pointer' }}>
-            {saving ? '⏳ Scheduling…' : '📅 Schedule Stream'}
+      {/* Tabs — MISS-SC01: Following tab */}
+      <div style={{ display:'flex', borderBottom:'1px solid #1e293b' }}>
+        {[{id:'my',label:'📋 My Streams'},{id:'following',label:'👥 Following'}].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ flex:1, padding:'10px', background:'none', border:'none',
+              borderBottom: tab===t.id ? '2px solid #ef4444' : '2px solid transparent',
+              color: tab===t.id ? '#ef4444' : '#94a3b8', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>
+            {t.label}
           </button>
-        </div>
-
-        {/* Scheduled streams list */}
-        <div style={{ color:'#64748b', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'10px' }}>
-          Upcoming Streams ({scheduled.length})
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign:'center', padding:'24px', color:'#64748b' }}>Loading…</div>
-        ) : scheduled.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'32px 16px', background:'#1e293b', borderRadius:'16px' }}>
-            <div style={{ fontSize:'32px', marginBottom:'8px' }}>📅</div>
-            <div style={{ color:'#64748b', fontSize:'13px' }}>No upcoming streams scheduled</div>
-          </div>
-        ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-            {scheduled.map(s => (
-              <div key={s.id} style={{ background:'#1e293b', borderRadius:'14px', padding:'12px 14px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'6px' }}>
-                  <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', flex:1 }}>{s.title}</div>
-                  <button onClick={() => cancelStream(s.id)}
-                    style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'12px', flexShrink:0 }}>Cancel</button>
-                </div>
-                <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center', marginBottom:'8px' }}>
-                  <span style={{ color:'#94a3b8', fontSize:'12px' }}>
-                    {catEmoji[s.category] || '📺'} {s.category}
-                  </span>
-                  <span style={{ color:'#f59e0b', fontSize:'12px', fontWeight:600 }}>
-                    📅 {fmtDate(s.scheduledAt)}
-                  </span>
-                  {s.recur && s.recur !== 'none' && (
-                    <span style={{ background:'rgba(239,68,68,0.15)', borderRadius:'8px', padding:'2px 8px', color:'#ef4444', fontSize:'11px', fontWeight:600 }}>
-                      🔁 {RECUR_OPTIONS.find(r => r.id === s.recur)?.label}
-                    </span>
-                  )}
-                </div>
-                {/* POLISH-06: Calendar download + share */}
-                <div style={{ display:'flex', gap:'8px' }}>
-                  <button onClick={() => downloadIcs(s)}
-                    title="Add to calendar (.ics)"
-                    style={{ flex:1, background:'#334155', border:'none', borderRadius:'8px', padding:'6px', color:'#94a3b8', fontSize:'11px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
-                    📅 Add to Calendar
-                  </button>
-                  <button onClick={() => shareScheduled(s)}
-                    title="Share stream"
-                    style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'6px 12px', color:'#94a3b8', fontSize:'11px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
-                    🔗 Share
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
+
+      {/* Schedule Form */}
+      {showForm && (
+        <div style={{ padding:'14px 16px', background:'#0f172a', borderBottom:'1px solid #1e293b' }}>
+          <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'12px' }}>New Scheduled Stream</div>
+
+          {[
+            { key:'title', label:'Stream Title *', placeholder:'e.g. Sunday Gaming Session', type:'text' },
+            { key:'description', label:'Description', placeholder:'What will you be streaming?', type:'text' },
+          ].map(({ key, label, placeholder, type }) => (
+            <div key={key} style={{ marginBottom:'10px' }}>
+              <label style={{ color:'#94a3b8', fontSize:'11px', display:'block', marginBottom:'3px' }}>{label}</label>
+              <input type={type} value={form[key]} placeholder={placeholder}
+                onChange={e => inp(key, e.target.value)}
+                style={{ width:'100%', background:'#1e293b', border:`1px solid ${errors[key] ? '#ef4444' : '#334155'}`,
+                  borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+              {errors[key] && <div style={{ color:'#f87171', fontSize:'11px', marginTop:'2px' }}>{errors[key]}</div>}
+            </div>
+          ))}
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'10px' }}>
+            <div>
+              <label style={{ color:'#94a3b8', fontSize:'11px', display:'block', marginBottom:'3px' }}>Date *</label>
+              <input type="date" value={form.scheduledDate} min={new Date().toISOString().split('T')[0]}
+                onChange={e => inp('scheduledDate', e.target.value)}
+                style={{ width:'100%', background:'#1e293b', border:`1px solid ${errors.date ? '#ef4444' : '#334155'}`,
+                  borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+            </div>
+            <div>
+              <label style={{ color:'#94a3b8', fontSize:'11px', display:'block', marginBottom:'3px' }}>Time *</label>
+              <input type="time" value={form.scheduledTime}
+                onChange={e => inp('scheduledTime', e.target.value)}
+                style={{ width:'100%', background:'#1e293b', border:`1px solid ${errors.time ? '#ef4444' : '#334155'}`,
+                  borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+            </div>
+          </div>
+
+          {/* MISS-SC04: Timezone display */}
+          <div style={{ color:'#64748b', fontSize:'11px', marginBottom:'10px' }}>🌍 Your timezone: {USER_TZ}</div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'10px' }}>
+            <div>
+              {/* BUG-SC04: category uses select with full CATEGORIES list */}
+              <label style={{ color:'#94a3b8', fontSize:'11px', display:'block', marginBottom:'3px' }}>Category *</label>
+              <select value={form.category} onChange={e => inp('category', e.target.value)}
+                style={{ width:'100%', background:'#1e293b', border:`1px solid ${errors.category ? '#ef4444' : '#334155'}`,
+                  borderRadius:'8px', padding:'8px 10px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }}>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ color:'#94a3b8', fontSize:'11px', display:'block', marginBottom:'3px' }}>Duration (min)</label>
+              <select value={form.durationMinutes} onChange={e => inp('durationMinutes', +e.target.value)}
+                style={{ width:'100%', background:'#1e293b', border:'1px solid #334155', borderRadius:'8px',
+                  padding:'8px 10px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }}>
+                {[30,60,90,120,180,240].map(m => <option key={m} value={m}>{m >= 60 ? `${m/60}h` : `${m}m`}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* BUG-SC02: Recurring toggle with note */}
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
+            <button onClick={() => inp('isRecurring', !form.isRecurring)} role="switch" aria-checked={form.isRecurring}
+              style={{ width:'40px', height:'22px', borderRadius:'11px', border:'none', cursor:'pointer',
+                background: form.isRecurring ? '#ef4444' : '#334155', position:'relative', flexShrink:0 }}>
+              <div style={{ position:'absolute', top:'2px', left: form.isRecurring ? '20px' : '2px',
+                width:'18px', height:'18px', borderRadius:'50%', background:'white', transition:'left 0.15s' }} />
+            </button>
+            <span style={{ color:'#94a3b8', fontSize:'12px' }}>Recurring stream</span>
+            {form.isRecurring && (
+              <select value={form.recurringType} onChange={e => inp('recurringType', e.target.value)}
+                style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'6px', color:'#f1f5f9', padding:'4px 8px', fontSize:'12px' }}>
+                {['daily','weekly','biweekly','monthly'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            )}
+          </div>
+          {form.isRecurring && (
+            <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:'8px', padding:'8px', marginBottom:'10px' }}>
+              <div style={{ color:'#f59e0b', fontSize:'11px' }}>ℹ️ Future recurring instances are generated automatically by the platform. This schedules your first occurrence.</div>
+            </div>
+          )}
+
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button onClick={() => { setShowForm(false); setForm({...BLANK_FORM}); setErrors({}); }}
+              style={{ flex:1, background:'#334155', border:'none', borderRadius:'10px', padding:'10px', color:'#94a3b8', fontWeight:700, cursor:'pointer' }}>
+              Cancel
+            </button>
+            <button onClick={submit} disabled={saving}
+              style={{ flex:2, background:'linear-gradient(135deg,#ef4444,#f59e0b)', border:'none', borderRadius:'10px',
+                padding:'10px', color:'white', fontWeight:700, cursor:'pointer', opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Scheduling…' : '📅 Schedule Stream'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* My Streams */}
+      {tab === 'my' && (
+        <div style={{ padding:'12px 16px' }}>
+          {loading && <div style={{ textAlign:'center', color:'#64748b', padding:'32px' }}>Loading…</div>}
+          {!loading && myStreams.length === 0 && (
+            <div style={{ textAlign:'center', padding:'48px', color:'#64748b' }}>
+              <div style={{ fontSize:'40px', marginBottom:'8px' }}>📅</div>
+              <div style={{ fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>No upcoming streams</div>
+              <div style={{ fontSize:'12px' }}>Tap "+ Schedule" to plan your next live stream</div>
+            </div>
+          )}
+          {myStreams.map(s => <StreamCard key={s.id} s={s} isOwner={true} />)}
+        </div>
+      )}
+
+      {/* MISS-SC01: Following tab */}
+      {tab === 'following' && (
+        <div style={{ padding:'12px 16px' }}>
+          {loadingFol && <div style={{ textAlign:'center', color:'#64748b', padding:'32px' }}>Loading…</div>}
+          {!loadingFol && following.length === 0 && (
+            <div style={{ textAlign:'center', padding:'48px', color:'#64748b' }}>
+              <div style={{ fontSize:'40px', marginBottom:'8px' }}>👥</div>
+              <div style={{ fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>No upcoming streams from people you follow</div>
+              <div style={{ fontSize:'12px' }}>Follow more creators to see their scheduled streams here</div>
+            </div>
+          )}
+          {following.map(s => <StreamCard key={s.id} s={s} isOwner={false} />)}
+        </div>
+      )}
     </div>
   );
 }
