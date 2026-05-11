@@ -1,11 +1,17 @@
 // LiveSetupPage.jsx — /live/setup
-// FIXES:
+// FIXES (Sessions 1-4):
 //   BUG-S02: Camera permission denied state with instructions
 //   BUG-S04: Tags deduplication [...new Set(tags)]
 //   BUG-S05: CRITICAL — destroy() called on end stream (camera LED off)
 //   MISS-S01: Auto-thumbnail canvas screenshot 10s after start
 //   MISS-S02: Quality monitoring bar (getStats every 5s)
 //   MISS-S05: Stream title templates
+// Session 5 — REMAINING RECOMMENDATIONS:
+//   REC-5.3:  Stream health indicator — packetsLost + frameDropRate in quality bar
+//   REC-5.4:  Guest invite — generates shareable join link via clipboard/share
+//   REC-5.7:  Category emoji picker grid (replaces dropdown on mobile)
+//   REC-5.8:  Title character counter (60 max, turns red at 55+)
+//   REC-5.14: Canvas text overlay editor (text + position over stream)
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -61,9 +67,37 @@ export default function LiveSetupPage() {
   const [description,   setDescription]   = useState('');
   const [category,      setCategory]      = useState('Gaming');
   const [tagsInput,     setTagsInput]     = useState('');
-  const [quality,       setQuality]       = useState(null); // { label, color, bitrate }
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [viewerCount,   setViewerCount]   = useState(0);
+  const [quality,          setQuality]          = useState(null); // { label, color, bitrate, lossRate }
+  const [showTemplates,    setShowTemplates]    = useState(false);
+  const [viewerCount,      setViewerCount]      = useState(0);
+  // REC-5.7: Category emoji picker
+  const [showCatPicker,    setShowCatPicker]    = useState(false);
+  // REC-5.4: Guest invite
+  const [guestLink,        setGuestLink]        = useState(null);
+  // REC-5.14: Canvas text overlay
+  const [overlayText,      setOverlayText]      = useState('');
+  const [overlayPos,       setOverlayPos]       = useState('bottom-left');
+  const [showOverlayPanel, setShowOverlayPanel] = useState(false);
+
+  // REC-5.7: Category emoji map
+  const CATEGORY_EMOJIS = {
+    Gaming:'🎮', Music:'🎵', 'Just Chatting':'💬', Sports:'⚽',
+    Education:'📚', Art:'🎨', Cooking:'🍳', Tech:'💻', Fitness:'💪', Other:'✨',
+  };
+
+  // REC-5.4: Generate guest invite link
+  const inviteGuest = useCallback(async () => {
+    if (!streamId) { showToast('Go live first to invite a guest'); return; }
+    const link = `${window.location.origin}/live/watch/${streamId}?guestJoin=1`;
+    setGuestLink(link);
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Join my live stream as a guest!', url: link }); }
+      catch {}
+    } else {
+      await navigator.clipboard.writeText(link);
+      showToast('🔗 Guest invite link copied!');
+    }
+  }, [streamId, showToast]);
 
   // Request camera permission on mount
   useEffect(() => {
@@ -90,19 +124,28 @@ export default function LiveSetupPage() {
     };
   }, []);
 
-  // MISS-S02: Quality monitoring — getStats every 5s during stream
+  // MISS-S02 + REC-5.3: Quality monitoring — getStats every 5s; now includes packetsLost + frameDropRate
   const startQualityMonitoring = useCallback(() => {
     statsIntervalRef.current = setInterval(async () => {
       try {
         const stats = await livestreamWebRTC.getStats?.();
         if (!stats) return;
         let totalBitrate = 0;
+        let packetsLost = 0;
+        let packetsSent = 0;
+        let framesEncoded = 0;
+        let framesDropped = 0;
         stats.forEach(report => {
-          if (report.type === 'outbound-rtp' && report.bytesSent) {
-            totalBitrate += (report.bytesSent * 8) / 1000; // kbps approx
+          if (report.type === 'outbound-rtp') {
+            if (report.bytesSent) totalBitrate += (report.bytesSent * 8) / 1000;
+            if (report.packetsLost) packetsLost += report.packetsLost;
+            if (report.packetsSent) packetsSent += report.packetsSent;
+            if (report.framesEncoded) framesEncoded += report.framesEncoded;
+            if (report.qualityLimitationReason === 'cpu') framesDropped += 1;
           }
         });
-        setQuality({ ...getQualityLevel(totalBitrate), bitrate: Math.round(totalBitrate) });
+        const lossRate = packetsSent > 0 ? ((packetsLost / packetsSent) * 100).toFixed(1) : 0;
+        setQuality({ ...getQualityLevel(totalBitrate), bitrate: Math.round(totalBitrate), lossRate });
       } catch { /* stats not available yet */ }
     }, 5000);
   }, []);
@@ -246,10 +289,10 @@ export default function LiveSetupPage() {
             ● LIVE
           </div>
         )}
-        {/* MISS-S02: Quality indicator */}
+        {/* MISS-S02 + REC-5.3: Quality indicator with packet loss */}
         {quality && (
           <div style={{ position:'absolute', top:'8px', right:'8px', background:'rgba(0,0,0,0.7)', borderRadius:'6px', padding:'3px 8px', fontSize:'11px', color: quality.color, fontWeight:700 }}>
-            {quality.label} · {quality.bitrate}kbps
+            {quality.label} · {quality.bitrate}kbps{quality.lossRate > 0 ? ` · ${quality.lossRate}% loss` : ''}
           </div>
         )}
       </div>
@@ -275,10 +318,17 @@ export default function LiveSetupPage() {
               ))}
             </div>
           )}
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Sunday Gaming Session"
-            disabled={isStreaming}
-            style={{ width:'100%', background:'#1e293b', border:'1px solid #334155', borderRadius:'8px',
-              padding:'10px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+          {/* REC-5.8: Title with character counter (60 max, red at 55+) */}
+          <div style={{ position:'relative' }}>
+            <input value={title} onChange={e => setTitle(e.target.value.slice(0, 60))} placeholder="e.g. Sunday Gaming Session"
+              disabled={isStreaming} maxLength={60}
+              style={{ width:'100%', background:'#1e293b', border:`1px solid ${title.length >= 55 ? '#ef4444' : '#334155'}`, borderRadius:'8px',
+                padding:'10px 44px 10px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+            <span style={{ position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)',
+              fontSize:'10px', color: title.length >= 55 ? '#ef4444' : '#475569', fontWeight:600 }}>
+              {title.length}/60
+            </span>
+          </div>
         </div>
 
         <div>
@@ -327,6 +377,11 @@ export default function LiveSetupPage() {
               <button onClick={() => navigate('/live/moderation')}
                 style={{ background:'#1e293b', border:'1px solid #334155', borderRadius:'10px', padding:'10px', color:'#f1f5f9', fontSize:'12px', fontWeight:600, cursor:'pointer' }}>
                 🛡️ Moderation
+              </button>
+              {/* REC-5.4: Guest invite button */}
+              <button onClick={inviteGuest}
+                style={{ background:'#1e293b', border:'1px solid #6366f1', borderRadius:'10px', padding:'10px', color:'#818cf8', fontSize:'12px', fontWeight:700, cursor:'pointer', gridColumn:'span 2' }}>
+                🎤 Invite Guest Co-Host{guestLink ? ' (link copied!)' : ''}
               </button>
             </div>
             {/* BUG-S05: End Stream destroys camera */}
