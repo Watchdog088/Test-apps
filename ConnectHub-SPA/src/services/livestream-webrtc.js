@@ -303,4 +303,5 @@ class LivestreamWebRTC {
 const livestreamWebRTC = new LivestreamWebRTC();
 
 export default livestreamWebRTC;
-export { LivestreamWebRTC, fetchTurnCredentials, DEFAULT_ICE_SERVERS };
+// LivestreamPublisher is an alias for LivestreamWebRTC (used by LiveSetupPage)
+export { LivestreamWebRTC, LivestreamWebRTC as LivestreamPublisher, fetchTurnCredentials, DEFAULT_ICE_SERVERS };

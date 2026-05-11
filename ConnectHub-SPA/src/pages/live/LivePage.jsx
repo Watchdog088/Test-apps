@@ -113,10 +113,18 @@ export default function LivePage() {
   const urlCategory = searchParams.get('category') || 'all';
   const [category, setCategory] = useState(urlCategory);
 
+  // GAP-07: Category scroll memory — restore pill row scroll on mount, save on change
+  useEffect(() => {
+    const saved = sessionStorage.getItem('live_pills_scroll');
+    if (saved && pillsRef.current) pillsRef.current.scrollLeft = Number(saved);
+  }, []);
+
   const handleCategoryChange = useCallback((id) => {
     setCategory(id);
     if (id === 'all') setSearchParams({}, { replace: true });
     else setSearchParams({ category: id }, { replace: true });
+    // GAP-07: persist pill scroll position
+    if (pillsRef.current) sessionStorage.setItem('live_pills_scroll', pillsRef.current.scrollLeft);
   }, [setSearchParams]);
 
   useEffect(() => { setCategory(urlCategory); }, [urlCategory]);
@@ -134,7 +142,18 @@ export default function LivePage() {
   const [previewStream,setPreviewStream]= useState(null);
   // UX-14: incrementing this key forces Firestore subscriptions to re-run
   const [refreshKey,   setRefreshKey]   = useState(0);
-  const longPressTimer = useRef(null);
+  // Rec 10: Trending tab state
+  const [activeTab,    setActiveTab]    = useState('watch'); // 'watch' | 'trending'
+  // GAP-08: viewer count trends { [streamId]: 'up'|'down'|'same' }
+  const [viewerTrends, setViewerTrends] = useState({});
+  // GAP-14: saved VOD IDs (localStorage-persisted)
+  const [savedVodIds,  setSavedVodIds]  = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('savedVods') || '[]')); }
+    catch { return new Set(); }
+  });
+  const longPressTimer  = useRef(null);
+  const pillsRef        = useRef(null); // GAP-07: category pill scroll ref
+  const prevViewersRef  = useRef({});   // GAP-08: previous viewer counts for trend arrows
   const isSetup = location.pathname.startsWith('/live/setup');
 
   useEffect(() => {
@@ -157,11 +176,23 @@ export default function LivePage() {
     return () => unsub();
   }, []);
 
-  // UX-14: refreshKey in deps re-triggers subscription
+  // UX-14 + GAP-08: refreshKey re-triggers subscription; track viewer count trends
   useEffect(() => {
     const q = query(collection(db, 'streams'), where('status','==','live'), orderBy('viewerCount','desc'));
     const unsub = onSnapshot(q, snap => {
-      setFeeds(snap.docs.map(d => ({ id:d.id, ...d.data() })));
+      const newFeeds = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      // GAP-08: compute trends vs previous snapshot
+      const trends = {};
+      newFeeds.forEach(f => {
+        const prev = prevViewersRef.current[f.id];
+        if (prev === undefined) { trends[f.id] = 'same'; }
+        else if (f.viewerCount > prev) { trends[f.id] = 'up'; }
+        else if (f.viewerCount < prev) { trends[f.id] = 'down'; }
+        else { trends[f.id] = 'same'; }
+        prevViewersRef.current[f.id] = f.viewerCount;
+      });
+      setViewerTrends(trends);
+      setFeeds(newFeeds);
       setLoading(false);
     }, () => setLoading(false));
     return () => unsub();
@@ -195,6 +226,18 @@ export default function LivePage() {
       showToast(isF ? 'Unfollowed' : '✓ Following');
     } catch { showToast('Failed to update follow'); }
   };
+
+  // GAP-14: Save / unsave VOD to Watch Later (localStorage-persisted)
+  const toggleSaveVod = useCallback((e, vodId) => {
+    e.stopPropagation();
+    setSavedVodIds(prev => {
+      const next = new Set(prev);
+      if (next.has(vodId)) { next.delete(vodId); showToast('Removed from Watch Later'); }
+      else { next.add(vodId); showToast('💾 Saved to Watch Later'); }
+      localStorage.setItem('savedVods', JSON.stringify([...next]));
+      return next;
+    });
+  }, [showToast]);
 
   const isFollowing = uid => followingIds.has(uid) || followStates[uid] === true;
   const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0);
@@ -249,6 +292,7 @@ export default function LivePage() {
   };
 
   return (
+    <>
     <div style={{ background:'var(--bg-primary,#0a0a18)', minHeight:'100vh', paddingBottom:'80px' }}>
 
       {/* BUG-02 FIX: navigate prop passed */}
@@ -281,12 +325,21 @@ export default function LivePage() {
         </div>
       )}
 
-      {/* Watch / Go Live tabs */}
+      {/* Watch / Go Live / Trending tabs — Rec 10: added Trending tab */}
       <div style={{ display:'flex', borderBottom:'1px solid #1e293b' }} role="tablist">
-        {[{ id:'watch', label:'📺 Watch', path:'/live' }, { id:'golive', label:'🔴 Go Live', path:'/live/setup' }].map(tab => {
-          const active = tab.id === 'golive' ? isSetup : !isSetup;
+        {[
+          { id:'watch',    label:'📺 Watch',    path:'/live' },
+          { id:'trending', label:'🔥 Trending', path:null },   // Rec 10: Trending tab
+          { id:'golive',   label:'🔴 Go Live',  path:'/live/setup' },
+        ].map(tab => {
+          const active = tab.id === 'golive' ? isSetup : (tab.id === 'trending' ? (activeTab === 'trending') : (!isSetup && activeTab !== 'trending'));
           return (
-            <button key={tab.id} role="tab" aria-selected={active} onClick={() => navigate(tab.path)}
+            <button key={tab.id} role="tab" aria-selected={active}
+              onClick={() => {
+                if (tab.id === 'trending') { setActiveTab('trending'); }
+                else if (tab.id === 'watch') { setActiveTab('watch'); navigate('/live'); }
+                else { navigate(tab.path); }
+              }}
               style={{ flex:1, padding:'12px', border:'none', background:'none', fontWeight:700, fontSize:'13px', cursor:'pointer',
                 color: active ? '#f1f5f9' : '#64748b',
                 borderBottom: active ? '2px solid #ef4444' : '2px solid transparent' }}>
@@ -336,20 +389,64 @@ export default function LivePage() {
         );
       })()}
 
-      {/* POLISH-01: Category pills with right-edge fade */}
-      <div style={{ position:'relative' }}>
-        <div style={{ display:'flex', gap:'8px', padding:'10px 16px', overflowX:'auto', scrollbarWidth:'none' }}
-          role="group" aria-label="Filter by category">
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={() => handleCategoryChange(cat.id)}
-              aria-pressed={category === cat.id} aria-label={`Filter by ${cat.label}`}
-              style={{ padding:'6px 14px', borderRadius:'20px', border:'none', fontSize:'12px', fontWeight:600,
-                cursor:'pointer', flexShrink:0, transition:'background 0.15s, color 0.15s',
-                background: category===cat.id ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#1e293b',
-                color: category===cat.id ? 'white' : '#94a3b8' }}>
-              {cat.emoji} {cat.label}
-            </button>
+      {/* Rec 10: Trending tab content */}
+      {activeTab === 'trending' && !isSetup && (
+        <div style={{ padding:'12px 16px' }}>
+          <div style={{ fontSize:'12px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'12px' }}>🔥 Top Streams Right Now</div>
+          {[...feeds].sort((a,b) => (b.viewerCount||0) - (a.viewerCount||0)).slice(0,10).map((feed, i) => (
+            <div key={feed.id} onClick={() => navigate(`/live/watch/${feed.id}`)}
+              style={{ display:'flex', alignItems:'center', gap:'12px', padding:'10px 0',
+                borderBottom:'1px solid #1e293b', cursor:'pointer' }}>
+              <div style={{ width:'28px', height:'28px', borderRadius:'8px', flexShrink:0,
+                background: i === 0 ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : i === 1 ? 'linear-gradient(135deg,#94a3b8,#64748b)' : 'linear-gradient(135deg,#92400e,#78350f)',
+                display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:800, fontSize:'13px' }}>
+                {i < 3 ? ['🥇','🥈','🥉'][i] : `#${i+1}`}
+              </div>
+              {feed.thumbnailUrl
+                ? <img src={feed.thumbnailUrl} alt="" loading="lazy" style={{ width:'52px', height:'32px', objectFit:'cover', borderRadius:'6px', flexShrink:0 }} />
+                : <div style={{ width:'52px', height:'32px', borderRadius:'6px', background:'#1e293b', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', flexShrink:0 }}>
+                    {CATEGORIES.find(c=>c.id===feed.category)?.emoji||'🎥'}
+                  </div>
+              }
+              <div style={{ flex:1, overflow:'hidden' }}>
+                <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'13px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{feed.title}</div>
+                <div style={{ color:'#94a3b8', fontSize:'11px' }}>{feed.userName}</div>
+              </div>
+              <div style={{ color:'#ef4444', fontWeight:700, fontSize:'12px', flexShrink:0 }}>👁 {fmt(feed.viewerCount)}</div>
+            </div>
           ))}
+          {feeds.length === 0 && <div style={{ textAlign:'center', color:'#64748b', padding:'32px', fontSize:'13px' }}>No live streams right now</div>}
+        </div>
+      )}
+
+      {/* MISSING-M: Category count badges + POLISH-01: Category pills with right-edge fade */}
+      <div style={{ position:'relative' }}>
+        {/* GAP-07: pillsRef for scroll memory */}
+        <div ref={pillsRef} style={{ display:'flex', gap:'8px', padding:'10px 16px', overflowX:'auto', scrollbarWidth:'none' }}
+          role="group" aria-label="Filter by category">
+          {CATEGORIES.map(cat => {
+            // MISSING-M: Count badge per category
+            const count = cat.id === 'all' ? feeds.length
+              : cat.id === 'following' ? feeds.filter(f => followingIds.has(f.userId)).length
+              : feeds.filter(f => f.category === cat.id).length;
+            const showBadge = cat.id !== 'all' && count > 0;
+            return (
+              <button key={cat.id} onClick={() => { setActiveTab('watch'); handleCategoryChange(cat.id); }}
+                aria-pressed={category === cat.id} aria-label={`Filter by ${cat.label} — ${count} streams`}
+                style={{ padding:'6px 14px', borderRadius:'20px', border:'none', fontSize:'12px', fontWeight:600,
+                  cursor:'pointer', flexShrink:0, transition:'background 0.15s, color 0.15s', position:'relative',
+                  background: category===cat.id ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#1e293b',
+                  color: category===cat.id ? 'white' : '#94a3b8' }}>
+                {cat.emoji} {cat.label}
+                {showBadge && (
+                  <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#ef4444', color:'white',
+                    borderRadius:'8px', fontSize:'9px', fontWeight:800, padding:'1px 4px', lineHeight:'1.3', minWidth:'14px', textAlign:'center' }}>
+                    {count >= 100 ? '99+' : count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         {/* POLISH-01 FIX: fade indicator */}
         <div style={{ position:'absolute', top:0, right:0, bottom:0, width:'40px', pointerEvents:'none',
@@ -429,13 +526,20 @@ export default function LivePage() {
                     <div style={{ position:'absolute', top:'6px', left:'6px', background:'#ef4444',
                       borderRadius:'6px', padding:'2px 6px', color:'white', fontSize:'9px', fontWeight:800 }}>● LIVE</div>
                     <div style={{ position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)',
-                      borderRadius:'6px', padding:'2px 6px', color:'white', fontSize:'9px', fontWeight:600 }}>
+                      borderRadius:'6px', padding:'2px 6px', color:'white', fontSize:'9px', fontWeight:600,
+                      display:'flex', alignItems:'center', gap:'2px' }}>
+                      {/* GAP-08: viewer trend arrow */}
+                      {viewerTrends[feed.id] === 'up' && <span style={{ color:'#4ade80', fontSize:'9px' }}>▲</span>}
+                      {viewerTrends[feed.id] === 'down' && <span style={{ color:'#f87171', fontSize:'9px' }}>▼</span>}
                       👁 {fmt(feed.viewerCount)}
                     </div>
-                    {/* UX-13 FIX: Was 8px unreadable — now "⏸ HOLD" at 10px */}
-                    <div style={{ position:'absolute', bottom:'4px', left:'6px', background:'rgba(0,0,0,0.65)',
-                      borderRadius:'4px', padding:'2px 6px', color:'rgba(255,255,255,0.75)', fontSize:'10px', fontWeight:600 }}>
-                      ⏸ HOLD
+                    {/* Rec 5: Improved long-press hint — "Press & hold to preview" at 11px */}
+                    <div style={{ position:'absolute', bottom:'4px', left:'4px', right:'4px', background:'rgba(0,0,0,0.72)',
+                      borderRadius:'5px', padding:'3px 7px', color:'rgba(255,255,255,0.88)', fontSize:'11px', fontWeight:600,
+                      display:'flex', alignItems:'center', gap:'4px', justifyContent:'center' }}>
+                      <span style={{ display:'inline-block', width:'6px', height:'6px', borderRadius:'50%', background:'#ef4444',
+                        animation:'pulseDot 1.5s ease-in-out infinite' }} />
+                      Press &amp; hold to preview
                     </div>
                   </div>
                   <div style={{ padding:'8px' }}>
@@ -446,9 +550,21 @@ export default function LivePage() {
                       {feed.title || 'Live Stream'}
                     </div>
                     <div style={{ color:'#94a3b8', fontSize:'12px',
-                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:'6px' }}>
+                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:'3px' }}>
                       {feed.userName || 'Streamer'}
                     </div>
+                    {/* MISSING-09: Show top 2 tags on stream cards */}
+                    {feed.tags?.length > 0 && (
+                      <div style={{ display:'flex', gap:'3px', marginBottom:'5px', flexWrap:'wrap' }}>
+                        {feed.tags.slice(0,2).map(tag => (
+                          <span key={tag} onClick={e => { e.stopPropagation(); setSearchQuery(tag); setShowSearch(true); }}
+                            style={{ background:'rgba(99,102,241,0.15)', borderRadius:'8px', padding:'1px 6px',
+                              color:'#818cf8', fontSize:'9px', fontWeight:600, cursor:'pointer' }}>
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <button onClick={e => toggleFollow(e, feed.userId)}
                       aria-label={isFollowing(feed.userId) ? `Unfollow ${feed.userName}` : `Follow ${feed.userName}`}
                       style={{ width:'100%', background: isFollowing(feed.userId) ? '#334155' : 'linear-gradient(135deg,#ef4444,#f59e0b)',
@@ -567,10 +683,18 @@ export default function LivePage() {
                       : <div style={{ width:'100%', height:'100%', display:'flex',
                             alignItems:'center', justifyContent:'center', fontSize:'28px' }}>📼</div>
                     }
-                    <div style={{ position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.8)',
+                    <div style={{ position:'absolute', top:'6px', left:'6px', background:'rgba(0,0,0,0.8)',
                       borderRadius:'6px', padding:'2px 6px', color:'#94a3b8', fontSize:'9px', fontWeight:600 }}>
                       {timeAgo(vod.endedAt)}
                     </div>
+                    {/* GAP-14: Bookmark / Save to Watch Later */}
+                    <button onClick={e => toggleSaveVod(e, vod.id)}
+                      aria-label={savedVodIds.has(vod.id) ? 'Remove from Watch Later' : 'Save to Watch Later'}
+                      style={{ position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,0.7)',
+                        border:'none', borderRadius:'6px', padding:'3px 6px', cursor:'pointer',
+                        fontSize:'12px', lineHeight:1, color: savedVodIds.has(vod.id) ? '#f59e0b' : 'rgba(255,255,255,0.7)' }}>
+                      {savedVodIds.has(vod.id) ? '🔖' : '🏷'}
+                    </button>
                     {/* POLISH-02 FIX: h/m format */}
                     {vod.durationSeconds && (
                       <div style={{ position:'absolute', bottom:'4px', right:'4px', background:'rgba(0,0,0,0.8)',
@@ -594,5 +718,7 @@ export default function LivePage() {
 
       </div>
     </div>
+    <style>{`@keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }`}</style>
+    </>
   );
 }

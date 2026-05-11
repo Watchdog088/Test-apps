@@ -57,6 +57,28 @@ export default function ClipViewerPage() {
     }
   };
 
+  // GAP-06: Share at current timestamp
+  const shareAtTime = async () => {
+    const t = Math.floor(videoRef.current?.currentTime || 0);
+    const url = `${window.location.origin}/clips/${clipId}?t=${t}`;
+    if (navigator.share) {
+      await navigator.share({ title: `${clip?.streamTitle || 'Clip'} at ${t}s`, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      const mins = Math.floor(t / 60), secs = t % 60;
+      showToast(`🔗 Link copied at ${mins}:${String(secs).padStart(2,'0')}`);
+    }
+  };
+
+  // GAP-06: On mount, seek to ?t= param if present
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('t');
+    if (t && videoRef.current) {
+      const onLoaded = () => { videoRef.current.currentTime = Number(t); };
+      videoRef.current.addEventListener('loadedmetadata', onLoaded, { once: true });
+    }
+  }, []);
+
   const togglePlayPause = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); }
@@ -157,6 +179,13 @@ export default function ClipViewerPage() {
             style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>
             <span style={{ fontSize:'28px' }}>🔗</span>
             <span style={{ color:'white', fontSize:'11px', fontWeight:700 }}>Share</span>
+          </button>
+          {/* GAP-06: Share at current time */}
+          <button onClick={e => { e.stopPropagation(); shareAtTime(); }}
+            aria-label="Share at current timestamp"
+            style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>
+            <span style={{ fontSize:'22px' }}>⏱</span>
+            <span style={{ color:'rgba(255,255,255,0.7)', fontSize:'10px', fontWeight:700 }}>At time</span>
           </button>
           <button onClick={e => { e.stopPropagation(); navigate(`/profile/${clip.streamerId}`); }}
             style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
+  appType: 'spa',  // BUG-1 FIX: ensures all unknown routes fall back to index.html (SPA routing)
   plugins: [react()],
   resolve: {
     alias: {
@@ -29,8 +30,17 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 500,
   },
+  optimizeDeps: {
+    include: [
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/storage',
+      'firebase/analytics',
+    ],
+  },
   server: {
-    port: 3000,
+    port: 5173,
     open: true,
   },
 });

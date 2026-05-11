@@ -312,6 +312,113 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
   res.json({ received: true });
 });
 
+// ── createNextRecurringStream: auto-schedule next occurrence ──────
+exports.createNextRecurringStream = functions.firestore
+  .document('streams/{streamId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after  = change.after.data();
+    if (before.status !== 'live' || after.status !== 'ended') return null;
+
+    const recurring = after.recurring;
+    if (!recurring || recurring === 'none') return null;
+
+    const prev = after.scheduledAt?.toMillis ? after.scheduledAt.toMillis() : Date.now();
+    let next;
+    const d = new Date(prev);
+    if (recurring === 'daily')   { d.setDate(d.getDate() + 1); next = d; }
+    if (recurring === 'weekly')  { d.setDate(d.getDate() + 7); next = d; }
+    if (recurring === 'monthly') { d.setMonth(d.getMonth() + 1); next = d; }
+    if (!next) return null;
+
+    await db.collection('streams').add({
+      title:       after.title,
+      description: after.description || '',
+      category:    after.category    || 'general',
+      status:      'scheduled',
+      userId:      after.userId,
+      userName:    after.userName,
+      userAvatar:  after.userAvatar  || null,
+      viewerCount: 0,
+      recurring,
+      scheduledAt: admin.firestore.Timestamp.fromDate(next),
+      createdAt:   admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`[createNextRecurringStream] Scheduled next ${recurring} occurrence for ${after.userId}: ${next.toISOString()}`);
+    return null;
+  });
+
+// ── sendStreamReminders: notify followers N min before scheduledAt ─
+exports.sendStreamReminders = functions.pubsub
+  .schedule('every 5 minutes').onRun(async () => {
+    const now         = Date.now();
+    const windowStart = admin.firestore.Timestamp.fromMillis(now);
+    const windowEnd   = admin.firestore.Timestamp.fromMillis(now + 35 * 60 * 1000); // next 35 min
+
+    const scheduled = await db.collection('streams')
+      .where('status',      '==',  'scheduled')
+      .where('scheduledAt', '>',   windowStart)
+      .where('scheduledAt', '<=',  windowEnd)
+      .get();
+
+    if (scheduled.empty) return null;
+
+    for (const streamDoc of scheduled.docs) {
+      const stream = streamDoc.data();
+      const reminderMinutes = stream.reminderMinutes || 30;
+      const streamTime = stream.scheduledAt.toMillis();
+      const targetFireTime = streamTime - reminderMinutes * 60 * 1000;
+
+      // Only fire within a 5-min window of the target reminder time
+      if (Math.abs(now - targetFireTime) > 5 * 60 * 1000) continue;
+
+      // Get followers
+      try {
+        const followersSnap = await db.collection('userFollowers')
+          .doc(stream.userId).collection('followers').limit(500).get();
+
+        if (followersSnap.empty) continue;
+
+        // Collect FCM tokens
+        const userDocs = await Promise.all(
+          followersSnap.docs.map(f => db.collection('users').doc(f.id).get())
+        );
+
+        const tokens = [];
+        userDocs.forEach(ud => {
+          const d = ud.data() || {};
+          if (d.fcmToken && d.pushEnabled !== false) tokens.push(d.fcmToken);
+        });
+
+        if (tokens.length === 0) continue;
+
+        const timeStr = reminderMinutes >= 60
+          ? `${Math.floor(reminderMinutes/60)}h`
+          : `${reminderMinutes}m`;
+
+        await admin.messaging().sendEachForMulticast({
+          tokens,
+          notification: {
+            title: `⏰ ${stream.userName} goes live in ${timeStr}!`,
+            body:  stream.title || 'Live stream starting soon',
+          },
+          data: {
+            type:     'stream_reminder',
+            streamId: streamDoc.id,
+            url:      `/live/watch/${streamDoc.id}`,
+          },
+        });
+
+        console.log(`[sendStreamReminders] Sent ${timeStr} reminder to ${tokens.length} followers for stream ${streamDoc.id}`);
+      } catch (e) {
+        console.error('[sendStreamReminders]', e);
+      }
+    }
+
+    return null;
+  });
+
 // ── cleanupEndedStreams: hide ended streams older than 24h ─────────
 exports.cleanupEndedStreams = functions.pubsub
   .schedule('every 1 hours').onRun(async () => {

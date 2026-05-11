@@ -114,6 +114,42 @@ export default function LiveSchedulePage() {
     } catch { showToast('Failed to cancel'); }
   };
 
+  // POLISH-06: Download .ics calendar file for a scheduled stream
+  const downloadIcs = (s) => {
+    const dt = s.scheduledAt?.toDate ? s.scheduledAt.toDate() : new Date(s.scheduledAt);
+    const endDt = new Date(dt.getTime() + 60 * 60 * 1000); // +1 hour default
+    const pad = n => String(n).padStart(2,'0');
+    const fmtIcs = d =>
+      `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LynkApp//Live//EN',
+      'BEGIN:VEVENT',
+      `UID:${s.id}@lynkapp`,
+      `DTSTART:${fmtIcs(dt)}`,
+      `DTEND:${fmtIcs(endDt)}`,
+      `SUMMARY:📺 ${s.title}`,
+      `DESCRIPTION:Live stream by ${s.userName || 'Streamer'}. Category: ${s.category}.`,
+      `URL:${window.location.origin}/live`,
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+    const blob = new Blob([ics], { type:'text/calendar' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `stream-${s.id.slice(0,8)}.ics`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // POLISH-06: Copy share link for a scheduled stream
+  const shareScheduled = (s) => {
+    const url = `${window.location.origin}/live`;
+    if (navigator.share) {
+      navigator.share({ title: `📺 ${s.title}`, text: `I'm going live soon! ${s.title}`, url }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(url);
+      showToast('🔗 Share link copied!');
+    }
+  };
+
   const fmtDate = (dt) => {
     const d = dt?.toDate ? dt.toDate() : new Date(dt);
     return d.toLocaleString([], { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -216,7 +252,7 @@ export default function LiveSchedulePage() {
                   <button onClick={() => cancelStream(s.id)}
                     style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'12px', flexShrink:0 }}>Cancel</button>
                 </div>
-                <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center' }}>
+                <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center', marginBottom:'8px' }}>
                   <span style={{ color:'#94a3b8', fontSize:'12px' }}>
                     {catEmoji[s.category] || '📺'} {s.category}
                   </span>
@@ -228,6 +264,19 @@ export default function LiveSchedulePage() {
                       🔁 {RECUR_OPTIONS.find(r => r.id === s.recur)?.label}
                     </span>
                   )}
+                </div>
+                {/* POLISH-06: Calendar download + share */}
+                <div style={{ display:'flex', gap:'8px' }}>
+                  <button onClick={() => downloadIcs(s)}
+                    title="Add to calendar (.ics)"
+                    style={{ flex:1, background:'#334155', border:'none', borderRadius:'8px', padding:'6px', color:'#94a3b8', fontSize:'11px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
+                    📅 Add to Calendar
+                  </button>
+                  <button onClick={() => shareScheduled(s)}
+                    title="Share stream"
+                    style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'6px 12px', color:'#94a3b8', fontSize:'11px', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
+                    🔗 Share
+                  </button>
                 </div>
               </div>
             ))}

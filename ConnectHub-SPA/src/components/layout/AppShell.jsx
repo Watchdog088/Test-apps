@@ -13,6 +13,8 @@ import SideNav   from './BottomNav';
 import AdUnit    from '@components/ads/AdUnit';
 import adService from '@services/ad-service';
 import useAppStore from '@store/useAppStore';
+import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { db, auth } from '@/firebase/config';
 
 const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
 const DEMO_TRACK = { title: 'Blinding Lights', artist: 'The Weeknd', emoji: '🎵' };
@@ -337,21 +339,93 @@ function FullMusicPlayer({ track, onClose }) {
   );
 }
 
+// ── GAP-03: In-app "went live" banner ────────────────────────────────────────
+function LiveNowBanner({ stream, onClose, onClick }) {
+  return (
+    <div style={{ position:'fixed', top:'60px', left:'50%', transform:'translateX(-50%)',
+      background:'rgba(10,10,24,0.97)', border:'1px solid rgba(239,68,68,0.5)',
+      borderRadius:'16px', padding:'10px 14px', zIndex:9992, display:'flex',
+      alignItems:'center', gap:'10px', cursor:'pointer', animation:'slideDown 0.35s ease',
+      maxWidth:'92vw', boxShadow:'0 8px 32px rgba(0,0,0,0.5)' }}
+      onClick={onClick}>
+      <div style={{ width:'8px', height:'8px', borderRadius:'50%', background:'#ef4444',
+        flexShrink:0, animation:'livePulse 1.4s ease infinite' }} />
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'13px',
+          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          {stream.userName} is live!
+        </div>
+        <div style={{ color:'#94a3b8', fontSize:'11px' }}>{stream.title}</div>
+      </div>
+      <button onClick={e => { e.stopPropagation(); onClose(); }} aria-label="Dismiss live notification"
+        style={{ background:'rgba(255,255,255,0.1)', border:'none', borderRadius:'8px',
+          color:'#94a3b8', fontSize:'13px', padding:'4px 8px', cursor:'pointer', flexShrink:0 }}>✕</button>
+    </div>
+  );
+}
+
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell() {
   const { pathname }    = useLocation();
+  const navigate        = useNavigate();
   const [showMiniPlayer,   setShowMiniPlayer]   = useState(true);
   const [showFullPlayer,   setShowFullPlayer]   = useState(false);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showRewarded,     setShowRewarded]     = useState(false);
   const [coinToast,        setCoinToast]        = useState(null);
+  const [liveNotif,        setLiveNotif]        = useState(null); // GAP-03
+  const [isOffline,        setIsOffline]        = useState(!navigator.onLine); // Mobile offline banner
   const prevPath = useRef(pathname);
+  const seenStreamsRef = useRef(new Set()); // GAP-03: track already-notified stream IDs
 
   // ── Global More Drawer state from store ────────────────────
   const moreDrawerOpen    = useAppStore((s) => s.moreDrawerOpen);
   const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
 
   const hideChrome = CHROME_HIDDEN.some(p => pathname.startsWith(p));
+
+  // GAP-03: Subscribe to live streams from followed creators
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    let followingIds = [];
+    const loadFollowing = async () => {
+      try {
+        const { getDoc, doc: fsDoc } = await import('firebase/firestore');
+        const snap = await getDoc(fsDoc(db, 'users', auth.currentUser.uid));
+        if (snap.exists()) followingIds = snap.data().following || [];
+      } catch { return; }
+      if (!followingIds.length) return;
+      const q = query(
+        collection(db, 'streams'),
+        where('status', '==', 'live'),
+        orderBy('startedAt', 'desc'),
+        limit(10)
+      );
+      const unsub = onSnapshot(q, snap => {
+        snap.docChanges().forEach(change => {
+          if (change.type !== 'added') return;
+          const s = { id: change.doc.id, ...change.doc.data() };
+          if (!followingIds.includes(s.userId)) return;
+          if (seenStreamsRef.current.has(s.id)) return;
+          if (s.userId === auth.currentUser?.uid) return;
+          seenStreamsRef.current.add(s.id);
+          setLiveNotif(s);
+          setTimeout(() => setLiveNotif(n => n?.id === s.id ? null : n), 8000);
+        });
+      }, () => {});
+      return unsub;
+    };
+    loadFollowing();
+  }, []);
+
+  // Mobile: offline/online banner
+  useEffect(() => {
+    const onOnline  = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online',  onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline); };
+  }, []);
 
   useEffect(() => {
     const consent = localStorage.getItem('cookieConsent') !== 'false';
@@ -436,6 +510,22 @@ export default function AppShell() {
 
       {/* ── More Drawer (Fix #1: slide-in instead of full page, Rec spec) ── */}
       <MoreDrawer open={moreDrawerOpen} onClose={() => setMoreDrawerOpen(false)} />
+
+      {/* ── GAP-03: "Went live" notification banner ── */}
+      {liveNotif && (
+        <LiveNowBanner
+          stream={liveNotif}
+          onClose={() => setLiveNotif(null)}
+          onClick={() => { setLiveNotif(null); navigate(`/live/watch/${liveNotif.id}`); }}
+        />
+      )}
+
+      {/* ── Mobile offline banner ── */}
+      {isOffline && (
+        <div className="offline-banner">
+          📡 No connection — reconnecting…
+        </div>
+      )}
 
       {/* ── UX-15 FIX: Toast Renderer ── */}
       <ToastRenderer />

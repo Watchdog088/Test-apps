@@ -4,6 +4,13 @@
    + Rec #31-34 brand tokens, typography, touch targets, spacing
    ================================================================ */
 
+/* ================================================================
+   DESIGN-4 FIX: Hide scrollbars on Webkit/Chrome/Safari globally
+   (Firefox already covered by scrollbar-width:none inline styles)
+   ================================================================ */
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
 /* -- Reset -------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
@@ -159,6 +166,22 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+/* GAP-03/MISSING-H/I: slide-down notification banner */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-14px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+/* MISSING-J: floating emoji reaction */
+@keyframes floatUp {
+  0%   { opacity: 1;   transform: translateY(0)    scale(1); }
+  80%  { opacity: 0.7; transform: translateY(-80px) scale(1.2); }
+  100% { opacity: 0;   transform: translateY(-120px) scale(0.8); }
+}
+/* pulseDot used in LivePage long-press hint */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.4); }
 }
 /* Rec #1/#2 — Live pulsing red dot */
 @keyframes livePulse {
@@ -344,3 +367,39 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 .empty-state .icon { font-size: 48px; margin-bottom: 4px; }
 .empty-state h3 { color: var(--text-secondary); font-size: 16px; }
 .empty-state p  { font-size: 14px; max-width: 240px; }
+
+/* -- Accessibility: focus-visible rings (GAP-17 / Part 6) ---------- */
+:focus-visible {
+  outline: 2px solid var(--brand-live, #ef4444);
+  outline-offset: 2px;
+}
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--brand-live, #ef4444);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* -- Offline banner (Mobile Part 7) -------------------------------- */
+.offline-banner {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: rgba(239,68,68,0.95);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 16px;
+  z-index: 9995;
+  animation: fadeIn 0.3s ease;
+}
+
+/* -- aria-live region (hidden but announced) ----------------------- */
+.sr-only {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

@@ -32,6 +32,9 @@ export default function LiveModerationPage() {
   const [newWord,        setNewWord]        = useState('');
   const [bannedUsers,    setBannedUsers]    = useState([]);
   const [chatMessages,   setChatMessages]   = useState([]);
+  const [msgLimit,       setMsgLimit]       = useState(50);   // POLISH-05: pagination
+  const [loadingMore,    setLoadingMore]    = useState(false);
+  const [banConfirm,     setBanConfirm]     = useState(null); // UX-08: { userId, userName }
   const [saving,         setSaving]         = useState(false);
   const [importRef]      = [useRef(null)];
 
@@ -50,12 +53,12 @@ export default function LiveModerationPage() {
     }).catch(() => {});
   }, [streamId]);
 
-  // Live chat feed for moderation
+  // POLISH-05: Live chat feed for moderation — with pagination support
   useEffect(() => {
     if (!streamId) return;
     const q = query(collection(db, 'streams', streamId, 'messages'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
-      setChatMessages(snap.docs.slice(0, 50).map(d => ({ id: d.id, ...d.data() })));
+      setChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, () => {});
     return () => unsub();
   }, [streamId]);
@@ -139,13 +142,26 @@ export default function LiveModerationPage() {
     } catch { showToast('Delete failed'); }
   };
 
-  // Ban a user
-  const banUser = async (userId, userName) => {
-    if (!streamId) return;
-    const updated = [...bannedUsers, userId];
+  // UX-08: Ban with confirmation — sets banConfirm state to show dialog
+  const requestBan = (userId, userName) => {
+    setBanConfirm({ userId, userName });
+  };
+
+  const confirmBan = async () => {
+    if (!banConfirm || !streamId) return;
+    const updated = [...bannedUsers, banConfirm.userId];
     setBannedUsers(updated);
     await saveSettings({ bannedUsers: updated });
-    showToast(`🚫 ${userName} banned`);
+    showToast(`🚫 ${banConfirm.userName} banned from this stream`);
+    setBanConfirm(null);
+  };
+
+  // UX-08: Unban a user
+  const unbanUser = async (userId) => {
+    const updated = bannedUsers.filter(id => id !== userId);
+    setBannedUsers(updated);
+    await saveSettings({ bannedUsers: updated });
+    showToast('✅ User unbanned');
   };
 
   const Toggle = ({ on, onToggle, label, sub }) => (
@@ -210,11 +226,12 @@ export default function LiveModerationPage() {
           <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
             <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', flex:1 }}>🚫 Banned Words ({bannedWords.length})</div>
             {/* UX-30: Export/Import */}
+            {/* MOB-FIX: min 44px touch target on Export/Import buttons */}
             <button onClick={exportWords}
-              style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'4px 10px', color:'#94a3b8', fontSize:'11px', cursor:'pointer' }}>
+              style={{ background:'#334155', border:'none', borderRadius:'8px', padding:'8px 12px', color:'#94a3b8', fontSize:'11px', cursor:'pointer', minHeight:'44px', minWidth:'44px' }}>
               📥 Export
             </button>
-            <label style={{ background:'#334155', borderRadius:'8px', padding:'4px 10px', color:'#94a3b8', fontSize:'11px', cursor:'pointer' }}>
+            <label style={{ background:'#334155', borderRadius:'8px', padding:'8px 12px', color:'#94a3b8', fontSize:'11px', cursor:'pointer', minHeight:'44px', display:'flex', alignItems:'center' }}>
               📤 Import
               <input ref={importRef} type="file" accept=".txt,.csv" onChange={importWords} style={{ display:'none' }} />
             </label>
@@ -242,41 +259,96 @@ export default function LiveModerationPage() {
           </div>
         </div>
 
-        {/* Live Chat Moderation */}
+        {/* UX-08: Banned Users section — with unban */}
+        {bannedUsers.length > 0 && (
+          <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', marginBottom:'12px' }}>
+            <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'10px' }}>
+              🚫 Banned Users ({bannedUsers.length})
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+              {bannedUsers.map(uid => (
+                <div key={uid} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #334155' }}>
+                  <span style={{ color:'#94a3b8', fontSize:'12px', fontFamily:'monospace' }}>{uid.slice(0,12)}…</span>
+                  <button onClick={() => unbanUser(uid)}
+                    style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'8px', padding:'4px 10px', color:'#10b981', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
+                    ✅ Unban
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Live Chat Moderation — POLISH-05: paginated */}
         {streamId && (
           <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px' }}>
             <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px', marginBottom:'10px' }}>
-              💬 Recent Messages ({chatMessages.length})
+              💬 Recent Messages ({Math.min(msgLimit, chatMessages.length)} / {chatMessages.length})
             </div>
             {chatMessages.length === 0 ? (
               <div style={{ color:'#64748b', fontSize:'13px', textAlign:'center', padding:'16px' }}>No messages yet</div>
             ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'300px', overflowY:'auto' }}>
-                {chatMessages.map(msg => (
-                  <div key={msg.id} style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
-                    <div style={{ flex:1 }}>
-                      <span style={{ color:'#f59e0b', fontSize:'12px', fontWeight:700 }}>{msg.userName}: </span>
-                      <span style={{ color:'#f1f5f9', fontSize:'13px' }}>{msg.text}</span>
-                    </div>
-                    <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
-                      <button onClick={() => deleteMsg(msg.id)}
-                        style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#ef4444', fontSize:'11px', cursor:'pointer' }}>
-                        🗑️
-                      </button>
-                      {!bannedUsers.includes(msg.userId) && (
-                        <button onClick={() => banUser(msg.userId, msg.userName)}
-                          style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#f59e0b', fontSize:'11px', cursor:'pointer' }}>
-                          🚫
+              <>
+                {/* POLISH-05: Load more button at top */}
+                {chatMessages.length > msgLimit && (
+                  <button onClick={() => setMsgLimit(l => l + 50)}
+                    disabled={loadingMore}
+                    style={{ width:'100%', background:'#334155', border:'none', borderRadius:'8px', padding:'8px', color:'#94a3b8', fontSize:'12px', fontWeight:600, cursor:'pointer', marginBottom:'8px' }}>
+                    ↑ Load 50 more messages ({chatMessages.length - msgLimit} remaining)
+                  </button>
+                )}
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px', maxHeight:'320px', overflowY:'auto' }}>
+                  {chatMessages.slice(0, msgLimit).map(msg => (
+                    <div key={msg.id} style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
+                      <div style={{ flex:1 }}>
+                        <span style={{ color: bannedUsers.includes(msg.userId) ? '#ef4444' : '#f59e0b', fontSize:'12px', fontWeight:700 }}>
+                          {msg.userName}{bannedUsers.includes(msg.userId) ? ' 🚫' : ''}{': '}
+                        </span>
+                        <span style={{ color:'#f1f5f9', fontSize:'13px' }}>{msg.text}</span>
+                      </div>
+                      <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
+                        <button onClick={() => deleteMsg(msg.id)}
+                          style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#ef4444', fontSize:'11px', cursor:'pointer' }}>
+                          🗑️
                         </button>
-                      )}
+                        {!bannedUsers.includes(msg.userId) && (
+                          <button onClick={() => requestBan(msg.userId, msg.userName)}
+                            style={{ background:'#334155', border:'none', borderRadius:'6px', padding:'3px 8px', color:'#f59e0b', fontSize:'11px', cursor:'pointer' }}>
+                            🚫
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
       </div>
+
+      {/* UX-08: Ban confirmation bottom sheet */}
+      {banConfirm && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'flex-end' }}>
+          <div role="dialog" aria-modal="true" aria-label="Ban user confirmation"
+            style={{ width:'100%', background:'#0f172a', borderRadius:'20px 20px 0 0', padding:'24px 20px', border:'1px solid #1e293b' }}>
+            <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'18px', marginBottom:'8px' }}>🚫 Ban User?</div>
+            <div style={{ color:'#94a3b8', fontSize:'14px', marginBottom:'20px' }}>
+              <strong style={{ color:'#f1f5f9' }}>{banConfirm.userName}</strong> won't be able to send messages in this stream.
+            </div>
+            <div style={{ display:'flex', gap:'12px' }}>
+              <button onClick={() => setBanConfirm(null)}
+                style={{ flex:1, background:'#1e293b', border:'none', borderRadius:'12px', padding:'13px', color:'#94a3b8', fontWeight:700, cursor:'pointer', fontSize:'14px' }}>
+                Cancel
+              </button>
+              <button onClick={confirmBan}
+                style={{ flex:1, background:'#ef4444', border:'none', borderRadius:'12px', padding:'13px', color:'white', fontWeight:700, cursor:'pointer', fontSize:'14px' }}>
+                🚫 Ban User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
