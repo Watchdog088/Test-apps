@@ -31,6 +31,8 @@ const LiveAnalyticsPage      = lazy(() => import('./pages/live/LiveAnalyticsPage
 const LiveNotificationsPage  = lazy(() => import('./pages/live/LiveNotificationsPage'));
 // BUG-05 FIX: New page — clip cards on /live now have a destination
 const ClipViewerPage         = lazy(() => import('./pages/live/ClipViewerPage'));
+// REC-6.10: VOD replay page
+const LiveVODPage            = lazy(() => import('./pages/live/LiveVODPage'));
 const GroupsPage        = lazy(() => import('./pages/groups/GroupsPage'));
 const MessagesPage      = lazy(() => import('./pages/messages/MessagesPage'));
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'));
@@ -128,6 +130,8 @@ export default function App() {
             <Route path="live/notifications" element={<LiveNotificationsPage />} />
             {/* BUG-05 FIX: /clips/:clipId — trending clips destination */}
             <Route path="clips/:clipId"      element={<ClipViewerPage />} />
+            {/* REC-6.10: /live/vod/:id — VOD replay */}
+            <Route path="live/vod/:id"       element={<LiveVODPage />} />
             {/* POLISH-18 FIX: /trending redirects to feed with filter param — no duplicate page */}
             <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
             <Route path="groups"        element={<GroupsPage />} />

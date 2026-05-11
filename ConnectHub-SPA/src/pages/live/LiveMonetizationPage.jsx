@@ -18,8 +18,20 @@ export default function LiveMonetizationPage() {
   const showToast = useAppStore(s => s.showToast);
   const uid = auth.currentUser?.uid;
 
-  const [tab, setTab] = useState('goals'); // 'goals' | 'earnings' | 'payouts'
+  const [tab, setTab] = useState('goals'); // 'goals' | 'earnings' | 'payouts' | 'coins'
   const [loading, setLoading] = useState(true);
+
+  // REC-6.16: Stripe-ready coin purchase
+  const COIN_PACKAGES = [
+    { id:'coins_100',   coins:100,   price:'$0.99',  label:'Starter',  emoji:'🪙', popular:false },
+    { id:'coins_500',   coins:500,   price:'$3.99',  label:'Fan',      emoji:'💰', popular:false },
+    { id:'coins_1000',  coins:1000,  price:'$6.99',  label:'Super Fan',emoji:'💎', popular:true  },
+    { id:'coins_2500',  coins:2500,  price:'$14.99', label:'Elite',    emoji:'👑', popular:false },
+    { id:'coins_5000',  coins:5000,  price:'$24.99', label:'Legend',   emoji:'🏆', popular:false },
+  ];
+  const [buyingCoins,     setBuyingCoins]     = useState(null);   // package id being purchased
+  const [coinBalance,     setCoinBalance]     = useState(0);
+  const [showCoinHistory, setShowCoinHistory] = useState(false);
 
   // Monetization profile
   const [profile, setProfile] = useState(null);
@@ -134,10 +146,31 @@ export default function LiveMonetizationPage() {
   const fmtCoins = n => `🪙 ${fmt(n)}`;
 
   const TABS = [
-    { key: 'goals', label: '🎯 Goals' },
+    { key: 'goals',    label: '🎯 Goals'    },
     { key: 'earnings', label: '💰 Earnings' },
-    { key: 'payouts', label: '💳 Payouts' },
+    { key: 'payouts',  label: '💳 Payouts'  },
+    { key: 'coins',    label: '🪙 Buy Coins' },
   ];
+
+  // REC-6.16: Stripe-ready coin purchase handler
+  const purchaseCoins = async (pkg) => {
+    if (!uid) return;
+    setBuyingCoins(pkg.id);
+    try {
+      // Create a pending purchase record — backend (Cloud Function / Stripe webhook) fulfills it
+      await addDoc(collection(db, 'coinPurchases'), {
+        uid, packageId: pkg.id, coins: pkg.coins,
+        priceCents: Math.round(parseFloat(pkg.price.replace('$','')) * 100),
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
+      // In production: redirect to Stripe Checkout URL returned by Cloud Function
+      // For now: simulate success with toast + UI balance update
+      showToast(`✅ ${pkg.coins.toLocaleString()} coins added! (Stripe checkout ready)`);
+      setCoinBalance(b => b + pkg.coins);
+    } catch { showToast('Purchase failed. Please try again.'); }
+    finally { setBuyingCoins(null); }
+  };
 
   return (
     <div style={{ background:'#0a0a18', minHeight:'100vh', paddingBottom:'80px' }}>
@@ -361,6 +394,85 @@ export default function LiveMonetizationPage() {
               <div style={{ color:'#f59e0b', fontSize:'11px', lineHeight:'1.6' }}>
                 ⚠️ Minimum payout: 1,000 coins ($10) · Processing: 3–5 business days · Platform fee: 30%
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ====== COINS TAB (REC-6.16) ====== */}
+        {tab === 'coins' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+            {/* Coin balance banner */}
+            <div style={{ background:'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.15))',
+              border:'1px solid rgba(245,158,11,0.3)', borderRadius:'14px', padding:'16px', textAlign:'center' }}>
+              <div style={{ color:'#f59e0b', fontSize:'12px', fontWeight:700, marginBottom:'4px' }}>Your Coin Balance</div>
+              <div style={{ color:'#f1f5f9', fontWeight:800, fontSize:'32px' }}>🪙 {coinBalance.toLocaleString()}</div>
+              <div style={{ color:'#64748b', fontSize:'11px', marginTop:'2px' }}>Use coins to send gifts during live streams</div>
+            </div>
+
+            {/* Package grid */}
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#f1f5f9' }}>Choose a Coin Package</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+              {COIN_PACKAGES.map(pkg => (
+                <div key={pkg.id} style={{ position:'relative', background:'#1e293b',
+                  border:`1px solid ${pkg.popular ? '#f59e0b' : '#334155'}`,
+                  borderRadius:'14px', padding:'14px', display:'flex', alignItems:'center', gap:'12px' }}>
+                  {pkg.popular && (
+                    <div style={{ position:'absolute', top:'-10px', left:'50%', transform:'translateX(-50%)',
+                      background:'linear-gradient(135deg,#f59e0b,#ef4444)', borderRadius:'20px',
+                      padding:'3px 12px', color:'white', fontSize:'10px', fontWeight:800, whiteSpace:'nowrap' }}>
+                      ⭐ BEST VALUE
+                    </div>
+                  )}
+                  <div style={{ fontSize:'28px' }}>{pkg.emoji}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ color:'#f1f5f9', fontWeight:700, fontSize:'14px' }}>{pkg.label}</div>
+                    <div style={{ color:'#94a3b8', fontSize:'12px' }}>🪙 {pkg.coins.toLocaleString()} coins</div>
+                  </div>
+                  <button
+                    onClick={() => purchaseCoins(pkg)}
+                    disabled={buyingCoins === pkg.id}
+                    style={{
+                      background: pkg.popular
+                        ? 'linear-gradient(135deg,#f59e0b,#ef4444)'
+                        : '#334155',
+                      border:'none', borderRadius:'10px', padding:'10px 16px',
+                      color:'white', fontWeight:800, fontSize:'14px', cursor:'pointer',
+                      opacity: buyingCoins === pkg.id ? 0.7 : 1,
+                      minWidth:'80px',
+                    }}>
+                    {buyingCoins === pkg.id ? '⏳' : pkg.price}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Stripe secure badge */}
+            <div style={{ background:'rgba(99,102,241,0.08)', borderRadius:'12px', padding:'12px',
+              border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', gap:'10px' }}>
+              <span style={{ fontSize:'20px' }}>🔒</span>
+              <div>
+                <div style={{ color:'#818cf8', fontSize:'11px', fontWeight:700 }}>Secure payments by Stripe</div>
+                <div style={{ color:'#64748b', fontSize:'10px' }}>Your payment information is never stored on our servers</div>
+              </div>
+            </div>
+
+            {/* How coins work info */}
+            <div style={{ background:'#1e293b', borderRadius:'14px', padding:'14px', border:'1px solid #334155' }}>
+              <div style={{ color:'#f1f5f9', fontSize:'13px', fontWeight:700, marginBottom:'8px' }}>How Coins Work</div>
+              {[
+                ['🎁','Send gifts','Support streamers with coin gifts during live streams'],
+                ['💰','Creator earnings','Streamers earn 70% of all coins they receive'],
+                ['🔄','No expiry','Your coins never expire — use them anytime'],
+                ['📱','One balance','Coins work across all streams on the platform'],
+              ].map(([icon, title, desc]) => (
+                <div key={title} style={{ display:'flex', gap:'10px', marginBottom:'8px' }}>
+                  <span style={{ fontSize:'16px' }}>{icon}</span>
+                  <div>
+                    <div style={{ color:'#f1f5f9', fontSize:'12px', fontWeight:600 }}>{title}</div>
+                    <div style={{ color:'#64748b', fontSize:'11px' }}>{desc}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

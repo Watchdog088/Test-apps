@@ -87,8 +87,6 @@ export default function LiveSetupPage() {
   const [previewMode,      setPreviewMode]      = useState(false);
   // REC-6.7: Streamer dashboard overlay
   const [showDashboard,    setShowDashboard]    = useState(false);
-  // REC-6.8: Multi-guest (up to 4)
-  const [guests,           setGuests]           = useState([]); // [{uid, name, link}]
   // REC-6.9: Title live edit mid-stream
   const [editingTitle,     setEditingTitle]     = useState(false);
   const [liveTitle,        setLiveTitle]        = useState('');
@@ -96,6 +94,14 @@ export default function LiveSetupPage() {
   // REC-6.12: Ambient sound meter
   const [soundLevel,       setSoundLevel]       = useState(0);
   const soundMeterRef      = useRef(null);
+  // REC-6.8: Multi-guest grid (up to 4 guests)
+  const [guests,           setGuests]           = useState([]);   // [{uid,name,streamUrl}]
+  const [showInviteGuest,  setShowInviteGuest]  = useState(false);
+  const [guestInviteUid,   setGuestInviteUid]   = useState('');
+  const [guestRequests,    setGuestRequests]     = useState([]);
+  // REC-6.13: Stream alerts
+  const [streamAlerts,     setStreamAlerts]      = useState([]);
+  const [alertsEnabled,    setAlertsEnabled]     = useState({ follow:true, gift:true, raid:true, subscribe:true });
   const analyserRef        = useRef(null);
   // REC-6.15: SEO title suggestions
   const [showSeoSuggestions, setShowSeoSuggestions] = useState(false);

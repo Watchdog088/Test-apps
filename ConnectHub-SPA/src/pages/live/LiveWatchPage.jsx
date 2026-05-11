@@ -38,6 +38,12 @@ const EMOTE_PALETTE = [
 // REC-6.4: Viewer milestone thresholds
 const MILESTONES = [10, 50, 100, 500, 1000, 5000];
 
+// REC-6.11: Poll helper — derive winner option
+function pollWinner(options) {
+  if (!options?.length) return null;
+  return options.reduce((a,b) => (a.votes||0) >= (b.votes||0) ? a : b, options[0]);
+}
+
 // FIX: Confetti positions precomputed in useRef — no Math.random() in render
 function ConfettiBurst({ onDone }) {
   const pieces = useRef(Array.from({ length: 24 }, (_, i) => ({
@@ -157,6 +163,10 @@ export default function LiveWatchPage() {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [contentWarningCleared, setContentWarningCleared] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  // REC-6.6: Fullscreen
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  // REC-6.14: Picture-in-Picture
+  const [isPiP, setIsPiP] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [showClipModal, setShowClipModal] = useState(false);
   const [clipTitle, setClipTitle] = useState('');
@@ -675,6 +685,42 @@ export default function LiveWatchPage() {
               border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}
             title="Raise hand to be invited as guest">
             ✋
+          </button>
+        </div>
+
+        {/* REC-6.6: Fullscreen + REC-6.14: PiP — bottom-right of video */}
+        <div style={{ position:'absolute', bottom:'8px', right:'8px', display:'flex', gap:'4px' }}>
+          <button
+            onClick={async () => {
+              try {
+                if (!document.fullscreenElement) {
+                  await videoRef.current?.parentElement?.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  await document.exitFullscreen();
+                  setIsFullscreen(false);
+                }
+              } catch { showToast('Fullscreen not supported'); }
+            }}
+            style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'13px', cursor:'pointer' }}
+            title="Fullscreen">
+            {isFullscreen ? '⤡' : '⤢'}
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                if (document.pictureInPictureElement) {
+                  await document.exitPictureInPicture();
+                  setIsPiP(false);
+                } else if (videoRef.current) {
+                  await videoRef.current.requestPictureInPicture();
+                  setIsPiP(true);
+                }
+              } catch { showToast('PiP not supported on this browser'); }
+            }}
+            style={{ background: isPiP ? 'rgba(99,102,241,0.8)' : 'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'11px', cursor:'pointer', fontWeight:700 }}
+            title="Picture-in-Picture">
+            PiP
           </button>
         </div>
 
