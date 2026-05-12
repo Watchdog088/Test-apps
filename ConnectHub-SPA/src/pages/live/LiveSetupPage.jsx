@@ -53,10 +53,18 @@ export default function LiveSetupPage() {
   const showToast = useAppStore(s => s.showToast);
   const uid       = auth.currentUser?.uid;
 
-  const videoPreviewRef = useRef(null);
-  const statsIntervalRef = useRef(null);
-  const streamDocRef    = useRef(null);
+  const videoPreviewRef   = useRef(null);
+  const statsIntervalRef  = useRef(null);
+  const streamDocRef      = useRef(null);
   const thumbnailTakenRef = useRef(false);
+  // BUG-OPEN-01: endStream ref so performRaid (defined above) can call it safely
+  const endStreamRef      = useRef(null);
+  // BUG-OPEN-07: isStreaming ref avoids stale closure in setTimeout callbacks
+  const isStreamingRef    = useRef(false);
+  // BUG-OPEN-03: AudioContext + analyser refs for real mic meter
+  const audioCtxRef       = useRef(null);
+  const analyserNodeRef   = useRef(null);
+  const micAnimFrameRef   = useRef(null);
 
   const [isStreaming,   setIsStreaming]   = useState(false);
   const [isStarting,    setIsStarting]    = useState(false);
@@ -136,16 +144,17 @@ export default function LiveSetupPage() {
     }
   }, [streamId, showToast]);
 
-  // REC-6.2: Stream raid — send viewers to another channel at end
+  // REC-6.2: Stream raid — BUG-OPEN-01 FIX: use endStreamRef so endStream doesn't need to be
+  // in the dep array (endStream is defined later in the component)
   const performRaid = useCallback(async () => {
     if (!raidTarget.trim() || !streamId) return;
     setRaiding(true);
     try {
       await updateDoc(doc(db, 'streams', streamId), { status: 'raiding', raidTarget: raidTarget.trim() });
       showToast(`🚀 Raiding @${raidTarget}! Ending in 3s…`);
-      setTimeout(() => endStream(), 3000);
+      setTimeout(() => endStreamRef.current?.(), 3000); // BUG-OPEN-01 FIX
     } catch { showToast('Raid failed'); setRaiding(false); }
-  }, [raidTarget, streamId, showToast, endStream]);
+  }, [raidTarget, streamId, showToast]);
 
   // REC-6.9: Save live title mid-stream
   const saveLiveTitle = useCallback(async () => {
@@ -305,10 +314,50 @@ export default function LiveSetupPage() {
     }
   }, [navigate, showToast]);
 
+  // BUG-OPEN-01: Keep endStreamRef always pointing at latest endStream
+  useEffect(() => { endStreamRef.current = endStream; }, [endStream]);
+
+  // BUG-OPEN-03: Wire real AudioContext mic meter once camera is granted
+  useEffect(() => {
+    if (!camGranted) return;
+    let rafId;
+    const setupMicMeter = async () => {
+      try {
+        const stream = videoPreviewRef.current?.srcObject;
+        if (!stream) return;
+        const audioTracks = stream.getAudioTracks();
+        if (!audioTracks.length) return;
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtxRef.current = ctx;
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        source.connect(analyser);
+        analyserNodeRef.current = analyser;
+        const dataArr = new Uint8Array(analyser.frequencyBinCount);
+        const tick = () => {
+          analyser.getByteFrequencyData(dataArr);
+          const avg = dataArr.reduce((s, v) => s + v, 0) / dataArr.length;
+          setSoundLevel(Math.min(1, avg / 128));
+          rafId = requestAnimationFrame(tick);
+        };
+        micAnimFrameRef.current = rafId = requestAnimationFrame(tick);
+      } catch (e) { console.warn('Mic meter AudioContext failed:', e); }
+    };
+    setupMicMeter();
+    return () => {
+      if (micAnimFrameRef.current) cancelAnimationFrame(micAnimFrameRef.current);
+      audioCtxRef.current?.close().catch(() => {});
+    };
+  }, [camGranted]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (statsIntervalRef.current) clearInterval(statsIntervalRef.current);
+      if (micAnimFrameRef.current) cancelAnimationFrame(micAnimFrameRef.current);
+      audioCtxRef.current?.close().catch(() => {});
     };
   }, []);
 

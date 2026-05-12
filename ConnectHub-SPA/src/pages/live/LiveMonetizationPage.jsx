@@ -31,7 +31,8 @@ export default function LiveMonetizationPage() {
   ];
   const [buyingCoins,     setBuyingCoins]     = useState(null);   // package id being purchased
   const [coinBalance,     setCoinBalance]     = useState(0);
-  const [showCoinHistory, setShowCoinHistory] = useState(false);
+  // BUG-OPEN-12 FIX: showCoinHistory was declared but never used in JSX — removed
+  // (Coin history is rendered via coinHistory array directly)
 
   // Monetization profile
   const [profile, setProfile] = useState(null);
@@ -144,6 +145,31 @@ export default function LiveMonetizationPage() {
   const totalGiftsReceived = stream?.totalGifts || 0;
   const fmt = n => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0);
   const fmtCoins = n => `🪙 ${fmt(n)}`;
+
+  // BUG-OPEN-05 FIX: Loading skeleton shown while Firestore data loads
+  if (loading) {
+    const pulse = { animation:'skelPulse 1.5s ease-in-out infinite', background:'#1e293b', borderRadius:'8px' };
+    return (
+      <div style={{ background:'#0a0a18', minHeight:'100vh' }}>
+        <style>{`@keyframes skelPulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+        {/* Header skeleton */}
+        <div style={{ padding:'12px 16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', gap:'10px' }}>
+          <div style={{ ...pulse, width:'28px', height:'28px', borderRadius:'50%' }} />
+          <div style={{ ...pulse, height:'16px', width:'130px' }} />
+        </div>
+        {/* Tab bar skeleton */}
+        <div style={{ display:'flex', borderBottom:'1px solid #1e293b', padding:'0 16px', gap:'4px' }}>
+          {[1,2,3,4].map(i => <div key={i} style={{ ...pulse, flex:1, height:'38px', borderRadius:'0 0 6px 6px' }} />)}
+        </div>
+        {/* Content skeleton */}
+        <div style={{ padding:'14px 16px', display:'flex', flexDirection:'column', gap:'12px' }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ ...pulse, height: i === 1 ? '100px' : '60px', width:'100%', borderRadius:'14px' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const TABS = [
     { key: 'goals',    label: '🎯 Goals'    },

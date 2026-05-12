@@ -158,7 +158,10 @@ class ProfileManagementService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || 'demo_token_123';
+        // S-05 FIX: No hardcoded fallback token — authentication required
+        const _authToken = localStorage.getItem('authToken');
+        if (!_authToken) { throw new Error('[S-05] No auth token — user must be signed in.'); }
+        return _authToken;
     }
 }
 
@@ -405,7 +408,10 @@ class PushNotificationService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || 'demo_token_123';
+        // S-05 FIX: No hardcoded fallback token — authentication required
+        const _authToken = localStorage.getItem('authToken');
+        if (!_authToken) { throw new Error('[S-05] No auth token — user must be signed in.'); }
+        return _authToken;
     }
 }
 
@@ -576,7 +582,10 @@ class LiveStreamingService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || 'demo_token_123';
+        // S-05 FIX: No hardcoded fallback token — authentication required
+        const _authToken = localStorage.getItem('authToken');
+        if (!_authToken) { throw new Error('[S-05] No auth token — user must be signed in.'); }
+        return _authToken;
     }
 
     getUserId() {
@@ -806,7 +815,10 @@ class VideoCallsService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || 'demo_token_123';
+        // S-05 FIX: No hardcoded fallback token — authentication required
+        const _authToken = localStorage.getItem('authToken');
+        if (!_authToken) { throw new Error('[S-05] No auth token — user must be signed in.'); }
+        return _authToken;
     }
 }
 
@@ -1019,7 +1031,10 @@ class MarketplaceService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || 'demo_token_123';
+        // S-05 FIX: No hardcoded fallback token — authentication required
+        const _authToken = localStorage.getItem('authToken');
+        if (!_authToken) { throw new Error('[S-05] No auth token — user must be signed in.'); }
+        return _authToken;
     }
 }
 

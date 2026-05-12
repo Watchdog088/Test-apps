@@ -182,13 +182,16 @@ export default function LiveWatchPage() {
   const isStreamer = stream?.uid === uid;
   const fmt = n => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0);
 
-  // Load stream doc
+  // Load stream doc — BUG-OPEN-04 FIX: also set reactions here to eliminate double listener
   useEffect(() => {
     if (!streamId) return;
     const unsub = onSnapshot(doc(db, 'streams', streamId), snap => {
       if (snap.exists()) {
-        setStream({ id: snap.id, ...snap.data() });
-        if (snap.data().pinnedMessage) setPinnedMsg(snap.data().pinnedMessage);
+        const data = snap.data();
+        setStream({ id: snap.id, ...data });
+        if (data.pinnedMessage) setPinnedMsg(data.pinnedMessage);
+        // BUG-OPEN-04: merge reactions into same listener — no extra Firestore read
+        setReactions(data.reactions || {});
       }
       setLoading(false);
     });
@@ -253,26 +256,30 @@ export default function LiveWatchPage() {
   // Auto-scroll chat
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
 
-  // Load reactions
-  useEffect(() => {
-    if (!streamId) return;
-    const unsub = onSnapshot(doc(db, 'streams', streamId), snap => {
-      if (snap.exists()) setReactions(snap.data().reactions || {});
-    });
-    return () => unsub();
-  }, [streamId]);
+  // BUG-OPEN-04: Reactions listener REMOVED — reactions now merged into main stream listener above
 
-  // Load user following
+  // Load viewer's OWN following (to know if viewer follows streamer)
   useEffect(() => {
     if (!uid) return;
     const unsub = onSnapshot(doc(db, 'users', uid), snap => {
-      if (snap.exists()) {
-        setFollowingIds(new Set(snap.data().following || []));
-        setFollowerIds(new Set(snap.data().following || [])); // U-3
-      }
+      if (snap.exists()) setFollowingIds(new Set(snap.data().following || []));
     });
     return () => unsub();
   }, [uid]);
+
+  // BUG-OPEN-02 FIX: Load STREAMER's subscriber list (not viewer's following)
+  // so the ⭐ badge correctly marks streamer's subscribers in chat, not people viewer follows
+  useEffect(() => {
+    if (!stream?.uid) return;
+    const unsub = onSnapshot(doc(db, 'users', stream.uid), snap => {
+      if (snap.exists()) {
+        const data = snap.data();
+        // Try subscribers array; fall back to followers; fall back to empty
+        setFollowerIds(new Set(data.subscribers || data.followers || []));
+      }
+    });
+    return () => unsub();
+  }, [stream?.uid]);
 
   useEffect(() => {
     if (stream?.uid) setIsFollowing(followingIds.has(stream.uid));
@@ -308,6 +315,19 @@ export default function LiveWatchPage() {
 
   // Reset userVote on stream change (prevent double-vote)
   useEffect(() => { setUserVote(null); }, [streamId]);
+
+  // BUG-OPEN-11 FIX: Show actionable tip when quality is Poor for >5s on viewer side
+  const qualityPoorTimerRef = useRef(null);
+  useEffect(() => {
+    if (stream?.streamQuality === 'poor' || stream?.qualityIndicator === 'poor') {
+      qualityPoorTimerRef.current = setTimeout(() => {
+        showToast('📶 Poor stream quality — try lowering quality to 480p in ⚙️ or check your connection.');
+      }, 5000);
+    } else {
+      if (qualityPoorTimerRef.current) clearTimeout(qualityPoorTimerRef.current);
+    }
+    return () => { if (qualityPoorTimerRef.current) clearTimeout(qualityPoorTimerRef.current); };
+  }, [stream?.streamQuality, stream?.qualityIndicator, showToast]);
 
   // Watch Party listener
   useEffect(() => {
@@ -417,7 +437,11 @@ export default function LiveWatchPage() {
       await updateDoc(doc(db, 'streams', streamId), { totalGifts: increment(amount) });
       showToast(`🎁 Sent ${amount} coins!`);
       setShowGiftModal(false);
-      if (amount >= 100) setShowConfetti(true);
+      if (amount >= 100) {
+        setShowConfetti(true);
+        // MISS-NEW-03 FIX: Play gift sound effect for large gifts
+        try { new Audio('/sounds/gift.mp3').play(); } catch {}
+      }
     } catch { showToast('Gift failed'); }
   };
 
@@ -460,14 +484,18 @@ export default function LiveWatchPage() {
     } catch { showToast('Poll creation failed'); }
   };
 
+  // BUG-OPEN-09 FIX: Sanitize optionKey so dots/brackets/slashes don't break Firestore field paths
+  const sanitizePollKey = key => key.replace(/[.[\]#$/]/g, '_');
+
   const votePoll = async optionKey => {
     if (!activePoll || userVote || !uid) return;
+    const safeKey = sanitizePollKey(optionKey); // BUG-OPEN-09 FIX
     try {
       await updateDoc(doc(db, 'streams', streamId, 'polls', activePoll.id), {
-        [`options.${optionKey}`]: increment(1),
+        [`options.${safeKey}`]: increment(1),
       });
       setUserVote(optionKey);
-      showToast(`Voted: ${optionKey}`);
+      showToast(`✅ Voted: ${optionKey}`);
     } catch { showToast('Vote failed'); }
   };
 
@@ -670,26 +698,29 @@ export default function LiveWatchPage() {
 
         {/* Mute / Watch Party */}
         <div style={{ position:'absolute', bottom:'8px', left:'8px', display:'flex', gap:'6px' }}>
+          {/* MISS-NEW-02 FIX: aria-labels on all icon-only buttons */}
           <button onClick={() => setIsMuted(v => !v)}
+            aria-label={isMuted ? 'Unmute stream' : 'Mute stream'}
             style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}>
             {isMuted ? '🔇' : '🔊'}
           </button>
           <button onClick={() => setShowWatchParty(v => !v)}
+            aria-label="Watch Party"
             style={{ background: watchPartyRoom ? 'rgba(99,102,241,0.8)' : 'rgba(0,0,0,0.7)',
               border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}>
             🎉 {watchPartyRoom ? watchPartyMembers : ''}
           </button>
-          {/* Raise Hand / Report */}
           <button onClick={raiseHand}
+            aria-label={handRaised ? 'Lower hand' : 'Raise hand'}
             style={{ background: handRaised ? 'rgba(245,158,11,0.8)' : 'rgba(0,0,0,0.7)',
-              border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}
-            title="Raise hand to be invited as guest">
+              border:'none', borderRadius:'6px', padding:'4px 8px', color:'white', fontSize:'14px', cursor:'pointer' }}>
             ✋
           </button>
         </div>
 
         {/* REC-6.6: Fullscreen + REC-6.14: PiP — bottom-right of video */}
         <div style={{ position:'absolute', bottom:'8px', right:'8px', display:'flex', gap:'4px' }}>
+          {/* MISS-NEW-02 FIX: aria-labels on fullscreen + PiP */}
           <button
             onClick={async () => {
               try {
@@ -702,8 +733,8 @@ export default function LiveWatchPage() {
                 }
               } catch { showToast('Fullscreen not supported'); }
             }}
-            style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'13px', cursor:'pointer' }}
-            title="Fullscreen">
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            style={{ background:'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'13px', cursor:'pointer' }}>
             {isFullscreen ? '⤡' : '⤢'}
           </button>
           <button
@@ -718,14 +749,15 @@ export default function LiveWatchPage() {
                 }
               } catch { showToast('PiP not supported on this browser'); }
             }}
-            style={{ background: isPiP ? 'rgba(99,102,241,0.8)' : 'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'11px', cursor:'pointer', fontWeight:700 }}
-            title="Picture-in-Picture">
+            aria-label={isPiP ? 'Exit Picture-in-Picture' : 'Picture-in-Picture'}
+            style={{ background: isPiP ? 'rgba(99,102,241,0.8)' : 'rgba(0,0,0,0.7)', border:'none', borderRadius:'6px', padding:'4px 7px', color:'white', fontSize:'11px', cursor:'pointer', fontWeight:700 }}>
             PiP
           </button>
         </div>
 
-        {/* Report button */}
+        {/* Report button — MISS-NEW-02 FIX: aria-label */}
         <button onClick={reportStream}
+          aria-label="Report this stream"
           style={{ position:'absolute', top:'8px', left:'8px', background:'rgba(0,0,0,0.6)',
             border:'none', borderRadius:'6px', padding:'3px 7px', color:'#94a3b8', fontSize:'10px', cursor:'pointer' }}>
           🚨
@@ -968,10 +1000,12 @@ export default function LiveWatchPage() {
                 style={{ flex:1, background:'#1e293b', border:'1px solid #334155', borderRadius:'10px',
                   padding:'9px 12px', color:'#f1f5f9', fontSize:'13px', outline:'none',
                   resize:'none', boxSizing:'border-box', overflow:'auto', maxHeight:'80px' }} />
+              {/* BUG-OPEN-06 FIX: removed hardcoded height:'38px' — button now sizes naturally with textarea */}
               <button onClick={sendMessage} disabled={sending || !chatMsg.trim()}
+                aria-label="Send chat message"
                 style={{ background: chatMsg.trim() ? 'linear-gradient(135deg,#ef4444,#f59e0b)' : '#334155',
                   border:'none', borderRadius:'10px', padding:'9px 16px', color:'white', fontWeight:700, fontSize:'18px',
-                  cursor: chatMsg.trim() ? 'pointer' : 'not-allowed', flexShrink:0, height:'38px' }}>
+                  cursor: chatMsg.trim() ? 'pointer' : 'not-allowed', flexShrink:0 }}>
                 ➤
               </button>
             </div>
@@ -983,8 +1017,18 @@ export default function LiveWatchPage() {
             </button>
           )
         ) : (
-          <div style={{ background:'#1e293b', borderRadius:'10px', padding:'10px', textAlign:'center',
-            color:'#64748b', fontSize:'13px' }}>Stream has ended</div>
+          <div style={{ background:'#1e293b', borderRadius:'10px', padding:'12px', textAlign:'center' }}>
+            <div style={{ color:'#64748b', fontSize:'13px', marginBottom:'8px' }}>Stream has ended</div>
+            {/* MISS-NEW-01 FIX: Watch Replay CTA — retains viewer engagement after stream ends */}
+            {stream.vodUrl && (
+              <button
+                onClick={() => navigate(`/live/vod/${streamId}`)}
+                style={{ background:'linear-gradient(135deg,#6366f1,#818cf8)', border:'none', borderRadius:'10px',
+                  padding:'10px 20px', color:'white', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
+                ▶ Watch the Replay →
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

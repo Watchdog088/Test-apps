@@ -20,34 +20,53 @@ const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
 const DEMO_TRACK = { title: 'Blinding Lights', artist: 'The Weeknd', emoji: '🎵' };
 
 // ── UX-15 FIX: Toast renderer ────────────────────────────────────────────────
+// BUG-11 FIX: Moved to top:72px so it never overlaps bottom nav or action buttons
+// A-03 FIX: Added role="status" aria-live="polite" for screen reader announcement
+// BUG-13 FIX: Reads toast.message + toast.type for styled toasts
 function ToastRenderer() {
   const toast = useAppStore((s) => s.toast);
   if (!toast) return null;
+
+  // Support both old string toasts and new { message, type } object toasts
+  const message = typeof toast === 'string' ? toast : toast.message;
+  const type    = typeof toast === 'string' ? 'info' : (toast.type || 'info');
+
+  const borderColor =
+    type === 'success' ? '#22c55e' :
+    type === 'warning' ? '#f59e0b' :
+    type === 'error'   ? '#ef4444' :
+    '#6366f1'; // info / default
+
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 80,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      background: 'rgba(30, 27, 60, 0.97)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
-      color: '#f1f5f9',
-      fontWeight: 600,
-      fontSize: 14,
-      padding: '10px 20px',
-      borderRadius: 24,
-      zIndex: 9990,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-      border: '1px solid rgba(99,102,241,0.3)',
-      whiteSpace: 'nowrap',
-      maxWidth: '90vw',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      animation: 'fadeIn 0.2s ease',
-      pointerEvents: 'none',
-    }}>
-      {toast}
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      style={{
+        position: 'fixed',
+        top: 72,             // BUG-11 FIX: top so it never overlaps bottom nav
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(15, 12, 41, 0.97)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        color: '#f1f5f9',
+        fontWeight: 600,
+        fontSize: 14,
+        padding: '10px 20px',
+        borderRadius: 24,
+        zIndex: 9990,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        border: `1px solid ${borderColor}`,
+        borderLeft: `4px solid ${borderColor}`,
+        whiteSpace: 'nowrap',
+        maxWidth: '90vw',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        animation: 'fadeIn 0.2s ease',
+        pointerEvents: 'none',
+      }}>
+      {message}
     </div>
   );
 }

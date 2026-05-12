@@ -1,5 +1,7 @@
 // src/store/useAppStore.js — Global Zustand state store
 // Replaces the scattered global variables from the monolith
+// BUG-13 FIX (May 12 2026): showToast now accepts type param (success/warning/info/error)
+// DATING FIX (May 12 2026): Added datingState + setDatingState for cross-section dating data
 
 import { create } from 'zustand';
 
@@ -13,9 +15,11 @@ const useAppStore = create((set, get) => ({
   setDemoMode: (v) => set({ demoMode: v }),
 
   // ── Toast Notifications ───────────────────────────────────
+  // BUG-13 FIX: Added type param so callers can signal success/warning/info/error
+  // type controls border/icon color in AppShell toast renderer
   toast: null,
-  showToast: (message, duration = 3000) => {
-    set({ toast: message });
+  showToast: (message, type = 'info', duration = 3000) => {
+    set({ toast: { message, type } });
     setTimeout(() => set({ toast: null }), duration);
   },
 
@@ -40,8 +44,6 @@ const useAppStore = create((set, get) => ({
   setFeedLoading: (v) => set({ feedLoading: v }),
 
   // ── Social Graph (for feed filtering) ─────────────────────
-  // followingIds: list of user IDs this user follows
-  // friendIds: mutual follows (intersection of following + followers)
   followingIds: [],
   friendIds: [],
   setFollowingIds: (ids) => set({ followingIds: ids }),
@@ -65,6 +67,21 @@ const useAppStore = create((set, get) => ({
   // ── Create Post Modal ─────────────────────────────────────
   createPostOpen: false,
   setCreatePostOpen: (v) => set({ createPostOpen: v }),
+
+  // ── Dating State ──────────────────────────────────────────
+  // Shared cross-section dating data so BottomNav can show match badge
+  datingState: {
+    matchCount: 0,
+    likedByYouCount: 0,
+    preferences: null,
+    swipeHistory: [],
+  },
+  setDatingState: (partial) => set((s) => ({
+    datingState: { ...s.datingState, ...partial }
+  })),
+  incrementDatingMatches: () => set((s) => ({
+    datingState: { ...s.datingState, matchCount: s.datingState.matchCount + 1 }
+  })),
 }));
 
 export default useAppStore;
