@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dating Section – LynkApp (All Fixes R1–R20)</title>
+<style>
+/* ── RESET & BASE ───────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a18;--bg2:#0f0c29;--bg3:rgba(255,255,255,0.05);
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --accent:#6366f1;--accent2:#ec4899;--green:#22c55e;
+  --border:rgba(255,255,255,0.08);--card-h:340px;
+}
+/* R8: Light mode support */
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f8fafc;--bg2:#ffffff;--bg3:rgba(0,0,0,0.04);
+    --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+    --border:rgba(0,0,0,0.1);
+  }
+  body{background:#e2e8f0}
+  #phone{background:var(--bg);border-color:rgba(0,0,0,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+  .card{border-color:rgba(0,0,0,0.1)}
+  .pill{background:rgba(0,0,0,0.06);color:#475569}
+  .pill.active{background:linear-gradient(135deg,#ec4899,#6366f1);color:white}
+  #toast{background:rgba(255,255,255,0.98);color:#0f172a;border-color:rgba(0,0,0,0.15)}
+  #bnav{background:rgba(255,255,255,0.98);border-top-color:rgba(0,0,0,0.08)}
+  .nav-ico,.nav-lbl{color:#94a3b8}
+  .nav-it.active .nav-ico,.nav-it.active .nav-lbl{color:#ec4899}
+  #daily-bar,#liked-you,#settings-sht,#rep-sht,#prof-inner,#matches-scr{background:var(--bg2)}
+  #nudge{background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(236,72,153,0.06))}
+  .abtn{background:none}
+  .match-nm,.mli-name{color:#0f172a}
+  #mscrh span{color:#0f172a}
+  .set-title,.sht-name,.settings-title{color:#0f172a}
+  .tog-row span{color:#334155}
+  .sht-bio,.sht-sub,.mli-prev{color:#475569}
+  #skeleton-card{background:rgba(0,0,0,0.05)}
+  .skel-line{background:rgba(0,0,0,0.08)}
+  #age-gate{background:linear-gradient(160deg,#1e1b4b,#312e81,#1e1b4b)}
+}
+/* R10: Reduced motion */
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:#1a1a2e;color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
+::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+
+/* ── PHONE SHELL ────────────────────────────────────── */
+#phone{width:390px;height:844px;background:var(--bg);border-radius:44px;border:2px solid rgba(255,255,255,0.12);
+  box-shadow:0 30px 80px rgba(0,0,0,0.7);display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* ── ANIMATIONS ─────────────────────────────────────── */
+@keyframes fadeInScale{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes heartBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}}
+@keyframes newMatchPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes confettiFall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(700px) rotate(720deg);opacity:0}}
+@keyframes flyRight{to{transform:translateX(160%) rotate(28deg);opacity:0}}
+@keyframes flyLeft{to{transform:translateX(-160%) rotate(-28deg);opacity:0}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes notifBounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes checkIn{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* ── R13: SKIP LINK ─────────────────────────────────── */
+.skip-link{position:absolute;top:-999px;left:8px;z-index:99999;padding:8px 16px;background:#6366f1;color:white;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px}
+.skip-link:focus{top:8px}
+
+/* ── AGE GATE ─────────────────────────────────────── */
+#age-gate{position:absolute;inset:0;z-index:10000;border-radius:44px;background:linear-gradient(160deg,#0f0c29,#302b63,#24243e);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;animation:fadeInScale .3s ease}
+#age-gate h2{font-size:26px;font-weight:900;color:#f1f5f9;margin-bottom:8px;text-align:center}
+#age-gate p{color:#94a3b8;font-size:14px;text-align:center;margin-bottom:32px;line-height:1.6}
+.age-btn{width:100%;padding:14px;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;border:none;margin-bottom:12px}
+#age-yes{background:linear-gradient(135deg,#ec4899,#6366f1);color:white}
+#age-no{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#94a3b8}
+
+/* ── R9: PROFILE COMPLETION BAR ─────────────────────── */
+#profile-complete-bar{margin:0 16px 6px;flex-shrink:0}
+.pcb-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.pcb-label{font-size:11px;color:var(--text3)}
+.pcb-pct{font-size:11px;font-weight:700;color:#6366f1}
+.pcb-track{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
+.pcb-fill{height:100%;border-radius:2px;background:linear-gradient(to right,#6366f1,#ec4899);transition:width .5s ease}
+.pcb-cta{font-size:11px;color:#ec4899;font-weight:600;cursor:pointer;text-align:right;display:block;margin-top:2px}
+
+/* ── HEADER ───────────────────────────────────────── */
+#header{padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#header-left{display:flex;align-items:center;gap:10px}
+#header-title{font-size:20px;font-weight:800;color:var(--text)}
+#match-notif{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:3px 10px;
+  font-size:11px;font-weight:700;color:#22c55e;cursor:pointer;animation:notifBounce 1.5s ease infinite}
+.header-btns{display:flex;gap:8px}
+.header-icon-btn{width:40px;height:40px;border-radius:12px;background:var(--bg3);border:none;color:var(--text2);
+  font-size:18px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .2s;gap:1px}
+.header-icon-btn:hover{background:rgba(255,255,255,0.14)}
+.hdr-lbl{font-size:8px;color:var(--text3)}
+
+/* ── R3: DAILY COUNTER (localStorage persisted) ──────── */
+#daily-bar{margin:0 16px 6px;background:var(--bg3);border-radius:8px;padding:5px 12px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#daily-text{font-size:11px;color:var(--text3)}
+#daily-count{font-size:12px;font-weight:700;color:#6366f1}
+
+/* ── R2: WHO LIKED YOU (enhanced realistic data) ─────── */
+#liked-you{margin:0 16px 6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;
+  padding:9px 14px;cursor:pointer;flex-shrink:0;transition:background .2s}
+#liked-you:hover{background:rgba(255,255,255,0.07)}
+#liked-you-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#liked-you-top span:first-child{font-size:13px;font-weight:700;color:var(--text)}
+#liked-you-top span:last-child{font-size:11px;color:#6366f1;font-weight:600}
+#liked-avatars{display:flex;align-items:center}
+.liked-av{width:38px;height:38px;border-radius:50%;margin-right:-10px;
+  background-size:cover;background-position:center;border:2px solid var(--bg);filter:blur(4px)}
+.liked-badge{margin-left:16px;background:linear-gradient(135deg,#ec4899,#6366f1);border-radius:20px;
+  padding:3px 10px;font-size:12px;font-weight:700;color:white;display:flex;align-items:center}
+#liked-updated{font-size:10px;color:var(--text3);margin-top:4px}
+
+/* ── FILTER BAR ────────────────────────────────────── */
+#filter-wrap{position:relative;flex-shrink:0}
+#filter-wrap::after{content:'';position:absolute;right:0;top:0;bottom:12px;width:44px;
+  background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+#filter-bar{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px;-webkit-overflow-scrolling:touch}
+.pill{flex-shrink:0;padding:7px 14px;border-radius:24px;font-size:12px;font-weight:600;border:none;
+  cursor:pointer;background:rgba(255,255,255,0.07);color:var(--text3);transition:all .2s;min-height:36px;display:flex;align-items:center}
+.pill.active{background:linear-gradient(135deg,#ec4899,#6366f1);color:white}
+
+/* ── R19: SKELETON LOADING ─────────────────────────── */
+#skeleton-card{display:none;position:absolute;inset:0;border-radius:28px;background:rgba(255,255,255,0.04);overflow:hidden}
+#skeleton-card.on{display:block}
+.skel-line{border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,0.06) 25%,rgba(255,255,255,0.12) 50%,rgba(255,255,255,0.06) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s ease infinite}
+.skel-photo{height:220px;margin-bottom:16px}
+.skel-name{height:18px;width:60%;margin:0 16px 8px}
+.skel-sub{height:12px;width:40%;margin:0 16px 8px}
+.skel-bio{height:10px;width:85%;margin:0 16px 6px}
+.skel-tags{height:10px;width:50%;margin:0 16px}
+
+/* ── CARD AREA ─────────────────────────────────────── */
+#card-area{margin:0 16px;position:relative;height:var(--card-h);flex-shrink:0;user-select:none}
+.card{position:absolute;inset:0;border-radius:28px;overflow:hidden;border:2px solid rgba(255,255,255,0.1);
+  box-shadow:0 18px 50px rgba(0,0,0,0.5);cursor:grab;touch-action:none;transition:box-shadow .12s}
+.card:active{cursor:grabbing}
+.card-bg{position:absolute;inset:0;background-size:cover;background-position:center top;transition:opacity .3s}
+/* R7: Video overlay */
+.video-badge{position:absolute;top:11px;left:11px;z-index:7;background:rgba(0,0,0,0.6);
+  border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:white;display:flex;align-items:center;gap:4px}
+.pdots{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:5}
+.pdot{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,0.3)}
+.pdot.active{background:white}
+.tap-l,.tap-r{position:absolute;top:0;bottom:0;width:42%;z-index:6;cursor:pointer}
+.tap-l{left:0}.tap-r{right:0}
+.report-btn{position:absolute;top:11px;right:11px;z-index:7;width:32px;height:32px;border-radius:50%;
+  background:rgba(0,0,0,0.5);border:none;color:white;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s}
+.report-btn:hover{background:rgba(239,68,68,0.7)}
+/* R10: Favorite heart on long-press */
+.fav-btn{position:absolute;bottom:110px;right:12px;z-index:7;width:34px;height:34px;border-radius:50%;
+  background:rgba(0,0,0,0.5);border:none;color:white;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;opacity:0}
+.fav-btn.show{opacity:1}
+.fav-btn.faved{color:#ec4899;background:rgba(236,72,153,0.3)}
+.card-info{position:absolute;bottom:0;left:0;right:0;padding:14px 14px 12px;
+  background:linear-gradient(to top,rgba(0,0,0,0.93) 0%,transparent 100%);z-index:4}
+.c-row1{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3px}
+.c-name{font-size:22px;font-weight:900;color:white}
+.compat{text-align:center;background:rgba(99,102,241,0.35);border-radius:10px;padding:4px 9px;
+  border:1px solid rgba(99,102,241,0.45);cursor:pointer;flex-shrink:0;position:relative}
+.compat-pct{font-size:16px;font-weight:800;color:#818cf8}
+.compat-lbl{font-size:10px;color:#a5b4fc} /* R14: min 10px (was 8px) */
+.c-sub{font-size:12px;color:rgba(255,255,255,0.65)}
+.c-meta{display:flex;align-items:center;gap:6px;margin:3px 0 4px;flex-wrap:wrap}
+.c-intention{font-size:10px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.12);border-radius:20px;padding:2px 8px}
+.c-mutual{font-size:10px;color:#a78bfa;background:rgba(167,139,250,0.15);border-radius:20px;padding:2px 8px;border:1px solid rgba(167,139,250,0.3)}
+.c-bio{font-size:12px;color:rgba(255,255,255,0.8);line-height:1.4;margin-bottom:5px}
+.c-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;padding:3px 9px;border-radius:20px}
+.tag-v{background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.3)}
+.tag-o{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
+.like-ol,.pass-ol{position:absolute;top:18px;opacity:0;transition:opacity .08s;pointer-events:none;z-index:8}
+.like-ol{left:16px;transform:rotate(-15deg)}
+.pass-ol{right:16px;transform:rotate(15deg)}
+.like-ol span,.pass-ol span{font-size:24px;padding:5px 12px;border-radius:10px;font-weight:900}
+.like-ol span{border:3px solid #22c55e;color:#22c55e;background:rgba(34,197,94,0.1)}
+.pass-ol span{border:3px solid #ef4444;color:#ef4444;background:rgba(239,68,68,0.1)}
+
+/* ── EMPTY STATE ───────────────────────────────────── */
+#empty-state{display:none;width:100%;height:100%;border-radius:28px;background:rgba(255,255,255,0.03);
+  border:2px dashed rgba(255,255,255,0.1);flex-direction:column;align-items:center;justify-content:center;gap:10px}
+#empty-state.on{display:flex}
+
+/* ── PROFILE COUNT ─────────────────────────────────── */
+#pcount{text-align:center;font-size:11px;color:var(--text3);margin-top:3px;flex-shrink:0}
+
+/* ── ACTION BUTTONS ────────────────────────────────── */
+#action-bar{display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 16px 4px;flex-shrink:0}
+.abtn{border-radius:50%;border:2px solid;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;cursor:pointer;background:none;transition:transform .15s;gap:1px}
+.abtn:active{transform:scale(.88)}
+.abtn svg,.abtn-lbl{pointer-events:none}
+.abtn-lbl{font-size:8px;font-weight:600;letter-spacing:.3px}
+.abtn-rew{width:48px;height:48px;border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.08)}
+.abtn-rew .abtn-lbl{color:#fbbf24}
+.abtn-rew:hover{background:rgba(251,191,36,0.18)}
+.abtn-pass{width:60px;height:60px;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.1)}
+.abtn-pass .abtn-lbl{color:#ef4444}
+.abtn-pass:hover{background:rgba(239,68,68,0.22)}
+.abtn-super{width:50px;height:50px;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.1);position:relative}
+.abtn-super .abtn-lbl{color:#818cf8}
+.abtn-super:hover{background:rgba(99,102,241,0.22)}
+.super-badge{position:absolute;top:-6px;right:-6px;background:#6366f1;color:white;border-radius:999px;
+  font-size:9px;font-weight:700;padding:1px 5px;border:1.5px solid var(--bg)}
+.abtn-like{width:72px;height:72px;border-color:rgba(34,197,94,0.35);background:rgba(34,197,94,0.1);animation:pulse 2.5s ease infinite}
+.abtn-like .abtn-lbl{color:#22c55e}
+.abtn-like:hover{background:rgba(34,197,94,0.22)}
+.abtn-boost{width:48px;height:48px;border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.08)}
+.abtn-boost .abtn-lbl{color:#f59e0b}
+.abtn-boost:hover{background:rgba(245,158,11,0.18)}
+/* Daily limit warning */
+#like-warning{font-size:9px;color:#f59e0b;text-align:center;flex-shrink:0;height:12px}
+
+/* ── MATCHES ROW ───────────────────────────────────── */
+#matches-section{padding:6px 16px 0;flex-shrink:0}
+#matches-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#matches-head span{font-size:13px;font-weight:700;color:var(--text)}
+#see-all-btn{font-size:12px;color:#6366f1;background:none;border:none;cursor:pointer;font-weight:600}
+#matches-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:2px}
+.match-it{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.match-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:20px;border:3px solid;box-shadow:0 0 10px rgba(0,0,0,.4);transition:transform .2s;
+  background-size:cover;background-position:center}
+.match-it:hover .match-av{transform:scale(1.1)}
+.match-nm{font-size:10px;color:var(--text2);font-weight:600}
+.match-it.new-m .match-av{animation:newMatchPop .4s cubic-bezier(0.34,1.56,0.64,1)}
+
+/* ── NUDGE CARD ────────────────────────────────────── */
+#nudge{margin:6px 16px 0;padding:10px 14px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(236,72,153,0.08));
+  border:1px solid rgba(99,102,241,0.2);border-radius:14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+#nudge-text strong{color:#c7d2fe;display:block;font-size:12px;margin-bottom:1px}
+#nudge-text span{font-size:11px;color:var(--text3);line-height:1.4}
+
+/* ── TOAST ─────────────────────────────────────────── */
+#toast{position:absolute;bottom:104px;left:50%;transform:translateX(-50%);background:rgba(10,8,30,0.96);
+  color:white;border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:9px 18px;
+  font-size:13px;font-weight:500;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s;z-index:8000}
+#toast.on{opacity:1}
+
+/* ── BOTTOM NAV ────────────────────────────────────── */
+#bnav{margin-top:auto;display:flex;background:rgba(8,6,25,0.97);border-top:1px solid rgba(255,255,255,0.07);
+  padding:8px 0 12px;flex-shrink:0}
+.nav-it{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
+  padding:4px 0;min-height:44px;justify-content:center}
+.nav-ico{font-size:21px;color:#475569}
+.nav-lbl{font-size:9px;color:#475569}
+.nav-it.active .nav-ico,.nav-it.active .nav-lbl{color:#ec4899}
+
+/* ── R12: FOCUS TRAP helpers ─────────────────────────── */
+.modal-overlay[aria-hidden="true"]{display:none!important}
+*:focus-visible{outline:2px solid #6366f1;outline-offset:2px;border-radius:4px}
+
+/* ── PROFILE SHEET ─────────────────────────────────── */
+#prof-sheet{display:none;position:absolute;inset:0;z-index:5000;border-radius:44px;overflow:hidden}
+#prof-sheet.on{display:block}
+#prof-inner{position:absolute;inset:0;background:var(--bg2);
+  animation:slideUp .35s cubic-bezier(0.34,1.56,0.64,1);overflow-y:auto}
+#prof-photo{width:100%;height:320px;background-size:cover;background-position:center;position:relative}
+/* R7: video play button in profile sheet */
+#prof-video-play{display:none;position:absolute;inset:0;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.3);cursor:pointer}
+#prof-video-play.show{display:flex}
+.play-circle{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.2);
+  border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:26px}
+.sht-close{position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:50%;
+  background:rgba(0,0,0,0.55);border:none;color:white;font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;z-index:10}
+.sht-rep{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;
+  background:rgba(0,0,0,0.55);border:none;color:white;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;z-index:10}
+#prof-body{padding:16px}
+.sht-name{font-size:24px;font-weight:900;color:var(--text)}
+.sht-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.sht-section{margin-top:12px}
+.sht-sec-title{font-size:11px;font-weight:700;color:#6366f1;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.sht-bio{font-size:13px;color:var(--text2);line-height:1.6}
+.int-tags{display:flex;gap:7px;flex-wrap:wrap}
+.int-tag{font-size:12px;padding:4px 11px;border-radius:20px;background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.25)}
+.sht-acts{display:flex;gap:10px;margin-top:16px;padding-bottom:24px}
+.sht-pass{flex:1;padding:13px;border-radius:13px;font-size:14px;font-weight:700;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);color:#ef4444;cursor:pointer}
+.sht-like{flex:1;padding:13px;border-radius:13px;font-size:14px;font-weight:700;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;cursor:pointer}
+/* R15: Safety check-in button */
+.sht-safety{width:100%;padding:10px;margin-top:4px;border-radius:10px;font-size:13px;border:1px solid rgba(245,158,11,0.3);
+  background:rgba(245,158,11,0.1);color:#f59e0b;cursor:pointer;font-weight:600}
+
+/* ── SETTINGS SHEET ────────────────────────────────── */
+#settings-sht{display:none;position:absolute;bottom:0;left:0;right:0;z-index:6000;background:var(--bg2);
+  border-radius:24px 24px 0 0;padding:18px;border-top:1px solid var(--border);animation:slideUp .3s ease;max-height:90%;overflow-y:auto}
+#settings-sht.on{display:block}
+.sht-hdl{width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 16px}
+.set-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:16px}
+.set-grp{margin-bottom:16px}
+.set-lbl{font-size:11px;font-weight:700;color:#6366f1;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:block}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:linear-gradient(to right,#6366f1 var(--pct,50%),rgba(255,255,255,0.1) var(--pct,50%));outline:none}
+.range-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#6366f1;cursor:pointer;border:2px solid white;box-shadow:0 0 6px rgba(99,102,241,0.5)}
+.rval{font-size:13px;font-weight:700;color:#818cf8;min-width:44px;text-align:right}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.tog-row:last-child{border-bottom:none}
+.tog-row span{font-size:14px;color:var(--text)}
+.tog{width:46px;height:26px;border-radius:13px;background:rgba(255,255,255,0.1);border:none;cursor:pointer;position:relative;transition:background .25s}
+.tog.on{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.tog::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:white;top:3px;left:3px;transition:left .25s}
+.tog.on::after{left:23px}
+.gpills{display:flex;gap:8px;flex-wrap:wrap}
+.gpill{padding:7px 16px;border-radius:24px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:rgba(255,255,255,0.07);color:var(--text3);transition:all .2s}
+.gpill.active{background:linear-gradient(135deg,#ec4899,#6366f1);color:white}
+.set-save{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6366f1,#ec4899);color:white;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px}
+
+/* ── MATCHES SCREEN ────────────────────────────────── */
+#matches-scr{display:none;position:absolute;inset:0;z-index:5000;border-radius:44px;overflow:hidden;background:var(--bg)}
+#matches-scr.on{display:block;animation:fadeInScale .3s ease}
+#mscrh{padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+#mscrh button{background:none;border:none;color:#6366f1;font-size:20px;cursor:pointer}
+#mscrh span{font-size:18px;font-weight:800;color:var(--text)}
+/* R6: inline quick-chat section inside matches screen */
+#mscr-search{margin:10px 16px 0;padding:8px 12px;background:var(--bg3);border-radius:10px;
+  border:1px solid var(--border);display:flex;align-items:center;gap:8px}
+#mscr-search input{flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--text)}
+#mscr-search input::placeholder{color:var(--text3)}
+#mlist{overflow-y:auto;padding:8px 16px;height:calc(100% - 120px)}
+.mli{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;border-radius:10px;transition:background .2s}
+.mli:hover{background:rgba(255,255,255,0.04);padding-left:6px}
+.mli-av{width:52px;height:52px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid rgba(255,255,255,0.1);background-size:cover;background-position:center}
+.mli-info{flex:1}
+.mli-name{font-size:15px;font-weight:700;color:var(--text)}
+.mli-prev{font-size:12px;color:var(--text3);margin-top:2px}
+.mli-time{font-size:10px;color:var(--text3)}
+.mli-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;flex-shrink:0}
+
+/* R6: Quick chat modal */
+#chat-modal{display:none;position:absolute;inset:0;z-index:7500;border-radius:44px;overflow:hidden;background:var(--bg2)}
+#chat-modal.on{display:flex;flex-direction:column;animation:fadeInScale .25s ease}
+#chat-header{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+#chat-header button{background:none;border:none;color:#6366f1;font-size:18px;cursor:pointer}
+#chat-header span{font-size:16px;font-weight:700;color:var(--text)}
+#chat-messages{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.chat-msg{max-width:75%;padding:9px 13px;border-radius:18px;font-size:13px;line-height:1.4}
+.chat-msg.them{background:rgba(255,255,255,0.07);color:var(--text);align-self:flex-start;border-radius:18px 18px 18px 4px}
+.chat-msg.me{background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;align-self:flex-end;border-radius:18px 18px 4px 18px}
+#chat-input-row{padding:10px 14px 16px;display:flex;gap:8px;border-top:1px solid var(--border)}
+#chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:22px;padding:9px 14px;
+  font-size:13px;color:var(--text);outline:none}
+#chat-input::placeholder{color:var(--text3)}
+#chat-send{width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(135deg,#6366f1,#ec4899);color:white;font-size:16px;cursor:pointer;flex-shrink:0}
+
+/* ── REPORT SHEET ──────────────────────────────────── */
+#rep-sht{display:none;position:absolute;bottom:0;left:0;right:0;z-index:7000;background:var(--bg2);
+  border-radius:24px 24px 0 0;padding:18px;border-top:1px solid var(--border);animation:slideUp .3s ease}
+#rep-sht.on{display:block}
+.rep-opt{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer}
+.rep-opt:hover .rep-txt{color:var(--text)}
+.rep-ico{font-size:20px}
+.rep-txt{font-size:14px;color:var(--text2)}
+.rep-cancel{width:100%;padding:13px;margin-top:10px;border-radius:14px;border:none;background:rgba(255,255,255,0.08);color:var(--text2);font-size:14px;cursor:pointer}
+
+/* ── MATCH MODAL ───────────────────────────────────── */
+#match-modal{display:none;position:absolute;inset:0;z-index:9000;background:rgba(0,0,0,0.93);
+  flex-direction:column;align-items:center;justify-content:center;padding:28px;border-radius:44px;overflow:hidden}
+#match-modal.on{display:flex;animation:fadeInScale .3s ease}
+.cpiece{position:absolute;width:8px;height:14px;border-radius:2px;animation:confettiFall var(--dur,2.5s) var(--delay,0s) ease forwards;top:-20px}
+#mm-hearts{font-size:46px;margin-bottom:6px;animation:heartBeat .8s ease infinite;z-index:1}
+#mm-title{font-size:28px;font-weight:900;color:#f1f5f9;margin-bottom:4px;text-align:center;z-index:1}
+#mm-sub{color:#94a3b8;font-size:13px;margin-bottom:16px;text-align:center;z-index:1;max-width:260px;line-height:1.5}
+#mm-avs{display:flex;gap:0;margin-bottom:14px;align-items:center;z-index:1}
+.mm-av{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;border:4px solid #22c55e;box-shadow:0 0 24px rgba(34,197,94,0.4)}
+.mm-heart{font-size:26px;margin:0 -4px;z-index:2;animation:heartBeat .6s ease infinite}
+#starters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;z-index:1}
+.starter{font-size:11px;padding:6px 11px;border-radius:18px;cursor:pointer;background:rgba(99,102,241,0.2);
+  color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);transition:background .2s;text-align:center;line-height:1.4}
+.starter:hover{background:rgba(99,102,241,0.35);color:#c7d2fe}
+.mmbtn{width:100%;padding:12px;border:none;border-radius:15px;font-size:15px;font-weight:700;cursor:pointer;z-index:1}
+#mm-msg{background:linear-gradient(135deg,#22c55e,#16a34a);color:white;margin-bottom:9px}
+#mm-cont{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#f1f5f9}
+
+/* ── NOTIF PROMPT ──────────────────────────────────── */
+#notif-prompt{display:none;position:absolute;bottom:82px;left:16px;right:16px;z-index:8500;
+  background:rgba(12,10,30,0.98);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:14px;animation:slideUp .35s ease}
+#notif-prompt.on{display:block}
+#notif-prompt strong{color:#f1f5f9;display:block;font-size:13px;margin-bottom:4px}
+#notif-prompt p{font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:10px}
+.nbts{display:flex;gap:8px}
+.n-enable{flex:1;padding:9px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22c55e,#16a34a);color:white}
+.n-skip{padding:9px 13px;border-radius:9px;border:1px solid rgba(255,255,255,0.1);background:none;color:var(--text3);font-size:12px;cursor:pointer}
+
+/* ── R15: SAFETY CHECK-IN ────────────────────────────── */
+#safety-modal{display:none;position:absolute;inset:0;z-index:8800;border-radius:44px;
+  background:rgba(0,0,0,0.88);flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#safety-modal.on{display:flex;animation:fadeInScale .25s ease}
+#safety-modal h3{font-size:22px;font-weight:900;color:#f1f5f9;margin-bottom:8px;text-align:center}
+#safety-modal p{color:#94a3b8;font-size:13px;text-align:center;margin-bottom:24px;line-height:1.6;max-width:280px}
+.safety-time-picker{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+.safety-time-btn{padding:8px 14px;border-radius:10px;border:1px solid rgba(245,158,11,0.3);
+  background:rgba(245,158,11,0.1);color:#f59e0b;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.safety-time-btn:hover,.safety-time-btn.active{background:rgba(245,158,11,0.25)}
+.safety-enable{width:100%;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.safety-skip{width:100%;padding:11px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:none;color:var(--text2);font-size:14px;cursor:pointer}
+#safety-active-banner{display:none;margin:6px 16px 0;padding:8px 12px;background:rgba(245,158,11,0.12);
+  border:1px solid rgba(245,158,11,0.3);border-radius:10px;flex-shrink:0;
+  font-size:11px;color:#f59e0b;font-weight:600;align-items:center;gap:8px;justify-content:space-between;animation:checkIn 1s ease}
+#safety-active-banner.on{display:flex}
+
+/* ── FAVORITES SHEET ─────────────────────────────────── */
+/* R10 */
+#favs-scr{display:none;position:absolute;inset:0;z-index:5000;border-radius:44px;overflow:hidden;background:var(--bg)}
+#favs-scr.on{display:block;animation:fadeInScale .3s ease}
+#favscrh{padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+#favscrh button{background:none;border:none;color:#6366f1;font-size:20px;cursor:pointer}
+#favscrh span{font-size:18px;font-weight:800;color:var(--text)}
+#favs-list{overflow-y:auto;padding:8px 16px;height:calc(100% - 72px);display:flex;flex-direction:column;gap:10px}
+.fav-li{display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:var(--bg3);cursor:pointer}
+.fav-li-photo{width:52px;height:52px;border-radius:12px;background-size:cover;background-position:center;flex-shrink:0}
+.fav-li-info{flex:1}
+.fav-li-name{font-size:14px;font-weight:700;color:var(--text)}
+.fav-li-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.fav-li-rmv{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:5px 9px;font-size:11px;color:#ef4444;cursor:pointer;font-weight:600}
+
+/* ── BACKDROP ──────────────────────────────────────── */
+#backdrop{display:none;position:absolute;inset:0;z-index:4998;background:rgba(0,0,0,0.5);border-radius:44px}
+#backdrop.on{display:block}
+</style>
+</head>
+<body>
+<!-- R13: Skip link -->
+<a class="skip-link" href="#card-area">Skip to profiles</a>
+
+<div id="phone" role="main">
+
+<!-- AGE GATE -->
+<div id="age-gate" role="dialog" aria-modal="true" aria-label="Age Verification">
+  <div style="font-size:46px;margin-bottom:14px">💕</div>
+  <h2>Dating on LynkApp</h2>
+  <p>This section is intended for users aged 18 and over.<br>Please confirm your age to continue.</p>
+  <button class="age-btn" id="age-yes" onclick="passAgeGate()">✅ I am 18 or older</button>
+  <button class="age-btn" id="age-no" onclick="failAgeGate()">❌ I am under 18</button>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="header-left">
+    <span id="header-title">💕 Dating</span>
+    <span id="match-notif" onclick="openMatchesScreen()" aria-label="New matches">3 new ✓</span>
+  </div>
+  <div class="header-btns">
+    <button class="header-icon-btn" onclick="openFavs()" aria-label="Saved profiles" title="Favorites">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <span class="hdr-lbl">Saved</span>
+    </button>
+    <button class="header-icon-btn" id="settings-btn" onclick="openSettings()" aria-label="Dating preferences" title="Settings">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span class="hdr-lbl">Prefs</span>
+    </button>
+  </div>
+</div>
+
+<!-- R9: PROFILE COMPLETION BAR -->
+<div id="profile-complete-bar">
+  <div class="pcb-row"><span class="pcb-label">Your profile</span><span class="pcb-pct" id="pcb-pct">65% complete</span></div>
+  <div class="pcb-track"><div class="pcb-fill" id="pcb-fill" style="width:65%"></div></div>
+  <span class="pcb-cta" onclick="showToast('📝 Opening profile editor…')">Add 3 more photos to get 3× more matches →</span>
+</div>
+
+<!-- R3: DAILY COUNTER (localStorage persisted) -->
+<div id="daily-bar" aria-live="polite">
+  <span id="daily-text">Daily Likes</span>
+  <span id="daily-count">-- remaining</span>
+</div>
+
+<!-- R2: WHO LIKED YOU (enhanced realistic) -->
+<div id="liked-you" onclick="showToast('⭐ Upgrade to Premium to see who liked you!')" aria-label="People who liked you">
+  <div id="liked-you-top">
+    <span>❤️ People who liked you</span>
+    <span id="liked-count-badge">Upgrade to see →</span>
+  </div>
+  <div id="liked-avatars">
+    <div class="liked-av" style="background-image:url('https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=60')"></div>
+    <div class="liked-av" style="background-image:url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=80&q=60')"></div>
+    <div class="liked-av" style="background-image:url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&q=60')"></div>
+    <div class="liked-av" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=60')"></div>
+    <span class="liked-badge" id="liked-badge">+<span id="liked-num">9</span></span>
+  </div>
+  <div id="liked-updated">🕐 Updated just now — 9 new likes today</div>
+</div>
+
+<!-- R15: SAFETY ACTIVE BANNER -->
+<div id="safety-active-banner">
+  <span>🛡️ Safety check-in active</span>
+  <button onclick="cancelSafetyCheckIn()" style="background:none;border:none;color:#f59e0b;font-size:11px;cursor:pointer;font-weight:600">Cancel</button>
+</div>
+
+<!-- FILTER BAR -->
+<div id="filter-wrap">
+  <div id="filter-bar" role="group" aria-label="Profile filters">
+    <button class="pill" data-f="Nearby"    aria-label="Filter: Nearby profiles">📍 Nearby</button>
+    <button class="pill" data-f="Ages"      aria-label="Filter: Age range">🎂 Ages 20–35</button>
+    <button class="pill" data-f="Interests" aria-label="Filter: By compatibility">💡 Interests</button>
+    <button class="pill" data-f="Verified"  aria-label="Filter: Verified profiles">✓ Verified</button>
+    <button class="pill" data-f="Online"    aria-label="Filter: Online now">🟢 Online</button>
+    <button class="pill" data-f="Serious"   aria-label="Filter: Serious relationship">💍 Serious</button>
+    <button class="pill" data-f="HasVideo"  aria-label="Filter: Has video profile">🎥 Has Video</button>
+  </div>
+</div>
+
+<!-- CARD AREA -->
+<div id="card-area" aria-label="Profile cards — swipe right to like, left to pass">
+  <!-- R19: Skeleton -->
+  <div id="skeleton-card">
+    <div class="skel-line skel-photo"></div>
+    <div class="skel-line skel-name"></div>
+    <div class="skel-line skel-sub"></div>
+    <div class="skel-line skel-bio"></div>
+    <div class="skel-line skel-tags"></div>
+  </div>
+  <div id="card-container"></div>
+  <div id="empty-state" role="status">
+    <div style="font-size:40px">✨</div>
+    <div style="color:#64748b;font-weight:700;font-size:14px">You've seen everyone nearby!</div>
+    <button onclick="resetProfiles()" style="padding:10px 22px;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px">🔄 Refresh</button>
+  </div>
+</div>
+
+<!-- PROFILE COUNT -->
+<div id="pcount" aria-live="polite"></div>
+<!-- LIKE WARNING -->
+<div id="like-warning"></div>
+
+<!-- ACTION BUTTONS -->
+<div id="action-bar" role="group" aria-label="Swipe actions">
+  <button class="abtn abtn-rew" onclick="handleRewind()" aria-label="Undo last swipe">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+    <span class="abtn-lbl" style="color:#fbbf24">Undo</span>
+  </button>
+  <button class="abtn abtn-pass" onclick="handlePass()" aria-label="Pass on this profile">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <span class="abtn-lbl" style="color:#ef4444">Pass</span>
+  </button>
+  <div class="abtn abtn-super" style="border:2px solid rgba(99,102,241,0.35);cursor:pointer" onclick="handleSuperLike()" role="button" aria-label="Super Like" tabindex="0">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="#818cf8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="abtn-lbl" style="color:#818cf8">Super</span>
+    <span class="super-badge" id="super-badge">3</span>
+  </div>
+  <button class="abtn abtn-like" onclick="handleLike()" aria-label="Like this profile">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#22c55e"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    <span class="abtn-lbl" style="color:#22c55e">Like</span>
+  </button>
+  <button class="abtn abtn-boost" onclick="handleBoost()" aria-label="Boost your profile">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span class="abtn-lbl" style="color:#f59e0b">Boost</span>
+  </button>
+</div>
+
+<!-- MATCHES ROW -->
+<div id="matches-section">
+  <div id="matches-head">
+    <span>💚 Your Matches</span>
+    <button id="see-all-btn" onclick="openMatchesScreen()" aria-label="See all matches">See all →</button>
+  </div>
+  <div id="matches-row" role="list" aria-label="Your matches"></div>
+</div>
+
+<!-- NUDGE -->
+<div id="nudge" onclick="showToast('💡 Opening profile editor…')">
+  <span>💡</span>
+  <div id="nudge-text">
+    <strong>Complete your profile — get 3× more matches</strong>
+    <span>Add more photos &amp; your interests to stand out</span>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- BOTTOM NAV -->
+<nav id="bnav" aria-label="Main navigation">
+  <div class="nav-it" tabindex="0" aria-label="Feed"><div class="nav-ico">🏠</div><div class="nav-lbl">Feed</div></div>
+  <div class="nav-it" tabindex="0" aria-label="Messages"><div class="nav-ico">💬</div><div class="nav-lbl">Messages</div></div>
+  <div class="nav-it active" tabindex="0" aria-label="Dating" aria-current="page"><div class="nav-ico">💕</div><div class="nav-lbl">Dating</div></div>
+  <div class="nav-it" tabindex="0" aria-label="Notifications"><div class="nav-ico">🔔</div><div class="nav-lbl">Alerts</div></div>
+  <div class="nav-it" tabindex="0" aria-label="Profile"><div class="nav-ico">👤</div><div class="nav-lbl">Profile</div></div>
+</nav>
+
+<!-- ─ PROFILE DETAIL SHEET ─────────────────────────── -->
+<div id="prof-sheet" role="dialog" aria-modal="true" aria-label="Full profile">
+  <div id="prof-inner">
+    <div id="prof-photo">
+      <button class="sht-close" onclick="closeProfileSheet()" aria-label="Close">✕</button>
+      <button class="sht-rep" onclick="openReport()" aria-label="Report or block">⋯</button>
+      <div id="prof-video-play" onclick="showToast('▶️ Playing video profile…')">
+        <div class="play-circle">▶️</div>
+      </div>
+    </div>
+    <div id="prof-body">
+      <div class="c-row1"><div><div class="sht-name" id="sht-name"></div><div class="sht-sub" id="sht-sub"></div></div></div>
+      <div class="sht-section"><div class="sht-sec-title">About</div><div class="sht-bio" id="sht-bio"></div></div>
+      <div class="sht-section"><div class="sht-sec-title">Interests</div><div class="int-tags" id="sht-interests"></div></div>
+      <div class="sht-section"><div class="sht-sec-title">Looking For</div><div id="sht-looking" style="font-size:13px;color:#94a3b8"></div></div>
+      <div class="sht-acts">
+        <button class="sht-pass" onclick="sheetPass()" aria-label="Pass">✗ Pass</button>
+        <button class="sht-like" onclick="sheetLike()" aria-label="Like">❤️ Like</button>
+      </div>
+      <!-- R15: safety check-in from profile -->
+      <button class="sht-safety" onclick="openSafetyModal()" aria-label="Set safety check-in">🛡️ Set Safety Check-in Before Meeting</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─ SETTINGS SHEET ──────────────────────────────── -->
+<div id="settings-sht" role="dialog" aria-modal="true" aria-label="Dating preferences" tabindex="-1">
+  <div class="sht-hdl"></div>
+  <div class="set-title">⚙️ Dating Preferences</div>
+  <div class="set-grp">
+    <span class="set-lbl">Age Range</span>
+    <div class="range-row">
+      <span style="font-size:11px;color:#64748b">18</span>
+      <input type="range" id="age-min" min="18" max="60" value="20" oninput="updateAgeRange()" aria-label="Minimum age">
+      <input type="range" id="age-max" min="18" max="60" value="35" oninput="updateAgeRange()" aria-label="Maximum age">
+      <span class="rval" id="age-range-val">20–35</span>
+    </div>
+  </div>
+  <div class="set-grp">
+    <span class="set-lbl">Max Distance</span>
+    <div class="range-row">
+      <input type="range" id="dist-range" min="1" max="100" value="25" style="--pct:25%" oninput="updateDist(this)" aria-label="Maximum distance">
+      <span class="rval" id="dist-val">25 mi</span>
+    </div>
+  </div>
+  <div class="set-grp">
+    <span class="set-lbl">Show Me</span>
+    <div class="gpills" id="gender-pills">
+      <button class="gpill active" data-g="Women" onclick="setGender(this)">Women</button>
+      <button class="gpill" data-g="Men" onclick="setGender(this)">Men</button>
+      <button class="gpill" data-g="Everyone" onclick="setGender(this)">Everyone</button>
+    </div>
+  </div>
+  <div class="set-grp">
+    <span class="set-lbl">Relationship Type</span>
+    <!-- R18: applies to card filter queue -->
+    <div class="gpills" id="rel-pills">
+      <button class="gpill active" data-r="Any" onclick="setRelType(this)">Any</button>
+      <button class="gpill" data-r="Serious" onclick="setRelType(this)">💍 Serious</button>
+      <button class="gpill" data-r="Casual" onclick="setRelType(this)">🌊 Casual</button>
+      <button class="gpill" data-r="Friends" onclick="setRelType(this)">🤝 Friends</button>
+    </div>
+  </div>
+  <div class="set-grp">
+    <span class="set-lbl">Privacy &amp; Visibility</span>
+    <!-- R16: Show me in Dating toggle properly wired -->
+    <div class="tog-row"><span>Show me in Dating</span><button class="tog on" id="tog-visible" onclick="toggleVisibility(this)" aria-label="Toggle visibility in dating"></button></div>
+    <div class="tog-row"><span>R11: Fuzz my location</span><button class="tog on" id="tog-fuzz" onclick="toggleFuzz(this)" aria-label="Toggle location fuzzing"></button></div>
+    <div class="tog-row"><span>Read receipts</span><button class="tog" onclick="toggleBtn(this)" aria-label="Toggle read receipts"></button></div>
+    <div class="tog-row"><span>Push notifications</span><button class="tog on" onclick="toggleBtn(this)" aria-label="Toggle push notifications"></button></div>
+  </div>
+  <button class="set-save" onclick="saveSettings()">Save Preferences</button>
+</div>
+
+<!-- ─ MATCHES SCREEN (with search + quick chat) ──── -->
+<div id="matches-scr" role="dialog" aria-modal="true" aria-label="All matches" tabindex="-1">
+  <div id="mscrh">
+    <button onclick="closeMatchesScreen()" aria-label="Back">←</button>
+    <span>💚 Matches</span>
+  </div>
+  <!-- R6: Search matches -->
+  <div id="mscr-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search matches…" id="matches-search-input" oninput="filterMatches(this.value)" aria-label="Search matches">
+  </div>
+  <div id="mlist" role="list"></div>
+</div>
+
+<!-- ─ R6: QUICK CHAT MODAL ───────────────────────── -->
+<div id="chat-modal" role="dialog" aria-modal="true" aria-label="Chat" tabindex="-1">
+  <div id="chat-header">
+    <button onclick="closeChat()" aria-label="Back">←</button>
+    <span id="chat-name"></span>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Type a message…" onkeydown="chatKeydown(event)" aria-label="Type a message">
+    <button id="chat-send" onclick="sendChatMsg()" aria-label="Send message">➤</button>
+  </div>
+</div>
+
+<!-- ─ REPORT SHEET ───────────────────────────────── -->
+<div id="rep-sht" role="dialog" aria-modal="true" aria-label="Report or block" tabindex="-1">
+  <div class="sht-hdl"></div>
+  <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px">What would you like to do?</div>
+  <div class="rep-opt" onclick="doReport('Inappropriate photos')"><span class="rep-ico">📸</span><span class="rep-txt">Inappropriate photos</span></div>
+  <div class="rep-opt" onclick="doReport('Fake profile')"><span class="rep-ico">🎭</span><span class="rep-txt">Fake or spam profile</span></div>
+  <div class="rep-opt" onclick="doReport('Harassment')"><span class="rep-ico">🚫</span><span class="rep-txt">Harassment or hate speech</span></div>
+  <div class="rep-opt" onclick="doBlock()"><span class="rep-ico">🔒</span><span class="rep-txt">Block this person</span></div>
+  <div class="rep-opt" onclick="doNotInterested()"><span class="rep-ico">👎</span><span class="rep-txt">Not interested</span></div>
+  <button class="rep-cancel" onclick="closeReport()">Cancel</button>
+</div>
+
+<!-- ─ MATCH MODAL ───────────────────────────────── -->
+<div id="match-modal" role="dialog" aria-modal="true" aria-label="It's a match!" tabindex="-1">
+  <div id="mm-hearts">💚</div>
+  <h2 id="mm-title">It's a Lynk!</h2>
+  <p id="mm-sub">You and <strong id="mm-name"></strong> both liked each other!</p>
+  <div id="mm-avs">
+    <div class="mm-av" id="mm-av-you">🧑</div>
+    <span class="mm-heart">💚</span>
+    <div class="mm-av" id="mm-av-them">👩</div>
+  </div>
+  <div id="starters"></div>
+  <button class="mmbtn" id="mm-msg" onclick="matchMessage()">💬 Send a Message</button>
+  <button class="mmbtn" id="mm-cont" onclick="matchContinue()">💕 Keep Swiping</button>
+</div>
+
+<!-- ─ NOTIF PROMPT ───────────────────────────────── -->
+<div id="notif-prompt" role="dialog" aria-modal="true" tabindex="-1">
+  <strong>💚 Don't miss your matches!</strong>
+  <p>Enable push notifications to be alerted the moment someone likes you back.</p>
+  <div class="nbts">
+    <button class="n-enable" onclick="enableNotif()">🔔 Enable</button>
+    <button class="n-skip" onclick="closeNotif()">Not now</button>
+  </div>
+</div>
+
+<!-- ─ R15: SAFETY CHECK-IN MODAL ────────────────── -->
+<div id="safety-modal" role="dialog" aria-modal="true" aria-label="Safety check-in" tabindex="-1">
+  <div style="font-size:48px;margin-bottom:10px">🛡️</div>
+  <h3>Safety Check-in</h3>
+  <p>Choose when you'd like LynkApp to send you a check-in reminder while meeting someone from the app.</p>
+  <div class="safety-time-picker" id="safety-times">
+    <button class="safety-time-btn" onclick="setSafetyTime(this,'30 min')">30 min</button>
+    <button class="safety-time-btn" onclick="setSafetyTime(this,'1 hour')">1 hour</button>
+    <button class="safety-time-btn" onclick="setSafetyTime(this,'2 hours')">2 hours</button>
+    <button class="safety-time-btn" onclick="setSafetyTime(this,'3 hours')">3 hours</button>
+  </div>
+  <button class="safety-enable" onclick="activateSafetyCheckIn()">🛡️ Enable Check-in</button>
+  <button class="safety-skip" onclick="closeSafetyModal()">Not now</button>
+</div>
+
+<!-- ─ R10: FAVORITES SCREEN ──────────────────────── -->
+<div id="favs-scr" role="dialog" aria-modal="true" aria-label="Saved profiles" tabindex="-1">
+  <div id="favscrh">
+    <button onclick="closeFavs()" aria-label="Back">←</button>
+    <span>❤️ Saved Profiles</span>
+  </div>
+  <div id="favs-list" role="list"></div>
+</div>
+
+<!-- BACKDROP -->
+<div id="backdrop" onclick="closeAllSheets()"></div>
+
+</div><!-- #phone -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const PROFILES=[
+  {id:'p1',name:'Emma Wilson',age:26,loc:'0.8',job:'UX Designer',verified:true,online:true,hasVideo:false,
+   bio:'Coffee lover ☕ dog mom 🐕 yoga enthusiast 🧘‍♀️',
+   photos:['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80',
+           'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&q=80'],
+   color:'#ec4899',compat:88,intention:'Something serious 💍',mutual:2,
+   interests:['Coffee','Design','Yoga','Dogs','Travel'],looking:'Long-term relationship',relType:'Serious'},
+  {id:'p2',name:'Jordan Lee',age:28,loc:'1.2',job:'Software Engineer',verified:true,online:false,hasVideo:true,
+   bio:'Hiking, cooking, and building cool things 💻🏔️',
+   photos:['https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80',
+           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
+   color:'#6366f1',compat:74,intention:'Open to anything 🌊',mutual:1,
+   interests:['Hiking','Cooking','Tech','Climbing','Music'],looking:'Open to seeing where it goes',relType:'Casual'},
+  {id:'p3',name:'Alex Rivera',age:24,loc:'2.1',job:'Photographer',verified:false,online:true,hasVideo:true,
+   bio:'Capturing life one frame at a time 📸✈️',
+   photos:['https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80'],
+   color:'#8b5cf6',compat:62,intention:'Casual 🌊',mutual:0,
+   interests:['Photography','Travel','Art','Film','Surfing'],looking:'Casual dating',relType:'Casual'},
+  {id:'p4',name:'Morgan Chen',age:30,loc:'3.5',job:'Teacher',verified:true,online:false,hasVideo:false,
+   bio:'Bookworm 📚 amateur chef 🍳 weekend hiker',
+   photos:['https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80'],
+   color:'#10b981',compat:79,intention:'Something serious 💍',mutual:3,
+   interests:['Reading','Cooking','Hiking','Education','Wine'],looking:'Long-term relationship',relType:'Serious'},
+  {id:'p5',name:'Sam Patel',age:27,loc:'4.0',job:'Startup Founder',verified:false,online:true,hasVideo:false,
+   bio:'Building the future 🚀 fitness nerd 💪 music fan 🎵',
+   photos:['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
+   color:'#f59e0b',compat:55,intention:'Casual 🌊',mutual:0,
+   interests:['Startups','Gym','Music','Basketball','Travel'],looking:'Casual dating',relType:'Casual'},
+];
+const MOCK_MATCHES=[
+  {id:'m1',name:'Jordan',photo:'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&q=60',color:'#6366f1',preview:'Hey! I loved your photos 😊',time:'2m ago',unread:true},
+  {id:'m2',name:'Alex',photo:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=80&q=60',color:'#8b5cf6',preview:'What are you up to this weekend?',time:'1h ago',unread:false},
+  {id:'m3',name:'Riley',photo:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=60',color:'#10b981',preview:'New match! Say hello 👋',time:'3h ago',unread:true},
+  {id:'m4',name:'Morgan',photo:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=60',color:'#ec4899',preview:'Coffee sometime? ☕',time:'1d ago',unread:false},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let profiles=[...PROFILES],currentIdx=0,activeFilter=null;
+let isDragging=false,startX=0,currentDragX=0,card=null;
+let lastSwipedProfile=null,superLikesLeft=3,matchNotifShown=false;
+let currentPhotoIdx=0,dynamicMatches=[...MOCK_MATCHES];
+let favorites=JSON.parse(localStorage.getItem('lynk_favs')||'[]');
+let safetyTime=null,safetyTimer=null;
+// R18: settings
+let settingsGender='Women',settingsRelType='Any';
+// R16: visibility
+let showInDating=true;
+// R11: fuzz location
+let fuzzLocation=true;
+// R3: persist daily likes
+const TODAY=new Date().toDateString();
+let savedDay=localStorage.getItem('lynk_daily_day');
+let dailyLikesLeft=savedDay===TODAY?parseInt(localStorage.getItem('lynk_daily_left')||'100'):100;
+if(savedDay!==TODAY){localStorage.setItem('lynk_daily_day',TODAY);localStorage.setItem('lynk_daily_left','100');}
+// R4: persist matches
+let storedMatchData=localStorage.getItem('lynk_matches');
+if(storedMatchData){try{dynamicMatches=JSON.parse(storedMatchData);}catch(e){}}
+
+// ══════════════════════════════════════════════════════
+// AGE GATE
+// ══════════════════════════════════════════════════════
+function passAgeGate(){document.getElementById('age-gate').style.display='none';}
+function failAgeGate(){
+  document.getElementById('age-gate').innerHTML=`
+    <div style="font-size:44px;margin-bottom:12px">🚫</div>
+    <h2 style="color:#ef4444">Access Denied</h2>
+    <p>You must be 18 or older to access dating features on LynkApp.</p>`;
+}
+
+// ══════════════════════════════════════════════════════
+// R3: Daily counter (localStorage persisted)
+// ══════════════════════════════════════════════════════
+function updateDailyDisplay(){
+  const el=document.getElementById('daily-count');
+  el.textContent=`${dailyLikesLeft} / 100 remaining`;
+  el.style.color=dailyLikesLeft<=10?'#ef4444':dailyLikesLeft<=30?'#f59e0b':'#6366f1';
+  const warn=document.getElementById('like-warning');
+  warn.textContent=dailyLikesLeft<=10?`⚠️ Only ${dailyLikesLeft} likes left today!`:'';
+}
+updateDailyDisplay();
+
+// ══════════════════════════════════════════════════════
+// R11: LOCATION FUZZING
+// ══════════════════════════════════════════════════════
+function fuzzLoc(loc){
+  if(!fuzzLocation) return `${loc} mi`;
+  const v=parseFloat(loc);
+  if(v<1) return 'Less than 1 mile away';
+  if(v<2) return '~1 mile away';
+  if(v<4) return '~2–3 miles away';
+  return '~4+ miles away';
+}
+
+// ══════════════════════════════════════════════════════
+// R19: SKELETON
+// ══════════════════════════════════════════════════════
+function showSkeleton(){document.getElementById('skeleton-card').classList.add('on');}
+function hideSkeleton(){document.getElementById('skeleton-card').classList.remove('on');}
+
+// ══════════════════════════════════════════════════════
+// RENDER CARD
+// ══════════════════════════════════════════════════════
+function renderCard(){
+  const cont=document.getElementById('card-container');
+  const empty=document.getElementById('empty-state');
+  const pcnt=document.getElementById('pcount');
+  cont.innerHTML='';
+  if(currentIdx>=profiles.length){empty.classList.add('on');pcnt.textContent='';return;}
+  empty.classList.remove('on');
+  showSkeleton();
+  setTimeout(()=>{
+    hideSkeleton();
+    const p=profiles[currentIdx];
+    const remaining=profiles.length-currentIdx-1;
+    pcnt.textContent=remaining>0?`${remaining} more profile${remaining!==1?'s':''} nearby`:'Last profile nearby';
+    currentPhotoIdx=0;
+    const div=document.createElement('div');
+    div.className='card';
+    div.setAttribute('tabindex','0');
+    div.setAttribute('role','button');
+    div.setAttribute('aria-label',`Profile of ${p.name}, age ${p.age}. ${p.bio}. ${p.compat}% match. Press Enter to view full profile, Right arrow to like, Left to pass, Up for super like.`);
+    const dotsHtml=p.photos.map((_,i)=>`<div class="pdot${i===0?' active':''}"></div>`).join('');
+    const isFaved=favorites.some(f=>f.id===p.id);
+    div.innerHTML=`
+      <div class="card-bg" id="card-bg-${p.id}" style="background-image:url('${p.photos[0]}')"></div>
+      ${p.hasVideo?'<div class="video-badge">▶ Video</div>':''}
+      <div class="pdots">${dotsHtml}</div>
+      <div class="tap-l" onclick="prevPhoto('${p.id}',${p.photos.length})" aria-hidden="true"></div>
+      <div class="tap-r" onclick="nextPhoto('${p.id}',${p.photos.length})" aria-hidden="true"></div>
+      <button class="report-btn" onclick="openReport(event)" aria-label="Report ${p.name}">⋯</button>
+      <button class="fav-btn show${isFaved?' faved':''}" id="fav-btn-${p.id}" onclick="toggleFavorite(event,'${p.id}')" aria-label="${isFaved?'Remove from':'Add to'} favorites" title="Save">♥</button>
+      <div class="like-ol" id="like-ol"><span>LIKE ❤️</span></div>
+      <div class="pass-ol" id="pass-ol"><span>PASS ✗</span></div>
+      <div class="card-info">
+        <div class="c-row1">
+          <div>
+            <div class="c-name">${p.name}, ${p.age}</div>
+            <div class="c-sub">${p.job} · ${fuzzLoc(p.loc)}</div>
+          </div>
+          <div class="compat" onclick="showCompatTip(event)" aria-label="${p.compat}% compatibility">
+            <div class="compat-pct">${p.compat}%</div>
+            <div class="compat-lbl">match ℹ️</div>
+          </div>
+        </div>
+        <div class="c-meta">
+          <span class="c-intention">${p.intention}</span>
+          ${p.mutual>0?`<span class="c-mutual">👥 ${p.mutual} mutual</span>`:''}
+        </div>
+        <p class="c-bio">${p.bio}</p>
+        <div class="c-tags">
+          ${p.verified?'<span class="tag tag-v">✓ Verified</span>':''}
+          ${p.online?'<span class="tag tag-o">● Online</span>':''}
+          ${p.hasVideo?'<span class="tag" style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3)">▶ Video</span>':''}
+        </div>
+      </div>`;
+    cont.appendChild(div);
+    card=div;
+    div.addEventListener('click',e=>{
+      if(isDragging||Math.abs(currentDragX)>5) return;
+      if(e.target.closest('.tap-l')||e.target.closest('.tap-r')||e.target.closest('.report-btn')||e.target.closest('.fav-btn')||e.target.closest('.compat')) return;
+      openProfileSheet(p);
+    });
+    div.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight') handleLike();
+      else if(e.key==='ArrowLeft') handlePass();
+      else if(e.key==='ArrowUp') handleSuperLike();
+      else if(e.key==='Enter') openProfileSheet(p);
+    });
+    attachDrag();
+  },350);
+}
+
+// ══════════════════════════════════════════════════════
+// PHOTO NAVIGATION
+// ══════════════════════════════════════════════════════
+function nextPhoto(id,total){currentPhotoIdx=Math.min(currentPhotoIdx+1,total-1);updatePhoto(id);}
+function prevPhoto(id,total){currentPhotoIdx=Math.max(currentPhotoIdx-1,0);updatePhoto(id);}
+function updatePhoto(id){
+  const p=profiles[currentIdx];if(!p)return;
+  const bg=document.getElementById(`card-bg-${p.id}`);
+  if(bg){bg.style.opacity='0';setTimeout(()=>{bg.style.backgroundImage=`url('${p.photos[currentPhotoIdx]}')`;bg.style.opacity='1';},150);}
+  document.querySelectorAll('.pdot').forEach((d,i)=>d.classList.toggle('active',i===currentPhotoIdx));
+}
+
+// ══════════════════════════════════════════════════════
+// COMPAT TIP
+// ══════════════════════════════════════════════════════
+function showCompatTip(e){e.stopPropagation();showToast('ℹ️ Calculated from shared interests, location & preferences');}
+
+// ══════════════════════════════════════════════════════
+// R10: FAVORITES
+// ══════════════════════════════════════════════════════
+function toggleFavorite(e,id){
+  e.stopPropagation();
+  const p=PROFILES.find(x=>x.id===id);
+  if(!p) return;
+  const idx=favorites.findIndex(f=>f.id===id);
+  const btn=document.getElementById(`fav-btn-${id}`);
+  if(idx>-1){favorites.splice(idx,1);if(btn){btn.classList.remove('faved');btn.title='Save';}showToast('💔 Removed from saved');}
+  else{favorites.push(p);if(btn){btn.classList.add('faved');btn.title='Saved!';}showToast('❤️ Saved profile!');}
+  localStorage.setItem('lynk_favs',JSON.stringify(favorites));
+}
+function openFavs(){
+  const list=document.getElementById('favs-list');
+  if(favorites.length===0){
+    list.innerHTML='<div style="text-align:center;color:#64748b;padding:40px 0;font-size:14px">No saved profiles yet.<br>Tap ♥ on a card to save.</div>';
+  } else {
+    list.innerHTML=favorites.map(p=>`
+      <div class="fav-li" onclick="openProfileSheet(PROFILES.find(x=>x.id==='${p.id}'))" role="listitem">
+        <div class="fav-li-photo" style="background-image:url('${p.photos[0]}')"></div>
+        <div class="fav-li-info"><div class="fav-li-name">${p.name}, ${p.age}</div><div class="fav-li-sub">${p.job} · ${fuzzLoc(p.loc)}</div></div>
+        <button class="fav-li-rmv" onclick="event.stopPropagation();removeFav('${p.id}')">Remove</button>
+      </div>`).join('');
+  }
+  document.getElementById('favs-scr').classList.add('on');
+}
+function closeFavs(){document.getElementById('favs-scr').classList.remove('on');}
+function removeFav(id){
+  favorites=favorites.filter(f=>f.id!==id);
+  localStorage.setItem('lynk_favs',JSON.stringify(favorites));
+  openFavs();
+  showToast('💔 Removed from saved');
+}
+
+// ══════════════════════════════════════════════════════
+// DRAG
+// ══════════════════════════════════════════════════════
+function attachDrag(){
+  if(!card) return;
+  card.addEventListener('mousedown',e=>{startX=e.clientX;isDragging=false;currentDragX=0;card.style.transition='none'});
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
+  card.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;isDragging=false;currentDragX=0;card.style.transition='none'},{passive:true});
+  card.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-startX;isDragging=Math.abs(dx)>5;currentDragX=dx;updateDragTransform(dx);},{passive:true});
+  card.addEventListener('touchend',onEnd);
+}
+function onMove(e){const dx=e.clientX-startX;isDragging=Math.abs(dx)>5;currentDragX=dx;updateDragTransform(dx);}
+function updateDragTransform(dx){
+  if(!card) return;
+  card.style.transform=`translateX(${dx}px) rotate(${dx*0.07}deg)`;
+  const lo=document.getElementById('like-ol'),po=document.getElementById('pass-ol');
+  if(lo) lo.style.opacity=Math.max(0,Math.min(1,dx/70));
+  if(po) po.style.opacity=Math.max(0,Math.min(1,-dx/70));
+  if(dx>30) card.style.boxShadow=`0 0 30px rgba(34,197,94,${Math.min(0.6,dx/150)})`;
+  else if(dx<-30) card.style.boxShadow=`0 0 30px rgba(239,68,68,${Math.min(0.6,-dx/150)})`;
+  else card.style.boxShadow='0 18px 50px rgba(0,0,0,0.5)';
+}
+function onEnd(){
+  if(!isDragging){currentDragX=0;return;}
+  isDragging=false;
+  document.removeEventListener('mousemove',onMove);
+  document.removeEventListener('mouseup',onEnd);
+  if(!card) return;
+  if(currentDragX>80) triggerLike();
+  else if(currentDragX<-80) triggerPass();
+  else{
+    card.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow .15s';
+    card.style.transform='';card.style.boxShadow='0 18px 50px rgba(0,0,0,0.5)';
+    ['like-ol','pass-ol'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.opacity='0';});
+  }
+  currentDragX=0;
+}
+
+// ══════════════════════════════════════════════════════
+// ACTION HANDLERS
+// ══════════════════════════════════════════════════════
+const flyStyle=document.createElement('style');
+flyStyle.textContent='.fly-right{animation:flyRight .35s ease forwards}.fly-left{animation:flyLeft .35s ease forwards}';
+document.head.appendChild(flyStyle);
+
+function triggerLike(){
+  if(currentIdx>=profiles.length) return;
+  if(dailyLikesLeft<=0){showToast('💔 Daily likes used up. Upgrade for unlimited!');return;}
+  const p=profiles[currentIdx];lastSwipedProfile=p;
+  dailyLikesLeft=Math.max(0,dailyLikesLeft-1);
+  localStorage.setItem('lynk_daily_left',String(dailyLikesLeft));
+  updateDailyDisplay();
+  if(card){card.style.transition='none';card.classList.add('fly-right');
+    setTimeout(()=>{
+      const isMatch=Math.random()<0.4;
+      if(isMatch){addDynamicMatch(p);showMatchModal(p);}
+      else{showToast(`💚 Liked ${p.name}!`);advance();}
+    },280);}
+}
+function triggerPass(){
+  if(currentIdx>=profiles.length) return;
+  const p=profiles[currentIdx];lastSwipedProfile=p;
+  if(card){card.classList.add('fly-left');setTimeout(()=>{showToast(`✗ Passed on ${p.name}`);advance();},280);}
+}
+function handleLike(){triggerLike();}
+function handlePass(){triggerPass();}
+function handleRewind(){
+  if(!lastSwipedProfile||currentIdx===0){showToast('↩️ Nothing to undo');return;}
+  currentIdx--;lastSwipedProfile=null;
+  showToast('↩️ Rewound!');renderCard();
+}
+function handleSuperLike(){
+  if(currentIdx>=profiles.length) return;
+  if(superLikesLeft<=0){showToast('⭐ No Super Likes left — upgrade to Premium!');return;}
+  const p=profiles[currentIdx];lastSwipedProfile=p;superLikesLeft--;
+  document.getElementById('super-badge').textContent=superLikesLeft;
+  if(card){card.style.transition='transform .4s ease,opacity .4s ease';card.style.transform='translateY(-110%) scale(0.82)';card.style.opacity='0';}
+  setTimeout(()=>{showToast(`⭐ Super Liked ${p.name}!`);advance();},350);
+}
+function handleBoost(){showToast('🚀 Boost active! 3× more visibility for 30 min.');}
+function advance(){currentIdx++;renderCard();}
+
+// ══════════════════════════════════════════════════════
+// MATCH MODAL
+// ══════════════════════════════════════════════════════
+function showMatchModal(p){
+  const modal=document.getElementById('match-modal');
+  document.getElementById('mm-name').textContent=p.name;
+  document.getElementById('mm-av-them').style.background=`linear-gradient(135deg,${p.color},#0f0c29)`;
+  document.getElementById('mm-av-them').textContent='📸';
+  const starters=[
+    `"I noticed you love ${p.interests[0]} — me too! Best spot you've been?"`,
+    `"Your bio made me smile 😊 — tell me more about ${p.job}?"`,
+    `"${p.interests[Math.floor(Math.random()*p.interests.length)]} fan? Tell me everything!"`
+  ];
+  document.getElementById('starters').innerHTML=starters.map(s=>`<div class="starter" onclick="useStarter('${p.name}',this)">${s}</div>`).join('');
+  spawnConfetti();modal.classList.add('on');
+  if(!matchNotifShown){matchNotifShown=true;setTimeout(()=>{if(!modal.classList.contains('on')) showNotifPrompt();},3500);}
+}
+function useStarter(name,el){showToast(`💬 Opening chat with ${name}…`);el.style.background='rgba(34,197,94,0.2)';el.style.color='#86efac';}
+function matchMessage(){
+  const modal=document.getElementById('match-modal');
+  const name=document.getElementById('mm-name').textContent;
+  modal.classList.remove('on');removeConfetti();
+  openChatWith(dynamicMatches[0]);
+  setTimeout(()=>showNotifPrompt(),800);
+}
+function matchContinue(){document.getElementById('match-modal').classList.remove('on');removeConfetti();advance();}
+function spawnConfetti(){
+  const modal=document.getElementById('match-modal');
+  const colors=['#ec4899','#6366f1','#22c55e','#f59e0b','#10b981','#a78bfa'];
+  for(let i=0;i<26;i++){
+    const p=document.createElement('div');p.className='cpiece';
+    p.style.cssText=`left:${Math.random()*100}%;background:${colors[i%colors.length]};--dur:${2+Math.random()*2}s;--delay:${Math.random()*0.8}s;transform:rotate(${Math.random()*360}deg)`;
+    modal.appendChild(p);
+  }
+}
+function removeConfetti(){document.querySelectorAll('.cpiece').forEach(c=>c.remove());}
+
+// ══════════════════════════════════════════════════════
+// R4: PERSIST MATCHES + MATCHES ROW
+// ══════════════════════════════════════════════════════
+function saveMatches(){localStorage.setItem('lynk_matches',JSON.stringify(dynamicMatches));}
+function addDynamicMatch(p){
+  dynamicMatches.unshift({id:`dyn-${p.id}-${Date.now()}`,name:p.name.split(' ')[0],photo:p.photos[0],color:p.color,preview:'New match! Say hello 👋',time:'just now',unread:true,_new:true});
+  saveMatches();
+  const n=dynamicMatches.filter(m=>m.unread).length;
+  document.getElementById('match-notif').textContent=`${Math.min(n,9)} new ✓`;
+  renderMatchesRow();renderMatchesList();
+}
+function renderMatchesRow(){
+  document.getElementById('matches-row').innerHTML=dynamicMatches.slice(0,6).map((m,i)=>`
+    <div class="match-it${m._new?' new-m':''}" onclick="openChatWith(dynamicMatches[${i}])" role="listitem" aria-label="Match: ${m.name}">
+      <div class="match-av" style="background-image:url('${m.photo}');border-color:${m.color}"></div>
+      <span class="match-nm">${m.name}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// MATCHES SCREEN + R20: DEBOUNCE SEARCH
+// ══════════════════════════════════════════════════════
+function openMatchesScreen(){renderMatchesList();document.getElementById('matches-scr').classList.add('on');}
+function closeMatchesScreen(){document.getElementById('matches-scr').classList.remove('on');}
+let searchDebT;
+function filterMatches(q){clearTimeout(searchDebT);searchDebT=setTimeout(()=>{renderMatchesList(q);},180);}
+function renderMatchesList(q=''){
+  const filtered=dynamicMatches.filter(m=>!q||m.name.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('mlist').innerHTML=filtered.map((m,i)=>`
+    <div class="mli" onclick="openChatWith(dynamicMatches[${dynamicMatches.indexOf(m)}])" role="listitem">
+      <div class="mli-av" style="background-image:url('${m.photo}');background-size:cover;background-position:center"></div>
+      <div class="mli-info"><div class="mli-name">${m.name}</div><div class="mli-prev">${m.preview}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="mli-time">${m.time}</div>${m.unread?'<div class="mli-dot" aria-label="Unread"></div>':''}</div>
+    </div>`).join('')||(filtered.length===0?'<div style="text-align:center;color:#64748b;padding:24px;font-size:13px">No matches found</div>':'');
+}
+
+// ══════════════════════════════════════════════════════
+// R6: QUICK CHAT
+// ══════════════════════════════════════════════════════
+let currentChatMatch=null;
+function openChatWith(match){
+  if(!match) return;
+  currentChatMatch=match;
+  document.getElementById('chat-name').textContent=match.name;
+  document.getElementById('chat-messages').innerHTML=`
+    <div class="chat-msg them">${match.preview}</div>`;
+  document.getElementById('chat-modal').classList.add('on');
+  match.unread=false;saveMatches();renderMatchesRow();renderMatchesList();
+}
+function closeChat(){document.getElementById('chat-modal').classList.remove('on');}
+function sendChatMsg(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();if(!msg) return;
+  const msgs=document.getElementById('chat-messages');
+  msgs.innerHTML+=`<div class="chat-msg me">${msg}</div>`;
+  inp.value='';msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{
+    const replies=['😊 That sounds great!','Haha, I love that!','Tell me more!','We should hang out soon 😄','You seem really interesting 💫'];
+    msgs.innerHTML+=`<div class="chat-msg them">${replies[Math.floor(Math.random()*replies.length)]}</div>`;
+    msgs.scrollTop=msgs.scrollHeight;
+  },900);
+}
+function chatKeydown(e){if(e.key==='Enter') sendChatMsg();}
+
+// ══════════════════════════════════════════════════════
+// PROFILE SHEET
+// ══════════════════════════════════════════════════════
+function openProfileSheet(p){
+  if(!p) return;
+  document.getElementById('prof-photo').style.backgroundImage=`url('${p.photos[0]}')`;
+  document.getElementById('prof-photo').style.backgroundSize='cover';
+  // R7: show video play if has video
+  document.getElementById('prof-video-play').classList.toggle('show',p.hasVideo);
+  document.getElementById('sht-name').textContent=`${p.name}, ${p.age}`;
+  document.getElementById('sht-sub').textContent=`${p.job} · ${fuzzLoc(p.loc)}`;
+  document.getElementById('sht-bio').textContent=p.bio;
+  document.getElementById('sht-looking').textContent=p.looking;
+  document.getElementById('sht-interests').innerHTML=p.interests.map(i=>`<span class="int-tag">${i}</span>`).join('');
+  document.getElementById('prof-sheet').classList.add('on');
+  document.getElementById('backdrop').classList.add('on');
+  // R12: Focus trap — focus close button
+  setTimeout(()=>document.querySelector('.sht-close')?.focus(),50);
+}
+function closeProfileSheet(){document.getElementById('prof-sheet').classList.remove('on');document.getElementById('backdrop').classList.remove('on');}
+function sheetLike(){closeProfileSheet();triggerLike();}
+function sheetPass(){closeProfileSheet();triggerPass();}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS (R16, R18 wired)
+// ══════════════════════════════════════════════════════
+function openSettings(){
+  document.getElementById('settings-sht').classList.add('on');
+  document.getElementById('backdrop').classList.add('on');
+  setTimeout(()=>document.getElementById('settings-sht')?.focus(),50);
+}
+function saveSettings(){
+  document.getElementById('settings-sht').classList.remove('on');
+  document.getElementById('backdrop').classList.remove('on');
+  // R18: apply relType filter to queue
+  applySettingsFilter();
+  showToast('✅ Preferences saved!');
+}
+// R18: filter profiles by selected relType
+function applySettingsFilter(){
+  if(settingsRelType==='Any'){profiles=[...PROFILES];}
+  else{profiles=PROFILES.filter(p=>p.relType===settingsRelType);}
+  currentIdx=0;renderCard();
+}
+function updateAgeRange(){
+  const mn=+document.getElementById('age-min').value,mx=+document.getElementById('age-max').value;
+  document.getElementById('age-range-val').textContent=`${Math.min(mn,mx)}–${Math.max(mn,mx)}`;
+}
+function updateDist(el){
+  const v=el.value;el.style.setProperty('--pct',`${v}%`);
+  document.getElementById('dist-val').textContent=`${v} mi`;
+}
+function setGender(el){
+  document.querySelectorAll('#gender-pills .gpill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');settingsGender=el.dataset.g;
+}
+function setRelType(el){
+  document.querySelectorAll('#rel-pills .gpill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');settingsRelType=el.dataset.r||'Any';
+}
+function toggleBtn(btn){btn.classList.toggle('on');}
+// R16: "Show me in Dating" toggle
+function toggleVisibility(btn){
+  btn.classList.toggle('on');showInDating=btn.classList.contains('on');
+  showToast(showInDating?'✅ You are now visible in Dating':'🔒 Hidden from Dating — no one will see you');
+}
+// R11: fuzz toggle
+function toggleFuzz(btn){
+  btn.classList.toggle('on');fuzzLocation=btn.classList.contains('on');
+  showToast(fuzzLocation?'📍 Location now shows as approximate':'📍 Showing exact distance');
+  renderCard();
+}
+
+// ══════════════════════════════════════════════════════
+// REPORT SHEET
+// ══════════════════════════════════════════════════════
+function openReport(e){if(e) e.stopPropagation();document.getElementById('rep-sht').classList.add('on');document.getElementById('backdrop').classList.add('on');}
+function closeReport(){document.getElementById('rep-sht').classList.remove('on');document.getElementById('backdrop').classList.remove('on');}
+function doReport(r){closeReport();closeProfileSheet();showToast(`🚩 Reported: ${r}. Thank you.`);setTimeout(()=>advance(),600);}
+function doBlock(){closeReport();closeProfileSheet();showToast('🔒 User blocked.');setTimeout(()=>advance(),600);}
+function doNotInterested(){closeReport();triggerPass();}
+
+// ══════════════════════════════════════════════════════
+// R20: FILTER WITH DEBOUNCE
+// ══════════════════════════════════════════════════════
+let filterDebT;
+document.querySelectorAll('.pill').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    clearTimeout(filterDebT);
+    filterDebT=setTimeout(()=>{
+      const f=btn.dataset.f;
+      if(activeFilter===f){activeFilter=null;btn.classList.remove('active');profiles=[...PROFILES];}
+      else{
+        activeFilter=f;
+        document.querySelectorAll('.pill').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        let fl=[...PROFILES];
+        if(f==='Nearby') fl=fl.filter(p=>parseFloat(p.loc)<=2);
+        if(f==='Ages') fl=fl.filter(p=>p.age>=20&&p.age<=35);
+        if(f==='Verified') fl=fl.filter(p=>p.verified);
+        if(f==='Online') fl=fl.filter(p=>p.online);
+        if(f==='Interests') fl=[...fl].sort((a,b)=>b.compat-a.compat);
+        if(f==='Serious') fl=fl.filter(p=>p.intention.toLowerCase().includes('serious'));
+        if(f==='HasVideo') fl=fl.filter(p=>p.hasVideo);
+        profiles=fl;
+      }
+      currentIdx=0;renderCard();
+    },180);
+  });
+});
+
+// ══════════════════════════════════════════════════════
+// R15: SAFETY CHECK-IN
+// ══════════════════════════════════════════════════════
+function openSafetyModal(){closeProfileSheet();document.getElementById('safety-modal').classList.add('on');}
+function closeSafetyModal(){document.getElementById('safety-modal').classList.remove('on');}
+function setSafetyTime(btn,t){
+  document.querySelectorAll('.safety-time-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');safetyTime=t;
+}
+function activateSafetyCheckIn(){
+  if(!safetyTime){showToast('⚠️ Please select a time first');return;}
+  closeSafetyModal();
+  document.getElementById('safety-active-banner').classList.add('on');
+  showToast(`🛡️ Check-in set for ${safetyTime}. Stay safe!`);
+  const ms={'30 min':1800000,'1 hour':3600000,'2 hours':7200000,'3 hours':10800000}[safetyTime]||3600000;
+  if(safetyTimer) clearTimeout(safetyTimer);
+  safetyTimer=setTimeout(()=>{showToast('🛡️ Safety check-in: Are you okay? Tap to confirm.');},Math.min(ms,5000));// demo: 5s
+}
+function cancelSafetyCheckIn(){
+  clearTimeout(safetyTimer);safetyTime=null;
+  document.getElementById('safety-active-banner').classList.remove('on');
+  showToast('🛡️ Safety check-in cancelled.');
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIF
+// ══════════════════════════════════════════════════════
+function showNotifPrompt(){document.getElementById('notif-prompt').classList.add('on');}
+function closeNotif(){document.getElementById('notif-prompt').classList.remove('on');}
+function enableNotif(){closeNotif();showToast('🔔 Notifications enabled!');}
+
+// ══════════════════════════════════════════════════════
+// CLOSE ALL SHEETS
+// ══════════════════════════════════════════════════════
+function closeAllSheets(){
+  ['settings-sht','rep-sht','prof-sheet','safety-modal'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
+  document.getElementById('backdrop').classList.remove('on');
+}
+
+// ══════════════════════════════════════════════════════
+// RESET
+// ══════════════════════════════════════════════════════
+function resetProfiles(){
+  profiles=[...PROFILES];activeFilter=null;currentIdx=0;lastSwipedProfile=null;settingsRelType='Any';
+  document.querySelectorAll('.pill').forEach(b=>b.classList.remove('active'));
+  renderCard();showToast('🔄 Profiles refreshed!');
+}
+
+// ══════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+renderCard();
+renderMatchesRow();
+renderMatchesList();
+</script>
+</body>
+</html>
