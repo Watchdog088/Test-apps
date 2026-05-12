@@ -44,7 +44,32 @@
  * ⏳ BE-09: Carrier tracking link from tracking code
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  getListings,
+  uploadPhotos,
+  syncCartToFirestore,
+  loadCartFromFirestore,
+  saveOrderToFirestore,
+  loadOrdersFromFirestore,
+  updateOrderStatusInFirestore,
+  cancelOrderInFirestore,
+  createPaymentIntent,
+  confirmCardPayment,
+  checkSellerBadge,
+  subscribeToChat,
+  sendChatMessage as sendFirestoreMessage,
+  notifyNewOffer,
+  notifyNewMessage,
+  notifyOrderShipped,
+  calculateShipping,
+  getTrackingLink,
+  publishListing as publishListingToFirestore,
+  updateListing as updateListingInFirestore,
+  deleteListing as deleteListingInFirestore,
+  submitReviewToFirestore,
+  submitDisputeToFirestore,
+} from '../../services/marketplace-backend-service.js';
 
 // ── Seed Data ──────────────────────────────────────────────────
 const SEED_LISTINGS = [
