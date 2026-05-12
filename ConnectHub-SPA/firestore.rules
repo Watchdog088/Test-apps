@@ -144,6 +144,119 @@ service cloud.firestore {
       allow write: if isAuthenticated() && isOwner(userId);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // MARKETPLACE RULES — added Sprint 5 production tasks
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // ── Helper: is the user a verified seller? ───────────────────────────────
+    function isVerifiedSeller() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.id_verified == true;
+    }
+
+    // ── Helper: listing validation ───────────────────────────────────────────
+    function isValidListing() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['title', 'price', 'category', 'sellerId'])
+        && d.title is string
+        && d.title.size() > 0
+        && d.title.size() <= 120
+        && d.price is number
+        && d.price >= 0
+        && d.sellerId == request.auth.uid;
+    }
+
+    // ── marketplace_listings ─────────────────────────────────────────────────
+    match /marketplace_listings/{listingId} {
+      // Anyone can browse listings
+      allow read: if true;
+
+      // Any authenticated user can publish a new listing (not just verified)
+      allow create: if isAuthenticated() && isValidListing();
+
+      // Only the listing owner may update or delete their own listing
+      allow update: if isAuthenticated()
+        && resource.data.sellerId == request.auth.uid;
+      allow delete: if isAuthenticated()
+        && resource.data.sellerId == request.auth.uid;
+
+      // ── reviews sub-collection ────────────────────────────────────────────
+      match /reviews/{reviewId} {
+        allow read: if true;
+        // Only verified buyers (any authenticated user for now) can write a review
+        allow create: if isAuthenticated()
+          && request.resource.data.reviewerId == request.auth.uid
+          && request.resource.data.rating is number
+          && request.resource.data.rating >= 1
+          && request.resource.data.rating <= 5;
+        // No editing or deleting reviews
+        allow update, delete: if false;
+      }
+    }
+
+    // ── marketplace_chats ─────────────────────────────────────────────────────
+    match /marketplace_chats/{chatId} {
+      // Only participants may read the chat thread
+      allow read: if isAuthenticated()
+        && (resource.data.buyerId == request.auth.uid
+            || resource.data.sellerId == request.auth.uid);
+
+      // Either participant may create the thread document
+      allow create: if isAuthenticated()
+        && (request.resource.data.buyerId == request.auth.uid
+            || request.resource.data.sellerId == request.auth.uid);
+
+      allow update, delete: if false;
+
+      // ── messages sub-collection ───────────────────────────────────────────
+      match /messages/{msgId} {
+        // Only participants may read messages
+        allow read: if isAuthenticated()
+          && (get(/databases/$(database)/documents/marketplace_chats/$(chatId)).data.buyerId == request.auth.uid
+              || get(/databases/$(database)/documents/marketplace_chats/$(chatId)).data.sellerId == request.auth.uid);
+
+        // Only the sender may write a message; enforce senderId matches auth uid
+        allow create: if isAuthenticated()
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+
+        allow update, delete: if false;
+      }
+    }
+
+    // ── marketplace_disputes ──────────────────────────────────────────────────
+    match /marketplace_disputes/{disputeId} {
+      // Only the filing user or an admin can read their dispute
+      allow read: if isAuthenticated()
+        && resource.data.filedBy == request.auth.uid;
+
+      // Any authenticated user can file a dispute for their own order
+      allow create: if isAuthenticated()
+        && request.resource.data.filedBy == request.auth.uid
+        && request.resource.data.orderId is string;
+
+      allow update, delete: if false;
+    }
+
+    // ── users/{uid}/marketplace_cart ──────────────────────────────────────────
+    match /users/{userId}/marketplace_cart/{doc} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ── users/{uid}/marketplace_orders ────────────────────────────────────────
+    match /users/{userId}/marketplace_orders/{orderId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      // Orders can only be created by the buyer themselves
+      allow create: if isAuthenticated() && isOwner(userId)
+        && request.resource.data.buyerId == request.auth.uid;
+      // Status updates are only allowed by the owning user
+      allow update: if isAuthenticated() && isOwner(userId);
+      // No deleting order records
+      allow delete: if false;
+    }
+
     // ── Default deny ────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
