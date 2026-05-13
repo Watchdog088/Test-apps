@@ -2,12 +2,15 @@
 // BUG-10 FIX: ErrorBoundary wraps Routes
 // POLISH-15 FIX: /onboarding route added
 // POLISH-18 FIX: /trending redirects to /feed?filter=trending (no duplicate page)
+// SPRINT-21 FIX: AdminGuard import moved to top-level (was after lazy declarations)
 
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './components/common/SplashScreen';
 import { useAuth } from './hooks/useAuth';
+// Sprint 20/21: AdminGuard + BoostListingModal — Firestore isAdmin role guard
+import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -44,8 +47,8 @@ const GamingPage        = lazy(() => import('./pages/gaming/GamingPage'));
 const MarketplacePage      = lazy(() => import('./pages/marketplace/MarketplacePage'));
 const SellerProfilePage    = lazy(() => import('./pages/marketplace/SellerProfilePage'));
 const KYCAdminPage         = lazy(() => import('./pages/admin/KYCAdminPage'));
-// Sprint 20: AdminGuard — Firestore isAdmin role check for /admin/kyc
-import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
+// Sprint 21: /admin/reports — Report moderation page (guarded by AdminGuard)
+const ReportsAdminPage     = lazy(() => import('./pages/admin/ReportsAdminPage'));
 const MediaHubPage      = lazy(() => import('./pages/mediahub/MediaHubPage'));
 const MusicPage         = lazy(() => import('./pages/music/MusicPage'));
 const VideoCallsPage    = lazy(() => import('./pages/videocalls/VideoCallsPage'));
@@ -150,7 +153,8 @@ export default function App() {
             <Route path="gaming"        element={<GamingPage />} />
             <Route path="marketplace"              element={<MarketplacePage />} />
             <Route path="marketplace/seller/:name" element={<SellerProfilePage />} />
-            <Route path="admin/kyc"                element={<KYCAdminPage />} />
+            <Route path="admin/kyc"                element={<AdminGuard><KYCAdminPage /></AdminGuard>} />
+            <Route path="admin/reports"            element={<AdminGuard><ReportsAdminPage /></AdminGuard>} />
             <Route path="media"         element={<MediaHubPage />} />
             <Route path="music"         element={<MusicPage />} />
             <Route path="videocalls"    element={<VideoCallsPage />} />

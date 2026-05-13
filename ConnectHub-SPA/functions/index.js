@@ -2,6 +2,7 @@
 // MISSING-1 FIX: Push notifications when a followed streamer goes live
 // REC-5 FIX: Server-side chat word filter enforcer
 // REC-4 FIX: VOD archive record written when stream ends
+// SPRINT-21 ADD: marketplace price alert push delivery
 // Triggers on streams/{streamId} document writes — if status changes to 'live',
 // sends FCM push notifications to every follower who has a saved FCM token.
 
@@ -416,6 +417,162 @@ exports.sendStreamReminders = functions.pubsub
       }
     }
 
+    return null;
+  });
+
+// ── SPRINT-21: marketplacePriceAlertDelivery ─────────────────────
+// Fires whenever a listing's price field is updated in Firestore.
+// Queries price_alerts for any buyer who set a targetPrice >= new price,
+// sends an FCM push + writes a Firestore notification, then marks alert triggered.
+exports.marketplacePriceAlertDelivery = functions.firestore
+  .document('marketplace/data/listings/{listingId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after  = change.after.data();
+    const { listingId } = context.params;
+
+    // Only run if price actually decreased
+    if (!before.price || !after.price || after.price >= before.price) return null;
+
+    const newPrice = after.price;
+    const listingTitle = after.title || 'A listing you saved';
+
+    // Find all untriggered price alerts where targetPrice >= newPrice
+    const alertsSnap = await db
+      .collection('marketplace').doc('data').collection('price_alerts')
+      .where('listingId',  '==', listingId)
+      .where('triggered',  '==', false)
+      .where('targetPrice', '>=', newPrice)
+      .get();
+
+    if (alertsSnap.empty) return null;
+
+    const batch = db.batch();
+    const fcmMessages = [];
+
+    for (const alertDoc of alertsSnap.docs) {
+      const alert = alertDoc.data();
+      const userId = alert.userId;
+
+      // Fetch buyer's FCM token
+      const userDoc = await db.collection('users').doc(userId).get();
+      const { fcmToken, pushEnabled } = userDoc.data() || {};
+
+      // Write in-app notification regardless of FCM
+      const notifRef = db.collection('notifications').doc();
+      batch.set(notifRef, {
+        userId,
+        type:      'price_alert',
+        listingId,
+        title:     '🏷️ Price Drop Alert!',
+        body:      `${listingTitle} dropped to $${newPrice.toFixed(2)}`,
+        read:      false,
+        url:       '/marketplace',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Mark alert as triggered
+      batch.update(alertDoc.ref, {
+        triggered:   true,
+        triggeredAt: admin.firestore.FieldValue.serverTimestamp(),
+        priceWhen:   newPrice,
+      });
+
+      // Collect FCM if available
+      if (fcmToken && pushEnabled !== false) {
+        fcmMessages.push({ token: fcmToken, userId, listingId, newPrice, listingTitle });
+      }
+    }
+
+    await batch.commit();
+
+    // Send FCM push notifications
+    if (fcmMessages.length > 0) {
+      const tokens = fcmMessages.map(m => m.token);
+      await admin.messaging().sendEachForMulticast({
+        tokens,
+        notification: {
+          title: '🏷️ Price Drop Alert!',
+          body:  `${listingTitle} is now $${newPrice.toFixed(2)}`,
+        },
+        data: {
+          type:      'price_alert',
+          listingId,
+          newPrice:  String(newPrice),
+          url:       '/marketplace',
+        },
+        webpush: {
+          fcmOptions: { link: '/marketplace' },
+        },
+      });
+      console.log(`[priceAlertDelivery] Notified ${fcmMessages.length} buyers: ${listingTitle} → $${newPrice}`);
+    }
+
+    return null;
+  });
+
+// ── SPRINT-21: boostListingExpiry — auto-expire boosted listings ──
+// Runs hourly: finds listings where boostedUntil has passed and clears the boost flag.
+exports.boostListingExpiry = functions.pubsub
+  .schedule('every 1 hours').onRun(async () => {
+    const now = admin.firestore.Timestamp.now();
+    const expired = await db
+      .collection('marketplace').doc('data').collection('listings')
+      .where('boosted',      '==',  true)
+      .where('boostedUntil', '<=',  now)
+      .limit(100)
+      .get();
+
+    if (expired.empty) return null;
+
+    const batch = db.batch();
+    expired.docs.forEach(d => batch.update(d.ref, { boosted: false, boostedUntil: null }));
+    await batch.commit();
+    console.log(`[boostListingExpiry] Cleared boost on ${expired.size} listings`);
+    return null;
+  });
+
+// ── SPRINT-21: listingExpiryEnforcer — auto-archive old listings ──
+// Runs daily: finds listings older than 90 days (or their custom expiry) and archives them.
+exports.listingExpiryEnforcer = functions.pubsub
+  .schedule('every 24 hours').onRun(async () => {
+    const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const old = await db
+      .collection('marketplace').doc('data').collection('listings')
+      .where('status',    '==', 'active')
+      .where('createdAt', '<',  cutoff)
+      .limit(100)
+      .get();
+
+    if (old.empty) return null;
+
+    const batch = db.batch();
+    old.docs.forEach(d => batch.update(d.ref, {
+      status:   'expired',
+      expiredAt: admin.firestore.FieldValue.serverTimestamp(),
+    }));
+    await batch.commit();
+
+    // Notify sellers their listings expired
+    for (const listingDoc of old.docs) {
+      const listing = listingDoc.data();
+      try {
+        const userDoc = await db.collection('users').doc(listing.sellerUid).get();
+        const { fcmToken } = userDoc.data() || {};
+        if (fcmToken) {
+          await admin.messaging().send({
+            token: fcmToken,
+            notification: {
+              title: '⏰ Your listing has expired',
+              body:  `"${listing.title}" was archived after 90 days. Relist to continue selling.`,
+            },
+            data: { type: 'listing_expired', listingId: listingDoc.id },
+          });
+        }
+      } catch (e) { /* non-fatal */ }
+    }
+
+    console.log(`[listingExpiryEnforcer] Archived ${old.size} expired listings`);
     return null;
   });
 
