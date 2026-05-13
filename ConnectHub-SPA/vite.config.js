@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
+  root: __dirname,  // FIX: anchor Vite root to ConnectHub-SPA dir (prevents workspace root misdetection)
   appType: 'spa',  // BUG-1 FIX: ensures all unknown routes fall back to index.html (SPA routing)
   plugins: [react()],
   resolve: {
