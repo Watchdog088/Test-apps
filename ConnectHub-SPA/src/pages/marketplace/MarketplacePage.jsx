@@ -99,19 +99,19 @@ const SEED_LISTINGS = [
   { id:1,  title:'Vintage Vinyl Records (Set of 10)', price:45,  seller:'Jordan M.',  verified:true,  avatar:'🎵', color:'#ec4899', category:'Music',      condition:'Good',    location:'Brooklyn, NY',   desc:'Rare 70s/80s collection. All in great condition. Includes Led Zeppelin, Pink Floyd, and more.', tags:'vintage,vinyl,records,music', likes:24, viewCount:89,  listedDaysAgo:5,  hasPhotos:true, returnPolicy:'7-day returns', paymentMethods:['Stripe','PayPal','Cash'] },
   { id:2,  title:'Pro Camera Lens 50mm f/1.8',        price:299, seller:'Alex C.',    verified:true,  avatar:'📸', color:'#6366f1', category:'Electronics', condition:'Like New', location:'Los Angeles, CA', desc:'Used only twice. Nikon mount. Includes original box and lens cap. Sharp images guaranteed.', tags:'camera,lens,photography,nikon', likes:41, viewCount:142, listedDaysAgo:3,  hasPhotos:true, returnPolicy:'30-day returns', paymentMethods:['Stripe','PayPal'] },
   { id:3,  title:'Fitness Equipment Bundle',           price:120, seller:'Riley J.',  verified:false, avatar:'💪', color:'#10b981', category:'Fitness',     condition:'Good',    location:'Austin, TX',     desc:'Resistance bands, dumbbells (5–25 lb), yoga mat. Perfect for home gym setup.', tags:'fitness,gym,exercise,weights', likes:18, viewCount:54,  listedDaysAgo:8,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash'] },
-  { id:4,  title:'Handmade Ceramic Bowl Set (6pc)',   price:68,  seller:'Morgan T.', verified:true,  avatar:'🏺', color:'#f59e0b', category:'Art',         condition:'New',     location:'Portland, OR',   desc:'Each piece is hand-thrown and glazed. Food-safe. Dishwasher-safe. Ships in 3 days.', tags:'ceramic,handmade,bowls,art', likes:37 },
-  { id:5,  title:'Gaming Chair RGB Lighting',          price:189, seller:'Casey L.',  verified:false, avatar:'🎮', color:'#3b82f6', category:'Gaming',      condition:'Good',    location:'Chicago, IL',    desc:'Ergonomic lumbar support. USB RGB control. Slightly used — perfect condition.', tags:'gaming,chair,rgb,furniture', likes:52 },
-  { id:6,  title:'Cooking Masterclass Book Bundle',    price:25,  seller:'Sam R.',    verified:false, avatar:'📚', color:'#8b5cf6', category:'Books',       condition:'Good',    location:'Seattle, WA',    desc:'4 books: Julia Child, Ottolenghi, Baking Bible, Noma Guide. All paperback.', tags:'books,cooking,recipes,food', likes:9 },
-  { id:7,  title:'Mechanical Keyboard TKL',            price:145, seller:'Drew K.',   verified:true,  avatar:'⌨️', color:'#06b6d4', category:'Electronics', condition:'Like New', location:'Denver, CO',    desc:'Cherry MX Blue switches. PBT keycaps. USB-C. Includes carrying case.', tags:'keyboard,mechanical,gaming,pc', likes:63 },
-  { id:8,  title:'Acoustic Guitar (Yamaha FG800)',     price:220, seller:'Quinn P.',  verified:false, avatar:'🎸', color:'#ef4444', category:'Music',       condition:'Good',    location:'Nashville, TN',  desc:'Excellent beginner/intermediate guitar. Includes gig bag and tuner.', tags:'guitar,acoustic,yamaha,music', likes:28 },
-  { id:9,  title:'Standing Desk Converter',            price:85,  seller:'Jamie A.',  verified:false, avatar:'🖥️', color:'#64748b', category:'Office',      condition:'Good',    location:'Boston, MA',     desc:'Height adjustable. Fits two monitors. Solid aluminum build. Easy assembly.', tags:'desk,office,standup,ergonomic', likes:15 },
-  { id:10, title:'Air Fryer XL 5.8QT',                price:55,  seller:'Taylor H.', verified:false, avatar:'🍳', color:'#f97316', category:'Kitchen',     condition:'Good',    location:'Phoenix, AZ',    desc:'Used 20 times. Non-stick basket. Digital display. Includes recipe book.', tags:'airfryer,kitchen,cooking,appliance', likes:33 },
-  { id:11, title:'Skateboard Complete Setup',          price:95,  seller:'Blake V.',  verified:false, avatar:'🛹', color:'#84cc16', category:'Sports',      condition:'Good',    location:'San Diego, CA',  desc:'8" deck, Indy trucks, 54mm wheels. Bearings recently replaced.', tags:'skateboard,sports,outdoor,skate', likes:21 },
-  { id:12, title:'Polaroid Now Camera + Film',         price:78,  seller:'Avery N.',  verified:true,  avatar:'📷', color:'#a855f7', category:'Electronics', condition:'Like New', location:'Miami, FL',     desc:'Includes two packs of film (20 shots). Strap included.', tags:'polaroid,camera,film,photography', likes:47 },
-  { id:13, title:'Plant Bundle (Succulents ×5)',        price:30,  seller:'Peyton G.', verified:false, avatar:'🌵', color:'#22c55e', category:'Home',        condition:'New',     location:'Austin, TX',     desc:'Variety pack. Each in 3" pot. Easy care. Ships Monday/Wednesday.', tags:'plants,succulents,home,garden', likes:29 },
-  { id:14, title:'Lego Star Wars Millennium Falcon',   price:350, seller:'Reese T.',  verified:true,  avatar:'🚀', color:'#0ea5e9', category:'Toys',        condition:'Like New', location:'NYC, NY',       desc:'99% complete. Box included. Retired set 75105.', tags:'lego,starwars,toys,collectible', likes:88 },
-  { id:15, title:'Yoga Mat Premium (6mm)',              price:38,  seller:'Sage M.',   verified:false, avatar:'🧘', color:'#fb923c', category:'Fitness',     condition:'New',     location:'Denver, CO',     desc:'Never used. Non-slip. Includes carrying strap. Regular retail $75.', tags:'yoga,fitness,mat,exercise', likes:16 },
-  { id:16, title:'Smart Watch (Fitbit Versa 3)',        price:99,  seller:'Cody R.',   verified:true,  avatar:'⌚', color:'#2563eb', category:'Electronics', condition:'Good',    location:'Atlanta, GA',    desc:'GPS + heart rate. All-day battery. Includes 2 bands. Charger included.', tags:'smartwatch,fitbit,fitness,tech', likes:54 },
+  { id:4,  title:'Handmade Ceramic Bowl Set (6pc)',   price:68,  seller:'Morgan T.', verified:true,  avatar:'🏺', color:'#f59e0b', category:'Art',         condition:'New',     location:'Portland, OR',   desc:'Each piece is hand-thrown and glazed. Food-safe. Dishwasher-safe. Ships in 3 days.', tags:'ceramic,handmade,bowls,art', likes:37, viewCount:61,  listedDaysAgo:2,  hasPhotos:true, returnPolicy:'30-day returns', paymentMethods:['Stripe','PayPal','Cash'] },
+  { id:5,  title:'Gaming Chair RGB Lighting',          price:189, seller:'Casey L.',  verified:false, avatar:'🎮', color:'#3b82f6', category:'Gaming',      condition:'Good',    location:'Chicago, IL',    desc:'Ergonomic lumbar support. USB RGB control. Slightly used — perfect condition.', tags:'gaming,chair,rgb,furniture', likes:52, viewCount:112, listedDaysAgo:6,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Stripe','Cash'] },
+  { id:6,  title:'Cooking Masterclass Book Bundle',    price:25,  seller:'Sam R.',    verified:false, avatar:'📚', color:'#8b5cf6', category:'Books',       condition:'Good',    location:'Seattle, WA',    desc:'4 books: Julia Child, Ottolenghi, Baking Bible, Noma Guide. All paperback.', tags:'books,cooking,recipes,food', likes:9, viewCount:28, listedDaysAgo:12, hasPhotos:false, returnPolicy:'No returns', paymentMethods:['Cash'] },
+  { id:7,  title:'Mechanical Keyboard TKL',            price:145, seller:'Drew K.',   verified:true,  avatar:'⌨️', color:'#06b6d4', category:'Electronics', condition:'Like New', location:'Denver, CO',    desc:'Cherry MX Blue switches. PBT keycaps. USB-C. Includes carrying case.', tags:'keyboard,mechanical,gaming,pc', likes:63, viewCount:198, listedDaysAgo:1,  hasPhotos:true, returnPolicy:'14-day returns', paymentMethods:['Stripe','PayPal'] },
+  { id:8,  title:'Acoustic Guitar (Yamaha FG800)',     price:220, seller:'Quinn P.',  verified:false, avatar:'🎸', color:'#ef4444', category:'Music',       condition:'Good',    location:'Nashville, TN',  desc:'Excellent beginner/intermediate guitar. Includes gig bag and tuner.', tags:'guitar,acoustic,yamaha,music', likes:28, viewCount:74,  listedDaysAgo:9,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash','PayPal'] },
+  { id:9,  title:'Standing Desk Converter',            price:85,  seller:'Jamie A.',  verified:false, avatar:'🖥️', color:'#64748b', category:'Office',      condition:'Good',    location:'Boston, MA',     desc:'Height adjustable. Fits two monitors. Solid aluminum build. Easy assembly.', tags:'desk,office,standup,ergonomic', likes:15, viewCount:43,  listedDaysAgo:14, hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash'] },
+  { id:10, title:'Air Fryer XL 5.8QT',                price:55,  seller:'Taylor H.', verified:false, avatar:'🍳', color:'#f97316', category:'Kitchen',     condition:'Good',    location:'Phoenix, AZ',    desc:'Used 20 times. Non-stick basket. Digital display. Includes recipe book.', tags:'airfryer,kitchen,cooking,appliance', likes:33, viewCount:67,  listedDaysAgo:4,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash','PayPal'] },
+  { id:11, title:'Skateboard Complete Setup',          price:95,  seller:'Blake V.',  verified:false, avatar:'🛹', color:'#84cc16', category:'Sports',      condition:'Good',    location:'San Diego, CA',  desc:'8" deck, Indy trucks, 54mm wheels. Bearings recently replaced.', tags:'skateboard,sports,outdoor,skate', likes:21, viewCount:39,  listedDaysAgo:7,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash'] },
+  { id:12, title:'Polaroid Now Camera + Film',         price:78,  seller:'Avery N.',  verified:true,  avatar:'📷', color:'#a855f7', category:'Electronics', condition:'Like New', location:'Miami, FL',     desc:'Includes two packs of film (20 shots). Strap included.', tags:'polaroid,camera,film,photography', likes:47, viewCount:156, listedDaysAgo:2,  hasPhotos:true, returnPolicy:'14-day returns', paymentMethods:['Stripe','PayPal'] },
+  { id:13, title:'Plant Bundle (Succulents ×5)',        price:30,  seller:'Peyton G.', verified:false, avatar:'🌵', color:'#22c55e', category:'Home',        condition:'New',     location:'Austin, TX',     desc:'Variety pack. Each in 3" pot. Easy care. Ships Monday/Wednesday.', tags:'plants,succulents,home,garden', likes:29, viewCount:48,  listedDaysAgo:0,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash'] },
+  { id:14, title:'Lego Star Wars Millennium Falcon',   price:350, seller:'Reese T.',  verified:true,  avatar:'🚀', color:'#0ea5e9', category:'Toys',        condition:'Like New', location:'NYC, NY',       desc:'99% complete. Box included. Retired set 75105.', tags:'lego,starwars,toys,collectible', likes:88, viewCount:301, listedDaysAgo:3,  hasPhotos:true, returnPolicy:'7-day returns', paymentMethods:['Stripe','PayPal'] },
+  { id:15, title:'Yoga Mat Premium (6mm)',              price:38,  seller:'Sage M.',   verified:false, avatar:'🧘', color:'#fb923c', category:'Fitness',     condition:'New',     location:'Denver, CO',     desc:'Never used. Non-slip. Includes carrying strap. Regular retail $75.', tags:'yoga,fitness,mat,exercise', likes:16, viewCount:31,  listedDaysAgo:5,  hasPhotos:false, returnPolicy:'No returns', paymentMethods:['Cash'] },
+  { id:16, title:'Smart Watch (Fitbit Versa 3)',        price:99,  seller:'Cody R.',   verified:true,  avatar:'⌚', color:'#2563eb', category:'Electronics', condition:'Good',    location:'Atlanta, GA',    desc:'GPS + heart rate. All-day battery. Includes 2 bands. Charger included.', tags:'smartwatch,fitbit,fitness,tech', likes:54, viewCount:178, listedDaysAgo:2, hasPhotos:true, returnPolicy:'14-day returns', paymentMethods:['Stripe','PayPal'], lat:33.749, lng:-84.388 },
 ];
 
 const SEED_SELLER_PROFILES = {
@@ -227,6 +227,7 @@ const INITIAL_NOTIFICATIONS = [
 ];
 
 const CATEGORIES  = ['All','Electronics','Music','Fitness','Art','Gaming','Books','Office','Kitchen','Sports','Home','Toys'];
+const CAT_EMOJI   = { All:'🏷️', Electronics:'📱', Music:'🎵', Fitness:'💪', Art:'🎨', Gaming:'🎮', Books:'📚', Office:'🖥️', Kitchen:'🍳', Sports:'⚽', Home:'🏠', Toys:'🧸' };
 const CONDITIONS  = ['All','New','Like New','Good','Fair','Poor'];
 const CONDITION_DEFS = {
   'New':'Brand new, never used. Original packaging.',
@@ -259,6 +260,55 @@ const LISTING_PHOTOS = {
   16: ['https://picsum.photos/seed/watch1/400/300','https://picsum.photos/seed/watch2/400/300','https://picsum.photos/seed/watch3/400/300'],
 };
 
+
+// Sprint 16: lat/lng coordinates for all seed listings (for GPS distance filter)
+const SEED_LAT_LNG = {
+  1:  { lat:40.678, lng:-73.944 }, // Brooklyn, NY
+  2:  { lat:34.052, lng:-118.244 }, // Los Angeles, CA
+  3:  { lat:30.267, lng:-97.743 }, // Austin, TX
+  4:  { lat:45.523, lng:-122.677 }, // Portland, OR
+  5:  { lat:41.878, lng:-87.630 }, // Chicago, IL
+  6:  { lat:47.608, lng:-122.335 }, // Seattle, WA
+  7:  { lat:39.739, lng:-104.990 }, // Denver, CO
+  8:  { lat:36.162, lng:-86.781 }, // Nashville, TN
+  9:  { lat:42.361, lng:-71.057 }, // Boston, MA
+  10: { lat:33.449, lng:-112.074 }, // Phoenix, AZ
+  11: { lat:32.716, lng:-117.163 }, // San Diego, CA
+  12: { lat:25.774, lng:-80.194 }, // Miami, FL
+  13: { lat:30.267, lng:-97.743 }, // Austin, TX
+  14: { lat:40.713, lng:-74.006 }, // NYC, NY
+  15: { lat:39.739, lng:-104.990 }, // Denver, CO
+  16: { lat:33.749, lng:-84.388 }, // Atlanta, GA
+};
+
+// Sprint 16: Haversine formula — returns distance in miles between two lat/lng points
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Sprint 17 M2+M6: format listing age for display on product cards
+// Accepts either a numeric listedDaysAgo (seed data) or an ISO listedAt string (user-created)
+function fmtListedAge(days, listedAt) {
+  // M6: if listing has a real listedAt timestamp, compute days dynamically
+  if (listedAt) {
+    const diffMs  = Date.now() - new Date(listedAt).getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1d ago';
+    return diffDays + 'd ago';
+  }
+  // M2: fall back to static seed value
+  if (days === undefined || days === null) return null;
+  if (days === 0) return 'Today';
+  if (days === 1) return '1d ago';
+  return days + 'd ago';
+}
 const REPORT_REASONS = [
   'Counterfeit / fake item','Prohibited item','Misleading photos or description',
   'Price gouging','Spam / duplicate listing','Fraudulent seller',
@@ -351,7 +401,7 @@ export default function MarketplacePage() {
   const [filterVerifiedOnly, setFilterVerifiedOnly] = useState(false); // Sprint 14: M2
   const [filterMinRating, setFilterMinRating]     = useState('');       // Sprint 14: M3 ('3','4','4.5')
   const [filterListingAge, setFilterListingAge]   = useState('');       // Sprint 14: M4 ('today','week','month')
-  const [viewCounts, setViewCounts]               = useState({});       // Sprint 14: L2
+  const [viewCounts, setViewCounts]               = useState(()=>{ try { return JSON.parse(localStorage.getItem('mkt_views')||'{}'); } catch { return {}; } }); // Sprint 18: persist
   const [filterOpen, setFilterOpen]     = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
 
@@ -374,22 +424,68 @@ export default function MarketplacePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // BE-01: load listings from Firestore, fallback to SEED_LISTINGS
+  // R2: load cart from Firestore on mount
+  // R3: load orders from Firestore on mount
+  // H1: request GPS location for distance filter
   useEffect(()=>{
     let cancelled = false;
+    // Load listings
     getListings().then(data=>{
       if (!cancelled && data && data.length) setBrowseListings(data);
     }).catch(()=>{}).finally(()=>{ if(!cancelled) setIsLoading(false); });
     const fallback = setTimeout(()=>{ if(!cancelled) setIsLoading(false); }, 1500);
+
+    // R2: sync cart from Firestore (overrides localStorage if Firestore has fresher data)
+    loadCartFromFirestore().then(firestoreCart=>{
+      if (!cancelled && firestoreCart && firestoreCart.length) setCart(firestoreCart);
+    }).catch(()=>{});
+
+    // R3: sync orders from Firestore
+    loadOrdersFromFirestore().then(firestoreOrders=>{
+      if (!cancelled && firestoreOrders && firestoreOrders.length) setOrders(firestoreOrders);
+    }).catch(()=>{});
+
+    // H1: request GPS permission for distance filter
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => { if (!cancelled) setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+        ()  => {}  // silently ignore if denied
+      );
+    }
+
     return ()=>{ cancelled=true; clearTimeout(fallback); };
   },[]);
+
+  // M9: Price alert in-app notification — check saved alerts against current listing prices
+  useEffect(()=>{
+    try {
+      const savedAlerts = JSON.parse(localStorage.getItem('mkt_price_alerts') || '[]');
+      if (!savedAlerts.length) return;
+      savedAlerts.forEach(alert => {
+        const listing = browseListings.find(l => l.id === alert.listingId);
+        if (listing && listing.price <= alert.targetPrice) {
+          showToast(`🔔 Price drop! "${listing.title}" is now ${listing.price} (your alert: ${alert.targetPrice})`);
+          // Remove triggered alert so it only fires once per session
+          const remaining = savedAlerts.filter(a => a.listingId !== alert.listingId);
+          try { localStorage.setItem('mkt_price_alerts', JSON.stringify(remaining)); } catch {}
+        }
+      });
+    } catch {}
+  }, [browseListings]);
 
   // BE-03: Sync cart to Firestore whenever it changes
   useEffect(()=>{
     try { localStorage.setItem('mkt_cart', JSON.stringify(cart)); } catch{}
     syncCartToFirestore(cart).catch(()=>{});
-    // M24: compute bundle discount when cart changes
+    // M24: real bundle discount — 5% off when 2+ items from the same seller are in the cart
     if (cart.length>1){
-      calculateBundleDiscount(cart.map(c=>c.listing)).then(d=>setBundleDiscount(d)).catch(()=>setBundleDiscount(null));
+      const sellerCounts = cart.reduce((acc,c)=>({...acc,[c.listing.seller]:(acc[c.listing.seller]||0)+c.qty}),{});
+      const bundleEntry  = Object.entries(sellerCounts).find(([,count])=>count>=2);
+      if (bundleEntry){
+        const sellerTotal = cart.filter(c=>c.listing.seller===bundleEntry[0]).reduce((s,c)=>s+c.listing.price*c.qty,0);
+        const savings = Math.floor(sellerTotal*0.05);
+        setBundleDiscount(savings>0?{pct:5,savings,seller:bundleEntry[0]}:null);
+      } else { setBundleDiscount(null); }
     } else { setBundleDiscount(null); }
   },[cart]);
 
@@ -505,10 +601,11 @@ export default function MarketplacePage() {
 
   // ── Derived ──────────────────────────────────────
   const cartTotal      = cart.reduce((s,c)=>s+c.listing.price*c.qty,0);
-  const finalTotal     = Math.max(0, cartTotal-promoDiscount);
+  // Sprint 19 Fix 1: bundle discount is now also deducted from the checkout total
+  const finalTotal     = Math.max(0, cartTotal - promoDiscount - (bundleDiscount?.savings || 0));
   const unreadCount    = notifications.filter(n=>!n.read).length;
   const activeListings = myListings.filter(l=>!l.sold).length;
-  const activeFilters  = (filterCond!=='All'?1:0)+(priceMax?1:0)+(sortBy!=='newest'?1:0)+(priceMin?1:0)+(maxDistance?1:0);
+  const activeFilters  = (filterCond!=='All'?1:0)+(priceMax?1:0)+(sortBy!=='newest'?1:0)+(priceMin?1:0)+(maxDistance?1:0)+(filterHasPhotos?1:0)+(filterVerifiedOnly?1:0)+(filterMinRating?1:0)+(filterListingAge?1:0);
 
   const mySellerRating = (()=>{
     const allRevs = Object.values(localReviews).flat();
@@ -521,11 +618,37 @@ export default function MarketplacePage() {
       const catOk    = category==='All'   || l.category===category;
       const condOk   = filterCond==='All' || l.condition===filterCond;
       const maxOk    = !priceMax          || l.price<=parseInt(priceMax);
-      const minOk    = !priceMin          || l.price>=parseInt(priceMin); // M9
+      const minOk    = !priceMin          || l.price>=parseInt(priceMin);
       const searchOk = !search || l.title.toLowerCase().includes(search.toLowerCase())
                                 || l.seller?.toLowerCase().includes(search.toLowerCase())
                                 || (l.tags||'').toLowerCase().includes(search.toLowerCase());
-      return catOk&&condOk&&maxOk&&minOk&&searchOk&&!l.sold;
+      const photosOk   = !filterHasPhotos   || l.hasPhotos===true;
+      const verifiedOk = !filterVerifiedOnly || l.verified===true;
+      const ratingOk   = !filterMinRating    || (() => {
+        const profile = SEED_SELLER_PROFILES[l.seller];
+        const rating  = profile ? profile.rating : 4.5;
+        return rating >= parseFloat(filterMinRating);
+      })();
+      const ageOk      = !filterListingAge   || (() => {
+        const days = l.listedDaysAgo ?? 99;
+        if (filterListingAge === 'today') return days === 0;
+        if (filterListingAge === 'week')  return days <= 7;
+        if (filterListingAge === 'month') return days <= 30;
+        return true;
+      })();
+      // Sprint 18 Fix 2: Enforce 30-day expiry for user-created listings (those with listedAt timestamp)
+      const notExpired = !l.listedAt || (() => {
+        const diffDays = Math.floor((Date.now() - new Date(l.listedAt).getTime()) / (1000*60*60*24));
+        return diffDays < 30;
+      })();
+      // H1 Sprint 16: GPS distance filter using haversine formula
+      const distOk = !maxDistance || !userLocation || (() => {
+        const coords = SEED_LAT_LNG[l.id] || (l.lat && l.lng ? { lat: l.lat, lng: l.lng } : null);
+        if (!coords) return true; // no coords = don't exclude
+        const dist = haversineDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        return dist <= parseFloat(maxDistance);
+      })();
+      return catOk&&condOk&&maxOk&&minOk&&searchOk&&photosOk&&verifiedOk&&ratingOk&&ageOk&&distOk&&notExpired&&!l.sold;
     })
     .sort((a,b)=>{
       if (sortBy==='price_asc')  return a.price-b.price;
@@ -634,6 +757,12 @@ export default function MarketplacePage() {
     setItemModal(item);
     setItemResponseTime(null);
     setRecentlyViewed(prev=>[item,...prev.filter(i=>i.id!==item.id)].slice(0,5));
+    // Sprint 18 Fix 4: persist view counts to localStorage
+    setViewCounts(prev=>{
+      const next={...prev,[item.id]:(prev[item.id]||0)+1};
+      try { localStorage.setItem('mkt_views',JSON.stringify(next)); } catch{}
+      return next;
+    });
     // BE-08: fetch real shipping rates
     calculateShipping({ itemId:item.id, category:item.category }).then(rates=>{
       if (rates && rates.length) setItemShipping(rates);
@@ -1065,7 +1194,7 @@ export default function MarketplacePage() {
                 {CATEGORIES.map(c=>(
                   <button key={c} role="button" aria-pressed={category===c}
                     style={S.catChip(category===c)} onClick={()=>{setCategory(c);setVisibleCount(8);}}>
-                    {c}
+                    {CAT_EMOJI[c]||''} {c}
                   </button>
                 ))}
               </div>
@@ -1169,6 +1298,12 @@ export default function MarketplacePage() {
                         <span style={{color:'#10b981',fontWeight:800,fontSize:'16px'}}>${item.price}</span>
                         {item.likes>10&&<span style={{fontSize:'9px',color:'#64748b'}}>❤️ {item.likes}</span>}
                       </div>
+                      {/* M2 Sprint 17: listed age badge */}
+                      {fmtListedAge(item.listedDaysAgo, item.listedAt) && (
+                        <div style={{fontSize:'10px',color:'#64748b',marginTop:'3px',marginBottom:'2px'}}>
+                          🕐 {fmtListedAge(item.listedDaysAgo, item.listedAt)}
+                        </div>
+                      )}
                       <button onClick={e=>{e.stopPropagation();addToCart(item);}}
                         style={{width:'100%',marginTop:'6px',padding:'5px',borderRadius:'8px',background:'rgba(99,102,241,0.15)',border:'1px solid #6366f1',color:'#a5b4fc',fontSize:'11px',fontWeight:600,cursor:'pointer'}}>
                         + Cart
@@ -1527,7 +1662,7 @@ export default function MarketplacePage() {
               <div style={{fontWeight:600,fontSize:'12px',color:'#94a3b8',marginBottom:'10px'}}>CONDITION</div>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                 {CONDITIONS.map(c=>(
-                  <button key={c} onClick={()=>setFilterCond(c)}
+                  <button key={c} role="radio" aria-checked={filterCond===c} onClick={()=>setFilterCond(c)}
                     style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',fontWeight:filterCond===c?700:500,
                             background:filterCond===c?'#6366f1':'#1e293b',color:filterCond===c?'white':'#94a3b8',
                             border:`1px solid ${filterCond===c?'#6366f1':'#334155'}`,cursor:'pointer'}}>
@@ -1570,9 +1705,59 @@ export default function MarketplacePage() {
                   Any
                 </button>
               </div>
+              {/* Sprint 14: Has Photos */}
+              <div style={{fontWeight:600,fontSize:'12px',color:'#94a3b8',margin:'16px 0 8px'}}>LISTING TYPE</div>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                <button onClick={()=>setFilterHasPhotos(v=>!v)}
+                  style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',fontWeight:filterHasPhotos?700:500,
+                          background:filterHasPhotos?'#6366f1':'#1e293b',color:filterHasPhotos?'white':'#94a3b8',
+                          border:`1px solid ${filterHasPhotos?'#6366f1':'#334155'}`,cursor:'pointer'}}>
+                  📷 Has Photos
+                </button>
+                <button onClick={()=>setFilterVerifiedOnly(v=>!v)}
+                  style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',fontWeight:filterVerifiedOnly?700:500,
+                          background:filterVerifiedOnly?'#6366f1':'#1e293b',color:filterVerifiedOnly?'white':'#94a3b8',
+                          border:`1px solid ${filterVerifiedOnly?'#6366f1':'#334155'}`,cursor:'pointer'}}>
+                  ✓ Verified Sellers Only
+                </button>
+              </div>
+
+              {/* Sprint 14: Min Seller Rating */}
+              <div style={{fontWeight:600,fontSize:'12px',color:'#94a3b8',margin:'16px 0 8px'}}>SELLER RATING</div>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                {[{v:'3',label:'3★ & up'},{v:'4',label:'4★ & up'},{v:'4.5',label:'4.5★ & up'}].map(opt=>(
+                  <button key={opt.v} onClick={()=>setFilterMinRating(filterMinRating===opt.v?'':opt.v)}
+                    style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',fontWeight:filterMinRating===opt.v?700:500,
+                            background:filterMinRating===opt.v?'#f59e0b':'#1e293b',color:filterMinRating===opt.v?'white':'#94a3b8',
+                            border:`1px solid ${filterMinRating===opt.v?'#f59e0b':'#334155'}`,cursor:'pointer'}}>
+                    {opt.label}
+                  </button>
+                ))}
+                {filterMinRating&&<button onClick={()=>setFilterMinRating('')}
+                  style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',background:'#1e293b',color:'#94a3b8',border:'none',cursor:'pointer'}}>Any</button>}
+              </div>
+
+              {/* Sprint 14: Listing Age */}
+              <div style={{fontWeight:600,fontSize:'12px',color:'#94a3b8',margin:'16px 0 8px'}}>LISTING AGE</div>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                {[{v:'today',label:'Today'},{v:'week',label:'This Week'},{v:'month',label:'This Month'}].map(opt=>(
+                  <button key={opt.v} onClick={()=>setFilterListingAge(filterListingAge===opt.v?'':opt.v)}
+                    style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',fontWeight:filterListingAge===opt.v?700:500,
+                            background:filterListingAge===opt.v?'#10b981':'#1e293b',color:filterListingAge===opt.v?'white':'#94a3b8',
+                            border:`1px solid ${filterListingAge===opt.v?'#10b981':'#334155'}`,cursor:'pointer'}}>
+                    {opt.label}
+                  </button>
+                ))}
+                {filterListingAge&&<button onClick={()=>setFilterListingAge('')}
+                  style={{padding:'6px 14px',borderRadius:'20px',fontSize:'12px',background:'#1e293b',color:'#94a3b8',border:'none',cursor:'pointer'}}>Any</button>}
+              </div>
+
               <div style={{display:'flex',gap:'10px',marginTop:'20px'}}>
                 <button style={{...S.btn('secondary'),flex:'0 0 auto',width:'auto',padding:'12px 20px'}}
-                  onClick={()=>{setFilterCond('All');setPriceMax('');setPriceMin('');setMaxDistance('');setSortBy('newest');}}>
+                  onClick={()=>{
+                    setFilterCond('All'); setPriceMax(''); setPriceMin(''); setMaxDistance(''); setSortBy('newest');
+                    setFilterHasPhotos(false); setFilterVerifiedOnly(false); setFilterMinRating(''); setFilterListingAge('');
+                  }}>
                   Clear All
                 </button>
                 <button style={{...S.btn(),flex:1}} onClick={()=>setFilterOpen(false)}>Apply Filters</button>
@@ -1970,7 +2155,8 @@ export default function MarketplacePage() {
               <div style={{padding:'20px'}}>
                 <div style={{background:'linear-gradient(135deg,#6366f1,#ec4899)',borderRadius:'16px',padding:'20px',textAlign:'center',marginBottom:'16px'}}>
                   <div style={{fontSize:'12px',opacity:0.9,marginBottom:'4px'}}>Total Amount</div>
-                  {promoApplied&&<div style={{fontSize:'13px',opacity:0.8,textDecoration:'line-through'}}>Was ${cartTotal}</div>}
+                  {(promoApplied||(bundleDiscount?.savings>0))&&<div style={{fontSize:'13px',opacity:0.8,textDecoration:'line-through'}}>Was ${cartTotal}</div>}
+              {bundleDiscount?.savings>0&&!promoApplied&&<div style={{fontSize:'12px',opacity:0.9,color:'#fcd34d'}}>🎁 Bundle deal −${bundleDiscount.savings} applied</div>}
                   <div style={{fontSize:'38px',fontWeight:800,color:'white'}}>${finalTotal}</div>
                   <div style={{fontSize:'11px',opacity:0.8,marginTop:'2px'}}>{cart.length} item{cart.length!==1?'s':''} · To {shipping.city||'Pickup'}</div>
                   <div style={{fontSize:'11px',opacity:0.9,marginTop:'4px'}}>🗓️ Est. delivery: {deliveryEstimate()}</div>
@@ -2563,7 +2749,7 @@ export default function MarketplacePage() {
       {/* ════════ M10: CREATE LISTING WIZARD ════════ */}
       <CreateListingWizard open={wizardOpen} onClose={()=>setWizardOpen(false)}
         onPublish={(listing)=>{
-          const newListing={...listing,id:Date.now(),sold:false,views:0,likes:0,seller:'You',verified:false};
+          const newListing={...listing,id:Date.now(),listedAt:new Date().toISOString(),sold:false,views:0,likes:0,seller:'You',verified:false};
           setBrowseListings(prev=>[newListing,...prev]);
           setMyListings(prev=>[newListing,...prev]);
           setWizardOpen(false);

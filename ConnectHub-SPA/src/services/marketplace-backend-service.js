@@ -493,8 +493,10 @@ export async function submitDisputeToFirestore({ orderId, reason, description })
  * Returns a shareable URL and copies it to clipboard.
  * M18: External share — real URL tied to APP_BASE_URL.
  */
-export function getListingShareURL(listingId, title = '') {
-  const url = `${APP_BASE_URL}/marketplace/listing/${listingId}`;
+export function getListingShareURL(listingId) {
+  const base = typeof window !== 'undefined' ? window.location.origin : 'https://connecthub.app';
+  return `${base}/marketplace?listing=${listingId}`;
+}/marketplace/listing/${listingId}`;
   if (navigator.share) {
     navigator.share({ title: `Check out: ${title}`, url }).catch(() => {});
   } else {
@@ -509,7 +511,9 @@ export function getListingShareURL(listingId, title = '') {
  * M29: QR code per listing.
  */
 export function getQRCodeURL(listingId) {
-  const listingURL = encodeURIComponent(`${APP_BASE_URL}/marketplace/listing/${listingId}`);
+  const shareURL = getListingShareURL(listingId);
+  return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(shareURL)}&size=200x200&color=7c3aed&bgcolor=1a1a2e`;
+}/marketplace/listing/${listingId}`);
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${listingURL}`;
 }
 

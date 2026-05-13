@@ -43,6 +43,9 @@ const EventsPage        = lazy(() => import('./pages/events/EventsPage'));
 const GamingPage        = lazy(() => import('./pages/gaming/GamingPage'));
 const MarketplacePage      = lazy(() => import('./pages/marketplace/MarketplacePage'));
 const SellerProfilePage    = lazy(() => import('./pages/marketplace/SellerProfilePage'));
+const KYCAdminPage         = lazy(() => import('./pages/admin/KYCAdminPage'));
+// Sprint 20: AdminGuard — Firestore isAdmin role check for /admin/kyc
+import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 const MediaHubPage      = lazy(() => import('./pages/mediahub/MediaHubPage'));
 const MusicPage         = lazy(() => import('./pages/music/MusicPage'));
 const VideoCallsPage    = lazy(() => import('./pages/videocalls/VideoCallsPage'));
@@ -147,6 +150,7 @@ export default function App() {
             <Route path="gaming"        element={<GamingPage />} />
             <Route path="marketplace"              element={<MarketplacePage />} />
             <Route path="marketplace/seller/:name" element={<SellerProfilePage />} />
+            <Route path="admin/kyc"                element={<KYCAdminPage />} />
             <Route path="media"         element={<MediaHubPage />} />
             <Route path="music"         element={<MusicPage />} />
             <Route path="videocalls"    element={<VideoCallsPage />} />
