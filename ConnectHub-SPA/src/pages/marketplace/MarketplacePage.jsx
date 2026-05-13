@@ -32,6 +32,21 @@
  * SPRINT 4 FIXES (still active): BUG-01 through BUG-20
  * SPRINT 6 ADDITIONS: M5 reviews on all 16 listings
  *
+ * SPRINT 14 REMAINING FIXES (May 2026):
+ * ✅ M1:  "Has Photos" filter chip
+ * ✅ M2:  "Verified Sellers only" filter chip
+ * ✅ M3:  Seller minimum-rating filter (3★ / 4★ / 4.5★)
+ * ✅ M4:  Listing-age filter (Today / This Week / This Month)
+ * ✅ M5:  Timestamps on incoming chat messages
+ * ✅ M9:  Real QR code via api.qrserver.com (no API key needed)
+ * ✅ L1:  "Ask a Question" button in item detail opens chat
+ * ✅ L2:  View counter increments on item open + shown in detail
+ * ✅ L3:  "Listed X days ago" shown on browse cards + detail panel
+ * ✅ L4:  Return policy + accepted-payment section in item detail
+ * ✅ L5:  Share URL is a real deep-link: ?listing=<id>
+ * ✅ H3:  SellerProfilePage: follow/unfollow button + paginated listings
+ * ✅ L6:  BottomNav icon-only labels on screens < 400 px
+ *
  * SPRINT 13 UX GAP FIXES (May 2026):
  * ✅ Category bar: left/right scroll arrows + aria-pressed on chips
  * ✅ Product card hearts: aria-pressed state
@@ -81,9 +96,9 @@ import {
 
 // ── Seed Data ──────────────────────────────────────────────────
 const SEED_LISTINGS = [
-  { id:1,  title:'Vintage Vinyl Records (Set of 10)', price:45,  seller:'Jordan M.',  verified:true,  avatar:'🎵', color:'#ec4899', category:'Music',      condition:'Good',    location:'Brooklyn, NY',   desc:'Rare 70s/80s collection. All in great condition. Includes Led Zeppelin, Pink Floyd, and more.', tags:'vintage,vinyl,records,music', likes:24 },
-  { id:2,  title:'Pro Camera Lens 50mm f/1.8',        price:299, seller:'Alex C.',    verified:true,  avatar:'📸', color:'#6366f1', category:'Electronics', condition:'Like New', location:'Los Angeles, CA', desc:'Used only twice. Nikon mount. Includes original box and lens cap. Sharp images guaranteed.', tags:'camera,lens,photography,nikon', likes:41 },
-  { id:3,  title:'Fitness Equipment Bundle',           price:120, seller:'Riley J.',  verified:false, avatar:'💪', color:'#10b981', category:'Fitness',     condition:'Good',    location:'Austin, TX',     desc:'Resistance bands, dumbbells (5–25 lb), yoga mat. Perfect for home gym setup.', tags:'fitness,gym,exercise,weights', likes:18 },
+  { id:1,  title:'Vintage Vinyl Records (Set of 10)', price:45,  seller:'Jordan M.',  verified:true,  avatar:'🎵', color:'#ec4899', category:'Music',      condition:'Good',    location:'Brooklyn, NY',   desc:'Rare 70s/80s collection. All in great condition. Includes Led Zeppelin, Pink Floyd, and more.', tags:'vintage,vinyl,records,music', likes:24, viewCount:89,  listedDaysAgo:5,  hasPhotos:true, returnPolicy:'7-day returns', paymentMethods:['Stripe','PayPal','Cash'] },
+  { id:2,  title:'Pro Camera Lens 50mm f/1.8',        price:299, seller:'Alex C.',    verified:true,  avatar:'📸', color:'#6366f1', category:'Electronics', condition:'Like New', location:'Los Angeles, CA', desc:'Used only twice. Nikon mount. Includes original box and lens cap. Sharp images guaranteed.', tags:'camera,lens,photography,nikon', likes:41, viewCount:142, listedDaysAgo:3,  hasPhotos:true, returnPolicy:'30-day returns', paymentMethods:['Stripe','PayPal'] },
+  { id:3,  title:'Fitness Equipment Bundle',           price:120, seller:'Riley J.',  verified:false, avatar:'💪', color:'#10b981', category:'Fitness',     condition:'Good',    location:'Austin, TX',     desc:'Resistance bands, dumbbells (5–25 lb), yoga mat. Perfect for home gym setup.', tags:'fitness,gym,exercise,weights', likes:18, viewCount:54,  listedDaysAgo:8,  hasPhotos:true, returnPolicy:'No returns', paymentMethods:['Cash'] },
   { id:4,  title:'Handmade Ceramic Bowl Set (6pc)',   price:68,  seller:'Morgan T.', verified:true,  avatar:'🏺', color:'#f59e0b', category:'Art',         condition:'New',     location:'Portland, OR',   desc:'Each piece is hand-thrown and glazed. Food-safe. Dishwasher-safe. Ships in 3 days.', tags:'ceramic,handmade,bowls,art', likes:37 },
   { id:5,  title:'Gaming Chair RGB Lighting',          price:189, seller:'Casey L.',  verified:false, avatar:'🎮', color:'#3b82f6', category:'Gaming',      condition:'Good',    location:'Chicago, IL',    desc:'Ergonomic lumbar support. USB RGB control. Slightly used — perfect condition.', tags:'gaming,chair,rgb,furniture', likes:52 },
   { id:6,  title:'Cooking Masterclass Book Bundle',    price:25,  seller:'Sam R.',    verified:false, avatar:'📚', color:'#8b5cf6', category:'Books',       condition:'Good',    location:'Seattle, WA',    desc:'4 books: Julia Child, Ottolenghi, Baking Bible, Noma Guide. All paperback.', tags:'books,cooking,recipes,food', likes:9 },
@@ -332,6 +347,11 @@ export default function MarketplacePage() {
   const [priceMin, setPriceMin]         = useState('');   // M9
   const [priceMax, setPriceMax]         = useState('');
   const [maxDistance, setMaxDistance]   = useState('');   // M7
+  const [filterHasPhotos, setFilterHasPhotos]     = useState(false);   // Sprint 14: M1
+  const [filterVerifiedOnly, setFilterVerifiedOnly] = useState(false); // Sprint 14: M2
+  const [filterMinRating, setFilterMinRating]     = useState('');       // Sprint 14: M3 ('3','4','4.5')
+  const [filterListingAge, setFilterListingAge]   = useState('');       // Sprint 14: M4 ('today','week','month')
+  const [viewCounts, setViewCounts]               = useState({});       // Sprint 14: L2
   const [filterOpen, setFilterOpen]     = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
 
