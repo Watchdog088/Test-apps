@@ -41,7 +41,8 @@ const FriendsPage       = lazy(() => import('./pages/friends/FriendsPage'));
 const DatingPage        = lazy(() => import('./pages/dating/DatingPage'));
 const EventsPage        = lazy(() => import('./pages/events/EventsPage'));
 const GamingPage        = lazy(() => import('./pages/gaming/GamingPage'));
-const MarketplacePage   = lazy(() => import('./pages/marketplace/MarketplacePage'));
+const MarketplacePage      = lazy(() => import('./pages/marketplace/MarketplacePage'));
+const SellerProfilePage    = lazy(() => import('./pages/marketplace/SellerProfilePage'));
 const MediaHubPage      = lazy(() => import('./pages/mediahub/MediaHubPage'));
 const MusicPage         = lazy(() => import('./pages/music/MusicPage'));
 const VideoCallsPage    = lazy(() => import('./pages/videocalls/VideoCallsPage'));
@@ -144,7 +145,8 @@ export default function App() {
             <Route path="dating"        element={<DatingPage />} />
             <Route path="events"        element={<EventsPage />} />
             <Route path="gaming"        element={<GamingPage />} />
-            <Route path="marketplace"   element={<MarketplacePage />} />
+            <Route path="marketplace"              element={<MarketplacePage />} />
+            <Route path="marketplace/seller/:name" element={<SellerProfilePage />} />
             <Route path="media"         element={<MediaHubPage />} />
             <Route path="music"         element={<MusicPage />} />
             <Route path="videocalls"    element={<VideoCallsPage />} />

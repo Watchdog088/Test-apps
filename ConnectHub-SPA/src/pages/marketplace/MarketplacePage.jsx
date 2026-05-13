@@ -31,8 +31,21 @@
  *
  * SPRINT 4 FIXES (still active): BUG-01 through BUG-20
  * SPRINT 6 ADDITIONS: M5 reviews on all 16 listings
+ *
+ * SPRINT 13 UX GAP FIXES (May 2026):
+ * ✅ Category bar: left/right scroll arrows + aria-pressed on chips
+ * ✅ Product card hearts: aria-pressed state
+ * ✅ Wishlist: "Clear All" button to bulk-remove all saved items
+ * ✅ Inbox: visible × delete button per conversation row
+ * ✅ Orders "Sales" tab: now shows real sold listings with stats + actions
+ * ✅ "View full profile →": navigates to /marketplace/seller/:name page
+ * ✅ Chat messages: aria-label with sender name for screen readers
+ * ✅ CreateListingWizard: onPublish wired to add to browseListings + myListings
  */
 
+import { useNavigate } from 'react-router-dom';
+import CreateListingWizard from './CreateListingWizard';
+import MapViewModal from './MapViewModal';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   getListings,
@@ -455,6 +468,10 @@ export default function MarketplacePage() {
   const [bundleDiscount, setBundleDiscount]       = useState(null);   // M24
   const [itemResponseTime, setItemResponseTime]   = useState(null);   // M27
   const [safeSpotModal, setSafeSpotModal]         = useState(false);  // M28
+  const [wizardOpen,    setWizardOpen]            = useState(false);  // M10
+  const [mapOpen,       setMapOpen]               = useState(false);  // M26
+
+  const navigate = useNavigate();
 
   // ── Recent searches ──────────────────────────────
   const [recentSearches, setRecentSearches] = useState(loadRecent);
@@ -464,6 +481,7 @@ export default function MarketplacePage() {
   const chatFileRef     = useRef(null); // M14
   const chatBottomRef   = useRef(null);
   const chatUnsubRef    = useRef(null); // BE-06
+  const catScrollRef    = useRef(null); // category bar scroll arrows
 
   // ── Derived ──────────────────────────────────────
   const cartTotal      = cart.reduce((s,c)=>s+c.listing.price*c.qty,0);
@@ -1012,17 +1030,31 @@ export default function MarketplacePage() {
       {/* ══════════════ BROWSE TAB ══════════════ */}
       {isBrowseTab&&(
         <div>
-          {/* M20: Category chips with right-fade gradient */}
-          <div style={{position:'relative'}}>
-            <div style={{position:'absolute',right:0,top:0,bottom:0,width:'40px',
-              background:'linear-gradient(to right,transparent,#0f172a)',zIndex:1,pointerEvents:'none'}}/>
-            <div style={{display:'flex',gap:'8px',padding:'0 16px 12px',overflowX:'auto',scrollbarWidth:'none'}}>
-              {CATEGORIES.map(c=>(
-                <button key={c} style={S.catChip(category===c)} onClick={()=>{setCategory(c);setVisibleCount(8);}}>
-                  {c}
-                </button>
-              ))}
+          {/* M20: Category chips with right-fade gradient + scroll arrows */}
+          <div style={{position:'relative',display:'flex',alignItems:'center'}}>
+            <button aria-label="Scroll categories left"
+              onClick={()=>catScrollRef.current?.scrollBy({left:-160,behavior:'smooth'})}
+              style={{flexShrink:0,background:'#1e293b',border:'none',borderRadius:'50%',
+                width:'28px',height:'28px',color:'#94a3b8',cursor:'pointer',fontSize:'16px',
+                display:'flex',alignItems:'center',justifyContent:'center',marginLeft:'8px',zIndex:2}}>‹</button>
+            <div style={{position:'relative',flex:1,overflow:'hidden'}}>
+              <div style={{position:'absolute',right:0,top:0,bottom:0,width:'32px',
+                background:'linear-gradient(to right,transparent,#0f172a)',zIndex:1,pointerEvents:'none'}}/>
+              <div ref={catScrollRef}
+                style={{display:'flex',gap:'8px',padding:'0 8px 12px',overflowX:'auto',scrollbarWidth:'none'}}>
+                {CATEGORIES.map(c=>(
+                  <button key={c} role="button" aria-pressed={category===c}
+                    style={S.catChip(category===c)} onClick={()=>{setCategory(c);setVisibleCount(8);}}>
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
+            <button aria-label="Scroll categories right"
+              onClick={()=>catScrollRef.current?.scrollBy({left:160,behavior:'smooth'})}
+              style={{flexShrink:0,background:'#1e293b',border:'none',borderRadius:'50%',
+                width:'28px',height:'28px',color:'#94a3b8',cursor:'pointer',fontSize:'16px',
+                display:'flex',alignItems:'center',justifyContent:'center',marginRight:'8px',zIndex:2}}>›</button>
           </div>
 
           {/* Sort + Filter row */}
@@ -1095,6 +1127,7 @@ export default function MarketplacePage() {
                       )}
                       <button onClick={e=>{e.stopPropagation();toggleWishlist(item.id);}}
                         aria-label={wishlist.has(item.id)?'Remove from wishlist':'Save to wishlist'}
+                        aria-pressed={wishlist.has(item.id)}
                         style={{position:'absolute',top:'6px',right:'6px',background:'rgba(0,0,0,0.5)',border:'none',borderRadius:'50%',width:'26px',height:'26px',cursor:'pointer',fontSize:'13px',display:'flex',alignItems:'center',justifyContent:'center'}}>
                         {wishlist.has(item.id)?'❤️':'🤍'}
                       </button>
@@ -1239,16 +1272,24 @@ export default function MarketplacePage() {
         <div style={{padding:'16px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
             <span style={{fontWeight:700,fontSize:'15px',color:'#f1f5f9'}}>❤️ Wishlist ({wishlistItems.length})</span>
-            {wishlistItems.length>0&&(
-              <button onClick={()=>{
-                generateWishlistShareURL(wishlistItems).then(url=>{
-                  if (navigator.share){ navigator.share({title:'My ConnectHub Wishlist',url}).catch(()=>{}); }
-                  else { navigator.clipboard?.writeText(url).then(()=>showToast('🔗 Wishlist link copied!')); }
-                }).catch(()=>showToast('🔗 Wishlist shared!'));
-              }} style={{background:'rgba(99,102,241,0.2)',border:'1px solid #6366f1',borderRadius:'10px',padding:'6px 12px',color:'#a5b4fc',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
-                🔗 Share
-              </button>
-            )}
+            <div style={{display:'flex',gap:'8px'}}>
+              {wishlistItems.length>0&&(
+                <>
+                  <button onClick={()=>{
+                    generateWishlistShareURL(wishlistItems).then(url=>{
+                      if (navigator.share){ navigator.share({title:'My ConnectHub Wishlist',url}).catch(()=>{}); }
+                      else { navigator.clipboard?.writeText(url).then(()=>showToast('🔗 Wishlist link copied!')); }
+                    }).catch(()=>showToast('🔗 Wishlist shared!'));
+                  }} style={{background:'rgba(99,102,241,0.2)',border:'1px solid #6366f1',borderRadius:'10px',padding:'6px 12px',color:'#a5b4fc',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
+                    🔗 Share
+                  </button>
+                  <button onClick={()=>{ setWishlist(new Set()); showToast('🗑️ Wishlist cleared'); }}
+                    style={{background:'rgba(239,68,68,0.15)',border:'1px solid #ef4444',borderRadius:'10px',padding:'6px 12px',color:'#fca5a5',fontSize:'11px',fontWeight:700,cursor:'pointer'}}>
+                    Clear All
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           <div style={{display:'flex',gap:'8px',marginBottom:'12px'}}>
             <div style={{...S.search,flex:1,margin:0,padding:'8px 12px'}}>
@@ -1320,8 +1361,9 @@ export default function MarketplacePage() {
               <div style={{fontWeight:600,color:'#94a3b8'}}>No messages yet</div>
             </div>
           ):displayedChats.map(chat=>(
-            <div key={chat.id} style={S.msgItem} onClick={()=>openChat(chat)} role="button" tabIndex={0}
-              aria-label={`Chat with ${chat.name} about ${chat.item}`} onKeyDown={e=>e.key==='Enter'&&openChat(chat)}>
+            <div key={chat.id} style={{...S.msgItem,position:'relative'}} role="button" tabIndex={0}
+              aria-label={`Chat with ${chat.name} about ${chat.item}`}
+              onClick={()=>openChat(chat)} onKeyDown={e=>e.key==='Enter'&&openChat(chat)}>
               <div style={{width:'42px',height:'42px',borderRadius:'50%',background:chat.bg,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:'14px',flexShrink:0}}>{chat.avatar}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
@@ -1331,7 +1373,11 @@ export default function MarketplacePage() {
                 <div style={{fontSize:'12px',color:'#64748b',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>Re: {chat.item}</div>
                 <div style={{fontSize:'12px',color:'#94a3b8',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{chat.msg}</div>
               </div>
-              {chat.unread>0&&<span style={{...S.badge,position:'static',flexShrink:0}}>{chat.unread}</span>}
+              {chat.unread>0&&<span style={{...S.badge,position:'static',flexShrink:0,marginRight:'4px'}}>{chat.unread}</span>}
+              <button aria-label={`Delete conversation with ${chat.name}`}
+                onClick={e=>{e.stopPropagation();setSellerChats(prev=>prev.filter(c=>c.id!==chat.id));showToast('🗑️ Conversation deleted');}}
+                style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.4)',borderRadius:'8px',
+                  padding:'4px 8px',color:'#fca5a5',fontSize:'13px',fontWeight:700,cursor:'pointer',flexShrink:0}}>×</button>
             </div>
           ))}
         </div>
@@ -1352,13 +1398,42 @@ export default function MarketplacePage() {
             ))}
           </div>
           {ordersView==='sales'?(
-            <div style={{textAlign:'center',padding:'40px',color:'#64748b'}}>
-              <div style={{fontSize:'40px',marginBottom:'12px'}}>💰</div>
-              <div style={{fontWeight:600,color:'#94a3b8'}}>Sales Orders</div>
-              <div style={{fontSize:'13px',marginTop:'6px'}}>When buyers purchase your listings, orders appear here.</div>
-              <div style={{fontSize:'13px',color:'#6366f1',marginTop:'8px'}}>
-                You have {myListings.filter(l=>l.sold).length} sold listing{myListings.filter(l=>l.sold).length!==1?'s':''}
-              </div>
+            <div>
+              {myListings.filter(l=>l.sold).length===0?(
+                <div style={{textAlign:'center',padding:'40px',color:'#64748b'}}>
+                  <div style={{fontSize:'40px',marginBottom:'12px'}}>💰</div>
+                  <div style={{fontWeight:600,color:'#94a3b8'}}>No sales yet</div>
+                  <div style={{fontSize:'13px',marginTop:'6px'}}>When buyers purchase your listings, sale orders appear here.</div>
+                </div>
+              ):myListings.filter(l=>l.sold).map(listing=>(
+                <div key={listing.id} style={{background:'#0f172a',borderRadius:'14px',padding:'14px',marginBottom:'12px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                      <div style={{width:'40px',height:'40px',borderRadius:'10px',background:listing.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>{listing.emoji||listing.avatar||'📦'}</div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:'13px',color:'#f1f5f9'}}>{listing.title}</div>
+                        <div style={{color:'#10b981',fontWeight:700,fontSize:'14px'}}>${listing.price}</div>
+                      </div>
+                    </div>
+                    <span style={{background:'rgba(16,185,129,0.2)',border:'1px solid #10b981',borderRadius:'8px',padding:'3px 10px',fontSize:'10px',fontWeight:700,color:'#6ee7b7'}}>✅ Sold</span>
+                  </div>
+                  <div style={{display:'flex',gap:'16px',fontSize:'11px',color:'#64748b',marginBottom:'8px'}}>
+                    <span>👁️ {listing.views||0} views</span>
+                    <span>❤️ {listing.likes||0} saves</span>
+                    <span>📅 {listing.daysListed||5} days listed</span>
+                  </div>
+                  <div style={{display:'flex',gap:'8px'}}>
+                    <button onClick={()=>openMessageFromItem(listing)}
+                      style={{flex:1,padding:'8px',borderRadius:'10px',background:'rgba(99,102,241,0.1)',border:'1px solid #6366f1',color:'#a5b4fc',fontSize:'12px',fontWeight:600,cursor:'pointer'}}>
+                      💬 Message Buyer
+                    </button>
+                    <button onClick={()=>setWriteReviewItem(listing)}
+                      style={{flex:1,padding:'8px',borderRadius:'10px',background:'rgba(245,158,11,0.1)',border:'1px solid #f59e0b',color:'#fcd34d',fontSize:'12px',fontWeight:600,cursor:'pointer'}}>
+                      ✍️ Leave Review
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           ):orders.length===0?(
             <div style={{textAlign:'center',padding:'60px 20px',color:'#64748b'}}>
@@ -1623,7 +1698,10 @@ export default function MarketplacePage() {
                     <span style={{fontWeight:700,color:'#f1f5f9',fontSize:'14px'}}>{itemModal.seller}</span>
                     {itemModal.verified&&<span style={{background:'#6366f1',color:'white',borderRadius:'6px',padding:'1px 6px',fontSize:'10px',fontWeight:700}}>✓ Verified</span>}
                   </div>
-                  <div style={{color:'#6366f1',fontSize:'12px',marginTop:'2px'}}>👆 View seller profile →</div>
+                  <button onClick={e=>{e.stopPropagation();navigate('/marketplace/seller/'+encodeURIComponent(itemModal.seller));}}
+                    style={{background:'none',border:'none',color:'#6366f1',fontSize:'12px',marginTop:'2px',cursor:'pointer',padding:0,textAlign:'left'}}>
+                    👤 View full seller profile →
+                  </button>
                 </div>
                 <button onClick={e=>{e.stopPropagation();openMessageFromItem(itemModal);}}
                   style={{background:'#1e293b',border:'none',borderRadius:'10px',padding:'8px 12px',color:'#6366f1',fontWeight:600,fontSize:'13px',cursor:'pointer'}}>
@@ -2149,7 +2227,8 @@ export default function MarketplacePage() {
             <div style={{flex:1,overflowY:'auto',padding:'16px',display:'flex',flexDirection:'column',gap:'10px'}} role="log">
               {(chatThreads[chatModal.id]||[]).map((msg,i)=>(
                 <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.from==='seller'?'flex-end':'flex-start'}}>
-                  <div style={{background:msg.from==='seller'?'linear-gradient(135deg,#6366f1,#ec4899)':'#1e293b',
+                  <div aria-label={`${msg.from==='seller'?'You':chatModal.name}: ${msg.imageUrl?'[Photo]':msg.text}`}
+                    style={{background:msg.from==='seller'?'linear-gradient(135deg,#6366f1,#ec4899)':'#1e293b',
                                borderRadius:msg.from==='seller'?'16px 16px 4px 16px':'16px 16px 16px 4px',
                                padding:'10px 14px',maxWidth:'75%',fontSize:'14px',color:'#f1f5f9'}}>
                     {/* M14: render image or text */}
@@ -2460,6 +2539,19 @@ export default function MarketplacePage() {
           </div>
         </div>
       )}
+
+      {/* ════════ M10: CREATE LISTING WIZARD ════════ */}
+      <CreateListingWizard open={wizardOpen} onClose={()=>setWizardOpen(false)}
+        onPublish={(listing)=>{
+          const newListing={...listing,id:Date.now(),sold:false,views:0,likes:0,seller:'You',verified:false};
+          setBrowseListings(prev=>[newListing,...prev]);
+          setMyListings(prev=>[newListing,...prev]);
+          setWizardOpen(false);
+          showToast('🚀 Listing published!');
+        }}/>
+
+      {/* ════════ M26: MAP VIEW MODAL ════════ */}
+      <MapViewModal open={mapOpen} onClose={()=>setMapOpen(false)} products={filtered} onSelectItem={openItemModal} />
 
       {/* ════════ M28: SAFE MEETING SPOTS MODAL ════════ */}
       {safeSpotModal&&(
