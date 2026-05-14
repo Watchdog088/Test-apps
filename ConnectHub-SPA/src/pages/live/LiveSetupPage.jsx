@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from '@/firebase/config';
-import { livestreamWebRTC } from '@/services/livestream-webrtc';
+import { LivestreamWebRTC as livestreamWebRTC } from '@/services/livestream-webrtc';
 import useAppStore from '@store/useAppStore';
 
 const CATEGORIES = ['Gaming','Music','Just Chatting','Sports','Education','Art','Cooking','Tech','Fitness','Other'];
