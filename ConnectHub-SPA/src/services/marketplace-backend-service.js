@@ -496,7 +496,11 @@ export async function submitDisputeToFirestore({ orderId, reason, description })
 export function getListingShareURL(listingId) {
   const base = typeof window !== 'undefined' ? window.location.origin : 'https://connecthub.app';
   return `${base}/marketplace?listing=${listingId}`;
-}/marketplace/listing/${listingId}`;
+}
+
+export async function shareListingURL(listingId, title) {
+  const base = typeof window !== 'undefined' ? window.location.origin : 'https://connecthub.app';
+  const url = `${base}/marketplace/listing/${listingId}`;
   if (navigator.share) {
     navigator.share({ title: `Check out: ${title}`, url }).catch(() => {});
   } else {
@@ -513,8 +517,6 @@ export function getListingShareURL(listingId) {
 export function getQRCodeURL(listingId) {
   const shareURL = getListingShareURL(listingId);
   return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(shareURL)}&size=200x200&color=7c3aed&bgcolor=1a1a2e`;
-}/marketplace/listing/${listingId}`);
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${listingURL}`;
 }
 
 /**
