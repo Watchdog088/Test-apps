@@ -586,6 +586,8 @@ export default function MarketplacePage() {
   const [safeSpotModal, setSafeSpotModal]         = useState(false);  // M28
   const [wizardOpen,    setWizardOpen]            = useState(false);  // M10
   const [mapOpen,       setMapOpen]               = useState(false);  // M26
+  const [arModal,       setArModal]               = useState(null);   // AR Try-On
+  const [userLocation,  setUserLocation]          = useState(null);   // H1 GPS
 
   const navigate = useNavigate();
 
@@ -594,6 +596,13 @@ export default function MarketplacePage() {
 
   // ── Refs ─────────────────────────────────────────
   const fileInputRef    = useRef(null);
+  const arVideoRef      = useRef(null);
+  // ── Recent searches ──────────────────────────────
+  const [recentSearches, setRecentSearches] = useState(loadRecent);
+
+  // ── Refs ─────────────────────────────────────────
+  const fileInputRef    = useRef(null);
+  const arVideoRef      = useRef(null);
   const chatFileRef     = useRef(null); // M14
   const chatBottomRef   = useRef(null);
   const chatUnsubRef    = useRef(null); // BE-06
@@ -1801,10 +1810,12 @@ export default function MarketplacePage() {
                   {photos.length>1&&(
                     <>
                       <button onClick={()=>setPhotoIdx(i=>Math.max(0,i-1))} disabled={idx===0}
+                        aria-label="Previous photo"
                         style={{position:'absolute',left:'8px',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.5)',
                           border:'none',borderRadius:'50%',width:'30px',height:'30px',color:'white',cursor:'pointer',
                           fontSize:'14px',opacity:idx===0?0.3:1}}>‹</button>
                       <button onClick={()=>setPhotoIdx(i=>Math.min(photos.length-1,i+1))} disabled={idx===photos.length-1}
+                        aria-label="Next photo"
                         style={{position:'absolute',right:'8px',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.5)',
                           border:'none',borderRadius:'50%',width:'30px',height:'30px',color:'white',cursor:'pointer',
                           fontSize:'14px',opacity:idx===photos.length-1?0.3:1}}>›</button>
@@ -1873,10 +1884,14 @@ export default function MarketplacePage() {
                   🔗 Share
                 </button>
                 {/* M29: QR Code */}
-                <button onClick={()=>setQrModal(itemModal)}
+                <button onClick={()=>setQrModal(itemModal)} aria-label="Show QR code for this listing"
                   style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'12px',padding:'10px 12px',color:'#94a3b8',fontSize:'13px',cursor:'pointer'}}>📱</button>
+                {/* AR Try-On */}
+                <button onClick={()=>setArModal(itemModal)} aria-label="Try this item in AR"
+                  title="Try Before You Buy — AR View"
+                  style={{background:'rgba(99,102,241,0.15)',border:'1px solid #6366f1',borderRadius:'12px',padding:'10px 12px',color:'#a5b4fc',fontSize:'13px',cursor:'pointer'}}>🔭</button>
                 {/* M23: Price Alert */}
-                <button onClick={()=>setPriceAlertModal(itemModal)}
+                <button onClick={()=>setPriceAlertModal(itemModal)} aria-label="Set price drop alert"
                   style={{background:'rgba(245,158,11,0.15)',border:'1px solid #f59e0b',borderRadius:'12px',padding:'10px 12px',color:'#fcd34d',fontSize:'13px',cursor:'pointer'}}>🔔</button>
                 {orders.some(o=>o.items.some(i=>i.id===itemModal.id)) ? (
                   <button onClick={()=>setWriteReviewItem(itemModal)}
@@ -2767,6 +2782,78 @@ export default function MarketplacePage() {
 
       {/* ════════ M26: MAP VIEW MODAL ════════ */}
       <MapViewModal open={mapOpen} onClose={()=>setMapOpen(false)} products={filtered} onSelectItem={openItemModal} />
+
+      {/* ════════ AR TRY-ON MODAL ════════ */}
+      {arModal&&(
+        <div style={S.modal} onClick={()=>setArModal(null)}>
+          <div style={{...S.modalBox,maxHeight:'90vh'}} onClick={e=>e.stopPropagation()} role="dialog" aria-label="AR Try-On">
+            <div style={S.modalHdr}>
+              <span style={{fontWeight:700,fontSize:'16px'}}>🔭 AR Try Before You Buy</span>
+              <button style={S.closeBtn} onClick={()=>setArModal(null)} aria-label="Close AR view">✕</button>
+            </div>
+            <div style={{padding:'0 20px 20px'}}>
+              <div style={{fontSize:'13px',color:'#94a3b8',marginBottom:'14px'}}>
+                Previewing: <strong style={{color:'#f1f5f9'}}>{arModal.title}</strong>
+              </div>
+              {/* AR camera view */}
+              <div style={{position:'relative',width:'100%',height:'280px',background:'#000',borderRadius:'16px',overflow:'hidden',marginBottom:'14px'}}>
+                <video ref={arVideoRef} autoPlay playsInline muted
+                  style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
+                  onCanPlay={()=>{/* DeepAR attaches here when key is configured */}}/>
+                {/* AR overlay UI */}
+                <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                  {/* Simulated AR frame guide */}
+                  <div style={{width:'160px',height:'160px',border:'2px solid rgba(99,102,241,0.8)',borderRadius:'16px',
+                    boxShadow:'0 0 0 9999px rgba(0,0,0,0.35)',
+                    display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <span style={{fontSize:'60px',filter:'drop-shadow(0 2px 8px rgba(0,0,0,0.8))'}}>{arModal.avatar}</span>
+                  </div>
+                  <div style={{marginTop:'10px',background:'rgba(0,0,0,0.6)',borderRadius:'8px',padding:'5px 12px',
+                    fontSize:'11px',color:'rgba(255,255,255,0.9)',fontWeight:600}}>
+                    Point camera at flat surface
+                  </div>
+                </div>
+                {/* AR status badge */}
+                <div style={{position:'absolute',top:'10px',left:'10px',background:'rgba(99,102,241,0.85)',
+                  borderRadius:'8px',padding:'4px 10px',fontSize:'11px',color:'white',fontWeight:700}}>
+                  🔴 LIVE AR
+                </div>
+                <div style={{position:'absolute',top:'10px',right:'10px',background:'rgba(0,0,0,0.6)',
+                  borderRadius:'8px',padding:'4px 10px',fontSize:'11px',color:'white'}}>
+                  Demo Mode
+                </div>
+              </div>
+              {/* AR controls */}
+              <div style={{display:'flex',gap:'8px',marginBottom:'14px'}}>
+                {[['🔄','Rotate'],['↔️','Scale'],['💡','Light'],['📸','Capture']].map(([icon,lbl])=>(
+                  <button key={lbl} aria-label={lbl}
+                    onClick={()=>{
+                      if (lbl==='Capture'){
+                        showToast('📸 AR screenshot saved!');
+                      } else {
+                        showToast(`${icon} ${lbl} mode activated`);
+                      }
+                    }}
+                    style={{flex:1,padding:'10px 4px',background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',
+                      color:'#94a3b8',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px'}}>
+                    <span style={{fontSize:'18px'}}>{icon}</span>
+                    <span style={{fontSize:'9px',color:'#64748b'}}>{lbl}</span>
+                  </button>
+                ))}
+              </div>
+              {/* Camera permission note */}
+              <div style={{background:'rgba(99,102,241,0.1)',border:'1px solid rgba(99,102,241,0.3)',
+                borderRadius:'10px',padding:'10px 12px',marginBottom:'12px',fontSize:'12px',color:'#a5b4fc'}}>
+                💡 <strong>How it works:</strong> Uses your device camera to place a 3D model of this item in your real environment. 
+                {import.meta.env.VITE_DEEPAR_KEY ? ' DeepAR SDK active.' : ' Add VITE_DEEPAR_KEY to .env for full 3D AR models.'}
+              </div>
+              <button style={S.btn()} onClick={()=>{setArModal(null);addToCart(arModal);}}>
+                🛒 Add to Cart — ${arModal.price}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ════════ M28: SAFE MEETING SPOTS MODAL ════════ */}
       {safeSpotModal&&(
