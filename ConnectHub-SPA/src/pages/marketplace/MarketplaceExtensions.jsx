@@ -486,11 +486,21 @@ export function BoostListingModal({ listing, onClose }) {
   const [confirmed, setConfirmed] = useState(false);
   const [paying, setPaying]       = useState(false);
   const [payError, setPayError]   = useState('');
+  // Sprint 23: card entry form fields
+  const [cardName,   setCardName]   = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCVV,    setCardCVV]    = useState('');
   const { show, Toast } = useToast();
   if (!listing) return null;
 
   async function handleBoost() {
     const plan = BOOST_PLANS.find(p => p.id === selected);
+    // Sprint 23: validate card fields before proceeding
+    if (!cardName.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCVV.trim()) {
+      setPayError('Please fill in all card details to continue.');
+      return;
+    }
     setPaying(true);
     setPayError('');
     try {
@@ -502,7 +512,10 @@ export function BoostListingModal({ listing, onClose }) {
       });
       if (pi?.clientSecret) {
         await confirmCardPayment(pi.clientSecret, {
-          payment_method: { billing_details: { name: listing.sellerName || 'ConnectHub User' } },
+          payment_method: {
+            card: { number: cardNumber, exp_month: cardExpiry.split('/')[0], exp_year: cardExpiry.split('/')[1], cvc: cardCVV },
+            billing_details: { name: cardName },
+          },
         });
       }
     } catch (err) {
@@ -595,11 +608,58 @@ export function BoostListingModal({ listing, onClose }) {
         ))}
       </div>
 
+      {/* Sprint 23: Card entry form */}
+      <div style={{ marginBottom:'20px' }}>
+        <div style={{ fontWeight:700, fontSize:'12px', color:DARK.muted, marginBottom:'10px' }}>
+          💳 PAYMENT DETAILS
+        </div>
+        <input
+          placeholder="Cardholder Name *"
+          value={cardName}
+          onChange={e => { setCardName(e.target.value); setPayError(''); }}
+          style={{ width:'100%', background:DARK.bg0, border:`1px solid ${DARK.bg2}`,
+            borderRadius:'10px', padding:'11px 14px', color:DARK.text, fontSize:'14px',
+            outline:'none', marginBottom:'8px', boxSizing:'border-box', fontFamily:'inherit' }}
+        />
+        <input
+          placeholder="Card Number *"
+          value={cardNumber}
+          onChange={e => { setCardNumber(e.target.value.replace(/\D/g,'').slice(0,16)); setPayError(''); }}
+          inputMode="numeric"
+          maxLength={16}
+          style={{ width:'100%', background:DARK.bg0, border:`1px solid ${DARK.bg2}`,
+            borderRadius:'10px', padding:'11px 14px', color:DARK.text, fontSize:'14px',
+            outline:'none', marginBottom:'8px', boxSizing:'border-box', fontFamily:'inherit' }}
+        />
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
+          <input
+            placeholder="MM/YY *"
+            value={cardExpiry}
+            onChange={e => { setCardExpiry(e.target.value); setPayError(''); }}
+            maxLength={5}
+            style={{ background:DARK.bg0, border:`1px solid ${DARK.bg2}`,
+              borderRadius:'10px', padding:'11px 14px', color:DARK.text, fontSize:'14px',
+              outline:'none', fontFamily:'inherit' }}
+          />
+          <input
+            placeholder="CVV *"
+            value={cardCVV}
+            onChange={e => { setCardCVV(e.target.value.replace(/\D/g,'').slice(0,4)); setPayError(''); }}
+            inputMode="numeric"
+            maxLength={4}
+            style={{ background:DARK.bg0, border:`1px solid ${DARK.bg2}`,
+              borderRadius:'10px', padding:'11px 14px', color:DARK.text, fontSize:'14px',
+              outline:'none', fontFamily:'inherit' }}
+          />
+        </div>
+      </div>
+
       <ActionBtn
-        label={`🚀 Boost for ${BOOST_PLANS.find(p=>p.id===selected)?.price}`}
-        onClick={handleBoost} />
+        label={paying ? 'Processing…' : `🚀 Boost for ${BOOST_PLANS.find(p=>p.id===selected)?.price}`}
+        onClick={!paying ? handleBoost : undefined}
+        style={{ opacity: paying ? 0.7 : 1, cursor: paying ? 'default' : 'pointer' }} />
       <div style={{ textAlign:'center', fontSize:'11px', color:DARK.dim, marginTop:'10px' }}>
-        Charged to your payment method on file · Cancel anytime
+        🔒 Secured by Stripe · Cancel anytime
       </div>
     </Backdrop>
   );
