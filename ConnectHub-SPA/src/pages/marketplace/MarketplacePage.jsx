@@ -27,7 +27,7 @@
  * ✅ CRITICAL-01: left:72px modal offset (sidebar clipping fix)
  * ✅ CRITICAL-02: Product grid scroll (minHeight:'100%')
  * ✅ CRITICAL-03: Detail panel scroll (overflowY:'auto')
- * ✅ CRITICAL-04: "Buy to Review" → "🔒 Review (Buy First)"
+ * ✅ CRITICAL-04: "Buy to Review" → "✍️ Leave a Review (purchase required)"
  *
  * SPRINT 4 FIXES (still active): BUG-01 through BUG-20
  * SPRINT 6 ADDITIONS: M5 reviews on all 16 listings
@@ -591,12 +591,6 @@ export default function MarketplacePage() {
 
   const navigate = useNavigate();
 
-  // ── Recent searches ──────────────────────────────
-  const [recentSearches, setRecentSearches] = useState(loadRecent);
-
-  // ── Refs ─────────────────────────────────────────
-  const fileInputRef    = useRef(null);
-  const arVideoRef      = useRef(null);
   // ── Recent searches ──────────────────────────────
   const [recentSearches, setRecentSearches] = useState(loadRecent);
 
@@ -1900,8 +1894,9 @@ export default function MarketplacePage() {
                   </button>
                 ) : (
                   <button disabled title="Purchase this item first to leave a review"
+                    aria-label="Leave a review (purchase required)"
                     style={{flex:1,background:'#0f172a',border:'1px solid #1e293b',borderRadius:'12px',padding:'10px',color:'#475569',fontSize:'13px',fontWeight:600,cursor:'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                    🔒 Review (Buy First)
+                    ✍️ Leave a Review
                   </button>
                 )}
                 <button onClick={()=>setReportModal(itemModal)}

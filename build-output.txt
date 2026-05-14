@@ -1,0 +1,41 @@
+
+> test-apps@1.0.0 build
+> node build-production.js
+
+=== LynkApp Production Build ===
+
+[1/4] Minifying CSS...
+   ✓ CSS: 52.7 KB → 27.0 KB (49% smaller)
+
+[2/4] Minifying JavaScript...
+   ✓ js/splash-init.js: 0.6 KB → 0.4 KB (41% smaller)
+   ✓ js/consent-onboarding.js: 18.2 KB → 8.8 KB (51% smaller)
+   ✓ js/app-main.js: 476.0 KB → 375.6 KB (21% smaller)
+   ✓ js/user-testing-fixes.js: 59.0 KB → 36.5 KB (38% smaller)
+   ✓ js/performance-optimizer.js: 17.8 KB → 7.2 KB (60% smaller)
+   ✓ services/api-service.js: 5.6 KB → 2.2 KB (60% smaller)
+   ✓ services/auth-service.js: 17.5 KB → 7.4 KB (58% smaller)
+   ✓ services/mobile-app-integration.js: 17.5 KB → 7.2 KB (59% smaller)
+   ✓ services/realtime-service.js: 12.3 KB → 5.4 KB (56% smaller)
+   ✓ services/state-service.js: 11.8 KB → 4.5 KB (62% smaller)
+
+[3/4] Minifying HTML...
+   ⚠ HTML minification failed, copying original
+
+[4/4] Generating build manifest...
+
+==================================================
+BUILD COMPLETE
+==================================================
+
+Output: ConnectHub-Frontend/dist/
+
+  Component     Before        After         Saved
+  ───────────────────────────────────────────────────────
+  HTML          540.4 KB      540.4 KB      0%
+  CSS           52.7 KB       27.0 KB       49%
+  JS (all)      636.3 KB      455.2 KB      28%
+  ───────────────────────────────────────────────────────
+  TOTAL         1229.3 KB     1022.6 KB     16.8%
+
+  🚀 Total size reduced by 16.8%!

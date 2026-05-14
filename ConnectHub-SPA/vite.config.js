@@ -1,10 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
-  root: __dirname,  // FIX: anchor Vite root to ConnectHub-SPA dir (prevents workspace root misdetection)
-  appType: 'spa',  // BUG-1 FIX: ensures all unknown routes fall back to index.html (SPA routing)
+  appType: 'spa',  // ensures all unknown routes fall back to index.html (SPA routing)
   plugins: [react()],
   resolve: {
     alias: {
@@ -41,7 +45,9 @@ export default defineConfig({
     ],
   },
   server: {
+    host: '127.0.0.1',
     port: 5173,
-    open: true,
+    strictPort: false,
+    open: false,
   },
 });

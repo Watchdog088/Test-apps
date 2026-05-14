@@ -7,9 +7,30 @@ import { create } from 'zustand';
 
 const useAppStore = create((set, get) => ({
   // ── Auth ──────────────────────────────────────────────────
-  user: null,
-  userProfile: null,
-  demoMode: false,
+  // DEMO MODE: Pre-populated so the app renders without Firebase credentials.
+  // Change demoMode to false and clear user/userProfile when real Firebase is configured.
+  user: {
+    uid: 'demo-user-001',
+    email: 'demo@connecthub.app',
+    displayName: 'Demo User',
+    photoURL: null,
+  },
+  userProfile: {
+    uid: 'demo-user-001',
+    displayName: 'Demo User',
+    email: 'demo@connecthub.app',
+    photoURL: null,
+    bio: 'Welcome to ConnectHub demo!',
+    postsCount: 12,
+    followersCount: 248,
+    followingCount: 93,
+    following: [],
+    followers: [],
+    interests: ['tech', 'music', 'gaming'],
+    isVerified: true,
+    onboardingComplete: true,
+  },
+  demoMode: true,
   setUser: (user) => set({ user }),
   setUserProfile: (profile) => set({ userProfile: profile }),
   setDemoMode: (v) => set({ demoMode: v }),

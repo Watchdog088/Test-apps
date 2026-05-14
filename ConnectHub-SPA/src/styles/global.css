@@ -403,3 +403,86 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   height: 1px;
   overflow: hidden;
 }
+
+/* ================================================================
+   AUTH FORM UTILITY CLASSES
+   Used by LoginPage.jsx + OnboardingPage.jsx
+   FIX (May 14 2026): These classes were missing, causing invisible
+   inputs and buttons on the Login screen.
+   ================================================================ */
+
+/* Text input / email / password fields */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input::placeholder { color: #64748b; }
+.input:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Primary gradient button (Sign In / Create Account) */
+.btn-primary {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Secondary outline button (Continue with Google) */
+.btn-secondary {
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover  { background: rgba(255, 255, 255, 0.10); border-color: rgba(255,255,255,0.25); }
+.btn-secondary:active { transform: scale(0.98); }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ================================================================
+   MARKETPLACE OVERLAY FIXES
+   BUG #1 (May 14 2026): Overlays were starting at left:0, causing
+   the left sidebar (65px wide) to clip all panel content.
+   All slide-up / fixed panels must start after the sidebar.
+   ================================================================ */
+
+/* Applied to product-detail, filter-panel, chat-panel inside Marketplace */
+.marketplace-overlay-panel {
+  position: fixed;
+  left: 65px;
+  width: calc(100% - 65px);
+  bottom: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);  /* leave room for music player */
+}
+
+/* BUG #2+3 Fix: Product grid and detail scroll */
+.marketplace-scroll-area {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
