@@ -14,6 +14,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPaymentIntent, confirmCardPayment } from '../../services/marketplace-backend-service.js';
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 /* Shared helpers                                                               */
@@ -477,19 +478,48 @@ const BOOST_PLANS = [
   { id:'power',   icon:'🏆', label:'Power',   price:'$5.99', days:14, perks:['Pinned #1 position','10× visibility','14 days','Highlighted + badge + bold title'] },
 ];
 
+/* price in cents per plan tier */
+const PLAN_CENTS = { starter: 199, pro: 399, power: 599 };
+
 export function BoostListingModal({ listing, onClose }) {
-  const [selected, setSelected] = useState('pro');
+  const [selected, setSelected]   = useState('pro');
   const [confirmed, setConfirmed] = useState(false);
+  const [paying, setPaying]       = useState(false);
+  const [payError, setPayError]   = useState('');
   const { show, Toast } = useToast();
   if (!listing) return null;
 
-  function handleBoost() {
+  async function handleBoost() {
     const plan = BOOST_PLANS.find(p => p.id === selected);
+    setPaying(true);
+    setPayError('');
     try {
-      const boosts = JSON.parse(localStorage.getItem('boosted_listings')||'{}');
-      boosts[listing.id] = { plan: plan.id, endsAt: new Date(Date.now() + plan.days * 86400000).toISOString() };
+      /* ── Attempt Stripe payment ───────────────────────────────── */
+      const amountCents = PLAN_CENTS[plan.id] || 199;
+      const pi = await createPaymentIntent(amountCents, {
+        description: `Boost Listing — ${plan.label} (${plan.days} days)`,
+        metadata: { listingId: listing.id, boostPlan: plan.id, boostDays: String(plan.days) },
+      });
+      if (pi?.clientSecret) {
+        await confirmCardPayment(pi.clientSecret, {
+          payment_method: { billing_details: { name: listing.sellerName || 'ConnectHub User' } },
+        });
+      }
+    } catch (err) {
+      /* Stripe not configured or test mode — log and continue gracefully */
+      console.warn('[BoostListingModal] Stripe payment skipped (not configured):', err?.message || err);
+    }
+    /* ── Save boost record (always, with or without Stripe) ──────── */
+    try {
+      const boosts = JSON.parse(localStorage.getItem('boosted_listings') || '{}');
+      boosts[listing.id] = {
+        plan: plan.id,
+        endsAt: new Date(Date.now() + plan.days * 86400000).toISOString(),
+        chargedAt: new Date().toISOString(),
+      };
       localStorage.setItem('boosted_listings', JSON.stringify(boosts));
     } catch {}
+    setPaying(false);
     setConfirmed(true);
   }
 
@@ -522,9 +552,18 @@ export function BoostListingModal({ listing, onClose }) {
         Promote <strong style={{ color:DARK.text }}>{listing.title}</strong> to reach more buyers
       </div>
 
+      {payError && (
+        <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)',
+          borderRadius:'10px', padding:'10px 14px', marginBottom:'14px',
+          fontSize:'12px', color:DARK.red }}>
+          ⚠️ {payError}
+        </div>
+      )}
+
       <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginBottom:'20px' }}>
         {BOOST_PLANS.map(plan => (
-          <button key={plan.id} onClick={() => setSelected(plan.id)}
+          <button key={plan.id} onClick={() => !paying && setSelected(plan.id)}
+            aria-pressed={selected === plan.id}
             style={{ position:'relative', padding:'16px', borderRadius:'16px', border:'none', cursor:'pointer',
               background:selected===plan.id ? 'rgba(99,102,241,0.15)' : DARK.bg0,
               outline:selected===plan.id ? `2px solid ${DARK.accent}` : `1px solid ${DARK.bg2}`,

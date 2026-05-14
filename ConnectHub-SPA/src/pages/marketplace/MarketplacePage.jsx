@@ -1158,7 +1158,7 @@ export default function MarketplacePage() {
             <span style={{fontSize:'16px',color:'#64748b'}}>🔍</span>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search listings, sellers, tags…"
               aria-label="Search marketplace" style={{flex:1,background:'none',border:'none',color:'#f1f5f9',fontSize:'14px',outline:'none'}}/>
-            {search&&<button onClick={()=>setSearch('')} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:'16px'}}>✕</button>}
+            {search&&<button onClick={()=>setSearch('')} aria-label="Clear search" style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:'16px'}}>✕</button>}
           </div>
           {recentSearches.length>0&&!search&&(
             <div style={{padding:'0 16px 8px',display:'flex',flexWrap:'wrap',gap:'6px',alignItems:'center'}}>
@@ -1209,10 +1209,12 @@ export default function MarketplacePage() {
           {/* Sort + Filter row */}
           <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'0 16px 12px'}}>
             <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
+              aria-label="Sort listings"
               style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'6px 10px',color:'#f1f5f9',fontSize:'12px',flex:1}}>
               {SORT_OPTIONS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             <button onClick={()=>setFilterOpen(true)}
+              aria-label={activeFilters>0?`Filters (${activeFilters} active)`:'Open filters'}
               style={{background:activeFilters?'#6366f1':'#1e293b',border:`1px solid ${activeFilters?'#6366f1':'#334155'}`,
                      borderRadius:'10px',padding:'6px 12px',color:'white',fontSize:'12px',fontWeight:600,
                      cursor:'pointer',display:'flex',alignItems:'center',gap:'6px',whiteSpace:'nowrap'}}>
@@ -1760,7 +1762,7 @@ export default function MarketplacePage() {
                   }}>
                   Clear All
                 </button>
-                <button style={{...S.btn(),flex:1}} onClick={()=>setFilterOpen(false)}>Apply Filters</button>
+                <button style={{...S.btn(),flex:1}} aria-label="Apply filters and close panel" onClick={()=>setFilterOpen(false)}>Apply Filters</button>
               </div>
             </div>
           </div>
@@ -1888,6 +1890,7 @@ export default function MarketplacePage() {
                   </button>
                 )}
                 <button onClick={()=>setReportModal(itemModal)}
+                  aria-label="Report this listing"
                   style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'12px',padding:'10px 14px',color:'#94a3b8',fontSize:'13px',cursor:'pointer'}}>🚩</button>
               </div>
 
@@ -2668,6 +2671,12 @@ export default function MarketplacePage() {
               <div style={{color:'#94a3b8',fontSize:'13px',marginBottom:'14px'}}>Scan to view this listing on any device</div>
               <img src={getQRCodeURL(qrModal.id)} alt="QR Code" style={{width:'180px',height:'180px',borderRadius:'12px',background:'white',padding:'8px'}}
                 onError={e=>{e.target.style.display='none';}}/>
+              <a href={getQRCodeURL(qrModal.id)} download={`listing-${qrModal.id}-qr.png`}
+                aria-label="Download QR code image"
+                style={{display:'inline-block',marginTop:'12px',padding:'9px 22px',background:'#1e293b',border:'1px solid #334155',
+                  borderRadius:'10px',color:'#a5b4fc',fontSize:'13px',fontWeight:600,textDecoration:'none',cursor:'pointer'}}>
+                ⬇️ Download QR
+              </a>
               <div style={{marginTop:'12px',fontSize:'12px',color:'#64748b'}}>{qrModal.title?.slice(0,40)}</div>
               <div style={{marginTop:'4px',fontSize:'14px',color:'#10b981',fontWeight:700}}>${qrModal.price}</div>
             </div>
