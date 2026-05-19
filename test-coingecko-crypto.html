@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>💰 CoinGecko Crypto Prices — LynkApp Test</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f1a;color:#f1f5f9;padding:20px}
+  h1{font-size:1.6rem;margin-bottom:4px;color:#a78bfa}
+  .sub{color:#64748b;font-size:.85rem;margin-bottom:20px}
+  .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:24px}
+  .status-item{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+  .dot{width:10px;height:10px;border-radius:50%;background:#475569;flex-shrink:0}
+  .dot.ok{background:#22c55e;box-shadow:0 0 6px #22c55e}
+  .dot.fail{background:#ef4444}
+  .dot.loading{background:#f59e0b;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .status-text{font-size:.85rem;color:#94a3b8}
+  .status-text strong{color:#f1f5f9;display:block}
+
+  h2{font-size:1.1rem;color:#c4b5fd;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #2d2d4e}
+
+  /* Ticker strip */
+  .ticker{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px}
+  .ticker::-webkit-scrollbar{height:4px}
+  .ticker::-webkit-scrollbar-thumb{background:#2d2d4e;border-radius:4px}
+  .tick{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:20px;padding:6px 14px;white-space:nowrap;font-size:.8rem;flex-shrink:0;display:flex;align-items:center;gap:6px}
+  .tick-sym{font-weight:700}
+  .tick-price{color:#e2e8f0}
+  .up{color:#22c55e} .down{color:#ef4444}
+
+  /* Global bar */
+  .global-bar{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:10px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:20px;margin-bottom:6px}
+  .g-stat{display:flex;flex-direction:column;gap:2px}
+  .g-label{font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+  .g-value{font-size:1rem;font-weight:700;color:#f1f5f9}
+
+  /* Coin cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .card{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:12px;padding:14px;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+  .card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .coin-img{width:28px;height:28px;border-radius:50%}
+  .coin-img.fallback{background:#2d2d4e;display:flex;align-items:center;justify-content:center;font-size:14px;color:#a78bfa}
+  .coin-name{font-weight:600;font-size:.9rem}
+  .coin-sym{color:#64748b;font-size:.75rem}
+  .coin-rank{margin-left:auto;background:#0f0f1a;border-radius:6px;padding:2px 7px;font-size:.7rem;color:#94a3b8}
+  .coin-price{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+  .coin-changes{display:flex;gap:8px;font-size:.75rem;margin-bottom:8px}
+  .change-pill{padding:2px 7px;border-radius:6px;font-weight:600}
+  .change-pill.up{background:#22c55e20;color:#22c55e}
+  .change-pill.down{background:#ef444420;color:#ef4444}
+  .coin-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.72rem;color:#64748b}
+  .coin-stats span{color:#94a3b8}
+  .sparkline-wrap{margin-top:8px}
+  .sparkline-wrap svg{width:100%;height:32px}
+
+  /* Trending */
+  .trending-list{display:flex;flex-direction:column;gap:8px}
+  .trend-item{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .trend-rank{font-size:.75rem;color:#64748b;width:20px;text-align:center}
+  .trend-img{width:24px;height:24px;border-radius:50%}
+  .trend-name{flex:1;font-size:.9rem}
+  .trend-sym{color:#64748b;font-size:.75rem}
+  .trend-mcr{font-size:.75rem;color:#64748b;margin-left:auto}
+
+  /* Search */
+  .search-row{display:flex;gap:8px;margin-bottom:10px}
+  .search-input{flex:1;background:#1a1a2e;border:1px solid #2d2d4e;border-radius:8px;padding:8px 14px;color:#f1f5f9;font-size:.9rem;outline:none}
+  .search-input:focus{border-color:#a78bfa}
+  .search-btn{background:#a78bfa;color:#0f0f1a;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;font-size:.85rem}
+  .search-results{display:flex;flex-direction:column;gap:6px}
+  .search-item{background:#1a1a2e;border:1px solid #2d2d4e;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:.85rem}
+
+  /* Marketplace panel */
+  .mp-table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .mp-table th{text-align:left;padding:8px 10px;color:#64748b;font-size:.72rem;text-transform:uppercase;border-bottom:1px solid #2d2d4e}
+  .mp-table td{padding:8px 10px;border-bottom:1px solid #1a2240}
+  .mp-table tr:last-child td{border:none}
+  .coin-badge{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+  .coin-dot{width:8px;height:8px;border-radius:50%}
+
+  /* Error box */
+  .error-box{background:#ef444415;border:1px solid #ef4444;border-radius:8px;padding:12px;color:#ef4444;font-size:.85rem;margin:8px 0}
+  .loading-msg{color:#64748b;font-size:.85rem;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+
+<h1>💰 CoinGecko Crypto Prices — LynkApp Test</h1>
+<p class="sub">Free API · No key required · api.coingecko.com/api/v3</p>
+
+<!-- Status checks -->
+<div class="status-grid" id="statusGrid">
+  <div class="status-item"><div class="dot loading" id="d1"></div><div class="status-text"><strong id="s1">Testing CoinGecko API…</strong><span>GET /simple/price (BTC, ETH)</span></div></div>
+  <div class="status-item"><div class="dot loading" id="d2"></div><div class="status-text"><strong id="s2">Testing top coins…</strong><span>GET /coins/markets (top 6)</span></div></div>
+  <div class="status-item"><div class="dot loading" id="d3"></div><div class="status-text"><strong id="s3">Testing global market…</strong><span>GET /global</span></div></div>
+  <div class="status-item"><div class="dot loading" id="d4"></div><div class="status-text"><strong id="s4">Testing trending coins…</strong><span>GET /search/trending</span></div></div>
+  <div class="status-item"><div class="dot loading" id="d5"></div><div class="status-text"><strong id="s5">Testing coin search…</strong><span>GET /search?query=solana</span></div></div>
+  <div class="status-item"><div class="dot loading" id="d6"></div><div class="status-text"><strong id="s6">Testing sparkline data…</strong><span>GET /coins/markets with sparkline</span></div></div>
+</div>
+
+<!-- Global market stats -->
+<h2>🌍 Global Crypto Market</h2>
+<div id="globalSection"><div class="loading-msg">Loading global stats…</div></div>
+
+<!-- Live ticker strip -->
+<h2>📈 Live Price Ticker (Top 10)</h2>
+<div class="ticker" id="tickerStrip"><div class="loading-msg">Loading ticker…</div></div>
+
+<!-- Top 6 coin cards with sparklines -->
+<h2>💎 Top Coins — Full Market Cards</h2>
+<div class="cards" id="coinCards"><div class="loading-msg">Loading coin cards…</div></div>
+
+<!-- Trending coins -->
+<h2>🔥 Trending Now (Most Searched 24h)</h2>
+<div class="trending-list" id="trendingList"><div class="loading-msg">Loading trending…</div></div>
+
+<!-- Coin search -->
+<h2>🔍 Coin Search</h2>
+<div class="search-row">
+  <input class="search-input" id="searchInput" placeholder="Search any coin… (e.g. solana, shiba, polkadot)" />
+  <button class="search-btn" onclick="doSearch()">Search</button>
+</div>
+<div class="search-results" id="searchResults"></div>
+
+<!-- Marketplace crypto panel -->
+<h2>🛒 Marketplace Crypto Payment Panel ($100 USD equivalent)</h2>
+<div id="mpPanel"><div class="loading-msg">Loading crypto payment rates…</div></div>
+
+<script>
+const BASE = 'https://api.coingecko.com/api/v3';
+const COIN_COLORS = {
+  bitcoin:'#f7931a',ethereum:'#627eea',solana:'#9945ff',binancecoin:'#f3ba2f',
+  ripple:'#0085c0',cardano:'#0033ad',dogecoin:'#c2a633','avalanche-2':'#e84142',
+  polkadot:'#e6007a',chainlink:'#2a5ada',litecoin:'#345d9d',tron:'#eb0029',
+  uniswap:'#ff007a','wrapped-bitcoin':'#f7931a','shiba-inu':'#ffa409'
+};
+
+function setStatus(n, ok, msg) {
+  document.getElementById('d'+n).className = 'dot ' + (ok ? 'ok' : 'fail');
+  document.getElementById('s'+n).textContent = msg;
+}
+
+function fmtPrice(p) {
+  if (p == null) return 'N/A';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits:2});
+  if (p >= 1) return '$' + p.toFixed(4);
+  if (p >= 0.01) return '$' + p.toFixed(6);
+  return '$' + p.toFixed(8);
+}
+function fmtChange(c) {
+  if (c == null) return {text:'N/A',pos:true};
+  return {text:(c>=0?'+':'')+c.toFixed(2)+'%', pos:c>=0};
+}
+function fmtLarge(n) {
+  if (!n) return 'N/A';
+  if (n>=1e12) return '$'+(n/1e12).toFixed(2)+'T';
+  if (n>=1e9) return '$'+(n/1e9).toFixed(2)+'B';
+  if (n>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  return '$'+n.toFixed(0);
+}
+function sparklinePath(prices, w=200, h=36) {
+  if (!prices || prices.length < 2) return '';
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const range = max - min || 1;
+  const pts = prices.map((p,i) => {
+    const x = (i/(prices.length-1))*w;
+    const y = h - ((p-min)/range)*h;
+    return x.toFixed(1)+','+y.toFixed(1);
+  });
+  return 'M'+pts.join(' L');
+}
+
+async function apiFetch(endpoint, params={}) {
+  const url = new URL(BASE + endpoint);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+// ── TEST 1: Simple prices ────────────────────────────────────────────────────
+async function testSimplePrices() {
+  try {
+    const d = await apiFetch('/simple/price', {
+      ids:'bitcoin,ethereum',
+      vs_currencies:'usd',
+      include_24hr_change:'true'
+    });
+    const btc = d.bitcoin?.usd;
+    const eth = d.ethereum?.usd;
+    if (!btc || !eth) throw new Error('Missing price data');
+    setStatus(1, true, `✅ BTC ${fmtPrice(btc)} · ETH ${fmtPrice(eth)}`);
+    return true;
+  } catch(e) {
+    setStatus(1, false, '❌ ' + e.message);
+    return false;
+  }
+}
+
+// ── TEST 2: Top coins + render cards ─────────────────────────────────────────
+async function testTopCoins() {
+  try {
+    const data = await apiFetch('/coins/markets', {
+      vs_currency:'usd', order:'market_cap_desc',
+      per_page:10, page:1, sparkline:'true',
+      price_change_percentage:'1h,24h,7d'
+    });
+    if (!data.length) throw new Error('Empty response');
+
+    // Ticker strip
+    const ticker = document.getElementById('tickerStrip');
+    ticker.innerHTML = data.map(c => {
+      const ch = fmtChange(c.price_change_percentage_24h);
+      const col = COIN_COLORS[c.id]||'#a78bfa';
+      return `<div class="tick">
+        <span class="tick-sym" style="color:${col}">${c.symbol.toUpperCase()}</span>
+        <span class="tick-price">${fmtPrice(c.current_price)}</span>
+        <span class="${ch.pos?'up':'down'}">${ch.text}</span>
+      </div>`;
+    }).join('');
+
+    // Cards (top 6 only for display)
+    const cards = document.getElementById('coinCards');
+    cards.innerHTML = data.slice(0,6).map(c => {
+      const ch24 = fmtChange(c.price_change_percentage_24h);
+      const ch7d = fmtChange(c.price_change_percentage_7d_in_currency);
+      const col = COIN_COLORS[c.id]||'#a78bfa';
+      const spark = sparklinePath(c.sparkline_in_7d?.price||[]);
+      const sparkColor = ch24.pos ? '#22c55e' : '#ef4444';
+      return `<div class="card" style="border-color:${col}30">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${col};border-radius:12px 12px 0 0"></div>
+        <div class="card-header">
+          <img class="coin-img" src="${c.image}" alt="${c.name}" onerror="this.style.display='none'">
+          <div>
+            <div class="coin-name">${c.name}</div>
+            <div class="coin-sym">${c.symbol.toUpperCase()}</div>
+          </div>
+          <div class="coin-rank">#${c.market_cap_rank}</div>
+        </div>
+        <div class="coin-price">${fmtPrice(c.current_price)}</div>
+        <div class="coin-changes">
+          <span class="change-pill ${ch24.pos?'up':'down'}">24h ${ch24.text}</span>
+          <span class="change-pill ${ch7d.pos?'up':'down'}">7d ${ch7d.text}</span>
+        </div>
+        <div class="coin-stats">
+          <div>Cap <span>${fmtLarge(c.market_cap)}</span></div>
+          <div>Vol <span>${fmtLarge(c.total_volume)}</span></div>
+          <div>High <span>${fmtPrice(c.high_24h)}</span></div>
+          <div>Low <span>${fmtPrice(c.low_24h)}</span></div>
+        </div>
+        ${spark ? `<div class="sparkline-wrap">
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none">
+            <path d="${spark}" fill="none" stroke="${sparkColor}" stroke-width="1.5" opacity="0.8"/>
+            <path d="${spark} L200,36 L0,36 Z" fill="${sparkColor}" opacity="0.1"/>
+          </svg>
+        </div>` : ''}
+      </div>`;
+    }).join('');
+
+    setStatus(2, true, `✅ Top 10 coins loaded — cards + sparklines rendered`);
+    return true;
+  } catch(e) {
+    setStatus(2, false, '❌ ' + e.message);
+    document.getElementById('coinCards').innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
+    return false;
+  }
+}
+
+// ── TEST 3: Global market ─────────────────────────────────────────────────────
+async function testGlobal() {
+  try {
+    const { data: d } = await apiFetch('/global');
+    const ch = fmtChange(d.market_cap_change_percentage_24h_usd);
+    document.getElementById('globalSection').innerHTML = `
+      <div class="global-bar">
+        <div class="g-stat"><div class="g-label">Total Market Cap</div><div class="g-value">${fmtLarge(d.total_market_cap?.usd)}</div></div>
+        <div class="g-stat"><div class="g-label">24h Volume</div><div class="g-value">${fmtLarge(d.total_volume?.usd)}</div></div>
+        <div class="g-stat"><div class="g-label">BTC Dominance</div><div class="g-value">${d.market_cap_percentage?.btc?.toFixed(1)}%</div></div>
+        <div class="g-stat"><div class="g-label">ETH Dominance</div><div class="g-value">${d.market_cap_percentage?.eth?.toFixed(1)}%</div></div>
+        <div class="g-stat"><div class="g-label">Active Cryptos</div><div class="g-value">${d.active_cryptocurrencies?.toLocaleString()}</div></div>
+        <div class="g-stat"><div class="g-label">24h Market Change</div><div class="g-value ${ch.pos?'up':'down'}">${ch.text}</div></div>
+      </div>`;
+    setStatus(3, true, `✅ Global market — ${d.active_cryptocurrencies?.toLocaleString()} active cryptos · ${fmtLarge(d.total_market_cap?.usd)} total cap`);
+    return true;
+  } catch(e) {
+    setStatus(3, false, '❌ ' + e.message);
+    return false;
+  }
+}
+
+// ── TEST 4: Trending ──────────────────────────────────────────────────────────
+async function testTrending() {
+  try {
+    const { coins } = await apiFetch('/search/trending');
+    const tl = document.getElementById('trendingList');
+    tl.innerHTML = coins.map(({item}, i) => {
+      const change = item.data?.price_change_percentage_24h?.usd || 0;
+      const ch = fmtChange(change);
+      return `<div class="trend-item">
+        <div class="trend-rank">#${i+1}</div>
+        <img class="trend-img" src="${item.large}" alt="${item.name}" onerror="this.style.display='none'">
+        <div>
+          <div class="trend-name">${item.name}</div>
+          <div class="trend-sym">${item.symbol}</div>
+        </div>
+        <span class="${ch.pos?'up':'down'}" style="font-size:.8rem;font-weight:600">${ch.text}</span>
+        <div class="trend-mcr">Rank #${item.market_cap_rank||'N/A'}</div>
+      </div>`;
+    }).join('');
+    setStatus(4, true, `✅ Trending — ${coins.length} coins returned`);
+    return true;
+  } catch(e) {
+    setStatus(4, false, '❌ ' + e.message);
+    return false;
+  }
+}
+
+// ── TEST 5: Search ────────────────────────────────────────────────────────────
+async function testSearch() {
+  try {
+    const d = await apiFetch('/search', { query: 'solana' });
+    const count = d.coins?.length || 0;
+    if (!count) throw new Error('No results');
+    setStatus(5, true, `✅ Search working — "solana" returned ${count} results`);
+    return true;
+  } catch(e) {
+    setStatus(5, false, '❌ ' + e.message);
+    return false;
+  }
+}
+
+// ── TEST 6: Sparkline check ───────────────────────────────────────────────────
+async function testSparkline() {
+  try {
+    const data = await apiFetch('/coins/markets', {
+      vs_currency:'usd', ids:'bitcoin', sparkline:'true'
+    });
+    const spark = data[0]?.sparkline_in_7d?.price;
+    if (!spark || spark.length < 10) throw new Error('No sparkline data');
+    const path = sparklinePath(spark);
+    setStatus(6, true, `✅ Sparkline — BTC 7d data: ${spark.length} data points`);
+    return true;
+  } catch(e) {
+    setStatus(6, false, '❌ ' + e.message);
+    return false;
+  }
+}
+
+// ── User search ───────────────────────────────────────────────────────────────
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const el = document.getElementById('searchResults');
+  el.innerHTML = '<div class="loading-msg">Searching…</div>';
+  try {
+    const d = await apiFetch('/search', { query: q });
+    if (!d.coins?.length) { el.innerHTML = '<div class="error-box">No results found.</div>'; return; }
+    el.innerHTML = d.coins.slice(0,8).map(c =>
+      `<div class="search-item">
+        <img src="${c.large}" width="24" height="24" style="border-radius:50%" onerror="this.style.display='none'">
+        <strong style="color:#a78bfa">${c.symbol}</strong>
+        <span>${c.name}</span>
+        <span style="margin-left:auto;color:#64748b;font-size:.75rem">#${c.market_cap_rank||'—'}</span>
+      </div>`
+    ).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Marketplace crypto panel ──────────────────────────────────────────────────
+async function buildMpPanel() {
+  try {
+    const ids = ['bitcoin','ethereum','solana','litecoin','dogecoin'];
+    const d = await apiFetch('/simple/price', {
+      ids: ids.join(','),
+      vs_currencies: 'usd',
+      include_24hr_change: 'true'
+    });
+    const SYMS = {bitcoin:'BTC',ethereum:'ETH',solana:'SOL',litecoin:'LTC',dogecoin:'DOGE'};
+    const rows = ids.map(id => {
+      const price = d[id]?.usd||0;
+      const change = d[id]?.usd_24h_change||0;
+      const ch = fmtChange(change);
+      const amount = price > 0 ? (100/price) : 0;
+      const col = COIN_COLORS[id]||'#a78bfa';
+      const equiv = amount < 0.001
+        ? (amount*1e6).toFixed(2)+' μ'+SYMS[id]
+        : amount.toFixed(6)+' '+SYMS[id];
+      return `<tr>
+        <td><span class="coin-badge"><span class="coin-dot" style="background:${col}"></span>${SYMS[id]}</span></td>
+        <td>${fmtPrice(price)}</td>
+        <td class="${ch.pos?'up':'down'}">${ch.text}</td>
+        <td style="color:#a78bfa;font-family:monospace;font-size:.8rem">${equiv}</td>
+      </tr>`;
+    });
+    document.getElementById('mpPanel').innerHTML = `
+      <table class="mp-table">
+        <thead><tr><th>Coin</th><th>Price (USD)</th><th>24h Change</th><th>$100 USD equivalent</th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('mpPanel').innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Enter key on search ───────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ── Run all tests ─────────────────────────────────────────────────────────────
+(async () => {
+  await Promise.all([
+    testSimplePrices(),
+    testTopCoins(),
+    testGlobal(),
+    testTrending(),
+    testSearch(),
+    testSparkline(),
+    buildMpPanel()
+  ]);
+})();
+</script>
+</body>
+</html>
