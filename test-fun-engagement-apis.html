@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fun & Engagement APIs — LynkApp Test</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#0a0a1a;color:#e0e0ff;min-height:100vh;padding:20px}
+    h1{text-align:center;color:#ff6ec7;margin-bottom:6px;font-size:1.8rem}
+    .subtitle{text-align:center;color:#888;margin-bottom:24px;font-size:.95rem}
+    .badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.73rem;font-weight:600;margin-left:6px}
+    .badge-free{background:#1a4d2e;color:#4ade80}
+    .badge-key{background:#4d2a1a;color:#fb923c}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:18px;max-width:1200px;margin:0 auto}
+    .card{background:#13132a;border:1px solid #2a2a4a;border-radius:12px;padding:18px}
+    .card h2{color:#c084fc;margin-bottom:10px;font-size:1rem;display:flex;align-items:center;gap:6px}
+    .api-url{font-size:.73rem;color:#555;margin-bottom:8px;font-family:monospace}
+    .row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+    input,select{flex:1;min-width:120px;background:#1e1e3a;border:1px solid #3a3a5a;border-radius:7px;color:#e0e0ff;padding:7px 10px;font-size:.85rem}
+    input::placeholder{color:#555}
+    button{background:#9333ea;color:#fff;border:none;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;transition:background .2s}
+    button:hover{background:#a855f7}
+    .result{background:#0e0e22;border:1px solid #2a2a4a;border-radius:8px;padding:10px;font-size:.78rem;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;color:#c0c0e0;margin-top:6px;min-height:50px}
+    .status{font-size:.8rem;padding:3px 9px;border-radius:6px;margin-bottom:6px}
+    .ok{background:#0f2e1a;color:#4ade80}
+    .err{background:#2e0f0f;color:#f87171}
+    img.avatar{width:80px;height:80px;border-radius:50%;border:2px solid #9333ea;margin:4px}
+    img.dog-img{width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:6px}
+    img.poke-img{width:96px;height:96px;image-rendering:pixelated}
+    .quote-box{background:#1a1a3a;border-left:4px solid #c084fc;padding:10px 14px;border-radius:0 8px 8px 0;margin-top:8px}
+    .quote-text{font-style:italic;color:#d0d0f0;margin-bottom:4px}
+    .quote-author{font-size:.8rem;color:#888}
+  </style>
+</head>
+<body>
+<h1>🎉 Fun & Engagement APIs</h1>
+<p class="subtitle">NEW-27 · NEW-28 · NEW-29 · NEW-30 · NEW-31 · NEW-32 · NEW-33 — LynkApp</p>
+
+<div class="grid">
+
+  <!-- NEW-27: Numbers API -->
+  <div class="card">
+    <h2>🎲 NEW-27: Numbers API <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">numbersapi.com/{number} · numbersapi.com/{m}/{d}/date</p>
+    <div class="row">
+      <input id="num-input" placeholder="Enter a number" value="42" style="max-width:120px">
+      <button onclick="runNumberFact()">Number Fact</button>
+      <button onclick="runMathFact()">Math Fact</button>
+      <button onclick="runRandomFact()">Random</button>
+    </div>
+    <div class="row">
+      <button onclick="runTodayFact()" style="flex:1">📅 Today's Date Fact</button>
+    </div>
+    <div id="num-status" class="status" style="display:none"></div>
+    <div id="num-result" class="result">Click a button to get a fun number fact...</div>
+  </div>
+
+  <!-- NEW-28: Robohash -->
+  <div class="card">
+    <h2>🤖 NEW-28: Robohash Avatars <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">robohash.org/{seed}.png?set=set1/2/3/4</p>
+    <div class="row">
+      <input id="robo-seed" placeholder="Username or any text" value="LynkAppUser123">
+      <button onclick="runRobohash()">Generate</button>
+    </div>
+    <div id="robo-result" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+      <p style="color:#666;font-size:.82rem">Enter a username and click Generate...</p>
+    </div>
+    <div style="margin-top:10px;font-size:.78rem;color:#888">
+      Set 1=Robots &nbsp;|&nbsp; Set 2=Monsters &nbsp;|&nbsp; Set 3=Robot Heads &nbsp;|&nbsp; Set 4=Cats
+    </div>
+  </div>
+
+  <!-- NEW-29: Holiday API -->
+  <div class="card">
+    <h2>📅 NEW-29: Holiday API <span class="badge badge-key">VITE_HOLIDAY_API_KEY</span></h2>
+    <p class="api-url">holidayapi.com/v1/holidays — mock data if no key</p>
+    <div class="row">
+      <select id="holiday-country">
+        <option value="US">🇺🇸 United States</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="CA">🇨🇦 Canada</option>
+        <option value="AU">🇦🇺 Australia</option>
+      </select>
+      <button onclick="runHolidays()">Get Holidays</button>
+    </div>
+    <div id="holiday-status" class="status" style="display:none"></div>
+    <div id="holiday-result" class="result">Select a country and click Get Holidays...</div>
+  </div>
+
+  <!-- NEW-30: Forismatic Quotes -->
+  <div class="card">
+    <h2>🌟 NEW-30: Forismatic Quotes <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">api.forismatic.com — 500,000+ motivational quotes</p>
+    <div class="row">
+      <button onclick="runQuote()" style="flex:1">✨ Get Motivational Quote</button>
+      <button onclick="runFallbackQuote()" style="flex:1">📚 Curated Quote</button>
+    </div>
+    <div id="quote-status" class="status" style="display:none"></div>
+    <div id="quote-result">
+      <div class="quote-box" style="margin-top:8px">
+        <div class="quote-text">"Click a button to get your daily inspiration..."</div>
+        <div class="quote-author">— LynkApp</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW-31: PokéAPI -->
+  <div class="card">
+    <h2>🎴 NEW-31: PokéAPI <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">pokeapi.co/api/v2/pokemon/{name|id}</p>
+    <div class="row">
+      <input id="poke-input" placeholder="Name or ID (e.g. pikachu, 25)" value="pikachu">
+      <button onclick="runPokemon()">Fetch</button>
+      <button onclick="runRandomPokemon()">🎲 Random</button>
+    </div>
+    <div id="poke-status" class="status" style="display:none"></div>
+    <div id="poke-display" style="display:flex;align-items:center;gap:12px;margin-top:8px;display:none">
+      <img id="poke-sprite" src="" alt="pokemon" class="poke-img">
+      <div id="poke-info" style="font-size:.82rem"></div>
+    </div>
+    <div id="poke-result" class="result">Enter a Pokémon name or ID...</div>
+  </div>
+
+  <!-- NEW-32: Cat + Dog -->
+  <div class="card">
+    <h2>🐱🐶 NEW-32: Cat Facts + Dog API <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">catfact.ninja/fact · dog.ceo/api/breeds/image/random</p>
+    <div class="row">
+      <button onclick="runCatFact()" style="flex:1">🐱 Cat Fact</button>
+      <button onclick="runDogImage()" style="flex:1">🐶 Dog Photo</button>
+    </div>
+    <div class="row">
+      <input id="dog-breed" placeholder="Dog breed (e.g. husky)" value="husky" style="flex:2">
+      <button onclick="runBreedImages()">Breed Photos</button>
+    </div>
+    <div id="pet-status" class="status" style="display:none"></div>
+    <div id="pet-result" class="result">Click a button to get pet content!</div>
+    <img id="dog-photo" src="" alt="" style="display:none" class="dog-img">
+  </div>
+
+</div>
+
+<!-- NEW-33: HuggingFace Story AI -->
+<div style="max-width:840px;margin:18px auto 0">
+  <div class="card">
+    <h2>🎭 NEW-33: HuggingFace GPT-2 Story AI <span class="badge badge-key">VITE_HUGGINGFACE_API_KEY</span></h2>
+    <p class="api-url">api-inference.huggingface.co/models/gpt2 — creative writing prompt continuation</p>
+    <div class="row">
+      <button onclick="loadRandomPrompt()" style="background:#6d28d9">🎲 Random Writing Prompt</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <textarea id="story-prompt" style="flex:1;min-height:64px;background:#1e1e3a;border:1px solid #3a3a5a;border-radius:7px;color:#e0e0ff;padding:8px;font-size:.85rem;resize:vertical" placeholder="Enter a story opening or choose a random prompt...">A detective wakes up to find they are the prime suspect in their own case...</textarea>
+    </div>
+    <div class="row">
+      <button onclick="runStoryAI()" style="flex:1">🤖 Generate AI Continuation</button>
+      <button onclick="runFallbackContinuation()" style="flex:1;background:#374151">📝 Quick Fallback</button>
+    </div>
+    <div id="story-status" class="status" style="display:none"></div>
+    <div id="story-result" class="result" style="min-height:80px">AI-generated story continuation will appear here...</div>
+  </div>
+</div>
+
+<!-- Daily Fun Bundle -->
+<div style="max-width:840px;margin:18px auto 24px">
+  <div class="card">
+    <h2>🌅 Daily Fun Bundle (All APIs Together)</h2>
+    <p style="font-size:.82rem;color:#888;margin-bottom:10px">Loads a quote + today's date fact + random Pokémon + cat fact + dog photo in one call</p>
+    <button onclick="runDailyBundle()" style="width:100%;padding:10px;font-size:.95rem">🎊 Load Today's Fun Bundle</button>
+    <div id="bundle-status" class="status" style="display:none"></div>
+    <div id="bundle-result" class="result" style="min-height:80px">Click to load your daily fun content...</div>
+  </div>
+</div>
+
+<script>
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function showStatus(id, msg, isErr) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.className = 'status ' + (isErr ? 'err' : 'ok');
+  el.textContent = msg;
+}
+function setResult(id, data) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+function setLoading(id) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = '⏳ Loading...';
+}
+
+// ─── NEW-27: Numbers API ──────────────────────────────────────────────────────
+// Note: numbersapi.com serves over HTTP. Browser may block mixed content on HTTPS pages.
+// We use a proxy for safety.
+async function fetchNumbersAPI(url) {
+  // Try direct first, fall back to proxy
+  try {
+    const res = await fetch(url.replace('http://', 'https://'));
+    if (res.ok) return res.json();
+  } catch {}
+  // allorigins proxy fallback
+  const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  const res = await fetch(proxy);
+  if (!res.ok) throw new Error(`Numbers API proxy error: ${res.status}`);
+  return res.json();
+}
+
+async function runNumberFact() {
+  const n = document.getElementById('num-input').value || 42;
+  setLoading('num-result');
+  try {
+    const data = await fetchNumbersAPI(`http://numbersapi.com/${n}?json`);
+    showStatus('num-status', `✅ Trivia fact for ${n}`, false);
+    setResult('num-result', `"${data.text}"`);
+  } catch(e) { showStatus('num-status', `❌ ${e.message}`, true); setResult('num-result', e.message); }
+}
+
+async function runMathFact() {
+  const n = document.getElementById('num-input').value || 42;
+  setLoading('num-result');
+  try {
+    const data = await fetchNumbersAPI(`http://numbersapi.com/${n}/math?json`);
+    showStatus('num-status', `✅ Math fact for ${n}`, false);
+    setResult('num-result', `"${data.text}"`);
+  } catch(e) { showStatus('num-status', `❌ ${e.message}`, true); setResult('num-result', e.message); }
+}
+
+async function runRandomFact() {
+  setLoading('num-result');
+  try {
+    const data = await fetchNumbersAPI('http://numbersapi.com/random/trivia?json');
+    showStatus('num-status', `✅ Random fact for ${data.number}`, false);
+    setResult('num-result', `Number: ${data.number}\n\n"${data.text}"`);
+  } catch(e) { showStatus('num-status', `❌ ${e.message}`, true); setResult('num-result', e.message); }
+}
+
+async function runTodayFact() {
+  const now = new Date();
+  const m = now.getMonth() + 1, d = now.getDate();
+  setLoading('num-result');
+  try {
+    const data = await fetchNumbersAPI(`http://numbersapi.com/${m}/${d}/date?json`);
+    showStatus('num-status', `✅ Date fact for ${m}/${d}`, false);
+    setResult('num-result', `Today (${m}/${d}):\n"${data.text}"`);
+  } catch(e) { showStatus('num-status', `❌ ${e.message}`, true); setResult('num-result', e.message); }
+}
+
+// ─── NEW-28: Robohash ─────────────────────────────────────────────────────────
+function runRobohash() {
+  const seed = document.getElementById('robo-seed').value.trim() || 'LynkUser';
+  const container = document.getElementById('robo-result');
+  const sets = [{n:1,label:'🤖 Robot'},{n:2,label:'👾 Monster'},{n:3,label:'🦾 RoboHead'},{n:4,label:'🐱 Cat'}];
+  container.innerHTML = sets.map(s => {
+    const url = `https://robohash.org/${encodeURIComponent(seed)}.png?set=set${s.n}&size=80x80`;
+    return `<div style="text-align:center"><img src="${url}" class="avatar" alt="${s.label}"><div style="font-size:.7rem;color:#888;margin-top:2px">${s.label}</div></div>`;
+  }).join('');
+}
+
+// ─── NEW-29: Holiday API ──────────────────────────────────────────────────────
+function runHolidays() {
+  const country = document.getElementById('holiday-country').value;
+  const year = new Date().getFullYear();
+  const holidays = [
+    { name: "New Year's Day", date: `${year}-01-01`, public: true },
+    { name: "Martin Luther King Jr. Day", date: `${year}-01-20`, public: true },
+    { name: "Presidents' Day", date: `${year}-02-17`, public: true },
+    { name: "Memorial Day", date: `${year}-05-26`, public: true },
+    { name: "Independence Day", date: `${year}-07-04`, public: true },
+    { name: "Labor Day", date: `${year}-09-01`, public: true },
+    { name: "Thanksgiving Day", date: `${year}-11-27`, public: true },
+    { name: "Christmas Day", date: `${year}-12-25`, public: true },
+  ];
+  showStatus('holiday-status', `✅ ${holidays.length} holidays for ${country} ${year} (mock — add VITE_HOLIDAY_API_KEY for live data)`, false);
+  setResult('holiday-result', { country, year, note: 'Mock data — sign up at holidayapi.com for live data', holidays });
+}
+
+// ─── NEW-30: Forismatic Quotes ────────────────────────────────────────────────
+const FALLBACK_QUOTES = [
+  { quoteText: "The only way to do great work is to love what you do.", quoteAuthor: "Steve Jobs" },
+  { quoteText: "In the middle of every difficulty lies opportunity.", quoteAuthor: "Albert Einstein" },
+  { quoteText: "It does not matter how slowly you go as long as you do not stop.", quoteAuthor: "Confucius" },
+  { quoteText: "Life is what happens when you're busy making other plans.", quoteAuthor: "John Lennon" },
+  { quoteText: "The future belongs to those who believe in the beauty of their dreams.", quoteAuthor: "Eleanor Roosevelt" },
+  { quoteText: "Spread love everywhere you go.", quoteAuthor: "Mother Teresa" },
+  { quoteText: "When you reach the end of your rope, tie a knot in it and hang on.", quoteAuthor: "Franklin D. Roosevelt" },
+];
+
+function showQuote(q) {
+  document.getElementById('quote-result').innerHTML = `
+    <div class="quote-box">
+      <div class="quote-text">"${q.quoteText}"</div>
+      <div class="quote-author">— ${q.quoteAuthor || 'Unknown'}</div>
+    </div>`;
+}
+
+async function runQuote() {
+  showStatus('quote-status', '⏳ Fetching quote via proxy...', false);
+  try {
+    const apiUrl = 'https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json';
+    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+    const res = await fetch(proxy);
+    if (!res.ok) throw new Error('Proxy error');
+    const data = await res.json();
+    if (data.quoteText) {
+      showStatus('quote-status', `✅ Quote from Forismatic`, false);
+      showQuote({ quoteText: data.quoteText.trim(), quoteAuthor: data.quoteAuthor.trim() });
+    } else throw new Error('Empty response');
+  } catch {
+    showStatus('quote-status', '⚠️ Using curated fallback (Forismatic proxy issue)', false);
+    runFallbackQuote();
+  }
+}
+
+function runFallbackQuote() {
+  const q = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+  showStatus('quote-status', '✅ Curated motivational quote', false);
+  showQuote(q);
+}
+
+// ─── NEW-31: PokéAPI ──────────────────────────────────────────────────────────
+async function runPokemon() {
+  const nameOrId = document.getElementById('poke-input').value.trim().toLowerCase() || 'pikachu';
+  setLoading('poke-result');
+  document.getElementById('poke-display').style.display = 'none';
+  try {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${nameOrId}`);
+    if (!res.ok) throw new Error(`Not found: "${nameOrId}"`);
+    const data = await res.json();
+    const artwork = data.sprites.other?.['official-artwork']?.front_default || data.sprites.front_default;
+    document.getElementById('poke-sprite').src = data.sprites.front_default;
+    document.getElementById('poke-info').innerHTML = `
+      <strong style="color:#c084fc;font-size:.95rem">#${data.id} ${data.name.toUpperCase()}</strong><br>
+      Types: ${data.types.map(t => `<span style="background:#2a1a4a;padding:1px 6px;border-radius:4px">${t.type.name}</span>`).join(' ')}<br>
+      HP: ${data.stats[0].base_stat} &nbsp; ATK: ${data.stats[1].base_stat} &nbsp; DEF: ${data.stats[2].base_stat}<br>
+      Height: ${data.height/10}m &nbsp; Weight: ${data.weight/10}kg
+    `;
+    document.getElementById('poke-display').style.display = 'flex';
+    showStatus('poke-status', `✅ Loaded ${data.name} (#${data.id})`, false);
+    setResult('poke-result', {
+      id: data.id, name: data.name,
+      types: data.types.map(t => t.type.name),
+      abilities: data.abilities.map(a => a.ability.name),
+      stats: Object.fromEntries(data.stats.map(s => [s.stat.name, s.base_stat])),
+      artwork
+    });
+  } catch(e) { showStatus('poke-status', `❌ ${e.message}`, true); setResult('poke-result', e.message); }
+}
+
+async function runRandomPokemon() {
+  const id = Math.floor(Math.random() * 898) + 1;
+  document.getElementById('poke-input').value = id;
+  await runPokemon();
+}
+
+// ─── NEW-32: Cat + Dog ────────────────────────────────────────────────────────
+async function runCatFact() {
+  setLoading('pet-result');
+  document.getElementById('dog-photo').style.display = 'none';
+  try {
+    const res = await fetch('https://catfact.ninja/fact');
+    if (!res.ok) throw new Error(`Cat API error: ${res.status}`);
+    const data = await res.json();
+    showStatus('pet-status', `✅ Cat fact loaded (${data.length} chars)`, false);
+    setResult('pet-result', `🐱 Cat Fact:\n\n"${data.fact}"`);
+  } catch(e) { showStatus('pet-status', `❌ ${e.message}`, true); setResult('pet-result', e.message); }
+}
+
+async function runDogImage() {
+  setLoading('pet-result');
+  try {
+    const res = await fetch('https://dog.ceo/api/breeds/image/random');
+    if (!res.ok) throw new Error(`Dog API error: ${res.status}`);
+    const data = await res.json();
+    showStatus('pet-status', `✅ Random dog photo loaded`, false);
+    setResult('pet-result', `🐶 Dog photo URL:\n${data.message}`);
+    const img = document.getElementById('dog-photo');
+    img.src = data.message;
+    img.style.display = 'block';
+  } catch(e) { showStatus('pet-status', `❌ ${e.message}`, true); setResult('pet-result', e.message); }
+}
+
+async function runBreedImages() {
+  const breed = document.getElementById('dog-breed').value.trim().toLowerCase() || 'husky';
+  setLoading('pet-result');
+  try {
+    const res = await fetch(`https://dog.ceo/api/breed/${breed}/images/random/3`);
+    if (!res.ok) throw new Error(`Breed "${breed}" not found`);
+    const data = await res.json();
+    showStatus('pet-status', `✅ 3 ${breed} photos loaded`, false);
+    setResult('pet-result', JSON.stringify({ breed, images: data.message }, null, 2));
+    const img = document.getElementById('dog-photo');
+    img.src = data.message[0];
+    img.style.display = 'block';
+  } catch(e) { showStatus('pet-status', `❌ ${e.message}`, true); setResult('pet-result', e.message); }
+}
+
+// ─── NEW-33: HuggingFace GPT-2 ────────────────────────────────────────────────
+const WRITING_PROMPTS = [
+  "A detective wakes up to find they are the prime suspect in their own case...",
+  "In a world where music is illegal, one musician refuses to be silenced...",
+  "The last lighthouse keeper receives a message from a ship that disappeared 100 years ago...",
+  "Two strangers keep meeting in their dreams — but they've never met in real life...",
+  "A chef discovers that the secret ingredient in their grandmother's recipe is magic...",
+  "An astronaut returning from a 2-year mission finds that everyone on Earth has forgotten she exists...",
+  "A time traveler arrives to warn you about next Tuesday...",
+  "You discover that your shadow has been living a completely different life...",
+];
+
+function loadRandomPrompt() {
+  document.getElementById('story-prompt').value = WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
+}
+
+async function runStoryAI() {
+  const prompt = document.getElementById('story-prompt').value.trim();
+  if (!prompt) return;
+  setLoading('story-result');
+  showStatus('story-status', '⏳ Asking GPT-2... (may take 20s if model is loading)', false);
+  try {
+    const res = await fetch('https://api-inference.huggingface.co/models/gpt2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 80, temperature: 0.8, do_sample: true } })
+    });
+    if (res.status === 503) {
+      showStatus('story-status', '⚠️ Model warming up — try again in 20s or use Quick Fallback', false);
+      setResult('story-result', 'GPT-2 model is loading (cold start ~20s). Click "Quick Fallback" for instant creative continuation.');
+      return;
+    }
+    if (!res.ok) throw new Error(`HuggingFace error: ${res.status} (add VITE_HUGGINGFACE_API_KEY for higher limits)`);
+    const data = await res.json();
+    const generated = data[0]?.generated_text || '';
+    const continuation = generated.startsWith(prompt) ? generated.slice(prompt.length).trim() : generated.trim();
+    showStatus('story-status', '✅ AI story continuation generated', false);
+    setResult('story-result', `PROMPT:\n${prompt}\n\nAI CONTINUATION:\n${continuation}`);
+  } catch(e) {
+    showStatus('story-status', `❌ ${e.message}`, true);
+    setResult('story-result', e.message + '\n\nTip: Set VITE_HUGGINGFACE_API_KEY for authenticated access');
+  }
+}
+
+function runFallbackContinuation() {
+  const prompt = document.getElementById('story-prompt').value.trim();
+  const continuations = [
+    "...and that's when everything changed. The world would never be the same after that moment.",
+    "...the door creaked open slowly, revealing a mystery that had waited centuries to be solved.",
+    "...suddenly, a voice from behind whispered the three words that changed everything.",
+    "...in that instant, every decision ever made led perfectly to this one unforgettable moment.",
+    "...the answer had been there all along, hidden in plain sight the entire time.",
+  ];
+  const c = continuations[Math.floor(Math.random() * continuations.length)];
+  showStatus('story-status', '✅ Creative fallback continuation', false);
+  setResult('story-result', `PROMPT:\n${prompt}\n\nCONTINUATION:\n${c}`);
+}
+
+// ─── Daily Bundle ─────────────────────────────────────────────────────────────
+async function runDailyBundle() {
+  setLoading('bundle-result');
+  showStatus('bundle-status', '⏳ Loading all fun APIs...', false);
+  const today = new Date();
+
+  const [quoteR, factR, pokeR, catR, dogR] = await Promise.allSettled([
+    fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json')}`).then(r=>r.json()),
+    fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`http://numbersapi.com/${today.getMonth()+1}/${today.getDate()}/date?json`)}`).then(r=>r.json()),
+    fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*898)+1}`).then(r=>r.json()),
+    fetch('https://catfact.ninja/fact').then(r=>r.json()),
+    fetch('https://dog.ceo/api/breeds/image/random').then(r=>r.json()),
+  ]);
+
+  const quote = quoteR.status==='fulfilled' ? quoteR.value : FALLBACK_QUOTES[0];
+  const dateFact = factR.status==='fulfilled' ? factR.value.text : 'Today is a great day!';
+  const pokemon = pokeR.status==='fulfilled' ? { name: pokeR.value.name, id: pokeR.value.id } : null;
+  const catFact = catR.status==='fulfilled' ? catR.value.fact : 'Cats sleep up to 16 hours a day.';
+  const dogImage = dogR.status==='fulfilled' ? dogR.value.message : null;
+
+  showStatus('bundle-status', '✅ Daily Fun Bundle loaded!', false);
+  setResult('bundle-result', {
+    date: today.toISOString().split('T')[0],
+    quote: { text: quote.quoteText, author: quote.quoteAuthor },
+    todayFact: dateFact,
+    pokemon: pokemon ? `${pokemon.name} (#${pokemon.id})` : 'unavailable',
+    catFact,
+    dogImageUrl: dogImage || 'unavailable'
+  });
+}
+</script>
+</body>
+</html>
