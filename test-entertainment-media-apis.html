@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entertainment & Media APIs — ConnectHub Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 24px; }
+    h1   { font-size: 1.8rem; font-weight: 700; color: #f8fafc;
+           margin-bottom: 6px; }
+    .sub { color: #94a3b8; font-size: .9rem; margin-bottom: 28px; }
+
+    /* ── tabs ── */
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab  { padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: .85rem;
+            border: 1px solid #334155; background: #1e293b; color: #94a3b8;
+            transition: all .15s; }
+    .tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+
+    /* ── panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── test groups ── */
+    .tests  { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+              gap: 16px; }
+    .test   { background: #1e293b; border-radius: 12px; padding: 16px;
+              border: 1px solid #334155; }
+    .test h3 { font-size: .9rem; font-weight: 600; color: #c7d2fe; margin-bottom: 10px; }
+    .test p  { font-size: .8rem; color: #64748b; margin-bottom: 10px; line-height: 1.5; }
+
+    /* ── inputs ── */
+    input, select { width: 100%; padding: 7px 10px; background: #0f172a;
+                    border: 1px solid #334155; border-radius: 6px; color: #e2e8f0;
+                    font-size: .82rem; margin-bottom: 8px; }
+    button { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: .82rem;
+             font-weight: 600; border: none; background: #6366f1; color: #fff;
+             transition: opacity .15s; }
+    button:hover { opacity: .85; }
+    button.secondary { background: #334155; }
+
+    /* ── result box ── */
+    .result { margin-top: 10px; background: #0f172a; border-radius: 8px;
+              padding: 10px; max-height: 220px; overflow-y: auto; font-size: .75rem;
+              border: 1px solid #1e3a5f; white-space: pre-wrap; word-break: break-all;
+              color: #7dd3fc; display: none; }
+    .result.show { display: block; }
+    .badge-ok  { color: #4ade80; font-weight: 700; }
+    .badge-err { color: #f87171; font-weight: 700; }
+
+    /* ── summary bar ── */
+    #summary { background: #1e293b; border-radius: 12px; padding: 14px 20px;
+               display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px;
+               border: 1px solid #334155; font-size: .85rem; }
+    #summary span { color: #94a3b8; }
+    #summary b   { color: #f8fafc; }
+
+    /* ── audio player ── */
+    audio { width: 100%; margin-top: 8px; border-radius: 6px; }
+    .station-card { background: #0f172a; border-radius: 6px; padding: 8px;
+                    margin-top: 6px; font-size: .78rem; color: #94a3b8; }
+    .station-card b { color: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<h1>🎬 Entertainment & Media APIs</h1>
+<p class="sub">ConnectHub | Live API tests — YouTube Data v3, Deezer, Radio Browser, FreeToGame</p>
+
+<div id="summary">
+  <span>Tests Run: <b id="sRun">0</b></span>
+  <span>Passed: <b id="sPassed" style="color:#4ade80">0</b></span>
+  <span>Failed: <b id="sFailed" style="color:#f87171">0</b></span>
+  <span>Skipped: <b id="sSkipped" style="color:#facc15">0</b></span>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('youtube')">▶️ YouTube Data v3</div>
+  <div class="tab" onclick="switchTab('deezer')">🎵 Deezer</div>
+  <div class="tab" onclick="switchTab('radio')">📻 Radio Browser</div>
+  <div class="tab" onclick="switchTab('ftg')">🎮 FreeToGame</div>
+</div>
+
+<!-- ══════════════════════ YOUTUBE ══════════════════════ -->
+<div id="panel-youtube" class="panel active">
+  <div class="tests">
+
+    <div class="test">
+      <h3>1 · Search Videos</h3>
+      <p>Search YouTube with filters (type, order, duration).</p>
+      <input id="yt-query" placeholder="Search query (e.g. lo-fi music)" value="lo-fi music" />
+      <select id="yt-order">
+        <option value="relevance">relevance</option>
+        <option value="viewCount">viewCount</option>
+        <option value="date">date</option>
+        <option value="rating">rating</option>
+      </select>
+      <button onclick="testYtSearch()">Run Test</button>
+      <div class="result" id="r-yt-search"></div>
+    </div>
+
+    <div class="test">
+      <h3>2 · Video Details</h3>
+      <p>Get full stats, tags, duration for a video ID.</p>
+      <input id="yt-vid-id" placeholder="Video ID" value="jfKfPfyJRdk" />
+      <button onclick="testYtVideoDetails()">Run Test</button>
+      <div class="result" id="r-yt-video"></div>
+    </div>
+
+    <div class="test">
+      <h3>3 · Trending Videos</h3>
+      <p>Get most-popular videos (chart=mostPopular) for US.</p>
+      <select id="yt-cat">
+        <option value="">All categories</option>
+        <option value="10">10 — Music</option>
+        <option value="20">20 — Gaming</option>
+        <option value="24">24 — Entertainment</option>
+        <option value="25">25 — News & Politics</option>
+      </select>
+      <button onclick="testYtTrending()">Run Test</button>
+      <div class="result" id="r-yt-trending"></div>
+    </div>
+
+    <div class="test">
+      <h3>4 · Playlist Items</h3>
+      <p>Load all videos from a playlist ID.</p>
+      <input id="yt-playlist" placeholder="Playlist ID" value="PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI" />
+      <button onclick="testYtPlaylist()">Run Test</button>
+      <div class="result" id="r-yt-playlist"></div>
+    </div>
+
+    <div class="test">
+      <h3>5 · Video Categories</h3>
+      <p>Get all assignable video categories for the US.</p>
+      <button onclick="testYtCategories()">Run Test</button>
+      <div class="result" id="r-yt-cats"></div>
+    </div>
+
+    <div class="test">
+      <h3>6 · Video Comments</h3>
+      <p>Read top comments on a video.</p>
+      <input id="yt-comment-vid" placeholder="Video ID" value="jfKfPfyJRdk" />
+      <button onclick="testYtComments()">Run Test</button>
+      <div class="result" id="r-yt-comments"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ DEEZER ══════════════════════ -->
+<div id="panel-deezer" class="panel">
+  <div class="tests">
+
+    <div class="test">
+      <h3>1 · Search Tracks</h3>
+      <p>Search Deezer for tracks by query.</p>
+      <input id="dz-query" placeholder="Search query" value="Drake" />
+      <button onclick="testDeezerSearch()">Run Test</button>
+      <div class="result" id="r-dz-search"></div>
+    </div>
+
+    <div class="test">
+      <h3>2 · Top Charts</h3>
+      <p>Get Deezer global top tracks, albums, artists.</p>
+      <button onclick="testDeezerCharts()">Run Test</button>
+      <div class="result" id="r-dz-charts"></div>
+    </div>
+
+    <div class="test">
+      <h3>3 · Genres</h3>
+      <p>Get all Deezer music genres.</p>
+      <button onclick="testDeezerGenres()">Run Test</button>
+      <div class="result" id="r-dz-genres"></div>
+    </div>
+
+    <div class="test">
+      <h3>4 · Radio Stations</h3>
+      <p>Get Deezer editorial radio stations.</p>
+      <button onclick="testDeezerRadio()">Run Test</button>
+      <div class="result" id="r-dz-radio"></div>
+    </div>
+
+    <div class="test">
+      <h3>5 · Track Preview Player</h3>
+      <p>Search and play a 30-second preview clip.</p>
+      <input id="dz-preview-query" placeholder="Search for a track" value="Blinding Lights" />
+      <button onclick="testDeezerPreview()">Load Preview</button>
+      <div id="dz-player-area"></div>
+      <div class="result" id="r-dz-preview"></div>
+    </div>
+
+    <div class="test">
+      <h3>6 · Embed Widget URL</h3>
+      <p>Build a Deezer embed URL for a track or album.</p>
+      <select id="dz-embed-type">
+        <option value="track">track</option>
+        <option value="album">album</option>
+        <option value="playlist">playlist</option>
+      </select>
+      <input id="dz-embed-id" placeholder="Deezer ID" value="3135556" />
+      <button onclick="testDeezerEmbed()">Build URL</button>
+      <div class="result" id="r-dz-embed"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ RADIO ══════════════════════ -->
+<div id="panel-radio" class="panel">
+  <div class="tests">
+
+    <div class="test">
+      <h3>1 · Top Stations</h3>
+      <p>Get the 20 highest-voted stations globally.</p>
+      <button onclick="testRadioTop()">Run Test</button>
+      <div class="result" id="r-rb-top"></div>
+    </div>
+
+    <div class="test">
+      <h3>2 · Search Stations</h3>
+      <p>Search by name or tag.</p>
+      <input id="rb-query" placeholder="Station name / tag" value="jazz" />
+      <button onclick="testRadioSearch()">Run Test</button>
+      <div class="result" id="r-rb-search"></div>
+    </div>
+
+    <div class="test">
+      <h3>3 · Stations by Country</h3>
+      <p>Get top stations for a country code.</p>
+      <input id="rb-country" placeholder="ISO code" value="US" />
+      <button onclick="testRadioCountry()">Run Test</button>
+      <div class="result" id="r-rb-country"></div>
+    </div>
+
+    <div class="test">
+      <h3>4 · Stations by Genre</h3>
+      <p>Get stations matching a genre tag.</p>
+      <select id="rb-genre">
+        <option>pop</option><option>rock</option><option>jazz</option>
+        <option>classical</option><option>hip-hop</option><option>electronic</option>
+        <option>country</option><option>news</option><option>talk</option>
+      </select>
+      <button onclick="testRadioGenre()">Run Test</button>
+      <div class="result" id="r-rb-genre"></div>
+    </div>
+
+    <div class="test">
+      <h3>5 · Live Radio Player</h3>
+      <p>Fetch top stations and play one.</p>
+      <button onclick="testRadioPlay()">Load & Play</button>
+      <div id="rb-player-area"></div>
+      <div class="result" id="r-rb-play"></div>
+    </div>
+
+    <div class="test">
+      <h3>6 · Languages + Tags</h3>
+      <p>Load available languages and popular tags.</p>
+      <button onclick="testRadioMeta()">Run Test</button>
+      <div class="result" id="r-rb-meta"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ FREETOGAME ══════════════════════ -->
+<div id="panel-ftg" class="panel">
+  <div class="tests">
+
+    <div class="test">
+      <h3>1 · All Games</h3>
+      <p>Fetch all free-to-play games (sorted by popularity).</p>
+      <button onclick="testFtgAll()">Run Test</button>
+      <div class="result" id="r-ftg-all"></div>
+    </div>
+
+    <div class="test">
+      <h3>2 · Games by Category</h3>
+      <p>Filter by genre.</p>
+      <select id="ftg-cat">
+        <option value="mmorpg">mmorpg</option>
+        <option value="shooter">shooter</option>
+        <option value="battle-royale">battle-royale</option>
+        <option value="moba">moba</option>
+        <option value="strategy">strategy</option>
+        <option value="card">card</option>
+        <option value="anime">anime</option>
+        <option value="racing">racing</option>
+      </select>
+      <button onclick="testFtgCat()">Run Test</button>
+      <div class="result" id="r-ftg-cat"></div>
+    </div>
+
+    <div class="test">
+      <h3>3 · Latest Games</h3>
+      <p>Most recently released free-to-play games.</p>
+      <button onclick="testFtgLatest()">Run Test</button>
+      <div class="result" id="r-ftg-latest"></div>
+    </div>
+
+    <div class="test">
+      <h3>4 · Browser Games</h3>
+      <p>Games playable directly in the browser.</p>
+      <button onclick="testFtgBrowser()">Run Test</button>
+      <div class="result" id="r-ftg-browser"></div>
+    </div>
+
+    <div class="test">
+      <h3>5 · Search Games</h3>
+      <p>Client-side search by title or genre.</p>
+      <input id="ftg-query" placeholder="Search games..." value="war" />
+      <button onclick="testFtgSearch()">Search</button>
+      <div class="result" id="r-ftg-search"></div>
+    </div>
+
+    <div class="test">
+      <h3>6 · Single Game Details</h3>
+      <p>Full details + screenshots for a game ID.</p>
+      <input id="ftg-id" placeholder="Game ID" value="452" />
+      <button onclick="testFtgDetail()">Run Test</button>
+      <div class="result" id="r-ftg-detail"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════════════════════════ */
+const PROXY = 'https://corsproxy.io/?';
+
+function show(id, data, ok = true) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  const prefix = ok ? '<span class="badge-ok">✅ PASS</span>\n' : '<span class="badge-err">❌ FAIL</span>\n';
+  el.innerHTML = prefix + (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+  if (ok) incPassed(); else incFailed();
+  incRun();
+}
+
+let run = 0, passed = 0, failed = 0;
+function incRun()    { document.getElementById('sRun').textContent    = ++run; }
+function incPassed() { document.getElementById('sPassed').textContent = ++passed; }
+function incFailed() { document.getElementById('sFailed').textContent = ++failed; }
+
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   YOUTUBE DATA API v3
+══════════════════════════════════════════════════════════════════ */
+// NOTE: VITE_YOUTUBE_API_KEY is baked into the env at build time.
+// For this standalone test page we use a fallback variable below.
+// Replace with your actual key for live testing.
+const YT_KEY = window.__YT_KEY__ || 'YOUR_YOUTUBE_API_KEY';
+const YT_BASE = 'https://www.googleapis.com/youtube/v3';
+
+async function ytFetch(endpoint, params) {
+  const url = new URL(`${YT_BASE}/${endpoint}`);
+  url.searchParams.set('key', YT_KEY);
+  Object.entries(params).forEach(([k,v]) => { if(v) url.searchParams.set(k,v); });
+  const r = await fetch(url.toString());
+  return r.json();
+}
+
+async function testYtSearch() {
+  try {
+    const q = document.getElementById('yt-query').value;
+    const order = document.getElementById('yt-order').value;
+    const d = await ytFetch('search', { part:'snippet', type:'video', q, order, maxResults:3 });
+    const items = (d.items||[]).map(i=>({ videoId:i.id.videoId, title:i.snippet.title, channel:i.snippet.channelTitle }));
+    show('r-yt-search', items);
+  } catch(e) { show('r-yt-search', e.message, false); }
+}
+
+async function testYtVideoDetails() {
+  try {
+    const id = document.getElementById('yt-vid-id').value;
+    const d = await ytFetch('videos', { part:'snippet,statistics,contentDetails', id });
+    const v = d.items?.[0];
+    show('r-yt-video', { title:v?.snippet?.title, views:v?.statistics?.viewCount, likes:v?.statistics?.likeCount, duration:v?.contentDetails?.duration });
+  } catch(e) { show('r-yt-video', e.message, false); }
+}
+
+async function testYtTrending() {
+  try {
+    const cat = document.getElementById('yt-cat').value;
+    const params = { part:'snippet,statistics', chart:'mostPopular', regionCode:'US', maxResults:5 };
+    if (cat) params.videoCategoryId = cat;
+    const d = await ytFetch('videos', params);
+    const items = (d.items||[]).map(v=>({ title:v.snippet.title, views:v.statistics?.viewCount }));
+    show('r-yt-trending', items);
+  } catch(e) { show('r-yt-trending', e.message, false); }
+}
+
+async function testYtPlaylist() {
+  try {
+    const playlistId = document.getElementById('yt-playlist').value;
+    const d = await ytFetch('playlistItems', { part:'snippet,contentDetails', playlistId, maxResults:5 });
+    const items = (d.items||[]).map(i=>({ videoId:i.contentDetails.videoId, title:i.snippet.title }));
+    show('r-yt-playlist', items);
+  } catch(e) { show('r-yt-playlist', e.message, false); }
+}
+
+async function testYtCategories() {
+  try {
+    const d = await ytFetch('videoCategories', { part:'snippet', regionCode:'US', hl:'en_US' });
+    const cats = (d.items||[]).filter(c=>c.snippet.assignable).map(c=>({ id:c.id, title:c.snippet.title }));
+    show('r-yt-cats', cats);
+  } catch(e) { show('r-yt-cats', e.message, false); }
+}
+
+async function testYtComments() {
+  try {
+    const videoId = document.getElementById('yt-comment-vid').value;
+    const d = await ytFetch('commentThreads', { part:'snippet', videoId, maxResults:3, order:'relevance', textFormat:'plainText' });
+    const comments = (d.items||[]).map(i=>({ author:i.snippet.topLevelComment.snippet.authorDisplayName, text:i.snippet.topLevelComment.snippet.textDisplay.slice(0,120) }));
+    show('r-yt-comments', comments);
+  } catch(e) { show('r-yt-comments', e.message, false); }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DEEZER API
+══════════════════════════════════════════════════════════════════ */
+async function dzFetch(path, params={}) {
+  const url = new URL('https://api.deezer.com' + path);
+  Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!==null&&v!=='') url.searchParams.set(k,v); });
+  const r = await fetch(PROXY + encodeURIComponent(url.toString()));
+  return r.json();
+}
+
+async function testDeezerSearch() {
+  try {
+    const q = document.getElementById('dz-query').value;
+    const d = await dzFetch('/search/track', { q, limit: 3 });
+    const items = (d.data||[]).map(t=>({ id:t.id, title:t.title, artist:t.artist?.name, preview:t.preview ? '✅ preview' : '❌' }));
+    show('r-dz-search', items);
+  } catch(e) { show('r-dz-search', e.message, false); }
+}
+
+async function testDeezerCharts() {
+  try {
+    const d = await dzFetch('/chart', { limit: 3 });
+    const tracks = (d.tracks?.data||[]).map(t=>({ title:t.title, artist:t.artist?.name }));
+    show('r-dz-charts', { topTracks: tracks, albumCount: d.albums?.data?.length, artistCount: d.artists?.data?.length });
+  } catch(e) { show('r-dz-charts', e.message, false); }
+}
+
+async function testDeezerGenres() {
+  try {
+    const d = await dzFetch('/genre');
+    const genres = (d.data||[]).map(g=>g.name);
+    show('r-dz-genres', genres);
+  } catch(e) { show('r-dz-genres', e.message, false); }
+}
+
+async function testDeezerRadio() {
+  try {
+    const d = await dzFetch('/radio', { limit: 5 });
+    const stations = (d.data||[]).map(r=>({ id:r.id, title:r.title }));
+    show('r-dz-radio', stations);
+  } catch(e) { show('r-dz-radio', e.message, false); }
+}
+
+async function testDeezerPreview() {
+  try {
+    const q = document.getElementById('dz-preview-query').value;
+    const d = await dzFetch('/search/track', { q, limit: 1 });
+    const track = d.data?.[0];
+    if (!track?.preview) { show('r-dz-preview', 'No preview available', false); return; }
+    document.getElementById('dz-player-area').innerHTML =
+      `<div class="station-card"><b>${track.title}</b> — ${track.artist?.name}<br/>
+       <audio controls src="${track.preview}"></audio></div>`;
+    show('r-dz-preview', { title: track.title, preview_url: track.preview });
+  } catch(e) { show('r-dz-preview', e.message, false); }
+}
+
+function testDeezerEmbed() {
+  try {
+    const type = document.getElementById('dz-embed-type').value;
+    const id   = document.getElementById('dz-embed-id').value;
+    const url  = `https://widget.deezer.com/widget/auto/${type}/${id}`;
+    show('r-dz-embed', { embedUrl: url, iframeHtml: `<iframe src="${url}" width="100%" height="300"></iframe>` });
+  } catch(e) { show('r-dz-embed', e.message, false); }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RADIO BROWSER API
+══════════════════════════════════════════════════════════════════ */
+async function rbFetch(path, params={}) {
+  const url = new URL('https://de1.api.radio-browser.info/json' + path);
+  Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!==null&&v!=='') url.searchParams.set(k,v); });
+  const r = await fetch(url.toString(), { headers:{'User-Agent':'ConnectHub/1.0'} });
+  return r.json();
+}
+
+async function testRadioTop() {
+  try {
+    const d = await rbFetch('/stations', { order:'votes', reverse:true, limit:5, hidebroken:'true' });
+    const items = d.map(s=>({ name:s.name, country:s.country, votes:s.votes, codec:s.codec }));
+    show('r-rb-top', items);
+  } catch(e) { show('r-rb-top', e.message, false); }
+}
+
+async function testRadioSearch() {
+  try {
+    const name = document.getElementById('rb-query').value;
+    const d = await rbFetch('/stations/search', { name, order:'votes', reverse:true, limit:5, hidebroken:'true' });
+    show('r-rb-search', d.slice(0,5).map(s=>({ name:s.name, country:s.country, bitrate:s.bitrate })));
+  } catch(e) { show('r-rb-search', e.message, false); }
+}
+
+async function testRadioCountry() {
+  try {
+    const code = document.getElementById('rb-country').value.toUpperCase();
+    const d = await rbFetch('/stations/bycountrycodeexact/'+encodeURIComponent(code), { order:'votes', reverse:true, limit:5, hidebroken:'true' });
+    show('r-rb-country', d.map(s=>({ name:s.name, votes:s.votes })));
+  } catch(e) { show('r-rb-country', e.message, false); }
+}
+
+async function testRadioGenre() {
+  try {
+    const tag = document.getElementById('rb-genre').value;
+    const d = await rbFetch('/stations/bytag/'+encodeURIComponent(tag), { order:'votes', reverse:true, limit:5, hidebroken:'true' });
+    show('r-rb-genre', d.map(s=>({ name:s.name, country:s.country, bitrate:s.bitrate })));
+  } catch(e) { show('r-rb-genre', e.message, false); }
+}
+
+async function testRadioPlay() {
+  try {
+    const d = await rbFetch('/stations', { order:'votes', reverse:true, limit:3, hidebroken:'true' });
+    const s = d[0];
+    document.getElementById('rb-player-area').innerHTML =
+      `<div class="station-card"><b>${s.name}</b> | ${s.country} | ${s.bitrate}kbps<br/>
+       <audio controls src="${s.url_resolved||s.url}" type="audio/mpeg"></audio></div>`;
+    show('r-rb-play', d.slice(0,3).map(s=>({ name:s.name, url:s.url_resolved||s.url, votes:s.votes })));
+  } catch(e) { show('r-rb-play', e.message, false); }
+}
+
+async function testRadioMeta() {
+  try {
+    const [langs, tags] = await Promise.all([
+      rbFetch('/languages', { order:'stationcount', reverse:true, limit:10 }),
+      rbFetch('/tags',      { order:'stationcount', reverse:true, limit:10 }),
+    ]);
+    show('r-rb-meta', { top10languages: langs.map(l=>l.name), top10tags: tags.map(t=>t.name) });
+  } catch(e) { show('r-rb-meta', e.message, false); }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FREETOGAME API
+══════════════════════════════════════════════════════════════════ */
+async function ftgFetch(path, params={}) {
+  const url = new URL('https://www.freetogame.com/api' + path);
+  Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!==null&&v!=='') url.searchParams.set(k,v); });
+  const r = await fetch(PROXY + encodeURIComponent(url.toString()));
+  return r.json();
+}
+
+async function testFtgAll() {
+  try {
+    const d = await ftgFetch('/games', { 'sort-by':'popularity' });
+    const items = Array.isArray(d) ? d.slice(0,5).map(g=>({ id:g.id, title:g.title, genre:g.genre, platform:g.platform })) : d;
+    show('r-ftg-all', { total: Array.isArray(d) ? d.length : 0, sample: items });
+  } catch(e) { show('r-ftg-all', e.message, false); }
+}
+
+async function testFtgCat() {
+  try {
+    const category = document.getElementById('ftg-cat').value;
+    const d = await ftgFetch('/games', { category });
+    const items = Array.isArray(d) ? d.slice(0,5).map(g=>({ title:g.title, genre:g.genre })) : d;
+    show('r-ftg-cat', { category, count: Array.isArray(d)?d.length:0, sample: items });
+  } catch(e) { show('r-ftg-cat', e.message, false); }
+}
+
+async function testFtgLatest() {
+  try {
+    const d = await ftgFetch('/games', { 'sort-by':'release-date' });
+    const items = Array.isArray(d) ? d.slice(0,5).map(g=>({ title:g.title, releaseDate:g.release_date })) : d;
+    show('r-ftg-latest', items);
+  } catch(e) { show('r-ftg-latest', e.message, false); }
+}
+
+async function testFtgBrowser() {
+  try {
+    const d = await ftgFetch('/games', { platform:'browser' });
+    const items = Array.isArray(d) ? d.slice(0,5).map(g=>({ title:g.title, genre:g.genre })) : d;
+    show('r-ftg-browser', { total: Array.isArray(d)?d.length:0, sample: items });
+  } catch(e) { show('r-ftg-browser', e.message, false); }
+}
+
+async function testFtgSearch() {
+  try {
+    const query = document.getElementById('ftg-query').value.toLowerCase();
+    const d = await ftgFetch('/games', {});
+    const results = Array.isArray(d) ? d.filter(g=>g.title.toLowerCase().includes(query)||g.genre.toLowerCase().includes(query)).slice(0,5) : [];
+    show('r-ftg-search', results.map(g=>({ id:g.id, title:g.title, genre:g.genre })));
+  } catch(e) { show('r-ftg-search', e.message, false); }
+}
+
+async function testFtgDetail() {
+  try {
+    const id = document.getElementById('ftg-id').value;
+    const d = await ftgFetch('/game', { id });
+    show('r-ftg-detail', { id:d.id, title:d.title, genre:d.genre, status:d.status, screenshots:d.screenshots?.length||0, hasReqs: !!d.minimum_system_requirements });
+  } catch(e) { show('r-ftg-detail', e.message, false); }
+}
+</script>
+</body>
+</html>
