@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiceBear Avatar Test — LynkApp</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f14; color: #fff; padding: 24px; }
+  h1  { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  h2  { font-size: 18px; font-weight: 600; margin: 28px 0 12px; color: #a78bfa; }
+  .tag { display: inline-block; background: #22c55e22; color: #22c55e; border: 1px solid #22c55e55; border-radius: 20px; padding: 2px 12px; font-size: 13px; margin-bottom: 4px; }
+  .sub { color: #888; font-size: 14px; margin-bottom: 20px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+  .card {
+    background: #1a1a24;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    width: 130px;
+    transition: transform .2s, border-color .2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: #a78bfa; }
+  .card img { width: 80px; height: 80px; border-radius: 50%; display: block; margin: 0 auto 10px; background: #2a2a3a; }
+  .card img.square { border-radius: 8px; }
+  .card .name { font-size: 11px; color: #aaa; word-break: break-all; }
+  .card .style { font-size: 10px; color: #666; margin-top: 2px; }
+  .status-bar { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; }
+  .status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; font-size: 14px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+  .dot.warn { background: #f59e0b; }
+  .section { margin-bottom: 36px; }
+  .url-box { background: #111; border: 1px solid #333; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #6ee7b7; font-family: monospace; margin-top: 12px; word-break: break-all; }
+  .picker-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+  .picker-item { cursor: pointer; }
+  .picker-item img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid transparent; transition: border-color .2s; }
+  .picker-item img:hover { border-color: #a78bfa; }
+  .picker-item img.selected { border-color: #22c55e; }
+  #selected-label { margin-top: 8px; color: #888; font-size: 13px; }
+  hr { border: none; border-top: 1px solid #2a2a3a; margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<h1>🎭 DiceBear Auto-Avatars — LynkApp Test</h1>
+<span class="tag">✅ Live Test</span>
+<p class="sub">API: https://api.dicebear.com/9.x/ — No API key required, completely free</p>
+
+<div class="status-bar" id="status-bar">
+  <div class="status-row"><div class="dot" id="dot1"></div><span id="msg1">Checking DiceBear API…</span></div>
+  <div class="status-row"><div class="dot warn" id="dot2"></div><span id="msg2">Waiting for avatars to load…</span></div>
+</div>
+
+<!-- ── SECTION 1: LynkApp per-section styles ──────────────────── -->
+<div class="section">
+  <h2>🧑 LynkApp Section Avatars (seed: "jeremy_lynkapp")</h2>
+  <p class="sub">One avatar style assigned per app section</p>
+  <div class="grid" id="section-grid"></div>
+</div>
+
+<hr>
+
+<!-- ── SECTION 2: Style Gallery (all 10 sampled styles) ──────── -->
+<div class="section">
+  <h2>🎨 Style Gallery — 10 Styles Sampled (seed: "LynkApp2026")</h2>
+  <p class="sub">Same seed, different styles — each is deterministic</p>
+  <div class="grid" id="style-grid"></div>
+</div>
+
+<hr>
+
+<!-- ── SECTION 3: Avatar Picker ──────────────────────────────── -->
+<div class="section">
+  <h2>🎯 Avatar Picker (6 variants — onboarding use case)</h2>
+  <p class="sub">Click one to "select" it</p>
+  <div class="picker-grid" id="picker-grid"></div>
+  <div id="selected-label">Click an avatar to select it</div>
+</div>
+
+<hr>
+
+<!-- ── SECTION 4: Fallback Test ──────────────────────────────── -->
+<div class="section">
+  <h2>🔁 Smart Fallback Test</h2>
+  <p class="sub">resolveAvatar() — uses real photo if provided, else generates avatar</p>
+  <div class="grid" id="fallback-grid"></div>
+</div>
+
+<hr>
+
+<!-- ── SECTION 5: Formats ──────────────────────────────────────── -->
+<div class="section">
+  <h2>📦 Format Examples (SVG / PNG / WebP)</h2>
+  <div class="grid" id="format-grid"></div>
+</div>
+
+<hr>
+
+<!-- ── SECTION 6: Live URL Inspector ──────────────────────────── -->
+<div class="section">
+  <h2>🔗 Live URL Examples</h2>
+  <div class="url-box" id="url-box">Loading URLs…</div>
+</div>
+
+<script>
+// ── Inline avatar-service (subset — mirrors avatar-service.js) ────────
+const DICEBEAR_BASE = 'https://api.dicebear.com/9.x';
+
+const LYNKAPP_BACKGROUNDS = [
+  'b6e3f4','c0aede','d1d4f9','ffd5dc','ffdfbf','b6f4d4','f4e4b6','f4b6b6'
+];
+
+function seedToBackground(seed) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) & 0xffffffff;
+  return LYNKAPP_BACKGROUNDS[Math.abs(hash) % LYNKAPP_BACKGROUNDS.length];
+}
+
+function getAvatarUrl(seed, style = 'adventurer', opts = {}) {
+  const {
+    format = 'svg', size = 128,
+    radius = 50,
+    backgroundColor,
+  } = opts;
+  const bg = backgroundColor || seedToBackground(seed);
+  const p = new URLSearchParams({ seed, backgroundColor: bg });
+  if (radius !== undefined) p.set('radius', radius);
+  if (format !== 'svg') p.set('size', size);
+  return `${DICEBEAR_BASE}/${style}/${format}?${p}`;
+}
+
+// ── Build section avatars ──────────────────────────────────────
+const SECTION_STYLES = [
+  { label: 'Profile',   style: 'adventurer',     seed: 'jeremy_lynkapp' },
+  { label: 'Dating',    style: 'lorelei',          seed: 'jeremy_lynkapp' },
+  { label: 'Bot/AI',    style: 'bottts',           seed: 'lynkbot' },
+  { label: 'Groups',    style: 'shapes',           seed: 'jeremy_lynkapp', radius: 0 },
+  { label: 'Business',  style: 'notionists',       seed: 'jeremy_lynkapp' },
+  { label: 'Gaming',    style: 'pixel-art',        seed: 'jeremy_lynkapp', radius: 0 },
+  { label: 'Initials',  style: 'initials',         seed: 'Jeremy N' },
+  { label: 'Emoji',     style: 'fun-emoji',        seed: 'jeremy_lynkapp' },
+];
+
+const sectionGrid = document.getElementById('section-grid');
+SECTION_STYLES.forEach(({ label, style, seed, radius = 50 }) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const url = getAvatarUrl(seed, style, { radius });
+  card.innerHTML = `
+    <img src="${url}" alt="${label}" class="${radius === 0 ? 'square' : ''}"
+         onerror="this.src='https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(label)}&backgroundColor=2a2a3a'">
+    <div class="name">${label}</div>
+    <div class="style">${style}</div>
+  `;
+  sectionGrid.appendChild(card);
+});
+
+// ── Style gallery ──────────────────────────────────────────────
+const GALLERY_STYLES = [
+  'adventurer','avataaars','big-ears','bottts','croodles',
+  'fun-emoji','lorelei','micah','pixel-art','shapes',
+];
+
+const styleGrid = document.getElementById('style-grid');
+GALLERY_STYLES.forEach(style => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const url = getAvatarUrl('LynkApp2026', style, { radius: 50 });
+  card.innerHTML = `
+    <img src="${url}" alt="${style}"
+         onerror="this.src='https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(style)}'">
+    <div class="name">${style}</div>
+  `;
+  styleGrid.appendChild(card);
+});
+
+// ── Avatar picker ──────────────────────────────────────────────
+const pickerGrid = document.getElementById('picker-grid');
+const selectedLabel = document.getElementById('selected-label');
+for (let i = 0; i < 6; i++) {
+  const seed = `user_picker_v${i}`;
+  const url = getAvatarUrl(seed, 'adventurer', { radius: 50 });
+  const item = document.createElement('div');
+  item.className = 'picker-item';
+  item.innerHTML = `<img src="${url}" alt="Option ${i + 1}" id="pick-${i}">`;
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.picker-item img').forEach(el => el.classList.remove('selected'));
+    item.querySelector('img').classList.add('selected');
+    selectedLabel.textContent = `✅ Selected avatar option ${i + 1} (seed: "${seed}")`;
+  });
+  pickerGrid.appendChild(item);
+}
+
+// ── Fallback test ──────────────────────────────────────────────
+const fallbackGrid = document.getElementById('fallback-grid');
+const fallbackCases = [
+  { photoUrl: null,                     seed: 'user_001', label: 'No photo → avatar' },
+  { photoUrl: 'https://invalid.url/x',  seed: 'user_002', label: 'Bad URL → avatar' },
+  { photoUrl: 'https://api.dicebear.com/9.x/adventurer/svg?seed=realphoto&backgroundColor=b6e3f4', seed: 'user_003', label: 'Has photo → photo' },
+];
+fallbackCases.forEach(({ photoUrl, seed, label }) => {
+  const src = (photoUrl && photoUrl.startsWith('http')) ? photoUrl : getAvatarUrl(seed, 'adventurer');
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="${src}" alt="${label}" onerror="this.src='${getAvatarUrl(seed, 'initials')}'">
+    <div class="name">${label}</div>
+  `;
+  fallbackGrid.appendChild(card);
+});
+
+// ── Format examples ────────────────────────────────────────────
+const formatGrid = document.getElementById('format-grid');
+const formatExamples = [
+  { format: 'svg',  label: 'SVG (default)',   opts: { format: 'svg'  } },
+  { format: 'png',  label: 'PNG (128px)',      opts: { format: 'png', size: 128 } },
+  { format: 'webp', label: 'WebP (128px)',     opts: { format: 'webp', size: 128 } },
+];
+formatExamples.forEach(({ label, opts }) => {
+  const url = getAvatarUrl('format_test', 'adventurer', { ...opts, radius: 50 });
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="${url}" alt="${label}">
+    <div class="name">${label}</div>
+  `;
+  formatGrid.appendChild(card);
+});
+
+// ── URL box ────────────────────────────────────────────────────
+const urlBox = document.getElementById('url-box');
+urlBox.innerHTML = [
+  '// User profile avatar (adventurer, circular):',
+  getAvatarUrl('jeremy_newball', 'adventurer', { radius: 50 }),
+  '',
+  '// Dating avatar (lorelei):',
+  getAvatarUrl('jeremy_newball', 'lorelei', { radius: 50 }),
+  '',
+  '// Bot avatar (bottts):',
+  getAvatarUrl('lynkbot', 'bottts', { radius: 50, backgroundColor: 'b6e3f4' }),
+  '',
+  '// Gaming avatar (pixel-art, square):',
+  getAvatarUrl('jeremy_newball', 'pixel-art', { radius: 0 }),
+  '',
+  '// Initials avatar:',
+  getAvatarUrl('Jeremy N', 'initials', { radius: 50 }),
+].join('\n');
+
+// ── Status check — count loaded images ────────────────────────
+let loadedCount = 0;
+const allImgs = document.querySelectorAll('img');
+const total = allImgs.length;
+
+function updateStatus() {
+  loadedCount++;
+  if (loadedCount >= total) {
+    document.getElementById('msg2').textContent = `✅ All ${total} avatars loaded successfully`;
+    document.getElementById('dot2').style.background = '#22c55e';
+  } else {
+    document.getElementById('msg2').textContent = `Loading avatars… ${loadedCount}/${total}`;
+  }
+}
+
+allImgs.forEach(img => {
+  if (img.complete) updateStatus();
+  else { img.addEventListener('load', updateStatus); img.addEventListener('error', updateStatus); }
+});
+
+// Check API reachability
+fetch('https://api.dicebear.com/9.x/adventurer/svg?seed=test&backgroundColor=b6e3f4')
+  .then(r => {
+    document.getElementById('msg1').textContent = `✅ DiceBear API: HTTP ${r.status} — Working`;
+    document.getElementById('dot1').style.background = '#22c55e';
+  })
+  .catch(() => {
+    document.getElementById('msg1').textContent = '❌ DiceBear API unreachable';
+    document.getElementById('dot1').style.background = '#ef4444';
+  });
+</script>
+</body>
+</html>
