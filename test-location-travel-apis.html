@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location & Travel APIs — LynkApp Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a1a; color: #e0e0ff; min-height: 100vh; padding: 20px; }
+    h1 { text-align: center; color: #7c6fff; margin-bottom: 8px; font-size: 1.8rem; }
+    .subtitle { text-align: center; color: #888; margin-bottom: 28px; font-size: 0.95rem; }
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
+    .badge-free { background: #1a4d2e; color: #4ade80; }
+    .badge-key  { background: #4d2a1a; color: #fb923c; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .card { background: #13132a; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; }
+    .card h2 { color: #a78bfa; margin-bottom: 14px; font-size: 1.05rem; display: flex; align-items: center; gap: 6px; }
+    .row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    input, select { flex: 1; min-width: 140px; background: #1e1e3a; border: 1px solid #3a3a5a; border-radius: 7px; color: #e0e0ff; padding: 8px 12px; font-size: 0.88rem; }
+    input::placeholder { color: #555; }
+    button { background: #6d5cff; color: #fff; border: none; border-radius: 7px; padding: 8px 16px; cursor: pointer; font-size: 0.88rem; white-space: nowrap; transition: background 0.2s; }
+    button:hover { background: #8b7aff; }
+    button:disabled { background: #333; cursor: not-allowed; }
+    .result { background: #0e0e22; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px; font-size: 0.8rem; max-height: 260px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; color: #c0c0e0; margin-top: 8px; min-height: 60px; }
+    .status { font-size: 0.82rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
+    .ok  { background: #0f2e1a; color: #4ade80; }
+    .err { background: #2e0f0f; color: #f87171; }
+    .loading { color: #aaa; }
+    .tag { display: inline-block; background: #1e1e3a; border: 1px solid #3a3a5a; border-radius: 4px; padding: 1px 6px; font-size: 0.72rem; margin: 2px; color: #9a8aff; }
+    .api-url { font-size: 0.75rem; color: #555; margin-bottom: 8px; font-family: monospace; }
+  </style>
+</head>
+<body>
+
+<h1>🗺️ Location & Travel APIs</h1>
+<p class="subtitle">NEW-19 · NEW-20 · NEW-21 · NEW-22 — LynkApp Integration Tests</p>
+
+<div class="grid">
+
+  <!-- NEW-19: Nominatim Geocoding -->
+  <div class="card">
+    <h2>🗺️ NEW-19: Nominatim Geocoding <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">nominatim.openstreetmap.org/search &amp; /reverse</p>
+
+    <div style="margin-bottom:12px">
+      <strong style="font-size:0.85rem;color:#aaa">Forward Geocode (address → lat/lng)</strong>
+      <div class="row" style="margin-top:6px">
+        <input id="geo-query" placeholder="e.g. New York, Eiffel Tower..." value="New York City">
+        <button onclick="runForwardGeocode()">Search</button>
+      </div>
+      <div id="geo-status" class="status" style="display:none"></div>
+      <div id="geo-result" class="result">Results will appear here...</div>
+    </div>
+
+    <div>
+      <strong style="font-size:0.85rem;color:#aaa">Reverse Geocode (lat/lng → address)</strong>
+      <div class="row" style="margin-top:6px">
+        <input id="rev-lat" placeholder="Lat" value="40.7128" style="max-width:120px">
+        <input id="rev-lon" placeholder="Lon" value="-74.0060" style="max-width:120px">
+        <button onclick="runReverseGeocode()">Lookup</button>
+      </div>
+      <div id="rev-status" class="status" style="display:none"></div>
+      <div id="rev-result" class="result">Results will appear here...</div>
+    </div>
+  </div>
+
+  <!-- NEW-20: Country.is -->
+  <div class="card">
+    <h2>🌐 NEW-20: Country.is (IP → Country) <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">api.country.is/</p>
+    <p style="font-size:0.83rem;color:#888;margin-bottom:10px">Detects visitor country from IP. Useful for marketplace shipping checks &amp; geo-restrictions.</p>
+
+    <div class="row">
+      <button onclick="runCountryDetect()" style="flex:1">Detect My Country</button>
+      <button onclick="runShippingCheck()" style="flex:1">Check US Shipping</button>
+    </div>
+    <div id="country-status" class="status" style="display:none"></div>
+    <div id="country-result" class="result">Click a button to test...</div>
+
+    <div style="margin-top:12px">
+      <strong style="font-size:0.85rem;color:#aaa">Custom Shipping Allowlist Check</strong>
+      <div class="row" style="margin-top:6px">
+        <input id="allowed-countries" placeholder="US,CA,GB,AU (comma-separated)" value="US,CA,GB,AU">
+        <button onclick="runCustomShipping()">Check</button>
+      </div>
+      <div id="shipping-result" class="result" style="min-height:40px">—</div>
+    </div>
+  </div>
+
+  <!-- NEW-21: OpenSky -->
+  <div class="card">
+    <h2>✈️ NEW-21: OpenSky Network (Live Flights) <span class="badge badge-free">FREE · NO KEY</span></h2>
+    <p class="api-url">opensky-network.org/api/states/all</p>
+    <p style="font-size:0.83rem;color:#888;margin-bottom:10px">Live flight data — unlimited free calls. Better than Aviation Stack.</p>
+
+    <div class="row">
+      <select id="region-select">
+        <option value="EU">Europe (EU)</option>
+        <option value="US">USA</option>
+        <option value="UK">UK</option>
+        <option value="AU">Australia</option>
+      </select>
+      <button onclick="runRegionFlights()">Load Flights by Region</button>
+    </div>
+    <div id="sky-status" class="status" style="display:none"></div>
+    <div id="sky-result" class="result">Click button to load live flights...</div>
+
+    <div style="margin-top:12px">
+      <strong style="font-size:0.85rem;color:#aaa">Flights Near Location</strong>
+      <div class="row" style="margin-top:6px">
+        <input id="sky-lat" placeholder="Lat" value="51.5074" style="max-width:100px">
+        <input id="sky-lon" placeholder="Lon" value="-0.1278" style="max-width:100px">
+        <input id="sky-pad" placeholder="±deg" value="2" style="max-width:60px">
+        <button onclick="runNearbyFlights()">Near Me</button>
+      </div>
+      <div id="sky-near-result" class="result" style="min-height:40px">—</div>
+    </div>
+  </div>
+
+  <!-- NEW-22: Hotels.com -->
+  <div class="card">
+    <h2>🏨 NEW-22: Hotels.com (RapidAPI) <span class="badge badge-key">VITE_RAPIDAPI_KEY</span></h2>
+    <p class="api-url">hotels4.p.rapidapi.com — falls back to mock data if no key</p>
+    <p style="font-size:0.83rem;color:#888;margin-bottom:10px">Hotel search for Travel &amp; Events sections. Uses mock data when no RapidAPI key is set.</p>
+
+    <div class="row">
+      <input id="hotel-city" placeholder="City (e.g. Paris)" value="New York">
+      <button onclick="runHotelSearch()">Search Hotels</button>
+    </div>
+
+    <div style="font-size:0.78rem;color:#666;margin:4px 0 8px">
+      Check-in: <input id="checkin" type="date" style="width:140px;padding:4px" value="">
+      Check-out: <input id="checkout" type="date" style="width:140px;padding:4px" value="">
+    </div>
+
+    <div id="hotel-status" class="status" style="display:none"></div>
+    <div id="hotel-result" class="result">Enter a city and click Search...</div>
+  </div>
+
+</div>
+
+<!-- Combined Test -->
+<div style="max-width:860px;margin:20px auto 0">
+  <div class="card">
+    <h2>🔗 Composite: Travel Data for Address (Geocode + Flights)</h2>
+    <p style="font-size:0.83rem;color:#888;margin-bottom:10px">Combines NEW-19 + NEW-21: geocode an address, then find live flights near those coordinates.</p>
+    <div class="row">
+      <input id="travel-address" placeholder="Enter any address or city..." value="London, UK" style="flex:3">
+      <button onclick="runTravelComposite()" style="flex:1">Get Travel Data</button>
+    </div>
+    <div id="travel-status" class="status" style="display:none"></div>
+    <div id="travel-result" class="result" style="max-height:200px">Click button to run combined geocode + flight lookup...</div>
+  </div>
+</div>
+
+<script>
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function showStatus(id, msg, isErr) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.className = 'status ' + (isErr ? 'err' : 'ok');
+  el.textContent = msg;
+}
+function setResult(id, data) {
+  document.getElementById(id).textContent =
+    typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+function setLoading(id) {
+  document.getElementById(id).innerHTML = '<span class="loading">⏳ Loading...</span>';
+}
+
+// ─── NEW-19: Nominatim ───────────────────────────────────────────────────────
+async function runForwardGeocode() {
+  const query = document.getElementById('geo-query').value.trim();
+  if (!query) return;
+  setLoading('geo-result');
+  try {
+    const params = new URLSearchParams({ q: query, format: 'json', addressdetails: '1', limit: '5' });
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'LynkApp/1.0' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const mapped = data.map(item => ({
+      displayName: item.display_name,
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+      type: item.type,
+      address: item.address
+    }));
+    showStatus('geo-status', `✅ Found ${mapped.length} result(s) for "${query}"`, false);
+    setResult('geo-result', mapped.length ? mapped : 'No results found.');
+  } catch (e) {
+    showStatus('geo-status', `❌ Error: ${e.message}`, true);
+    setResult('geo-result', e.message);
+  }
+}
+
+async function runReverseGeocode() {
+  const lat = document.getElementById('rev-lat').value;
+  const lon = document.getElementById('rev-lon').value;
+  setLoading('rev-result');
+  try {
+    const params = new URLSearchParams({ lat, lon, format: 'json', addressdetails: '1' });
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params}`, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'LynkApp/1.0' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    showStatus('rev-status', `✅ Reverse geocode: ${data.display_name?.substring(0, 60)}...`, false);
+    setResult('rev-result', { displayName: data.display_name, address: data.address });
+  } catch (e) {
+    showStatus('rev-status', `❌ Error: ${e.message}`, true);
+    setResult('rev-result', e.message);
+  }
+}
+
+// ─── NEW-20: Country.is ──────────────────────────────────────────────────────
+async function runCountryDetect() {
+  setLoading('country-result');
+  try {
+    const res = await fetch('https://api.country.is/');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    showStatus('country-status', `✅ Your country: ${data.country} | IP: ${data.ip}`, false);
+    setResult('country-result', data);
+  } catch (e) {
+    showStatus('country-status', `❌ Error: ${e.message}`, true);
+    setResult('country-result', e.message);
+  }
+}
+
+async function runShippingCheck() {
+  setLoading('country-result');
+  try {
+    const res = await fetch('https://api.country.is/');
+    const { country, ip } = await res.json();
+    const usShipping = country === 'US';
+    showStatus('country-status', `✅ Country: ${country} | US shipping: ${usShipping ? 'YES ✅' : 'NO ❌'}`, false);
+    setResult('country-result', { ip, country, usShippingAvailable: usShipping });
+  } catch (e) {
+    showStatus('country-status', `❌ Error: ${e.message}`, true);
+    setResult('country-result', e.message);
+  }
+}
+
+async function runCustomShipping() {
+  const allowed = document.getElementById('allowed-countries').value
+    .split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+  try {
+    const res = await fetch('https://api.country.is/');
+    const { country } = await res.json();
+    const isAllowed = allowed.includes(country.toUpperCase());
+    setResult('shipping-result', {
+      yourCountry: country,
+      allowedCountries: allowed,
+      shippingAvailable: isAllowed,
+      message: isAllowed
+        ? `✅ Shipping available to ${country}`
+        : `❌ Shipping NOT available to ${country}`
+    });
+  } catch (e) {
+    setResult('shipping-result', `Error: ${e.message}`);
+  }
+}
+
+// ─── NEW-21: OpenSky ─────────────────────────────────────────────────────────
+const REGION_BOXES = {
+  US: { lamin: 24, lomin: -125, lamax: 50, lomax: -66 },
+  UK: { lamin: 49, lomin: -8,   lamax: 61, lomax: 2   },
+  EU: { lamin: 36, lomin: -10,  lamax: 60, lomax: 30  },
+  AU: { lamin: -44, lomin: 113, lamax: -10, lomax: 154 },
+};
+
+async function runRegionFlights() {
+  const region = document.getElementById('region-select').value;
+  const bbox = REGION_BOXES[region];
+  setLoading('sky-result');
+  try {
+    const params = new URLSearchParams({
+      lamin: bbox.lamin, lomin: bbox.lomin, lamax: bbox.lamax, lomax: bbox.lomax
+    });
+    const res = await fetch(`https://opensky-network.org/api/states/all?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const flights = (data.states || []).slice(0, 10).map(s => ({
+      callsign: (s[1]||'').trim() || 'N/A',
+      originCountry: s[2],
+      lat: s[6], lon: s[5],
+      altitude: s[7] ? `${Math.round(s[7])}m` : 'N/A',
+      speed: s[9] ? `${Math.round(s[9]*3.6)}km/h` : 'N/A',
+      onGround: s[8]
+    }));
+    const total = (data.states || []).length;
+    showStatus('sky-status', `✅ ${total} live flights in ${region} — showing first 10`, false);
+    setResult('sky-result', { totalFlights: total, region, sampleFlights: flights });
+  } catch (e) {
+    showStatus('sky-status', `❌ Error: ${e.message}`, true);
+    setResult('sky-result', e.message);
+  }
+}
+
+async function runNearbyFlights() {
+  const lat = parseFloat(document.getElementById('sky-lat').value);
+  const lon = parseFloat(document.getElementById('sky-lon').value);
+  const pad = parseFloat(document.getElementById('sky-pad').value) || 1;
+  setResult('sky-near-result', '⏳ Loading...');
+  try {
+    const params = new URLSearchParams({
+      lamin: lat-pad, lomin: lon-pad, lamax: lat+pad, lomax: lon+pad
+    });
+    const res = await fetch(`https://opensky-network.org/api/states/all?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const total = (data.states || []).length;
+    const sample = (data.states || []).slice(0, 5).map(s => ({
+      callsign: (s[1]||'N/A').trim(),
+      country: s[2],
+      alt: s[7] ? `${Math.round(s[7])}m` : 'N/A'
+    }));
+    setResult('sky-near-result', { nearCoord: {lat,lon}, padDeg: pad, totalFlights: total, sample });
+  } catch (e) {
+    setResult('sky-near-result', `Error: ${e.message}`);
+  }
+}
+
+// ─── NEW-22: Hotels.com (mock fallback) ──────────────────────────────────────
+async function runHotelSearch() {
+  const city = document.getElementById('hotel-city').value.trim() || 'New York';
+  setLoading('hotel-result');
+
+  // Use mock data (no RapidAPI key in test page)
+  setTimeout(() => {
+    showStatus('hotel-status', `✅ Mock hotel data for "${city}" (set VITE_RAPIDAPI_KEY for real data)`, false);
+    setResult('hotel-result', {
+      note: 'Mock data — set VITE_RAPIDAPI_KEY in .env for live Hotels.com results',
+      city,
+      hotels: [
+        { name: 'Grand Hotel Downtown', stars: 4, pricePerNight: '$149', rating: '8.6/10', reviews: 1234 },
+        { name: 'Budget Inn Express', stars: 2, pricePerNight: '$59', rating: '7.2/10', reviews: 456 },
+        { name: 'Luxury Suites & Spa', stars: 5, pricePerNight: '$389', rating: '9.4/10', reviews: 892 },
+        { name: 'City Center Boutique', stars: 3, pricePerNight: '$99', rating: '8.0/10', reviews: 678 },
+      ]
+    });
+  }, 500);
+}
+
+// ─── Composite ────────────────────────────────────────────────────────────────
+async function runTravelComposite() {
+  const address = document.getElementById('travel-address').value.trim();
+  if (!address) return;
+  setLoading('travel-result');
+  try {
+    // Step 1: Geocode
+    const geoParams = new URLSearchParams({ q: address, format: 'json', limit: '1' });
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?${geoParams}`, {
+      headers: { 'User-Agent': 'LynkApp/1.0' }
+    });
+    const geoData = await geoRes.json();
+    if (!geoData.length) throw new Error(`Could not geocode: "${address}"`);
+
+    const lat = parseFloat(geoData[0].lat);
+    const lon = parseFloat(geoData[0].lon);
+    const displayName = geoData[0].display_name;
+
+    // Step 2: Flights near location
+    const flightParams = new URLSearchParams({ lamin: lat-1, lomin: lon-1, lamax: lat+1, lomax: lon+1 });
+    const flightRes = await fetch(`https://opensky-network.org/api/states/all?${flightParams}`);
+    const flightData = await flightRes.json();
+    const flightCount = (flightData.states || []).length;
+
+    showStatus('travel-status', `✅ ${address} → ${flightCount} flights within ~111km`, false);
+    setResult('travel-result', {
+      address,
+      coordinates: { lat, lon },
+      displayName,
+      nearbyFlights: {
+        count: flightCount,
+        radiusApprox: '~111km (1° bounding box)',
+        sample: (flightData.states || []).slice(0, 5).map(s => ({
+          callsign: (s[1]||'N/A').trim(),
+          country: s[2],
+          alt: s[7] ? `${Math.round(s[7])}m` : 'N/A'
+        }))
+      }
+    });
+  } catch (e) {
+    showStatus('travel-status', `❌ Error: ${e.message}`, true);
+    setResult('travel-result', e.message);
+  }
+}
+
+// Pre-fill date inputs
+(function() {
+  const today = new Date();
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const nextWeek = new Date(today); nextWeek.setDate(nextWeek.getDate()+7);
+  const fmt = d => d.toISOString().split('T')[0];
+  document.getElementById('checkin').value = fmt(tomorrow);
+  document.getElementById('checkout').value = fmt(nextWeek);
+})();
+</script>
+</body>
+</html>
