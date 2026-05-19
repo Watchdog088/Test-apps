@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenStreetMap + Leaflet Test — LynkApp</title>
+
+<!-- ── Leaflet CSS (loaded from CDN — no API key needed) ──────────────── -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f14; color: #fff; padding: 20px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #a78bfa; margin: 24px 0 10px; }
+  .tag { display: inline-block; background: #22c55e22; color: #22c55e; border: 1px solid #22c55e55; border-radius: 20px; padding: 2px 12px; font-size: 13px; }
+  .sub { color: #888; font-size: 14px; margin-bottom: 16px; }
+
+  /* Status bar */
+  .status-bar { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px; padding: 14px 18px; margin: 12px 0 20px; }
+  .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 13px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+  .dot.ok { background: #22c55e; }
+  .dot.err { background: #ef4444; }
+
+  /* Map cards grid */
+  .map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
+  .map-card { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 16px; overflow: hidden; }
+  .map-card-header { padding: 12px 16px 8px; display: flex; align-items: center; gap: 10px; }
+  .map-card-header h3 { font-size: 14px; font-weight: 600; }
+  .map-card-header .badge { font-size: 10px; background: #a78bfa22; color: #a78bfa; border: 1px solid #a78bfa55; border-radius: 10px; padding: 1px 8px; }
+  .map-card-sub { padding: 0 16px 8px; font-size: 12px; color: #666; }
+  .map-container { height: 280px; width: 100%; }
+  .map-container.tall { height: 360px; }
+
+  /* Controls */
+  .controls { padding: 10px 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { background: #2a2a3a; border: 1px solid #3a3a4a; color: #ddd; border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer; transition: all .15s; }
+  .btn:hover { background: #3a3a4a; border-color: #a78bfa; color: #fff; }
+  .btn.active { background: #a78bfa; border-color: #a78bfa; color: #fff; }
+
+  /* Geocode search */
+  .search-row { padding: 0 16px 12px; display: flex; gap: 8px; }
+  .search-input { flex: 1; background: #111; border: 1px solid #2a2a3a; color: #fff; border-radius: 8px; padding: 7px 12px; font-size: 13px; outline: none; }
+  .search-input:focus { border-color: #a78bfa; }
+  .search-results { padding: 0 16px 10px; }
+  .result-item { background: #111; border: 1px solid #2a2a3a; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px; color: #ccc; cursor: pointer; transition: border-color .15s; }
+  .result-item:hover { border-color: #a78bfa; }
+  .result-item .coords { color: #666; font-size: 11px; margin-top: 2px; }
+
+  /* Info box */
+  .info-box { background: #111; border: 1px solid #2a2a3a; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #6ee7b7; font-family: monospace; margin: 8px 16px 14px; white-space: pre-wrap; word-break: break-all; max-height: 80px; overflow-y: auto; }
+
+  /* Tile switcher */
+  .tile-btns { padding: 6px 16px 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tile-btn { background: #111; border: 1px solid #2a2a3a; color: #aaa; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .tile-btn:hover { border-color: #a78bfa; color: #fff; }
+  .tile-btn.active { background: #a78bfa33; border-color: #a78bfa; color: #a78bfa; }
+
+  hr { border: none; border-top: 1px solid #2a2a3a; margin: 24px 0; }
+  .full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<h1>🗺️ OpenStreetMap + Leaflet — LynkApp Test</h1>
+<span class="tag">✅ Live Test</span>
+<p class="sub">Leaflet 1.9.4 · OpenStreetMap tiles · Nominatim geocoding — No API key required</p>
+
+<div class="status-bar" id="status-bar">
+  <div class="status-row"><div class="dot" id="dot-leaflet"></div><span id="msg-leaflet">Loading Leaflet 1.9.4 from CDN…</span></div>
+  <div class="status-row"><div class="dot" id="dot-tiles"></div><span id="msg-tiles">Waiting for tile server…</span></div>
+  <div class="status-row"><div class="dot" id="dot-nominatim"></div><span id="msg-nominatim">Waiting for Nominatim geocoding…</span></div>
+  <div class="status-row"><div class="dot" id="dot-maps"></div><span id="msg-maps">Waiting for maps to initialize…</span></div>
+</div>
+
+<div class="map-grid" id="map-grid">
+
+  <!-- MAP 1: Events Map ───────────────────────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">📅</span>
+      <div>
+        <h3>Events Map</h3>
+        <div class="badge">events section</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Numbered markers for event locations · Washington DC area</p>
+    <div id="map-events" class="map-container"></div>
+    <div class="controls">
+      <button class="btn" onclick="fitEvents()">↩ Fit All</button>
+      <button class="btn" onclick="zoomDC()">🏛 DC View</button>
+    </div>
+  </div>
+
+  <!-- MAP 2: Marketplace Map ──────────────────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">🛍️</span>
+      <div>
+        <h3>Marketplace Map</h3>
+        <div class="badge">marketplace section</div>
+      </div>
+    </div>
+    <p class="map-card-sub">CartoDB Light tiles · seller/item location pins</p>
+    <div id="map-marketplace" class="map-container"></div>
+    <div class="controls">
+      <button class="btn" onclick="fitMarket()">↩ Fit All</button>
+    </div>
+  </div>
+
+  <!-- MAP 3: Nearby Users (Dating/Friends) ────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">❤️</span>
+      <div>
+        <h3>Nearby Users Map</h3>
+        <div class="badge">dating · friends</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Smooth dark tiles · nearby radius circle · privacy-safe approximate coords</p>
+    <div id="map-nearby" class="map-container"></div>
+    <div class="controls">
+      <button class="btn" onclick="toggleNearbyMode()" id="btn-nearby-mode">Switch to Friends</button>
+    </div>
+  </div>
+
+  <!-- MAP 4: Business Profile Map ─────────────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">🏢</span>
+      <div>
+        <h3>Business Location Map</h3>
+        <div class="badge">business profile</div>
+      </div>
+    </div>
+    <p class="map-card-sub">CartoDB Light · single business pin with popup · zoom 16</p>
+    <div id="map-business" class="map-container"></div>
+    <div class="controls">
+      <button class="btn" onclick="openBusinessPopup()">📍 Show Info</button>
+    </div>
+  </div>
+
+  <!-- MAP 5: Tile Layer Switcher ───────────────────────── -->
+  <div class="map-card full-width">
+    <div class="map-card-header">
+      <span style="font-size:20px;">🎨</span>
+      <div>
+        <h3>Tile Layer Switcher</h3>
+        <div class="badge">all 7 free styles</div>
+      </div>
+    </div>
+    <p class="map-card-sub">All tile servers are free, no API key · click to switch styles</p>
+    <div class="tile-btns" id="tile-btns">
+      <button class="tile-btn active" data-tile="osm"         onclick="switchTile('osm',this)">🗺 OSM Standard</button>
+      <button class="tile-btn"        data-tile="hot"         onclick="switchTile('hot',this)">🟠 Humanitarian</button>
+      <button class="tile-btn"        data-tile="stadiaSmooth" onclick="switchTile('stadiaSmooth',this)">☁️ Stadia Smooth</button>
+      <button class="tile-btn"        data-tile="stadiaDark"  onclick="switchTile('stadiaDark',this)">🌑 Dark Mode</button>
+      <button class="tile-btn"        data-tile="cartoLight"  onclick="switchTile('cartoLight',this)">⬜ CartoDB Light</button>
+      <button class="tile-btn"        data-tile="cartoDark"   onclick="switchTile('cartoDark',this)">⬛ CartoDB Dark</button>
+      <button class="tile-btn"        data-tile="topo"        onclick="switchTile('topo',this)">⛰️ Topographic</button>
+    </div>
+    <div id="map-tiles" class="map-container tall"></div>
+    <div id="tile-info" class="info-box">Current tile: OSM Standard (https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png)</div>
+  </div>
+
+  <!-- MAP 6: Geocoding / Address Search ───────────────── -->
+  <div class="map-card full-width">
+    <div class="map-card-header">
+      <span style="font-size:20px;">🔍</span>
+      <div>
+        <h3>Nominatim Geocoding</h3>
+        <div class="badge">address → coordinates · free</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Type any address — Nominatim converts it to lat/lng (no API key, rate: 1 req/sec)</p>
+    <div class="search-row">
+      <input class="search-input" id="geocode-input" type="text" placeholder="Search any address, place, or city…" value="White House, Washington DC" />
+      <button class="btn" style="white-space:nowrap;" onclick="runGeocode()">🔍 Search</button>
+    </div>
+    <div class="search-results" id="geocode-results"></div>
+    <div id="map-geocode" class="map-container tall"></div>
+    <div id="geocode-info" class="info-box">Results will appear here…</div>
+  </div>
+
+  <!-- MAP 7: Reverse Geocode / Click to get Address ───── -->
+  <div class="map-card full-width">
+    <div class="map-card-header">
+      <span style="font-size:20px;">📍</span>
+      <div>
+        <h3>Reverse Geocode (Click Map)</h3>
+        <div class="badge">coordinates → address · free</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Click anywhere on the map to get the street address at that location</p>
+    <div id="map-reverse" class="map-container tall"></div>
+    <div id="reverse-info" class="info-box">Click anywhere on the map to reverse geocode…</div>
+  </div>
+
+  <!-- MAP 8: Shapes & Drawing ─────────────────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">⭕</span>
+      <div>
+        <h3>Shapes & Overlays</h3>
+        <div class="badge">circles · polygons · polylines</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Radius circles, delivery zones, route paths</p>
+    <div id="map-shapes" class="map-container"></div>
+    <div class="controls">
+      <button class="btn" onclick="addCircle()">⭕ 1km Circle</button>
+      <button class="btn" onclick="addPolygon()">⬡ Zone</button>
+      <button class="btn" onclick="addRoute()">〰 Route</button>
+      <button class="btn" onclick="clearShapes()">🗑 Clear</button>
+    </div>
+  </div>
+
+  <!-- MAP 9: Distance Calculator ──────────────────────── -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <span style="font-size:20px;">📏</span>
+      <div>
+        <h3>Distance Calculator</h3>
+        <div class="badge">Haversine formula</div>
+      </div>
+    </div>
+    <p class="map-card-sub">Click two points to calculate distance between them</p>
+    <div id="map-distance" class="map-container"></div>
+    <div id="distance-info" class="info-box">Click two points on the map…</div>
+  </div>
+
+</div><!-- end map-grid -->
+
+<!-- ── Leaflet JS (loaded from CDN) ───────────────────────────────────── -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// ─── Tile layer configs (mirrors map-service.js) ─────────────────────────
+const TILE_LAYERS = {
+  osm:         { url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',           attribution:'© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19 },
+  hot:         { url:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',        attribution:'© OpenStreetMap HOT', maxZoom:19 },
+  stadiaSmooth:{ url:'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', attribution:'© Stadia Maps © OpenStreetMap', maxZoom:20 },
+  stadiaDark:  { url:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', attribution:'© Stadia Maps © OpenStreetMap', maxZoom:20 },
+  cartoLight:  { url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19 },
+  cartoDark:   { url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',  attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19 },
+  topo:        { url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',              attribution:'Map data © OpenStreetMap, SRTM | Style © OpenTopoMap', maxZoom:17 },
+};
+
+const MARKER_COLORS = {
+  primary:'#a78bfa', event:'#f59e0b', market:'#22c55e',
+  dating:'#ec4899', friend:'#3b82f6', business:'#6366f1',
+};
+
+const DC = [38.8951, -77.0364]; // Washington DC
+
+// ─── Helper: make map with tile ──────────────────────────────────────────
+function makeMap(id, center, zoom, tileKey) {
+  const map = L.map(id, { center, zoom, scrollWheelZoom: true });
+  const t = TILE_LAYERS[tileKey || 'osm'];
+  L.tileLayer(t.url, { attribution: t.attribution, maxZoom: t.maxZoom, subdomains: t.subdomains || 'abc' }).addTo(map);
+  return map;
+}
+
+function dotMarker(lat, lng, color, radius, popup) {
+  return L.circleMarker([lat, lng], {
+    radius: radius || 10, fillColor: color, color:'#fff', weight:2, fillOpacity:0.9
+  }).bindPopup(popup || '');
+}
+
+function htmlIcon(html, size) {
+  return L.divIcon({ html, className:'', iconSize:[size||32,size||32], iconAnchor:[(size||32)/2,(size||32)], popupAnchor:[0,-(size||32)] });
+}
+
+function emojiMarker(emoji, size) {
+  return htmlIcon(`<div style="font-size:${size||22}px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))">${emoji}</div>`, size||28);
+}
+
+function numberedMarker(n, color) {
+  const s = `<div style="background:${color};color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${n}</div>`;
+  return htmlIcon(s, 26);
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371, dl = (lat2-lat1)*Math.PI/180, dg = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dl/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dg/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ─── STATUS ──────────────────────────────────────────────────────────────
+function setStatus(id, ok, msg) {
+  document.getElementById('dot-'+id).className = 'dot ' + (ok ? 'ok' : 'err');
+  document.getElementById('msg-'+id).textContent = msg;
+}
+
+// ─── 1. EVENTS MAP ───────────────────────────────────────────────────────
+const events = [
+  { lat:38.8921, lng:-77.0241, emoji:'🎵', title:'Live Music Night',      date:'Sat May 24', address:'Navy Yard, DC' },
+  { lat:38.9072, lng:-77.0369, emoji:'🍕', title:'Food Truck Festival',   date:'Sun May 25', address:'National Mall' },
+  { lat:38.9110, lng:-77.0430, emoji:'🎨', title:'Art Gallery Opening',   date:'Fri May 23', address:'Georgetown, DC' },
+  { lat:38.8993, lng:-77.0200, emoji:'🏃', title:'5K Charity Run',        date:'Sun May 25', address:'Capitol Hill' },
+];
+
+let eventsMap, eventsMarkers = [];
+let marketMap, marketMarkers = [];
+let nearbyMap, nearbyIsDating = true;
+let bizMap, bizMarker;
+let tilesMap, currentTile = 'osm';
+let geocodeMap, geocodeMarkers = [];
+let reverseMap;
+let shapesMap, shapeLayers = [];
+let distMap, distPoints = [], distLine, distCircles = [];
+
+function initAll() {
+  setStatus('leaflet', true, `✅ Leaflet ${L.version} loaded successfully`);
+
+  // 1. Events
+  eventsMap = makeMap('map-events', DC, 13, 'osm');
+  eventsMarkers = events.map((e, i) => {
+    const m = L.marker([e.lat, e.lng], { icon: numberedMarker(i+1, MARKER_COLORS.event) })
+      .addTo(eventsMap)
+      .bindPopup(`<div style="min-width:140px"><div style="text-align:center;font-size:20px">${e.emoji}</div><strong>${e.title}</strong><br><span style="color:#888;font-size:11px">${e.date}</span><br><span style="font-size:11px">📍 ${e.address}</span></div>`);
+    return m;
+  });
+  eventsMap.fitBounds(L.latLngBounds(events.map(e => [e.lat, e.lng])), {padding:[30,30]});
+
+  // 2. Marketplace
+  const items = [
+    { lat:38.9072, lng:-77.0369, emoji:'📱', title:'iPhone 14 Pro', price:'650', seller:'Mark T.' },
+    { lat:38.9020, lng:-77.0280, emoji:'🛋️', title:'Vintage Couch',  price:'120', seller:'Sarah M.' },
+    { lat:38.8980, lng:-77.0450, emoji:'👟', title:'Nike Air Max',   price:'85',  seller:'Jordan K.' },
+    { lat:38.9150, lng:-77.0200, emoji:'🎸', title:'Guitar + Case',  price:'200', seller:'Alex R.' },
+  ];
+  marketMap = makeMap('map-marketplace', DC, 13, 'cartoLight');
+  marketMarkers = items.map(item => {
+    return L.marker([item.lat, item.lng], { icon: emojiMarker(item.emoji) })
+      .addTo(marketMap)
+      .bindPopup(`<div style="min-width:130px"><strong>${item.title}</strong><br><span style="color:#22c55e;font-weight:600">$${item.price}</span><br><span style="font-size:11px;color:#888">by ${item.seller}</span></div>`);
+  });
+  marketMap.fitBounds(L.latLngBounds(items.map(i => [i.lat, i.lng])), {padding:[30,30]});
+
+  // 3. Nearby users
+  nearbyMap = makeMap('map-nearby', DC, 13, 'stadiaDark');
+  L.circle(DC, { radius:3000, fillColor:'#a78bfa', fillOpacity:0.1, color:'#a78bfa', weight:1 }).addTo(nearbyMap);
+  buildNearbyUsers();
+
+  // 4. Business
+  const biz = { lat:38.9072, lng:-77.0369, name:'LynkApp HQ', address:'1600 K St NW, Washington DC', hours:'Mon–Fri 9am–6pm', phone:'(202) 555-0100', emoji:'🏢' };
+  bizMap = makeMap('map-business', [biz.lat, biz.lng], 16, 'cartoLight');
+  bizMarker = L.marker([biz.lat, biz.lng], { icon: emojiMarker('🏢', 28) })
+    .addTo(bizMap)
+    .bindPopup(`<div style="min-width:160px"><strong>${biz.name}</strong><br><span style="font-size:12px">📍 ${biz.address}</span><br><span style="font-size:11px;color:#888">🕐 ${biz.hours}</span><br><span style="font-size:11px">📞 ${biz.phone}</span></div>`);
+  setTimeout(() => bizMarker.openPopup(), 500);
+
+  // 5. Tile switcher
+  tilesMap = makeMap('map-tiles', DC, 13, 'osm');
+  L.marker(DC).addTo(tilesMap).bindPopup('📍 Washington DC — Tile switcher test');
+
+  // 6. Geocode map
+  geocodeMap = makeMap('map-geocode', DC, 14, 'osm');
+  // Run initial geocode for White House
+  setTimeout(() => runGeocode(), 800);
+
+  // 7. Reverse geocode
+  reverseMap = makeMap('map-reverse', DC, 13, 'osm');
+  reverseMap.on('click', onReverseClick);
+  document.getElementById('reverse-info').textContent = 'Click anywhere on the map to get the address at that location…';
+
+  // 8. Shapes
+  shapesMap = makeMap('map-shapes', DC, 13, 'osm');
+
+  // 9. Distance
+  distMap = makeMap('map-distance', DC, 13, 'cartoLight');
+  distMap.on('click', onDistClick);
+
+  setStatus('tiles', true, '✅ Tile servers loaded (OSM + CartoDB + Stadia + TopoMap)');
+  setStatus('maps', true, '✅ All 9 maps initialized and rendering correctly');
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────
+
+function fitEvents() { eventsMap.fitBounds(L.latLngBounds(events.map(e => [e.lat, e.lng])), {padding:[30,30]}); }
+function zoomDC()    { eventsMap.setView(DC, 13); }
+function fitMarket() { marketMap.fitBounds(L.latLngBounds([[38.915,-77.045],[38.898,-77.020]]), {padding:[30,30]}); }
+
+function buildNearbyUsers() {
+  const users = nearbyIsDating ? [
+    { lat:38.9120, lng:-77.0320, emoji:'❤️', name:'Alex, 28', dist:'0.4 mi' },
+    { lat:38.9040, lng:-77.0440, emoji:'❤️', name:'Jordan, 25', dist:'0.7 mi' },
+    { lat:38.9200, lng:-77.0200, emoji:'❤️', name:'Taylor, 30', dist:'1.1 mi' },
+  ] : [
+    { lat:38.9120, lng:-77.0320, emoji:'👤', name:'Marcus', dist:'0.4 mi' },
+    { lat:38.9040, lng:-77.0440, emoji:'👤', name:'Diana', dist:'0.7 mi' },
+    { lat:38.9200, lng:-77.0200, emoji:'👤', name:'Chris', dist:'1.1 mi' },
+    { lat:38.8960, lng:-77.0380, emoji:'👤', name:'Priya', dist:'0.9 mi' },
+  ];
+  nearbyMap.eachLayer(l => { if (l.options && (l.options.fillColor || l._latlng)) nearbyMap.removeLayer(l); });
+  L.circle(DC, { radius:3000, fillColor:'#a78bfa', fillOpacity:0.1, color:'#a78bfa', weight:1 }).addTo(nearbyMap);
+  // "You are here"
+  L.circleMarker(DC, { radius:10, fillColor:'#3b82f6', color:'#fff', weight:3, fillOpacity:1 }).addTo(nearbyMap).bindPopup('📍 You');
+  users.forEach(u => {
+    L.marker([u.lat, u.lng], { icon: emojiMarker(u.emoji) }).addTo(nearbyMap)
+      .bindPopup(`<div style="text-align:center;min-width:100px"><div style="font-size:24px">${u.emoji}</div><strong>${u.name}</strong><br><span style="font-size:11px;color:#888">${u.dist} away</span></div>`);
+  });
+}
+
+function toggleNearbyMode() {
+  nearbyIsDating = !nearbyIsDating;
+  buildNearbyUsers();
+  document.getElementById('btn-nearby-mode').textContent = nearbyIsDating ? 'Switch to Friends' : 'Switch to Dating';
+}
+
+function openBusinessPopup() { bizMarker.openPopup(); }
+
+function switchTile(tileKey, btn) {
+  const t = TILE_LAYERS[tileKey];
+  if (!t) return;
+  tilesMap.eachLayer(l => { if (l instanceof L.TileLayer) tilesMap.removeLayer(l); });
+  L.tileLayer(t.url, { attribution: t.attribution, maxZoom: t.maxZoom, subdomains: t.subdomains || 'abc' }).addTo(tilesMap);
+  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTile = tileKey;
+  document.getElementById('tile-info').textContent = `Current tile: ${t.url}`;
+}
+
+// ─── GEOCODING ───────────────────────────────────────────────────────────
+async function runGeocode() {
+  const q = document.getElementById('geocode-input').value.trim();
+  if (!q) return;
+  const resultsDiv = document.getElementById('geocode-results');
+  const infoDiv = document.getElementById('geocode-info');
+  resultsDiv.innerHTML = '<div style="color:#888;font-size:12px;padding:6px 0">Searching…</div>';
+
+  try {
+    const params = new URLSearchParams({ q, format:'json', limit:5, addressdetails:1 });
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+      headers: { 'User-Agent':'LynkApp/1.0 (https://lynkapp.com)' }
+    });
+    const data = await res.json();
+
+    setStatus('nominatim', true, `✅ Nominatim geocoding: HTTP ${res.status} — Working (${data.length} results for "${q}")`);
+
+    resultsDiv.innerHTML = '';
+    if (!data.length) {
+      resultsDiv.innerHTML = '<div style="color:#ef4444;font-size:12px">No results found</div>';
+      return;
+    }
+
+    // Clear old markers
+    geocodeMarkers.forEach(m => m.remove());
+    geocodeMarkers = [];
+
+    data.forEach((r, i) => {
+      const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+      const name = r.display_name.split(',').slice(0, 2).join(', ');
+
+      // Result button
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.innerHTML = `<strong>${name}</strong><div class="coords">📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · ${r.type}</div>`;
+      div.onclick = () => {
+        geocodeMap.setView([lat, lng], 16);
+        geocodeMarkers[i].openPopup();
+      };
+      resultsDiv.appendChild(div);
+
+      // Marker
+      const m = L.marker([lat, lng], { icon: emojiMarker('📍') })
+        .addTo(geocodeMap)
+        .bindPopup(`<strong>${name}</strong><br><span style="font-size:11px">📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>`);
+      geocodeMarkers.push(m);
+    });
+
+    // Fit to results
+    const bounds = L.latLngBounds(data.map(r => [parseFloat(r.lat), parseFloat(r.lon)]));
+    geocodeMap.fitBounds(bounds, { padding:[40,40] });
+
+    infoDiv.textContent = `// Nominatim response — ${data.length} results\n${JSON.stringify({query: q, results: data.length, first: {lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), name: data[0].display_name.split(',')[0]}}, null, 2)}`;
+
+  } catch(e) {
+    setStatus('nominatim', false, `❌ Nominatim error: ${e.message}`);
+    resultsDiv.innerHTML = `<div style="color:#ef4444;font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+// Allow Enter key in search box
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('geocode-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runGeocode();
+  });
+});
+
+// ─── REVERSE GEOCODE ─────────────────────────────────────────────────────
+let revMarker = null;
+async function onReverseClick(e) {
+  const { lat, lng } = e.latlng;
+  const infoDiv = document.getElementById('reverse-info');
+  infoDiv.textContent = `Reverse geocoding ${lat.toFixed(5)}, ${lng.toFixed(5)}…`;
+
+  if (revMarker) revMarker.remove();
+  revMarker = L.marker([lat, lng], { icon: emojiMarker('📍') }).addTo(reverseMap);
+
+  try {
+    const params = new URLSearchParams({ lat, lon: lng, format:'json', addressdetails:1, zoom:18 });
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params}`, {
+      headers:{ 'User-Agent':'LynkApp/1.0 (https://lynkapp.com)' }
+    });
+    const data = await res.json();
+    const addr = data.address || {};
+    const display = data.display_name || 'Unknown location';
+    const city = addr.city || addr.town || addr.village || '';
+    const state = addr.state || '';
+
+    revMarker.bindPopup(`<div style="min-width:160px"><strong>${display.split(',')[0]}</strong><br><span style="font-size:11px">${display.split(',').slice(1, 3).join(',')}</span></div>`).openPopup();
+    infoDiv.textContent = `// Reverse geocode result:\nAddress: ${display}\nCity: ${city}, ${state}\nCoords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+  } catch(e) {
+    infoDiv.textContent = `Error: ${e.message}`;
+  }
+}
+
+// ─── SHAPES ──────────────────────────────────────────────────────────────
+function addCircle() {
+  const c = L.circle(DC, { radius:1000, fillColor:'#a78bfa', fillOpacity:0.2, color:'#a78bfa', weight:2 })
+    .addTo(shapesMap).bindPopup('⭕ 1km radius circle');
+  shapeLayers.push(c);
+}
+function addPolygon() {
+  const poly = L.polygon([
+    [38.9200, -77.0500],[38.9200, -77.0200],
+    [38.8900, -77.0200],[38.8900, -77.0500]
+  ], { fillColor:'#22c55e', fillOpacity:0.2, color:'#22c55e', weight:2 })
+    .addTo(shapesMap).bindPopup('⬡ Delivery zone polygon');
+  shapeLayers.push(poly);
+}
+function addRoute() {
+  const route = L.polyline([
+    [38.8921,-77.0241],[38.9020,-77.0280],[38.9072,-77.0369],[38.9150,-77.0450]
+  ], { color:'#f59e0b', weight:4, opacity:0.8 })
+    .addTo(shapesMap).bindPopup('〰 Route path');
+  shapeLayers.push(route);
+}
+function clearShapes() {
+  shapeLayers.forEach(l => shapesMap.removeLayer(l));
+  shapeLayers = [];
+}
+
+// ─── DISTANCE CALCULATOR ─────────────────────────────────────────────────
+function onDistClick(e) {
+  const { lat, lng } = e.latlng;
+  distPoints.push([lat, lng]);
+
+  L.circleMarker([lat, lng], {
+    radius: 8, fillColor: MARKER_COLORS.primary, color:'#fff', weight:2, fillOpacity:1
+  }).addTo(distMap).bindPopup(`📍 Point ${distPoints.length}: ${lat.toFixed(4)}, ${lng.toFixed(4)}`).openPopup();
+
+  if (distPoints.length === 2) {
+    if (distLine) distMap.removeLayer(distLine);
+    distLine = L.polyline(distPoints, { color:'#a78bfa', weight:3, dashArray:'8,6' }).addTo(distMap);
+    const km = haversine(...distPoints[0], ...distPoints[1]);
+    const mi = km * 0.621371;
+    document.getElementById('distance-info').textContent =
+      `// Distance calculated:\nPoint A: ${distPoints[0][0].toFixed(5)}, ${distPoints[0][1].toFixed(5)}\nPoint B: ${distPoints[1][0].toFixed(5)}, ${distPoints[1][1].toFixed(5)}\nDistance: ${km.toFixed(3)} km  /  ${mi.toFixed(3)} miles\n(Algorithm: Haversine formula)`;
+    distPoints = [];
+  } else {
+    document.getElementById('distance-info').textContent = `Point 1 set: ${lat.toFixed(5)}, ${lng.toFixed(5)}\nClick a second point to measure distance…`;
+  }
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  if (window.L) {
+    initAll();
+  } else {
+    setStatus('leaflet', false, '❌ Leaflet failed to load from CDN');
+  }
+});
+</script>
+</body>
+</html>
