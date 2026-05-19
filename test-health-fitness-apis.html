@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health, Fitness & Lifestyle APIs — Test Page</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#0f0f1a;color:#e2e8f0;min-height:100vh;padding:20px}
+  h1{text-align:center;color:#a78bfa;font-size:2rem;margin-bottom:8px}
+  .subtitle{text-align:center;color:#94a3b8;margin-bottom:30px;font-size:0.95rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:20px;max-width:1400px;margin:0 auto}
+  .card{background:#1e1e2e;border:1px solid #2d2d44;border-radius:12px;padding:20px}
+  .card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .card-icon{font-size:1.8rem}
+  .card-title{font-size:1.1rem;font-weight:700;color:#c4b5fd}
+  .card-badge{margin-left:auto;font-size:0.7rem;padding:3px 8px;border-radius:20px;font-weight:600}
+  .badge-free{background:#14532d;color:#4ade80}
+  .badge-key{background:#1e3a5f;color:#60a5fa}
+  .badge-builtin{background:#3b1f4f;color:#c084fc}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  input,select{background:#2a2a3e;border:1px solid #3d3d5c;color:#e2e8f0;padding:7px 11px;border-radius:8px;font-size:0.85rem;flex:1;min-width:120px}
+  button{background:#7c3aed;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;white-space:nowrap;transition:background 0.2s}
+  button:hover{background:#6d28d9}
+  button.secondary{background:#1e3a5f;color:#93c5fd}
+  button.secondary:hover{background:#1e40af}
+  button.success{background:#065f46;color:#6ee7b7}
+  .result{background:#12122a;border-radius:8px;padding:12px;font-size:0.8rem;max-height:260px;overflow-y:auto;line-height:1.5;color:#94a3b8;margin-top:8px}
+  .result pre{white-space:pre-wrap;word-break:break-all}
+  .status{font-size:0.75rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-bottom:8px}
+  .status.ok{background:#14532d;color:#4ade80}
+  .status.err{background:#7f1d1d;color:#fca5a5}
+  .status.loading{background:#1e3a5f;color:#93c5fd}
+  .meditation-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+  .session-card{background:#2a1f44;border-radius:8px;padding:10px;cursor:pointer;transition:background 0.2s;border:1px solid transparent}
+  .session-card:hover{background:#3b2f5a;border-color:#7c3aed}
+  .session-card .icon{font-size:1.5rem}
+  .session-card .title{font-size:0.8rem;font-weight:600;color:#c4b5fd;margin-top:4px}
+  .session-card .dur{font-size:0.72rem;color:#94a3b8}
+  .mood-row{display:flex;gap:6px;margin-top:8px}
+  .mood-btn{flex:1;padding:8px 4px;border-radius:8px;border:1px solid #3d3d5c;background:#2a2a3e;cursor:pointer;text-align:center;font-size:0.9rem;transition:all 0.2s}
+  .mood-btn:hover{border-color:#7c3aed;background:#3b2f5a}
+  .nutr-bar-wrap{margin-top:6px}
+  .nutr-bar-label{font-size:0.72rem;color:#94a3b8;display:flex;justify-content:space-between;margin-bottom:3px}
+  .nutr-bar{height:6px;background:#2a2a3e;border-radius:3px;overflow:hidden}
+  .nutr-bar-fill{height:100%;border-radius:3px;transition:width 0.6s}
+  .tag{display:inline-block;background:#1e3a5f;color:#93c5fd;font-size:0.68rem;padding:2px 6px;border-radius:4px;margin:2px}
+</style>
+</head>
+<body>
+<h1>🏥 Health, Fitness &amp; Lifestyle APIs</h1>
+<p class="subtitle">Wger Workout Manager · Meditopia (Mindfulness) · USDA FoodData Central · OpenFDA</p>
+
+<div class="grid">
+
+  <!-- ── WGER ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">💪</div>
+      <div>
+        <div class="card-title">Wger Workout Manager</div>
+        <div style="font-size:0.72rem;color:#94a3b8">wger.de/api/v2 · No API key required</div>
+      </div>
+      <span class="card-badge badge-free">FREE</span>
+    </div>
+    <div class="controls">
+      <input id="wger-search" placeholder="Search exercise (e.g. squat)" value="squat">
+      <button onclick="testWger()">Search</button>
+      <button class="secondary" onclick="loadWgerCategories()">Categories</button>
+    </div>
+    <div id="wger-status"></div>
+    <div id="wger-result" class="result"><em>Click Search or Categories to test…</em></div>
+  </div>
+
+  <!-- ── MEDITOPIA ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🧘</div>
+      <div>
+        <div class="card-title">Meditopia Mindfulness</div>
+        <div style="font-size:0.72rem;color:#94a3b8">Built-in library + ZenQuotes · No key needed</div>
+      </div>
+      <span class="card-badge badge-builtin">BUILT-IN</span>
+    </div>
+    <div class="controls">
+      <select id="med-category">
+        <option value="">All sessions</option>
+        <option value="breathing">Breathing</option>
+        <option value="sleep">Sleep</option>
+        <option value="anxiety">Anxiety</option>
+        <option value="focus">Focus</option>
+        <option value="mindfulness">Mindfulness</option>
+        <option value="compassion">Compassion</option>
+      </select>
+      <button onclick="loadSessions()">Show Sessions</button>
+      <button class="secondary" onclick="fetchQuote()">Get Quote</button>
+    </div>
+    <div id="med-status"></div>
+    <div id="med-result" class="result">
+      <div class="meditation-grid" id="session-grid"></div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:4px">Log your mood:</div>
+      <div class="mood-row" id="mood-row"></div>
+    </div>
+    <div id="mood-msg" style="font-size:0.75rem;color:#4ade80;margin-top:6px;display:none"></div>
+  </div>
+
+  <!-- ── USDA ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🥗</div>
+      <div>
+        <div class="card-title">USDA FoodData Central</div>
+        <div style="font-size:0.72rem;color:#94a3b8">api.nal.usda.gov/fdc/v1 · Free API key</div>
+      </div>
+      <span class="card-badge badge-key">API KEY</span>
+    </div>
+    <div style="font-size:0.72rem;color:#f59e0b;margin-bottom:8px">
+      ⚠️ Add <code>VITE_USDA_API_KEY</code> to ConnectHub-SPA/.env for full access.
+      Demo mode uses DEMO_KEY (30 req/hr).
+    </div>
+    <div class="controls">
+      <input id="usda-search" placeholder="Search food (e.g. apple)" value="apple">
+      <button onclick="testUSDA()">Search</button>
+      <button class="secondary" onclick="loadPopularFoods()">Popular Foods</button>
+    </div>
+    <div id="usda-status"></div>
+    <div id="usda-result" class="result"><em>Click Search to test USDA FoodData Central…</em></div>
+  </div>
+
+  <!-- ── OPENFDA ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">💊</div>
+      <div>
+        <div class="card-title">OpenFDA</div>
+        <div style="font-size:0.72rem;color:#94a3b8">api.fda.gov · No key for 1K req/day</div>
+      </div>
+      <span class="card-badge badge-free">FREE</span>
+    </div>
+    <div class="controls">
+      <input id="fda-drug" placeholder="Drug name (e.g. aspirin)" value="aspirin">
+      <button onclick="testFDALabels()">Drug Label</button>
+      <button class="secondary" onclick="testFoodRecalls()">Food Recalls</button>
+      <button class="secondary" onclick="testDrugRecalls()">Drug Recalls</button>
+    </div>
+    <div id="fda-status"></div>
+    <div id="fda-result" class="result"><em>Click a button to query OpenFDA…</em></div>
+  </div>
+
+</div>
+
+<script>
+// ── Wger ──────────────────────────────────────────────────────────────────────
+async function testWger() {
+  const term = document.getElementById('wger-search').value.trim() || 'squat';
+  setStatus('wger', 'loading', 'Searching exercises…');
+  try {
+    const url = `https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(term)}&language=english&format=json`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const suggestions = data.suggestions || [];
+    if (!suggestions.length) { setResult('wger', 'No exercises found for "' + term + '"'); setStatus('wger','ok','No results'); return; }
+    let html = `<strong style="color:#c4b5fd">Found ${suggestions.length} suggestions for "${term}"</strong><br><br>`;
+    suggestions.slice(0,5).forEach(s => {
+      html += `<div style="margin-bottom:8px;padding:8px;background:#2a2a3e;border-radius:6px">`;
+      html += `<div style="color:#a78bfa;font-weight:600">${s.value || s.name}</div>`;
+      if (s.data) {
+        html += `<div style="color:#94a3b8;font-size:0.75rem">Category: ${s.data.category || 'N/A'} | ID: ${s.data.id || 'N/A'}</div>`;
+      }
+      html += `</div>`;
+    });
+    setResult('wger', html);
+    setStatus('wger','ok',`✓ ${suggestions.length} results`);
+  } catch(e) { setStatus('wger','err','Error: '+e.message); setResult('wger',e.message); }
+}
+
+async function loadWgerCategories() {
+  setStatus('wger','loading','Loading categories…');
+  try {
+    const res = await fetch('https://wger.de/api/v2/exercisecategory/?format=json');
+    const data = await res.json();
+    const cats = data.results || [];
+    let html = `<strong style="color:#c4b5fd">Exercise Categories (${cats.length})</strong><br><br>`;
+    cats.forEach(c => { html += `<span class="tag">ID ${c.id}: ${c.name}</span>`; });
+    setResult('wger', html);
+    setStatus('wger','ok',`✓ ${cats.length} categories`);
+  } catch(e) { setStatus('wger','err',e.message); }
+}
+
+// ── Meditopia (Built-in) ───────────────────────────────────────────────────────
+const SESSIONS = [
+  {id:'breath-5',title:'5-Min Breathing',category:'breathing',duration:5,icon:'🫁',tags:['stress','quick']},
+  {id:'breath-10',title:'10-Min Deep Breathing',category:'breathing',duration:10,icon:'🧘',tags:['focus']},
+  {id:'body-scan-15',title:'15-Min Body Scan',category:'body-scan',duration:15,icon:'🌿',tags:['sleep']},
+  {id:'morning-7',title:'7-Min Morning',category:'mindfulness',duration:7,icon:'☀️',tags:['morning']},
+  {id:'sleep-20',title:'20-Min Sleep Prep',category:'sleep',duration:20,icon:'🌙',tags:['sleep']},
+  {id:'focus-3',title:'3-Min Focus Reset',category:'focus',duration:3,icon:'🎯',tags:['work']},
+  {id:'anxiety-8',title:'8-Min Anxiety Relief',category:'anxiety',duration:8,icon:'💙',tags:['anxiety']},
+  {id:'kindness-12',title:'12-Min Loving Kindness',category:'compassion',duration:12,icon:'❤️',tags:['compassion']},
+];
+const MOODS = [{v:1,e:'😢'},{v:2,e:'😞'},{v:3,e:'😐'},{v:4,e:'🙂'},{v:5,e:'😄'}];
+
+function loadSessions() {
+  const cat = document.getElementById('med-category').value;
+  const filtered = cat ? SESSIONS.filter(s=>s.category===cat) : SESSIONS;
+  const grid = document.getElementById('session-grid');
+  grid.innerHTML = filtered.map(s =>
+    `<div class="session-card" onclick="startSession('${s.id}')">
+      <div class="icon">${s.icon}</div>
+      <div class="title">${s.title}</div>
+      <div class="dur">${s.duration} min · ${s.category}</div>
+      <div style="margin-top:4px">${s.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>`
+  ).join('');
+  setStatus('med','ok',`✓ ${filtered.length} sessions loaded`);
+}
+
+function startSession(id) {
+  const s = SESSIONS.find(x=>x.id===id);
+  if (!s) return;
+  const log = JSON.parse(localStorage.getItem('meditopia_sessions')||'[]');
+  log.unshift({sessionId:id,duration:s.duration,completedAt:new Date().toISOString()});
+  localStorage.setItem('meditopia_sessions',JSON.stringify(log.slice(0,100)));
+  setStatus('med','ok',`✓ Logged: ${s.title} (${s.duration} min)`);
+}
+
+async function fetchQuote() {
+  setStatus('med','loading','Fetching mindfulness quote…');
+  try {
+    const proxy = 'https://corsproxy.io/?';
+    const res = await fetch(proxy + encodeURIComponent('https://zenquotes.io/api/random'));
+    const data = await res.json();
+    const q = Array.isArray(data) ? data[0] : data;
+    const grid = document.getElementById('session-grid');
+    grid.innerHTML = `<div style="grid-column:span 2;padding:16px;background:#2a1f44;border-radius:10px;text-align:center">
+      <div style="font-size:1.1rem;color:#c4b5fd;margin-bottom:8px">"${q.q}"</div>
+      <div style="color:#94a3b8;font-size:0.8rem">— ${q.a}</div>
+    </div>`;
+    setStatus('med','ok','✓ Quote loaded');
+  } catch(e) { setStatus('med','err','Quote fetch failed: '+e.message); }
+}
+
+// Mood logger
+(function initMoods(){
+  const row = document.getElementById('mood-row');
+  if (!row) return;
+  row.innerHTML = MOODS.map(m =>
+    `<button class="mood-btn" onclick="logMood(${m.v},'${m.e}')">${m.e}</button>`
+  ).join('');
+})();
+
+function logMood(v, emoji) {
+  const log = JSON.parse(localStorage.getItem('meditopia_moods')||'[]');
+  log.unshift({mood:v,loggedAt:new Date().toISOString()});
+  localStorage.setItem('meditopia_moods',JSON.stringify(log.slice(0,365)));
+  const msg = document.getElementById('mood-msg');
+  msg.textContent = `${emoji} Mood ${v}/5 logged at ${new Date().toLocaleTimeString()}`;
+  msg.style.display = 'block';
+  setTimeout(()=>msg.style.display='none', 3000);
+}
+
+loadSessions();
+
+// ── USDA ─────────────────────────────────────────────────────────────────────
+async function testUSDA() {
+  const q = document.getElementById('usda-search').value.trim() || 'apple';
+  setStatus('usda','loading','Searching USDA FoodData…');
+  try {
+    const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(q)}&pageSize=5&dataType=Foundation,SR%20Legacy`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const foods = data.foods || [];
+    if (!foods.length) { setResult('usda', 'No foods found for "'+q+'"'); setStatus('usda','ok','No results'); return; }
+    let html = `<strong style="color:#c4b5fd">USDA Results for "${q}" (${data.totalHits || foods.length} total)</strong><br><br>`;
+    foods.slice(0,5).forEach(f => {
+      const kcal = f.foodNutrients?.find(n=>n.nutrientId===1008)?.value || '?';
+      const protein = f.foodNutrients?.find(n=>n.nutrientId===1003)?.value || '?';
+      const fat = f.foodNutrients?.find(n=>n.nutrientId===1004)?.value || '?';
+      html += `<div style="margin-bottom:10px;padding:10px;background:#2a2a3e;border-radius:8px">`;
+      html += `<div style="color:#a78bfa;font-weight:600">${f.description}</div>`;
+      html += `<div style="color:#94a3b8;font-size:0.72rem">FDC ID: ${f.fdcId} · ${f.dataType}</div>`;
+      html += `<div style="margin-top:4px">`;
+      html += renderBar('Calories', kcal, 'kcal', '#f97316', (kcal/2000)*100);
+      html += renderBar('Protein', protein, 'g', '#3b82f6', (protein/50)*100);
+      html += renderBar('Fat', fat, 'g', '#ef4444', (fat/78)*100);
+      html += `</div></div>`;
+    });
+    setResult('usda', html);
+    setStatus('usda','ok',`✓ ${foods.length} foods returned`);
+  } catch(e) { setStatus('usda','err',e.message); setResult('usda',e.message); }
+}
+
+function renderBar(label, val, unit, color, pct) {
+  const p = Math.min(Math.round(pct||0), 100);
+  return `<div class="nutr-bar-wrap">
+    <div class="nutr-bar-label"><span>${label}</span><span>${val}${unit}</span></div>
+    <div class="nutr-bar"><div class="nutr-bar-fill" style="width:${p}%;background:${color}"></div></div>
+  </div>`;
+}
+
+async function loadPopularFoods() {
+  const POPULAR = [
+    {name:'Apple, raw',fdcId:1750340},{name:'Banana, raw',fdcId:1105073},
+    {name:'Chicken breast',fdcId:331960},{name:'Brown rice',fdcId:168876},
+    {name:'Broccoli, raw',fdcId:170379},
+  ];
+  let html = `<strong style="color:#c4b5fd">Popular Foods Reference</strong><br><br>`;
+  POPULAR.forEach(f => {
+    html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2d2d44">`;
+    html += `<span style="color:#e2e8f0">${f.name}</span>`;
+    html += `<span style="color:#94a3b8;font-size:0.75rem">FDC ID: ${f.fdcId}</span></div>`;
+  });
+  setResult('usda', html);
+  setStatus('usda','ok','✓ Popular foods list');
+}
+
+// ── OpenFDA ────────────────────────────────────────────────────────────────────
+async function testFDALabels() {
+  const drug = document.getElementById('fda-drug').value.trim() || 'aspirin';
+  setStatus('fda','loading','Fetching FDA drug label…');
+  try {
+    const url = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(drug)}"&limit=3`;
+    const res = await fetch(url);
+    if (res.status===404) throw new Error(`No label found for "${drug}"`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const results = data.results || [];
+    if (!results.length) throw new Error('No results');
+    let html = `<strong style="color:#c4b5fd">FDA Drug Label: "${drug}"</strong><br><br>`;
+    results.slice(0,2).forEach(r => {
+      const fda = r.openfda||{};
+      html += `<div style="margin-bottom:12px;padding:10px;background:#2a2a3e;border-radius:8px">`;
+      html += `<div style="color:#a78bfa;font-weight:600">${fda.brand_name?.[0]||drug}</div>`;
+      html += `<div style="color:#94a3b8;font-size:0.72rem">Generic: ${fda.generic_name?.[0]||'N/A'} · Manufacturer: ${fda.manufacturer_name?.[0]||'N/A'}</div>`;
+      html += `<div style="color:#94a3b8;font-size:0.72rem">Route: ${fda.route?.[0]||'N/A'} · Form: ${fda.dosage_form?.[0]||'N/A'}</div>`;
+      if (r.indications_and_usage?.[0]) {
+        html += `<div style="margin-top:6px;color:#e2e8f0;font-size:0.75rem"><strong>Indications:</strong> ${r.indications_and_usage[0].slice(0,200)}…</div>`;
+      }
+      html += `</div>`;
+    });
+    setResult('fda', html);
+    setStatus('fda','ok',`✓ ${results.length} label(s) found`);
+  } catch(e) { setStatus('fda','err',e.message); setResult('fda',e.message); }
+}
+
+async function testFoodRecalls() {
+  setStatus('fda','loading','Fetching recent food recalls…');
+  try {
+    const url = `https://api.fda.gov/food/enforcement.json?limit=5&sort=recall_initiation_date:desc`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const results = data.results || [];
+    let html = `<strong style="color:#c4b5fd">Recent FDA Food Recalls (${data.meta?.results?.total||'?'} total)</strong><br><br>`;
+    results.forEach(r => {
+      const cls = r.classification==='Class I'?'#ef4444':r.classification==='Class II'?'#f97316':'#eab308';
+      html += `<div style="margin-bottom:10px;padding:10px;background:#2a2a3e;border-radius:8px">`;
+      html += `<div style="color:#a78bfa;font-weight:600">${r.recalling_firm||'Unknown'}</div>`;
+      html += `<div style="color:#e2e8f0;font-size:0.78rem;margin-top:2px">${(r.product_description||'').slice(0,100)}…</div>`;
+      html += `<div style="margin-top:4px;display:flex;gap:8px;font-size:0.72rem">`;
+      html += `<span style="color:${cls};font-weight:600">${r.classification||'N/A'}</span>`;
+      html += `<span style="color:#94a3b8">${r.status||''}</span>`;
+      html += `<span style="color:#94a3b8">${r.recall_initiation_date||''}</span>`;
+      html += `</div></div>`;
+    });
+    setResult('fda', html);
+    setStatus('fda','ok',`✓ ${results.length} recalls shown`);
+  } catch(e) { setStatus('fda','err',e.message); setResult('fda',e.message); }
+}
+
+async function testDrugRecalls() {
+  setStatus('fda','loading','Fetching drug recalls…');
+  try {
+    const url = `https://api.fda.gov/drug/enforcement.json?limit=5&sort=recall_initiation_date:desc`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const results = data.results || [];
+    let html = `<strong style="color:#c4b5fd">Recent FDA Drug Recalls</strong><br><br>`;
+    results.forEach(r => {
+      html += `<div style="margin-bottom:8px;padding:8px;background:#2a2a3e;border-radius:6px">`;
+      html += `<div style="color:#a78bfa;font-weight:600">${r.recalling_firm||'Unknown'}</div>`;
+      html += `<div style="color:#e2e8f0;font-size:0.75rem">${(r.product_description||'').slice(0,80)}…</div>`;
+      html += `<div style="color:#94a3b8;font-size:0.72rem">${r.classification||''} · ${r.status||''} · ${r.recall_initiation_date||''}</div>`;
+      html += `</div>`;
+    });
+    setResult('fda', html);
+    setStatus('fda','ok',`✓ ${results.length} drug recalls`);
+  } catch(e) { setStatus('fda','err',e.message); setResult('fda',e.message); }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id+'-status');
+  if (el) el.innerHTML = `<span class="status ${type}">${msg}</span>`;
+}
+function setResult(id, html) {
+  const el = document.getElementById(id+'-result');
+  if (el) el.innerHTML = html;
+}
+</script>
+</body>
+</html>
