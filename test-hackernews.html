@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦊 HackerNews API — LynkApp Test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; padding: 20px; }
+  h1 { font-size: 22px; font-weight: 700; color: #f97316; margin-bottom: 4px; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .status-card { background: #1e293b; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid #334155; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #334155; flex-shrink: 0; animation: pulse 1.5s infinite; }
+  .status-dot.ok  { background: #22c55e; animation: none; }
+  .status-dot.err { background: #ef4444; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+  .status-label { font-size: 12px; font-weight: 600; color: #f1f5f9; }
+  .status-sub   { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .section { margin-bottom: 32px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
+  .section-title { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: #1e293b; color: #94a3b8; transition: all 0.15s; }
+  .tab-btn.active { background: #f97316; color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .hn-card { background: #1e293b; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #3b82f6; transition: transform 0.15s, box-shadow 0.15s; }
+  .hn-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  .card-rank-score { min-width: 36px; text-align: center; flex-shrink: 0; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { color: #f1f5f9; font-size: 14px; font-weight: 600; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+  .card-title:hover { color: #f97316; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; align-items: center; font-size: 11px; color: #94a3b8; }
+  .domain-badge { background: #0f172a; color: #38bdf8; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .search-input { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; color: #f1f5f9; font-size: 13px; outline: none; }
+  .search-input:focus { border-color: #f97316; }
+  .search-input::placeholder { color: #475569; }
+  .search-btn { background: #f97316; border: none; border-radius: 8px; padding: 10px 18px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .search-btn:hover { background: #ea580c; }
+  .comment-card { background: #1e293b; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid #3b82f6; }
+  .comment-avatar { width: 28px; height: 28px; border-radius: 50%; background: #1d4ed8; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .ticker-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .ticker-strip { display: flex; gap: 8px; }
+  .ticker-item { display: inline-flex; align-items: center; gap: 8px; background: #1e293b; border-radius: 8px; padding: 8px 12px; text-decoration: none; border: 1px solid #334155; white-space: nowrap; flex-shrink: 0; transition: background 0.15s; }
+  .ticker-item:hover { background: #0f172a; }
+  .spinner { border: 3px solid #1e293b; border-top-color: #f97316; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-placeholder { color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 10px; padding: 20px 0; }
+  .sandbox-note { background: #1e293b; border: 1px solid #f97316; border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+  .sandbox-note strong { color: #f97316; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:700px){ .two-col { grid-template-columns: 1fr; } }
+  .error-msg { background: #450a0a; border: 1px solid #ef4444; border-radius: 8px; padding: 12px 14px; color: #fca5a5; font-size: 13px; margin-bottom: 10px; }
+  .score-viral  { color: #f97316; }
+  .score-hot    { color: #f59e0b; }
+  .score-good   { color: #22c55e; }
+  .score-normal { color: #3b82f6; }
+</style>
+</head>
+<body>
+
+<h1>🦊 HackerNews API — LynkApp Test</h1>
+<p class="subtitle">FREE API · No key required · hacker-news.firebaseio.com/v0 + Algolia Search</p>
+
+<!-- Sandbox note -->
+<div class="sandbox-note">
+  <strong>⚠️ Sandbox / Automated Browser Note:</strong> If this page shows loading spinners and no data,
+  you're viewing it in a sandboxed environment with no internet access (Puppeteer, file://, etc.).
+  Open <code>http://localhost:3001/test-hackernews.html</code> in your <strong>real browser</strong> 
+  (Chrome/Edge/Firefox) and all sections will load live HN data. ✅
+</div>
+
+<!-- Status checks -->
+<div class="status-grid" id="status-grid">
+  <div class="status-card" id="s-topstories">
+    <div class="status-dot" id="dot-topstories"></div>
+    <div><div class="status-label">Top Stories IDs</div><div class="status-sub">GET /topstories.json</div></div>
+  </div>
+  <div class="status-card" id="s-beststories">
+    <div class="status-dot" id="dot-beststories"></div>
+    <div><div class="status-label">Best Stories IDs</div><div class="status-sub">GET /beststories.json</div></div>
+  </div>
+  <div class="status-card" id="s-newstories">
+    <div class="status-dot" id="dot-newstories"></div>
+    <div><div class="status-label">New Stories IDs</div><div class="status-sub">GET /newstories.json</div></div>
+  </div>
+  <div class="status-card" id="s-item">
+    <div class="status-dot" id="dot-item"></div>
+    <div><div class="status-label">Item Fetch</div><div class="status-sub">GET /item/{id}.json</div></div>
+  </div>
+  <div class="status-card" id="s-algolia">
+    <div class="status-dot" id="dot-algolia"></div>
+    <div><div class="status-label">Algolia Search</div><div class="status-sub">hn.algolia.com/api/v1/search</div></div>
+  </div>
+  <div class="status-card" id="s-maxitem">
+    <div class="status-dot" id="dot-maxitem"></div>
+    <div><div class="status-label">Max Item ID</div><div class="status-sub">GET /maxitem.json</div></div>
+  </div>
+</div>
+
+<!-- Top Stories ticker -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:20px">📈</span>
+    <h2 class="section-title">Live Trending Ticker (Top Stories)</h2>
+  </div>
+  <div class="ticker-wrap">
+    <div class="ticker-strip" id="ticker-strip">
+      <div class="loading-placeholder"><div class="spinner"></div> Loading top stories ticker…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main feed with tabs -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:20px">🗞️</span>
+    <h2 class="section-title">Story Feed (Top / Best / New / Ask / Show / Jobs)</h2>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('top')">🔥 Top</button>
+    <button class="tab-btn" onclick="switchTab('best')">⭐ Best</button>
+    <button class="tab-btn" onclick="switchTab('new')">🆕 New</button>
+    <button class="tab-btn" onclick="switchTab('ask')">💡 Ask HN</button>
+    <button class="tab-btn" onclick="switchTab('show')">🚀 Show HN</button>
+    <button class="tab-btn" onclick="switchTab('jobs')">💼 Jobs</button>
+  </div>
+  <div id="tab-top" class="tab-content active">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading top stories…</div>
+  </div>
+  <div id="tab-best" class="tab-content">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading best stories…</div>
+  </div>
+  <div id="tab-new" class="tab-content">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading newest stories…</div>
+  </div>
+  <div id="tab-ask" class="tab-content">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading Ask HN…</div>
+  </div>
+  <div id="tab-show" class="tab-content">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading Show HN…</div>
+  </div>
+  <div id="tab-jobs" class="tab-content">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading job posts…</div>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:20px">🔍</span>
+    <h2 class="section-title">Search HackerNews (Algolia)</h2>
+  </div>
+  <div class="search-bar">
+    <input type="text" class="search-input" id="search-input" placeholder="Search HN… e.g. React, AI, startup" value="artificial intelligence">
+    <button class="search-btn" onclick="runSearch()">Search</button>
+  </div>
+  <div id="search-results">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading search results…</div>
+  </div>
+</div>
+
+<!-- Comments + Story detail -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:20px">💬</span>
+    <h2 class="section-title">Story + Comments Preview</h2>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3 style="color:#94a3b8;font-size:13px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Story #1 Detail</h3>
+      <div id="story-detail"><div class="loading-placeholder"><div class="spinner"></div> Loading…</div></div>
+    </div>
+    <div>
+      <h3 style="color:#94a3b8;font-size:13px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Top Comments</h3>
+      <div id="story-comments"><div class="loading-placeholder"><div class="spinner"></div> Loading comments…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Feed Widget Preview -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:20px">📌</span>
+    <h2 class="section-title">Feed Sidebar Widget (Top 5)</h2>
+  </div>
+  <div id="feed-widget" style="max-width:360px">
+    <div class="loading-placeholder"><div class="spinner"></div> Loading widget…</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// HackerNews API helpers (inline — matches hackernews-service.js)
+// ═══════════════════════════════════════════════════════════
+const HN_BASE    = 'https://hacker-news.firebaseio.com/v0';
+const HN_ALGOLIA = 'https://hn.algolia.com/api/v1';
+const HN_ITEM    = 'https://news.ycombinator.com/item?id=';
+
+async function hn(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.json();
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor(Date.now() / 1000) - ts;
+  if (s < 60)  return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+
+function scoreColor(n) {
+  if (!n) return '#6b7280';
+  if (n >= 500) return '#f97316';
+  if (n >= 200) return '#f59e0b';
+  if (n >= 50)  return '#22c55e';
+  return '#3b82f6';
+}
+
+function domain(url) {
+  if (!url) return null;
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; }
+}
+
+function stripHtml(h) {
+  if (!h) return '';
+  return h.replace(/<p>/gi,'\n').replace(/<br\/?>/gi,'\n').replace(/<[^>]+>/g,'')
+    .replace(/&gt;/g,'>').replace(/&lt;/g,'<').replace(/&amp;/g,'&').trim();
+}
+
+function storyCard(s, i) {
+  if (!s) return '';
+  const d = domain(s.url);
+  const link = s.url || HN_ITEM + s.id;
+  const sc = s.score || 0;
+  const col = scoreColor(sc);
+  return `<div class="hn-card" style="border-left-color:${col}">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div class="card-rank-score">
+        <div style="font-size:11px;color:#64748b">#${i+1}</div>
+        <div style="font-size:17px;font-weight:700;color:${col}">${sc}</div>
+        <div style="font-size:9px;color:#94a3b8">pts</div>
+      </div>
+      <div class="card-body">
+        <a class="card-title" href="${link}" target="_blank" rel="noopener">${s.title||'Untitled'}</a>
+        <div class="card-meta">
+          ${d ? `<span class="domain-badge">${d}</span>` : ''}
+          <span>by <b style="color:#e2e8f0">${s.by||'?'}</b></span>
+          <span>${timeAgo(s.time)}</span>
+          <a href="${HN_ITEM+s.id}" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;margin-left:auto">
+            💬 ${s.descendants||0}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function jobCard(s) {
+  if (!s) return '';
+  return `<div class="hn-card" style="border-left-color:#8b5cf6">
+    <div style="color:#8b5cf6;font-size:11px;font-weight:600;margin-bottom:6px">💼 JOB — ${timeAgo(s.time)}</div>
+    <a class="card-title" href="${s.url||HN_ITEM+s.id}" target="_blank">${s.title}</a>
+    <div class="card-meta"><span>by ${s.by||'?'}</span></div>
+  </div>`;
+}
+
+// Status helper
+function setStatus(id, ok, sub) {
+  const dot = document.getElementById('dot-' + id);
+  const card = document.getElementById('s-' + id);
+  if (dot) { dot.classList.add(ok ? 'ok' : 'err'); }
+  if (sub) {
+    const el = card && card.querySelector('.status-sub');
+    if (el) el.textContent = sub;
+  }
+}
+
+// Tab switch
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  const content = document.getElementById('tab-' + tab);
+  if (content) content.classList.add('active');
+  const btns = document.querySelectorAll('.tab-btn');
+  const labels = ['top','best','new','ask','show','jobs'];
+  const idx = labels.indexOf(tab);
+  if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN — load all sections
+// ═══════════════════════════════════════════════════════════
+async function loadAll() {
+
+  // 1. Status: topstories IDs
+  try {
+    const ids = await hn(`${HN_BASE}/topstories.json`);
+    setStatus('topstories', true, `${ids.length.toLocaleString()} story IDs`);
+    loadTopStories(ids);
+    loadTicker(ids);
+    loadStoryDetail(ids[0]);
+  } catch(e) { setStatus('topstories', false, 'Failed: ' + e.message); document.getElementById('tab-top').innerHTML = err(e); }
+
+  // 2. Status: beststories
+  try {
+    const ids = await hn(`${HN_BASE}/beststories.json`);
+    setStatus('beststories', true, `${ids.length.toLocaleString()} story IDs`);
+    loadBestStories(ids);
+  } catch(e) { setStatus('beststories', false, 'Failed: ' + e.message); }
+
+  // 3. Status: newstories
+  try {
+    const ids = await hn(`${HN_BASE}/newstories.json`);
+    setStatus('newstories', true, `${ids.length.toLocaleString()} story IDs`);
+    loadNewStories(ids);
+  } catch(e) { setStatus('newstories', false, 'Failed: ' + e.message); }
+
+  // 4. Status: maxitem
+  try {
+    const max = await hn(`${HN_BASE}/maxitem.json`);
+    setStatus('maxitem', true, `Max ID: ${max.toLocaleString()}`);
+  } catch(e) { setStatus('maxitem', false, 'Failed'); }
+
+  // 5. Status: algolia search (initial)
+  runSearch();
+
+  // 6. Load Ask/Show/Jobs
+  loadAsk();
+  loadShow();
+  loadJobs();
+}
+
+function err(e) {
+  return `<div class="error-msg">⚠️ ${e.message} — See sandbox note above.</div>`;
+}
+
+async function loadTicker(topIds) {
+  try {
+    const slice = topIds.slice(0, 12);
+    const stories = await Promise.all(slice.map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    const items = stories.filter(Boolean).map((s, i) => {
+      const d = domain(s.url);
+      const col = scoreColor(s.score);
+      return `<a class="ticker-item" href="${s.url||HN_ITEM+s.id}" target="_blank">
+        <span style="color:#64748b;font-size:11px">#${i+1}</span>
+        <span style="color:${col};font-weight:700">${s.score}▲</span>
+        <span style="color:#f1f5f9;font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis">${s.title}</span>
+        ${d?`<span style="color:#38bdf8;font-size:10px;font-family:monospace">${d}</span>`:''}
+      </a>`;
+    }).join('');
+    document.getElementById('ticker-strip').innerHTML = items;
+    setStatus('item', true, 'Items fetching OK');
+  } catch(e) {
+    document.getElementById('ticker-strip').innerHTML = err(e);
+    setStatus('item', false, 'Item fetch failed');
+  }
+}
+
+async function loadTopStories(ids) {
+  try {
+    const slice = ids.slice(0, 15);
+    const stories = await Promise.all(slice.map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-top').innerHTML = stories.filter(Boolean).map((s,i) => storyCard(s,i)).join('');
+  } catch(e) { document.getElementById('tab-top').innerHTML = err(e); }
+}
+
+async function loadBestStories(ids) {
+  try {
+    const slice = ids.slice(0, 15);
+    const stories = await Promise.all(slice.map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-best').innerHTML = stories.filter(Boolean).map((s,i) => storyCard(s,i)).join('');
+  } catch(e) { document.getElementById('tab-best').innerHTML = err(e); }
+}
+
+async function loadNewStories(ids) {
+  try {
+    const slice = ids.slice(0, 15);
+    const stories = await Promise.all(slice.map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-new').innerHTML = stories.filter(Boolean).map((s,i) => storyCard(s,i)).join('');
+  } catch(e) { document.getElementById('tab-new').innerHTML = err(e); }
+}
+
+async function loadAsk() {
+  try {
+    const ids = await hn(`${HN_BASE}/askstories.json`);
+    const stories = await Promise.all(ids.slice(0,10).map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-ask').innerHTML = stories.filter(Boolean).map((s,i) => storyCard(s,i)).join('');
+  } catch(e) { document.getElementById('tab-ask').innerHTML = err(e); }
+}
+
+async function loadShow() {
+  try {
+    const ids = await hn(`${HN_BASE}/showstories.json`);
+    const stories = await Promise.all(ids.slice(0,10).map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-show').innerHTML = stories.filter(Boolean).map((s,i) => storyCard(s,i)).join('');
+  } catch(e) { document.getElementById('tab-show').innerHTML = err(e); }
+}
+
+async function loadJobs() {
+  try {
+    const ids = await hn(`${HN_BASE}/jobstories.json`);
+    const stories = await Promise.all(ids.slice(0,10).map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    document.getElementById('tab-jobs').innerHTML = stories.filter(Boolean).map((s) => jobCard(s)).join('');
+  } catch(e) { document.getElementById('tab-jobs').innerHTML = err(e); }
+}
+
+async function runSearch() {
+  const query = document.getElementById('search-input')?.value?.trim() || 'artificial intelligence';
+  document.getElementById('search-results').innerHTML = '<div class="loading-placeholder"><div class="spinner"></div> Searching…</div>';
+  try {
+    const params = new URLSearchParams({ query, tags: 'story', hitsPerPage: 12 });
+    const data = await hn(`${HN_ALGOLIA}/search?${params}`);
+    setStatus('algolia', true, `${data.nbHits?.toLocaleString() || '?'} total hits`);
+    if (!data.hits || data.hits.length === 0) {
+      document.getElementById('search-results').innerHTML = `<p style="color:#94a3b8;padding:20px;text-align:center">No results for "${query}"</p>`;
+      return;
+    }
+    document.getElementById('search-results').innerHTML = data.hits.map((h, i) => storyCard({
+      id: h.objectID, title: h.title, url: h.url, by: h.author,
+      score: h.points || 0, descendants: h.num_comments || 0,
+      time: h.created_at_i, type: 'story'
+    }, i)).join('');
+  } catch(e) {
+    setStatus('algolia', false, 'Algolia failed');
+    document.getElementById('search-results').innerHTML = err(e);
+  }
+}
+
+document.getElementById('search-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+
+async function loadStoryDetail(storyId) {
+  try {
+    const s = await hn(`${HN_BASE}/item/${storyId}.json`);
+    const d = domain(s.url);
+    const col = scoreColor(s.score);
+    document.getElementById('story-detail').innerHTML = `
+      <div style="background:#1e293b;border-radius:12px;padding:16px;border-left:4px solid ${col}">
+        <div style="font-size:10px;color:#64748b;margin-bottom:8px">ID: ${s.id}</div>
+        <a href="${s.url||HN_ITEM+s.id}" target="_blank" style="color:#f1f5f9;font-size:14px;font-weight:600;text-decoration:none;display:block;margin-bottom:10px;line-height:1.4">${s.title}</a>
+        ${d ? `<div style="color:#38bdf8;font-family:monospace;font-size:11px;margin-bottom:8px">${d}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <div style="background:#0f172a;border-radius:8px;padding:8px 12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:${col}">${s.score||0}</div>
+            <div style="font-size:10px;color:#64748b">points</div>
+          </div>
+          <div style="background:#0f172a;border-radius:8px;padding:8px 12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:#3b82f6">${s.descendants||0}</div>
+            <div style="font-size:10px;color:#64748b">comments</div>
+          </div>
+          <div style="background:#0f172a;border-radius:8px;padding:8px 12px;text-align:center">
+            <div style="font-size:13px;font-weight:600;color:#e2e8f0">${s.by||'?'}</div>
+            <div style="font-size:10px;color:#64748b">author</div>
+          </div>
+          <div style="background:#0f172a;border-radius:8px;padding:8px 12px;text-align:center">
+            <div style="font-size:12px;font-weight:600;color:#94a3b8">${timeAgo(s.time)}</div>
+            <div style="font-size:10px;color:#64748b">posted</div>
+          </div>
+        </div>
+      </div>`;
+    loadComments(s);
+  } catch(e) {
+    document.getElementById('story-detail').innerHTML = err(e);
+    document.getElementById('story-comments').innerHTML = err(e);
+  }
+}
+
+async function loadComments(story) {
+  try {
+    if (!story.kids || story.kids.length === 0) {
+      document.getElementById('story-comments').innerHTML = '<p style="color:#64748b;padding:10px">No comments</p>';
+      return;
+    }
+    const ids = story.kids.slice(0, 8);
+    const comments = await Promise.all(ids.map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    const html = comments.filter(c => c && !c.deleted && !c.dead).map(c => {
+      const text = stripHtml(c.text || '');
+      const preview = text.length > 180 ? text.slice(0, 180) + '…' : text;
+      return `<div class="comment-card">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <div class="comment-avatar">${(c.by||'?')[0].toUpperCase()}</div>
+          <span style="color:#e2e8f0;font-size:12px;font-weight:600">${c.by||'?'}</span>
+          <span style="color:#64748b;font-size:11px">${timeAgo(c.time)}</span>
+        </div>
+        <p style="color:#94a3b8;font-size:12px;margin:0;line-height:1.6;white-space:pre-wrap">${preview || '(empty)'}</p>
+      </div>`;
+    }).join('');
+    document.getElementById('story-comments').innerHTML = html || '<p style="color:#64748b">No displayable comments</p>';
+  } catch(e) { document.getElementById('story-comments').innerHTML = err(e); }
+}
+
+async function loadFeedWidget() {
+  try {
+    const ids = await hn(`${HN_BASE}/topstories.json`);
+    const stories = await Promise.all(ids.slice(0,5).map(id => hn(`${HN_BASE}/item/${id}.json`)));
+    const items = stories.filter(Boolean).map(s => `
+      <a href="${s.url||HN_ITEM+s.id}" target="_blank" style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;text-decoration:none;border-bottom:1px solid #1e293b">
+        <span style="min-width:28px;height:28px;border-radius:6px;background:${scoreColor(s.score)};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">${s.score>=1000?'🔥':s.score}</span>
+        <span style="color:#cbd5e1;font-size:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${s.title}</span>
+      </a>`).join('');
+    document.getElementById('feed-widget').innerHTML = `
+      <div style="background:#0f172a;border-radius:12px;padding:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:18px">🦊</span>
+          <h4 style="color:#f1f5f9;margin:0;font-size:14px">HackerNews Top Stories</h4>
+        </div>
+        ${items}
+        <a href="https://news.ycombinator.com" target="_blank" style="display:block;text-align:center;margin-top:10px;padding:8px;background:#f97316;border-radius:8px;color:#fff;font-size:12px;text-decoration:none;font-weight:600">View All on HN →</a>
+      </div>`;
+  } catch(e) { document.getElementById('feed-widget').innerHTML = err(e); }
+}
+
+// Boot
+loadAll();
+loadFeedWidget();
+</script>
+</body>
+</html>
