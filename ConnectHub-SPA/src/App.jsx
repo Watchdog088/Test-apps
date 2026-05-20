@@ -55,6 +55,68 @@ const MusicArtistPage        = lazy(() => import('./pages/misc/MiscSubPages').th
 const SavedCollectionsPage   = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.SavedCollectionsPage })));
 const VideoPlayerPage        = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.VideoPlayerPage })));
 
+// ── Feed sub-pages (May 2026)
+const CommentThreadPage    = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.CommentThreadPage })));
+const TrendingDashPage     = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.TrendingDashboardPage })));
+
+// ── Dating sub-pages (May 2026)
+const DatingBoostPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingBoostPage })));
+const DatingCompatPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingCompatPage })));
+const DatingSettingsPage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingSettingsPage })));
+
+// ── Group sub-pages (May 2026)
+const GroupCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupCreatePage })));
+const GroupMembersPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupMembersPage })));
+const GroupSettingsPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupSettingsPage })));
+
+// ── Event sub-pages (May 2026)
+const EventCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventCreatePage })));
+const EventAttendeesPage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventAttendeesPage })));
+const MyEventsPage         = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.MyEventsPage })));
+
+// ── Profile sub-pages (May 2026)
+const ProfileEditPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ProfileEditPage })));
+
+// ── Music sub-pages (May 2026)
+const AlbumDetailPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.AlbumDetailPage })));
+const PlaylistPage         = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.PlaylistPage })));
+const PlaylistCreatePage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.PlaylistCreatePage })));
+
+// ── Media sub-pages (May 2026)
+const PhotoGalleryPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.PhotoGalleryPage })));
+const MediaUploadPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.MediaUploadPage })));
+const MediaLibraryPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.MediaLibraryPage })));
+
+// ── Gaming sub-pages (May 2026)
+const GameDetailPage       = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GameDetailPage })));
+const TournamentPage       = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.TournamentPage })));
+
+// ── Video Call sub-pages (May 2026)
+const CallSetupPage        = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.CallSetupPage })));
+const ActiveCallPage       = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ActiveCallPage })));
+
+// ── AR/VR sub-pages (May 2026)
+const ARFilterPreviewPage  = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ARFilterPreviewPage })));
+const VRViewerPage         = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.VRViewerPage })));
+
+// ── Premium sub-pages (May 2026)
+const PremiumCheckoutPage  = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.PremiumCheckoutPage })));
+const SubscriptionManagePage = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.SubscriptionManagePage })));
+
+// ── Help sub-pages (May 2026)
+const SupportTicketPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.SupportTicketPage })));
+
+// ── Saved sub-pages (May 2026)
+const CollectionPage       = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.CollectionPage })));
+const CollectionCreatePage = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.CollectionCreatePage })));
+
+// ── Marketplace extras (May 2026)
+const CartPage             = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.CartPage })));
+const ListingBoostPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ListingBoostPage })));
+
+// ── Friends extras (May 2026)
+const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ContactImportPage })));
+
 // Onboarding (POLISH-15)
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 
@@ -254,6 +316,69 @@ export default function App() {
             <Route path="saved/collections"     element={<SavedCollectionsPage />} />
             {/* Media video player */}
             <Route path="video/:id"             element={<VideoPlayerPage />} />
+
+            {/* ── NEW REMAINING DASHBOARD ROUTES (May 2026) ── */}
+            {/* Feed */}
+            <Route path="post/:id/comments"     element={<CommentThreadPage />} />
+            <Route path="trending/dashboard"    element={<TrendingDashPage />} />
+
+            {/* Dating */}
+            <Route path="dating/boost"          element={<DatingBoostPage />} />
+            <Route path="dating/compat/:uid"    element={<DatingCompatPage />} />
+            <Route path="dating/settings"       element={<DatingSettingsPage />} />
+
+            {/* Groups */}
+            <Route path="groups/create"         element={<GroupCreatePage />} />
+            <Route path="groups/:id/members"    element={<GroupMembersPage />} />
+            <Route path="groups/:id/settings"   element={<GroupSettingsPage />} />
+
+            {/* Events */}
+            <Route path="events/create"         element={<EventCreatePage />} />
+            <Route path="events/:id/attendees"  element={<EventAttendeesPage />} />
+            <Route path="events/mine"           element={<MyEventsPage />} />
+
+            {/* Profile */}
+            <Route path="profile/edit"          element={<ProfileEditPage />} />
+
+            {/* Music */}
+            <Route path="music/album/:id"       element={<AlbumDetailPage />} />
+            <Route path="music/playlist/:id"    element={<PlaylistPage />} />
+            <Route path="music/playlist/create" element={<PlaylistCreatePage />} />
+
+            {/* Media Hub */}
+            <Route path="media/photos"          element={<PhotoGalleryPage />} />
+            <Route path="media/upload"          element={<MediaUploadPage />} />
+            <Route path="media/library"         element={<MediaLibraryPage />} />
+
+            {/* Gaming */}
+            <Route path="gaming/game/:id"       element={<GameDetailPage />} />
+            <Route path="gaming/tournament"     element={<TournamentPage />} />
+
+            {/* Video Calls */}
+            <Route path="videocalls/new"        element={<CallSetupPage />} />
+            <Route path="videocalls/call/:id"   element={<ActiveCallPage />} />
+
+            {/* AR/VR */}
+            <Route path="arvr/filter/:id"       element={<ARFilterPreviewPage />} />
+            <Route path="arvr/vr/:id"           element={<VRViewerPage />} />
+
+            {/* Premium */}
+            <Route path="premium/checkout"      element={<PremiumCheckoutPage />} />
+            <Route path="premium/manage"        element={<SubscriptionManagePage />} />
+
+            {/* Help */}
+            <Route path="help/ticket"           element={<SupportTicketPage />} />
+
+            {/* Saved */}
+            <Route path="saved/collection/:id"  element={<CollectionPage />} />
+            <Route path="saved/collection/new"  element={<CollectionCreatePage />} />
+
+            {/* Marketplace */}
+            <Route path="cart"                        element={<CartPage />} />
+            <Route path="marketplace/boost/:id"       element={<ListingBoostPage />} />
+
+            {/* Friends */}
+            <Route path="friends/find"          element={<ContactImportPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/feed" replace />} />
