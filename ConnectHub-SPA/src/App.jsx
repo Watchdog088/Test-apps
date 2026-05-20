@@ -15,6 +15,46 @@ import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
 
+// New Dashboard Pages (lazy loaded)
+const PostDetailPage       = lazy(() => import('./pages/post/PostDetailPage'));
+const HashtagPage          = lazy(() => import('./pages/hashtag/HashtagPage'));
+const FollowersPage        = lazy(() => import('./pages/profile/FollowersPage'));
+const DatingMatchesPage    = lazy(() => import('./pages/dating/DatingMatchesPage'));
+const NewMessagePage       = lazy(() => import('./pages/messages/NewMessagePage'));
+const GroupDetailPage      = lazy(() => import('./pages/groups/GroupDetailPage'));
+const EventDetailPage      = lazy(() => import('./pages/events/EventDetailPage'));
+const ProductDetailPage    = lazy(() => import('./pages/marketplace/ProductDetailPage'));
+const MyOrdersPage         = lazy(() => import('./pages/marketplace/MyOrdersPage'));
+const SellerDashboardPage  = lazy(() => import('./pages/marketplace/SellerDashboardPage'));
+const AdminDashboardPage   = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const TrendingPage         = lazy(() => import('./pages/trending/TrendingPage'));
+
+// Settings sub-pages
+const { PrivacySettingsPage, SecuritySettingsPage, NotificationPreferencesPage,
+        BlockedUsersPage, DataSettingsPage, LinkedAccountsPage,
+        LocaleSettingsPage, PaymentMethodsPage } = {
+  PrivacySettingsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.PrivacySettingsPage }))),
+  SecuritySettingsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.SecuritySettingsPage }))),
+  NotificationPreferencesPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.NotificationPreferencesPage }))),
+  BlockedUsersPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.BlockedUsersPage }))),
+  DataSettingsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.DataSettingsPage }))),
+  LinkedAccountsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.LinkedAccountsPage }))),
+  LocaleSettingsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.LocaleSettingsPage }))),
+  PaymentMethodsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.PaymentMethodsPage }))),
+};
+
+// Creator sub-pages
+const CreatorAnalyticsPage    = lazy(() => import('./pages/creator/CreatorSubPages').then(m => ({ default: m.CreatorAnalyticsPage })));
+const CreatorMonetizationPage = lazy(() => import('./pages/creator/CreatorSubPages').then(m => ({ default: m.CreatorMonetizationPage })));
+
+// Misc sub-pages
+const BusinessAnalyticsPage  = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.BusinessAnalyticsPage })));
+const GamingLibraryPage      = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.GamingLibraryPage })));
+const GamingLeaderboardPage  = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.GamingLeaderboardPage })));
+const MusicArtistPage        = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.MusicArtistPage })));
+const SavedCollectionsPage   = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.SavedCollectionsPage })));
+const VideoPlayerPage        = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.VideoPlayerPage })));
+
 // Onboarding (POLISH-15)
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 
@@ -168,6 +208,52 @@ export default function App() {
             <Route path="help"          element={<HelpPage />} />
             <Route path="menu"          element={<MenuPage />} />
             <Route path="premium"       element={<PremiumPage />} />
+
+            {/* ── NEW DASHBOARD ROUTES ── */}
+            {/* Post Detail */}
+            <Route path="post/:id"              element={<PostDetailPage />} />
+            {/* Hashtag feed */}
+            <Route path="hashtag/:tag"          element={<HashtagPage />} />
+            {/* Profile followers/following */}
+            <Route path="profile/:uid/followers"  element={<FollowersPage />} />
+            <Route path="profile/:uid/following"  element={<FollowersPage />} />
+            {/* Dating matches */}
+            <Route path="dating/matches"        element={<DatingMatchesPage />} />
+            {/* New message compose */}
+            <Route path="messages/new"          element={<NewMessagePage />} />
+            {/* Group detail */}
+            <Route path="groups/:id"            element={<GroupDetailPage />} />
+            {/* Event detail */}
+            <Route path="events/:id"            element={<EventDetailPage />} />
+            {/* Marketplace detail pages */}
+            <Route path="marketplace/product/:id"     element={<ProductDetailPage />} />
+            <Route path="marketplace/orders"          element={<MyOrdersPage />} />
+            <Route path="marketplace/seller/dashboard" element={<SellerDashboardPage />} />
+            {/* Admin home dashboard */}
+            <Route path="admin"                 element={<AdminGuard><AdminDashboardPage /></AdminGuard>} />
+            {/* Settings sub-pages */}
+            <Route path="settings/privacy"      element={<PrivacySettingsPage />} />
+            <Route path="settings/security"     element={<SecuritySettingsPage />} />
+            <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
+            <Route path="settings/blocked"      element={<BlockedUsersPage />} />
+            <Route path="settings/data"         element={<DataSettingsPage />} />
+            <Route path="settings/linked-accounts" element={<LinkedAccountsPage />} />
+            <Route path="settings/locale"       element={<LocaleSettingsPage />} />
+            <Route path="settings/payments"     element={<PaymentMethodsPage />} />
+            {/* Creator sub-pages */}
+            <Route path="creator/analytics"     element={<CreatorAnalyticsPage />} />
+            <Route path="creator/monetization"  element={<CreatorMonetizationPage />} />
+            {/* Business analytics */}
+            <Route path="business/analytics"    element={<BusinessAnalyticsPage />} />
+            {/* Gaming sub-pages */}
+            <Route path="gaming/library"        element={<GamingLibraryPage />} />
+            <Route path="gaming/leaderboard"    element={<GamingLeaderboardPage />} />
+            {/* Music artist */}
+            <Route path="music/artist/:id"      element={<MusicArtistPage />} />
+            {/* Saved collections */}
+            <Route path="saved/collections"     element={<SavedCollectionsPage />} />
+            {/* Media video player */}
+            <Route path="video/:id"             element={<VideoPlayerPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/feed" replace />} />
