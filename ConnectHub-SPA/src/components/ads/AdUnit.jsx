@@ -169,7 +169,7 @@ function InterstitialAd({ onClose, userProfile }) {
           <button
             onClick={() => { navigate(houseAd.ctaPath); onClose?.(); }}
             style={{
-              padding: '14px 36px', borderRadius: 24, border: 'none',
+              padding: '14px 36px', borderRadius: 24,
               background: 'rgba(255,255,255,0.25)', color: 'white',
               fontWeight: 800, fontSize: 16, cursor: 'pointer',
               backdropFilter: 'blur(4px)', border: '2px solid rgba(255,255,255,0.5)',
