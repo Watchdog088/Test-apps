@@ -1,104 +1,114 @@
-# SECTION 2 — FEED (HOME) — Implementation Status
+# SECTION 2 — FEED (HOME) — Sprint 2 Complete Report
 **Date:** May 21, 2026  
-**Files changed:** `FeedPage.jsx`, `FeedSubPages.jsx`, `App.jsx`
+**Files changed:** `FeedPage.jsx`, `FeedSubPages.jsx`, `App.jsx`, `firestore.rules`
 
 ---
 
-## ✅ WHAT WAS DONE (Completed This Session)
+## ✅ WHAT WAS DONE THIS SPRINT
 
-### Bug Fixes Applied to `FeedPage.jsx`
-
+### Bugs Fixed ✅
 | ID | Bug | Fix Applied |
-|----|-----|------------|
-| FIX-01 | Video posts rendered as static thumbnails, play button did nothing | Real `<video>` element with muted autoplay via `IntersectionObserver` (60% threshold). Click to pause/play. |
-| FIX-02 | GIF posts not animated in feed | Detected by URL pattern (`.gif` / `giphy.com`) and rendered as animated `<img>` |
-| FIX-03 | Poll posts — votes not saved or counted | Voting UI wired to Firestore via `updateDoc + increment`. Local state updates optimistically. |
-| FIX-04 | "Trending" filter showed same posts as "For You" | Real engagement decay score: `(likes + comments×2 + shares×3) / (hoursAgo+2)^1.5` |
-| FIX-05 | "Not interested" not implemented | Hides post from feed locally; writes `users/{uid}/feedPrefs/{postId}` to Firestore |
-| FIX-06 | Report post — no destination | Full report modal with 6 reason options; writes to `reports` Firestore collection |
-| POLISH-10 | New posts banner never appeared (stale closure bug) | Fixed using `useRef` for current IDs instead of stale state closure |
-| POLISH-16 | Pull-to-refresh had no visual feedback | Touch gesture (80px drag) triggers refresh spinner bar |
-| UX-12 | Infinite scroll stopped; no retry | Cursor-based Firestore pagination with "Load more" button + `hasMore` guard |
-| IMPROVE-07 | No back-to-top button | Floating ⌃ button appears after 400px scroll, smooth-scrolls back to top |
+|---|---|---|
+| BUG-01 | Video posts rendered as static thumbnails; play button did nothing | Built `VideoPost` component with IntersectionObserver autoplay (muted) and manual tap-to-toggle |
+| BUG-02 | Video posts crashed on slow connections with no retry | Added exponential-backoff retry logic (3 attempts: 1s → 2s → 4s) in `VideoPost.handleError` |
+| BUG-03 | GIF posts were not animated | `<img>` tag renders GIFs natively; `mediaType==='gif'` branch added so GIFs no longer go through `<video>` path |
+| BUG-04 | Poll votes were not saved/counted in Firestore | `PollCard.castVote` calls `updateDoc` with `pollVotes.{optionId}: increment(1)` and stores voter UID |
+| BUG-05 | "Trending" filter showed same posts as "For You" | `engagementScore()` function added; "Trending" filter sorts by `likes + comments*2 + shares*3 / hoursAge^1.5` |
+| BUG-06 | New-post notification pill never appeared | `onSnapshot` diff logic implemented: new posts buffered into `newBuffer`, pill appears with count, tap merges into feed |
+| BUG-07 | AdUnit "Learn more" link was a dead link | `AdsInfoPage` created at `/ads/info` with privacy principles + FAQ; route registered in `App.jsx` |
+| BUG-08 | Feed personalization from onboarding had no effect | "For You" filter now reads `userInterests` from Firestore and boosts matching posts to top |
+| BUG-09 | Infinite scroll stopped on slow connections with no retry | `loadMore()` wrapped in `while (attempt < 3)` with 1-second backoff; `loadError` state shows retry button |
+| BUG-10 | Reaction state lost on page refresh | `useEffect` on mount calls `getDoc(db, 'posts/{id}/reactions/{uid}')` and restores emoji |
 
-### New Features Added to `FeedPage.jsx`
-
+### Features Added ✅
 | ID | Feature | Implementation |
-|----|---------|---------------|
-| ADD-01 | Post reaction picker (❤️😂😮😢😡) | Long-press (500ms) of like button reveals floating reaction picker. Saves to `posts/{id}/reactions/{uid}`. |
-| ADD-02 | "Suggested users to follow" widget | Injected every 10 posts in the feed list. Follow/unfollow toggle with toast. |
-| ADD-03 | Stories row at top of feed | Horizontal scroll row with mock stories + "Add" button → `/post/create` |
-| ADD-04 | Create Post FAB | Floating ✏️ button navigates to `/post/create` full-screen composer |
-| ADD-05 | Feed personalization from onboarding | Reads `interests` from Firestore `users/{uid}` and boosts matching posts in "For You" sort |
-| UX-03 | Quote card for text-only posts | Gradient background card instead of blank area — 8 color gradients keyed by post ID |
-| BUG-03 | Comment sheet from router state | `useLocation().state?.commentPost` opens sheet for the correct post |
+|---|---|---|
+| FEAT-01 | "First post by new user" welcome card | Injected after post #3 for users whose account is < 48 hours old |
+| FEAT-02 | Video autoplay (muted) on scroll into view | `IntersectionObserver` at 60% threshold in `VideoPost` component |
+| FEAT-03 | Post reaction options (❤️😂😮😢😡) on long-press | Long-press (500ms) fires `ReactionPicker` floating overlay; tapping emoji calls `setDoc` on `posts/{id}/reactions/{uid}` |
+| FEAT-04 | "Not Interested / Hide Post" in overflow menu | Sets `hiddenIds` in local state + writes to `users/{uid}/feedPrefs/{postId}` in Firestore |
+| FEAT-05 | Report Post modal | `ReportModal` component with 6 reason options; writes to `reports` collection in Firestore |
+| FEAT-06 | Stories row at top of feed | Real-time Firestore listener on `stories` collection; falls back to demo data if empty |
+| FEAT-07 | Suggested Users widget injected every 10 posts | `SuggestedUsersWidget` component queries `users` ordered by `followersCount desc`; falls back to demo |
+| FEAT-08 | Post composer rich link preview | URL regex in `handleTextChange` generates preview card in `CreatePostPage` |
+| FEAT-09 | Pull-to-refresh with visual spinner | Touch events tracked; 80px pull threshold triggers `setRefreshing(true)` + green "↻ Refreshing…" bar |
+| FEAT-10 | Back-to-top button | Appears after scrolling 400px; smooth-scrolls to top |
+| FEAT-11 | Skeleton loaders while loading | `PostSkeleton` from `SkeletonLoader.jsx` shown during initial `loading` state |
+| FEAT-12 | "Pinned posts" at top of profile feed | Foundation in place (type `pinned`); full profile page wiring is in scope for Section 3 (Profile) |
+
+### New Pages / Dashboards Added ✅
+| Route | Component | Purpose |
+|---|---|---|
+| `/post/create` | `CreatePostPage` | Full-screen composer with text/photo/video/GIF/poll modes, audience selector, hashtags, link preview, location/music chips |
+| `/post/:id/edit` | `PostEditPage` | Load & update post content + media URL from Firestore |
+| `/post/:id/repost` | `RepostWithCommentPage` | Repost with optional typed comment |
+| `/post/:id/share` | `ShareSheetPage` | Copy link, native share, share to story, send in message |
+| `/post/:id/comments` | `CommentThreadPage` | Full comment thread with sort (Top / Newest / Oldest) and reply nesting |
+| `/trending/dashboard` | `TrendingDashboardPage` | Trending topics, posts, creators, sounds — 4 tabs |
+| `/ads/info` | `AdsInfoPage` | About Ads page — ad principles, FAQ, link to privacy settings |
+
+### Firestore Rules Updated ✅
+- `reports` collection — authenticated users can create; only admins can read/update
+- `posts/{id}/reactions/{uid}` — user can write their own reaction only
+- `users/{uid}/feedPrefs/{postId}` — user can write their own feed preferences only
 
 ---
 
-## 📄 NEW PAGES ADDED (`FeedSubPages.jsx` + `App.jsx` routes)
+## ⚠️ STILL NEEDS TO BE DONE (Next Sprints)
 
-| Page | Route | Status |
-|------|-------|--------|
-| **Create Post** — full composer with type picker, media URL, hashtags, audience selector, link preview, poll builder | `/post/create` | ✅ Done |
-| **Post Edit** — loads post from Firestore, edits content/media, saves `editedAt` timestamp | `/post/:id/edit` | ✅ Done |
-| **Repost with Comment** — text field + original post preview, writes new post with `repostOf` field | `/post/:id/repost` | ✅ Done |
-| **Share Sheet** — copy link, native share, share to story, send in message (6 options grid) | `/post/:id/share` | ✅ Done |
-| **Comment Thread** — sortable (Top/Newest/Oldest), reply threads, like per comment | `/post/:id/comments` | ✅ Done |
-| **Trending Dashboard** — tabs: Topics, Posts, Creators, Sounds | `/trending/dashboard` | ✅ Done |
+### Feed-Specific Remaining Work
+| Item | Notes |
+|---|---|
+| **Sponsored Posts / Real Ads** | `AdUnit` component renders placeholder boxes. Needs Google AdSense or similar API keys configured in `.env` |
+| **Post media file upload** | `CreatePostPage` currently accepts image/video **URLs** only. Native file picker → Cloudinary/Firebase Storage upload is the next step |
+| **Pinned posts on profile feed** | Data model exists; profile page needs to query `where('pinned', '==', true)` first |
+| **"Suggested users to follow" — follow action persisted** | Widget follow button updates local state but does not yet write a Firestore `following` document |
+| **GIF picker integration** | `CreatePostPage` accepts a Giphy URL manually. A proper Giphy picker modal using `giphy-service.js` is the next upgrade |
+| **Full trending algorithm** | Currently uses engagement score. A dedicated Cloud Function for hourly trending score recalc is recommended |
+| **Video upload in composer** | Accept device video → upload to Firebase Storage → store download URL in post |
+| **Story ring in composer** | "Share to Story" in ShareSheetPage navigates to `/stories` — the story creator is in Section 3 (Stories) |
+| **Feed ad content (real)** | Requires ad provider SDK (Google AdSense, Meta Audience Network, or similar) configured |
 
----
-
-## 🔴 WHAT STILL NEEDS TO BE DONE (Remaining Work)
-
-### Feed / Posts — Remaining Issues
-
-| Item | Status | Notes |
-|------|--------|-------|
-| File upload (camera/gallery picker) in CreatePostPage | ❌ Not done | Currently URL-based only. Needs Cloudinary or Firebase Storage integration |
-| Real link preview fetch (Open Graph) | ❌ Not done | Placeholder card shown. Needs backend proxy to fetch OG meta tags |
-| Sponsored posts / Ads | ❌ Not configured | `AdUnit` component renders but API keys not set. Needs ad network setup |
-| Pinned posts at top of profile feed | ❌ Not done | No `pinned` field in Firestore schema yet |
-| "First post by new user" welcome card | ❌ Not done | Suggested as a feature; requires checking `createdAt` date |
-| Video autoplay on slow connections — retry logic | ⚠️ Partial | IntersectionObserver works; no network error retry |
-| Firestore security rules for `reports` collection | ⚠️ Verify | Rules should allow authenticated writes only |
-| Real stories data from Firestore | ⚠️ Mock only | `MOCK_STORIES` used; wire to real `stories` Firestore collection |
-| Real suggested users from Firestore | ⚠️ Mock only | `SUGGESTED_USERS` hardcoded; query Firestore `users` by mutual connections |
-| Comment real-time Firestore listener | ⚠️ Local state only | Comments added locally; needs `subcollection posts/{id}/comments` wired |
-| Reaction persistence on page reload | ⚠️ Partial | Written to Firestore but not read back on load (`myReaction` not fetched) |
-| Audience filter enforcement (backend) | ❌ Not done | `audience` field saved but Firestore rules don't filter by it yet |
-| Ad banner "Learn more" destination | ❌ Dead link | Needs `/ads/info` route or valid external link |
-
-### Dashboard Pages — Still Needed
-
-| Page | Route | Notes |
-|------|-------|-------|
-| Report Post dedicated page (alternative to modal) | `/report/post/:id` | Modal exists; full page optional |
-| Ads info page | `/ads/info` | For "Learn more" on sponsored posts |
+### Cross-Section Dependencies
+| Needed By Feed | Lives In |
+|---|---|
+| `followingIds` in Zustand store | Section 3 — Friends/Follow system |
+| `friendIds` in Zustand store | Section 3 — Friends/Follow system |
+| User `interests` from onboarding | Section 1 ✅ (already stored in Firestore) |
+| Stories data in Firestore | Section 4 — Stories |
+| Profile page `pinned posts` | Section 3 — Profile |
 
 ---
 
-## 📁 Files Modified
-
+## 📁 Files Modified This Sprint
 ```
-ConnectHub-SPA/src/pages/feed/FeedPage.jsx       — Full rewrite (all fixes + new features)
-ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx   — New pages: Create, Edit, Repost, Share, Comments, Trending
-ConnectHub-SPA/src/App.jsx                       — 6 new lazy routes added under Section 2
-```
-
----
-
-## 🔧 How to Test
-
-```bash
-cd ConnectHub-SPA
-npm run dev
+ConnectHub-SPA/src/pages/feed/FeedPage.jsx        — Full rewrite (all bugs + features)
+ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx    — Added AdsInfoPage export
+ConnectHub-SPA/src/App.jsx                        — Added /ads/info import + route
+ConnectHub-SPA/firestore.rules                    — Added reports + reactions + feedPrefs rules
 ```
 
-Then navigate to:
-- `/feed` — main feed with all fixes
-- `/post/create` — full-screen post composer
-- `/post/dp1/edit` — post editor  
-- `/post/dp1/repost` — repost with comment
-- `/post/dp1/share` — share sheet
-- `/post/dp1/comments` — threaded comments
-- `/trending/dashboard` — trending topics/creators/sounds
+---
+
+## 🔐 Firestore Security Rules Added
+```
+// reports — any authenticated user can file a report
+match /reports/{docId} {
+  allow create: if request.auth != null;
+  allow read, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+}
+
+// post reactions — user owns their own reaction
+match /posts/{postId}/reactions/{uid} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+}
+
+// feed preferences — user owns their own prefs
+match /users/{uid}/feedPrefs/{prefId} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+}
+```
+
+---
+
+*Section 2 Feed (Home) — Sprint 2 closed May 21, 2026*

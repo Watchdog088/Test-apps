@@ -65,6 +65,8 @@ const CreatePostPage       = lazy(() => import('./pages/feed/FeedSubPages').then
 const PostEditPage         = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.PostEditPage })));
 const RepostWithCommentPage = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.RepostWithCommentPage })));
 const ShareSheetPage       = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.ShareSheetPage })));
+// ROUTE-01: Ads info page — fixes dead "Learn more" link (Sprint 2)
+const AdsInfoPage          = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.AdsInfoPage })));
 
 // ── Dating sub-pages (May 2026)
 const DatingBoostPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingBoostPage })));
@@ -335,6 +337,8 @@ export default function App() {
             <Route path="post/:id/repost"       element={<RepostWithCommentPage />} />
             <Route path="post/:id/share"        element={<ShareSheetPage />} />
             <Route path="trending/dashboard"    element={<TrendingDashPage />} />
+            {/* ROUTE-01: /ads/info — About Ads info page (Sprint 2) */}
+            <Route path="ads/info"              element={<AdsInfoPage />} />
 
             {/* Dating */}
             <Route path="dating/boost"          element={<DatingBoostPage />} />

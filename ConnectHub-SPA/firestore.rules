@@ -257,6 +257,56 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // SECTION 2 FEED RULES — Sprint 2 (May 2026)
+    // ══════════════════════════════════════════════════════════════════════
+
+    // reports — any auth user can file; only admins can read/update
+    match /reports/{docId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // post reactions — user owns only their own reaction doc
+    match /posts/{postId}/reactions/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // feed preferences (Not Interested) — user owns their own prefs
+    match /users/{userId}/feedPrefs/{prefId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // post comments subcollection — auth users can read/create; author can delete
+    match /posts/{postId}/comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        resource.data.authorUid == request.auth.uid;
+    }
+
+    // posts — auth users can read; authenticated user can create for themselves
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.authorUid == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.authorUid == request.auth.uid;
+      allow delete: if request.auth != null &&
+        resource.data.authorUid == request.auth.uid;
+    }
+
+    // stories — auth users can read; user can create/delete their own
+    match /stories/{storyId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.authorUid == request.auth.uid;
+      allow delete: if request.auth != null &&
+        resource.data.authorUid == request.auth.uid;
+      allow update: if false;
+    }
+
     // ── Default deny ────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

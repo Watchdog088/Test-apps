@@ -696,3 +696,68 @@ export function ShareSheetPage() {
     </div>
   );
 }
+
+// ─── AdsInfoPage — /ads/info  (fixes dead "Learn more" link on ad banners) ───
+export function AdsInfoPage() {
+  const nav = useNavigate();
+  const faqs = [
+    { q:'Why do I see ads?', a:'Ads help keep ConnectHub free for everyone. We show sponsored content from businesses relevant to your interests.' },
+    { q:'Are ads personalised?', a:'Yes — we use your onboarding interests and in-app activity to show relevant ads. We never sell your personal data.' },
+    { q:'How do I hide an ad?', a:'Tap the ••• menu on any ad card and choose "Not interested". We\'ll show fewer ads like that one.' },
+    { q:'How do I report a bad ad?', a:'Tap ••• → Report Ad. Our team reviews all reports within 24 hours.' },
+    { q:'Can I advertise on ConnectHub?', a:'Yes! Contact us at ads@connecthub.app or visit our Creator tools to get started.' },
+  ];
+  return (
+    <div style={S.page}>
+      <div style={S.header}>
+        <button onClick={()=>nav(-1)} style={S.back}>←</button>
+        <span style={S.title}>📢 About Ads</span>
+      </div>
+      {/* Hero */}
+      <div style={{ margin:'16px', background:'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(236,72,153,0.1))', border:'1px solid rgba(99,102,241,0.2)', borderRadius:20, padding:'24px', textAlign:'center' }}>
+        <div style={{ fontSize:48, marginBottom:12 }}>📢</div>
+        <div style={{ fontWeight:800, fontSize:20, color:'#f1f5f9', marginBottom:8 }}>Advertising on ConnectHub</div>
+        <div style={{ fontSize:14, color:'#94a3b8', lineHeight:1.6 }}>
+          We believe in transparent, respectful advertising. Here's everything you need to know about how ads work on our platform.
+        </div>
+      </div>
+      {/* Principles */}
+      <div style={S.card}>
+        <div style={{ fontWeight:700, fontSize:15, color:'#f1f5f9', marginBottom:12 }}>Our Ad Principles</div>
+        {[
+          { icon:'🔒', title:'Privacy first', desc:'We use interest-based targeting only. No third-party data brokers.' },
+          { icon:'🎯', title:'Relevant only', desc:'Ads are matched to your interests — never random or irrelevant spam.' },
+          { icon:'✅', title:'Reviewed & approved', desc:'Every ad is manually reviewed before going live.' },
+          { icon:'🚫', title:'Easy to control', desc:'Hide, report, or mute any ad at any time.' },
+        ].map(p=>(
+          <div key={p.title} style={{ display:'flex', gap:12, marginBottom:14, alignItems:'flex-start' }}>
+            <span style={{ fontSize:22, flexShrink:0 }}>{p.icon}</span>
+            <div>
+              <div style={{ fontWeight:700, fontSize:14, color:'#f1f5f9' }}>{p.title}</div>
+              <div style={{ fontSize:13, color:'#94a3b8', marginTop:2 }}>{p.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* FAQ */}
+      <div style={S.card}>
+        <div style={{ fontWeight:700, fontSize:15, color:'#f1f5f9', marginBottom:12 }}>Frequently Asked Questions</div>
+        {faqs.map((f,i)=>(
+          <div key={i} style={{ marginBottom:14, paddingBottom:14, borderBottom:i<faqs.length-1?'1px solid rgba(255,255,255,0.06)':'none' }}>
+            <div style={{ fontWeight:700, fontSize:13, color:'#e2e8f0', marginBottom:4 }}>{f.q}</div>
+            <div style={{ fontSize:13, color:'#94a3b8', lineHeight:1.5 }}>{f.a}</div>
+          </div>
+        ))}
+      </div>
+      {/* CTA */}
+      <div style={{ margin:'0 16px 24px', display:'flex', flexDirection:'column', gap:10 }}>
+        <button onClick={()=>nav('/settings/privacy')} style={{ ...S.btn, width:'100%', padding:13, fontSize:15, textAlign:'center' }}>
+          🔒 Manage Ad Preferences
+        </button>
+        <button onClick={()=>nav(-1)} style={{ ...S.btnOutline, width:'100%', padding:13, fontSize:15, textAlign:'center' }}>
+          ← Back to Feed
+        </button>
+      </div>
+    </div>
+  );
+}
