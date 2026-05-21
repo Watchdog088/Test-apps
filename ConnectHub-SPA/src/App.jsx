@@ -73,6 +73,13 @@ const DatingBoostPage      = lazy(() => import('./pages/misc/RemainingDashboards
 const DatingCompatPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingCompatPage })));
 const DatingSettingsPage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingSettingsPage })));
 
+// ── SECTION 5: New Dating Pages (May 2026)
+const DatingProfileEditPage    = lazy(() => import('./pages/dating/DatingProfileEditPage'));
+const DatingProfileViewPage    = lazy(() => import('./pages/dating/DatingProfileViewPage'));
+const SafetyCenterPage         = lazy(() => import('./pages/dating/SafetyCenterPage'));
+const SpeedDatingPage          = lazy(() => import('./pages/dating/SpeedDatingPage'));
+const DatingPreferencesDeepPage = lazy(() => import('./pages/dating/DatingPreferencesDeepPage'));
+
 // ── Group sub-pages (May 2026)
 const GroupCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupCreatePage })));
 const GroupMembersPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupMembersPage })));
@@ -368,6 +375,12 @@ export default function App() {
             <Route path="dating/boost"          element={<DatingBoostPage />} />
             <Route path="dating/compat/:uid"    element={<DatingCompatPage />} />
             <Route path="dating/settings"       element={<DatingSettingsPage />} />
+            {/* SECTION 5 NEW — May 2026 */}
+            <Route path="dating/profile/edit"   element={<DatingProfileEditPage />} />
+            <Route path="dating/profile/:uid"   element={<DatingProfileViewPage />} />
+            <Route path="dating/safety"         element={<SafetyCenterPage />} />
+            <Route path="dating/speed"          element={<SpeedDatingPage />} />
+            <Route path="dating/preferences"    element={<DatingPreferencesDeepPage />} />
 
             {/* Groups */}
             <Route path="groups/create"         element={<GroupCreatePage />} />
