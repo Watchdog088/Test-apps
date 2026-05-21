@@ -136,6 +136,7 @@ const StoriesPage       = lazy(() => import('./pages/stories/StoriesPage'));
 const StoryCreatePage     = lazy(() => import('./pages/stories/StoryCreatePage'));
 const StoryAnalyticsPage  = lazy(() => import('./pages/stories/StoryAnalyticsPage'));
 const StoryHighlightsPage = lazy(() => import('./pages/stories/StoryHighlightsPage'));
+const StoryArchivePage    = lazy(() => import('./pages/stories/StoryArchivePage'));
 const LivePage          = lazy(() => import('./pages/live/LivePage'));
 
 // Live sub-pages (LIVE-BUG-01 through LIVE-BUG-10 fixes)
@@ -247,6 +248,7 @@ export default function App() {
             <Route path="stories/create"    element={<StoryCreatePage />} />
             <Route path="stories/analytics" element={<StoryAnalyticsPage />} />
             <Route path="stories/highlights" element={<StoryHighlightsPage />} />
+            <Route path="stories/archive"   element={<StoryArchivePage />} />
             <Route path="live"              element={<LivePage />} />
             {/* LIVE-BUG-01-10 FIXES: new live sub-routes */}
             <Route path="live/setup"        element={<LiveSetupPage />} />

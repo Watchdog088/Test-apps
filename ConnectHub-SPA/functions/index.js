@@ -576,6 +576,98 @@ exports.listingExpiryEnforcer = functions.pubsub
     return null;
   });
 
+// ── SECTION-3: cleanExpiredStories — delete stories past 24h TTL ──
+// Runs every 60 minutes. Finds story documents where expiresAt < now
+// and batch-deletes them so they no longer appear in the viewer.
+exports.cleanExpiredStories = functions.pubsub
+  .schedule('every 60 minutes').onRun(async () => {
+    const now = admin.firestore.Timestamp.now();
+    const expired = await db.collection('stories')
+      .where('expiresAt', '<', now)
+      .limit(200)
+      .get();
+
+    if (expired.empty) {
+      console.log('[cleanExpiredStories] No expired stories found');
+      return null;
+    }
+
+    const batch = db.batch();
+    expired.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    console.log(`[cleanExpiredStories] Deleted ${expired.size} expired stories`);
+    return null;
+  });
+
+// ── SECTION-3: notifyStoryReply — push when someone replies to your story ──
+// Fires on new storyReplies documents and sends a push to the story author.
+exports.notifyStoryReply = functions.firestore
+  .document('storyReplies/{replyId}')
+  .onCreate(async (snap) => {
+    const reply = snap.data();
+    if (!reply.storyAuthorUid || !reply.senderUid) return null;
+
+    try {
+      const authorDoc = await db.collection('users').doc(reply.storyAuthorUid).get();
+      const { fcmToken, pushEnabled, displayName } = authorDoc.data() || {};
+      if (!fcmToken || pushEnabled === false) return null;
+
+      // Fetch sender name
+      const senderDoc = await db.collection('users').doc(reply.senderUid).get();
+      const senderName = senderDoc.data()?.displayName || 'Someone';
+
+      await admin.messaging().send({
+        token: fcmToken,
+        notification: {
+          title: `💬 ${senderName} replied to your story`,
+          body: reply.text?.slice(0, 80) || '…',
+        },
+        data: {
+          type: 'story_reply',
+          replyId: snap.id,
+          storyId: reply.storyId,
+        },
+      });
+    } catch (e) {
+      console.error('[notifyStoryReply]', e);
+    }
+    return null;
+  });
+
+// ── SECTION-3: notifyStoryReaction — push when someone reacts to your story ──
+exports.notifyStoryReaction = functions.firestore
+  .document('storyReactions/{reactionId}')
+  .onCreate(async (snap) => {
+    const reaction = snap.data();
+    if (!reaction.storyAuthorUid || !reaction.reactorUid) return null;
+    if (reaction.storyAuthorUid === reaction.reactorUid) return null; // don't notify self
+
+    try {
+      const authorDoc = await db.collection('users').doc(reaction.storyAuthorUid).get();
+      const { fcmToken, pushEnabled } = authorDoc.data() || {};
+      if (!fcmToken || pushEnabled === false) return null;
+
+      const reactorDoc = await db.collection('users').doc(reaction.reactorUid).get();
+      const reactorName = reactorDoc.data()?.displayName || 'Someone';
+
+      await admin.messaging().send({
+        token: fcmToken,
+        notification: {
+          title: `${reaction.emoji} ${reactorName} reacted to your story`,
+          body: 'Tap to view',
+        },
+        data: {
+          type: 'story_reaction',
+          reactionId: snap.id,
+          storyId: reaction.storyId,
+        },
+      });
+    } catch (e) {
+      console.error('[notifyStoryReaction]', e);
+    }
+    return null;
+  });
+
 // ── cleanupEndedStreams: hide ended streams older than 24h ─────────
 exports.cleanupEndedStreams = functions.pubsub
   .schedule('every 1 hours').onRun(async () => {
