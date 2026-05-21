@@ -58,9 +58,13 @@ const MusicArtistPage        = lazy(() => import('./pages/misc/MiscSubPages').th
 const SavedCollectionsPage   = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.SavedCollectionsPage })));
 const VideoPlayerPage        = lazy(() => import('./pages/misc/MiscSubPages').then(m => ({ default: m.VideoPlayerPage })));
 
-// ── Feed sub-pages (May 2026)
+// ── Feed sub-pages (May 2026) + Section-2 new pages (May 2026)
 const CommentThreadPage    = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.CommentThreadPage })));
 const TrendingDashPage     = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.TrendingDashboardPage })));
+const CreatePostPage       = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.CreatePostPage })));
+const PostEditPage         = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.PostEditPage })));
+const RepostWithCommentPage = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.RepostWithCommentPage })));
+const ShareSheetPage       = lazy(() => import('./pages/feed/FeedSubPages').then(m => ({ default: m.ShareSheetPage })));
 
 // ── Dating sub-pages (May 2026)
 const DatingBoostPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.DatingBoostPage })));
@@ -324,8 +328,12 @@ export default function App() {
             <Route path="video/:id"             element={<VideoPlayerPage />} />
 
             {/* ── NEW REMAINING DASHBOARD ROUTES (May 2026) ── */}
-            {/* Feed */}
+            {/* Feed — Section 2 (May 2026) */}
+            <Route path="post/create"           element={<CreatePostPage />} />
             <Route path="post/:id/comments"     element={<CommentThreadPage />} />
+            <Route path="post/:id/edit"         element={<PostEditPage />} />
+            <Route path="post/:id/repost"       element={<RepostWithCommentPage />} />
+            <Route path="post/:id/share"        element={<ShareSheetPage />} />
             <Route path="trending/dashboard"    element={<TrendingDashPage />} />
 
             {/* Dating */}
