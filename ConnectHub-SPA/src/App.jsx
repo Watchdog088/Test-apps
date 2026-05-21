@@ -12,8 +12,11 @@ import { useAuth } from './hooks/useAuth';
 // Sprint 20/21: AdminGuard + BoostListingModal — Firestore isAdmin role guard
 import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 
-// Auth Pages
-import LoginPage from './pages/auth/LoginPage';
+// Auth Pages — Section 1 full implementation
+import LoginPage           from './pages/auth/LoginPage';
+import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
+import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
+import AccountRecoveryPage from './pages/auth/AccountRecoveryPage';
 
 // New Dashboard Pages (lazy loaded)
 const PostDetailPage       = lazy(() => import('./pages/post/PostDetailPage'));
@@ -216,10 +219,13 @@ export default function App() {
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Public */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* Public auth routes — Section 1 */}
+          <Route path="/login"            element={<LoginPage />} />
+          <Route path="/verify-email"     element={<VerifyEmailPage />} />
+          <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
+          <Route path="/account-recovery" element={<AccountRecoveryPage />} />
 
-          {/* POLISH-15: Onboarding — public but only reachable after sign-up */}
+          {/* Onboarding — public but only reachable after sign-up */}
           <Route path="/onboarding" element={<OnboardingPage />} />
 
           {/* Protected */}
