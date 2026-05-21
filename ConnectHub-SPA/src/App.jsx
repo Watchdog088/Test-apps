@@ -23,6 +23,10 @@ const MessageRequestsPage      = lazy(() => import('./pages/messages/MessageRequ
 const ArchivedConversationsPage = lazy(() => import('./pages/messages/ArchivedConversationsPage'));
 const GroupChatCreatePage      = lazy(() => import('./pages/messages/GroupChatCreatePage'));
 
+// ── SECTION-7: Notifications new pages (May 2026)
+const ActivitySummaryPage         = lazy(() => import('./pages/notifications/ActivitySummaryPage'));
+const NotificationQuietHoursPage  = lazy(() => import('./pages/notifications/NotificationQuietHoursPage'));
+
 // New Dashboard Pages (lazy loaded)
 const PostDetailPage       = lazy(() => import('./pages/post/PostDetailPage'));
 const HashtagPage          = lazy(() => import('./pages/hashtag/HashtagPage'));
@@ -444,6 +448,13 @@ export default function App() {
             <Route path="messages/requests"     element={<MessageRequestsPage />} />
             <Route path="messages/archived"     element={<ArchivedConversationsPage />} />
             <Route path="messages/group/create" element={<GroupChatCreatePage />} />
+
+            {/* ── SECTION-7: Notifications new pages (May 2026) ── */}
+            {/* FIX-N01/N02/N03/N04/N05 applied to NotificationsPage */}
+            {/* Activity summary dashboard for weekly engagement digest */}
+            <Route path="notifications/activity-summary" element={<ActivitySummaryPage />} />
+            {/* Quiet hours setting — mute non-urgent notifications by schedule */}
+            <Route path="settings/notifications/quiet-hours" element={<NotificationQuietHoursPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/feed" replace />} />
