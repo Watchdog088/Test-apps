@@ -1,1152 +1,1166 @@
-# 🔍 FULL UX/UI TESTER AUDIT REPORT — LynkApp / ConnectHub
-**Date:** May 20, 2026  
-**Auditor Role:** Senior UX/UI Tester  
-**App:** LynkApp (ConnectHub-SPA) — React SPA  
-**Version:** Post-Sprint 24 / May 2026 Build  
-**Commit:** 94cb484
+# ⚡ LYNKAPP — FULL UX/UI TESTER AUDIT REPORT
+**Date:** May 21, 2026  
+**Auditor Role:** Senior UX/UI Tester (acting)  
+**App:** LynkApp (ConnectHub-SPA) — React/Vite Progressive Web App  
+**Version Audited:** `main` branch @ commit `823fe27`  
+**Scope:** Full app audit — every section, every page, every clickable element
 
 ---
 
 ## 📋 EXECUTIVE SUMMARY
 
-LynkApp is an ambitious all-in-one social platform combining Feed, Stories, Live Streaming, Dating, Marketplace, Gaming, Music, AR/VR, Video Calls, Business Tools, Creator Tools, and more — all in a mobile-first dark-themed React SPA. As of this audit the app has made **enormous** progress: 30+ major sections exist, 70+ routes are registered, and most primary pages render. However, significant gaps remain between the UI shell and a fully connected, production-ready user experience. This report documents every section in detail.
+LynkApp is an ambitious all-in-one social platform combining a social feed, dating, marketplace, live streaming, gaming, music, AR/VR, video calls, and more into a single mobile-first PWA. The app has an extensive feature set with 50+ routes, multiple dashboard sub-pages, and a sophisticated backend integration layer.
 
----
+**Overall Rating: 7.2 / 10** *(Good foundation, several critical gaps remain)*
 
-## 🟢 SECTION 1: AUTHENTICATION & ONBOARDING
-
-### What Works ✅
-- **Login page** (`/login`) renders correctly with email/password form
-- **Demo login** button present for testing without real credentials
-- **Firebase authentication** is wired (`useAuth` hook, `firebase/config.js`)
-- **Splash screen** displays on initial load before auth resolves
-- **Private route guard** (`PrivateRoute`) correctly redirects unauthenticated users to `/login`
-- **Onboarding page** (`/onboarding`) exists and is routed correctly
-- **Error boundary** wraps all routes — shows friendly error UI with "Return to Home" button
-- **Social login buttons** are present in the UI (Google, Apple, etc.)
-
-### What Does NOT Work ❌
-- **Social login (Google/Apple)** — buttons visible but Firebase OAuth providers are NOT configured. Clicking produces an uncaught error in the console
-- **"Forgot Password" flow** — no dedicated route or modal; link exists on login page but goes nowhere
-- **Email verification** — users can log in without verifying email; no verification gate
-- **Onboarding flow is incomplete** — only 1–2 steps exist; no interest selection, no profile photo upload step, no friend-finding step during onboarding
-- **Demo token** (`fix-s05-demo-token.js`) is a patch fix — demo login breaks on page refresh due to token not persisting correctly in some browsers
-- **Session persistence** — auth state not always restored on page refresh in private/incognito mode
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Forgot Password | `/forgot-password` — email input form + confirmation screen |
-| Email Verification Prompt | `/verify-email` — post-registration gate |
-| Complete Onboarding (5-step) | `/onboarding` steps: Welcome → Interests → Profile Photo → Find Friends → Done |
-| Account Recovery | `/account-recovery` — backup codes or SMS |
-
-### Recommendations 💡
-1. Complete Firebase Google/Apple OAuth setup — this is table stakes for mobile apps in 2026
-2. Add a 5-step onboarding flow with progress indicator
-3. Add forgot password modal inline on the login page (no page navigation)
-4. Add phone number login as an option (very popular, especially for mobile-first apps)
-5. Add "Remember Me" checkbox with proper persistent session
-6. Biometric login stub (Face ID / Touch ID text, even if backend is future) improves perceived value
-
----
-
-## 🟢 SECTION 2: FEED (Home Page)
-
-### What Works ✅
-- **Feed page** (`/feed`) renders with mock post cards
-- **Post cards** display: avatar, username, timestamp, content text, like/comment/share buttons
-- **Like button** has toggle animation
-- **Feed filter tabs** (All, Following, Trending) are present and switch content
-- **Infinite scroll** structure is in place
-- **Create post button** present (FAB / top bar)
-- **Post detail page** (`/post/:id`) — exists and shows expanded post view
-- **Hashtag page** (`/hashtag/:tag`) — exists and shows tag feed
-- **Comment thread page** (`/post/:id/comments`) — NEW, shows threaded comments
-- **Trending dashboard** (`/trending/dashboard`) — NEW, shows trending stats
-
-### What Does NOT Work ❌
-- **Real-time posts** — posts are static mock data; no Firestore real-time listener is connected to the feed UI
-- **Create post** — tapping the compose button does not open a working post composer with image/video upload
-- **Image/video in posts** — post cards show emoji placeholders instead of real media
-- **Post reactions** (beyond like) — the multi-reaction picker (❤️🔥😂😢👏) is shown in code but does NOT animate or persist
-- **Share post** — share button has no implementation; no native share sheet or copy-link
-- **Repost/Quote post** — buttons exist in the UI but are non-functional
-- **Feed personalization** — algorithm toggle (Recommended vs. Chronological) is visible but does nothing
-- **Ads in feed** — AdUnit component exists but ad slots show blank/placeholder
-- **"Following" filter** — returns the same posts as "All" (no personalization)
-- **Story ring at top of feed** — stories section at top of feed shows avatar rings but tapping them navigates incorrectly on some devices
-- **Pull-to-refresh** — not implemented; no refresh gesture
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Post Composer | Full-screen modal or `/create-post` page with media picker, text, hashtags, audience selector |
-| Post Edit | `/post/:id/edit` — allow author to edit their post |
-| Post Report | Inline modal (not new page) |
-| Repost with Comment | Modal overlay — type comment + tap repost |
-| Share Sheet | Bottom sheet modal with copy link, share to story, share to message |
-| Story Ring Area | Scrollable story row with real story data |
-
-### Recommendations 💡
-1. Connect Firestore real-time listener to FeedPage immediately — the #1 most visible gap
-2. Build a full-featured post composer with camera/gallery picker, location tagging, and audience selector
-3. Add pull-to-refresh with visual feedback (spinning indicator)
-4. Implement pagination with "Load more" or true infinite scroll via Intersection Observer
-5. Add a "First post by a new user" welcome card in the feed
-6. Add "Suggested users to follow" cards between posts
-7. Show skeleton loaders while posts are loading (SkeletonLoader component exists, use it consistently)
-
----
-
-## 🟢 SECTION 3: STORIES
-
-### What Works ✅
-- **Stories page** (`/stories`) renders a list of story circles
-- **Story viewer** opens in a fullscreen modal-style overlay
-- **Progress bar** at top of story viewer animates
-- **Tap to advance** stories works
-- **Story creation flow** has a basic text/image story option
-- **Story highlights** section is present on the page
-- **Archive** feature is listed
-
-### What Does NOT Work ❌
-- **Camera/video capture** for stories is non-functional (no access to device camera API)
-- **Story reactions** (swipe up to react with emoji) — UI exists but reactions are not sent or displayed
-- **Story replies** — text reply to a story does not send; no connection to messages
-- **Music sticker on stories** — present in UI but non-functional
-- **Location sticker** — present but no map integration
-- **Countdown/poll stickers** — buttons visible, no implementation
-- **Story viewer shows real user data** — currently uses hardcoded mock avatars
-- **Story expiry (24h)** — stories do not actually expire from the database
-- **Seen by list** — the "seen by X people" count is static
-- **Highlights** — creating a highlight does not persist to any database
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Story Creator | Full-screen camera page `/stories/create` with sticker toolbar, text, draw tools |
-| Story Reactions Tray | Bottom sheet overlay when swiping up on story |
-| Story Analytics | `/stories/analytics` for who viewed, when, engagement |
-| Highlights Manager | `/stories/highlights` — manage highlight covers and contents |
-
-### Recommendations 💡
-1. Use the device's `navigator.mediaDevices.getUserMedia()` API for camera — this is standard web tech
-2. Connect story creation to Firestore Stories collection with 24-hour TTL rule
-3. Add gesture swipe support (left/right to change story, down to close)
-4. Add a "Add to your story" shortcut from the feed
-
----
-
-## 🟢 SECTION 4: LIVE STREAMING
-
-### What Works ✅
-- **Live page** (`/live`) renders with a grid of live stream cards
-- **Go Live setup page** (`/live/setup`) — camera/mic toggle, title/description, schedule option
-- **Live watch page** (`/live/watch/:streamId`) — full-screen viewer with chat overlay
-- **Live chat overlay** renders with message input and send button
-- **Live analytics** (`/live/analytics`) — viewer count graph, revenue stats
-- **Live moderation** (`/live/moderation`) — viewer list, ban/mute controls
-- **Live schedule page** (`/live/schedule`) — calendar UI for scheduling streams
-- **Live monetization** (`/live/monetization`) — tips, subscriptions, paid access
-- **VOD replay** (`/live/vod/:id`) — recorded stream playback page
-- **Clip viewer** (`/clips/:clipId`) — short clip playback
-- **Live notifications** (`/live/notifications`) — bell icon now routes correctly
-- **LIVE section was the most extensively bug-fixed** section (9+ beta test sessions documented)
-
-### What Does NOT Work ❌
-- **Actual WebRTC streaming** — the `livestream-webrtc.js` service exists but the WebRTC P2P/media server connection is not completed for production; demo mode uses a placeholder video
-- **Live chat is not real-time** — chat messages in the live watch page are not sent to Firestore; they appear locally only
-- **Gifts/Tips** — the tip animation plays but no actual payment is processed
-- **"Go Live" from setup** — tapping "Start Stream" captures camera preview but no actual RTMP/WebRTC signal is sent to a media server
-- **HLS playback** — live streams default to a placeholder; real HLS.js integration needs a media server endpoint
-- **Stream categories/tags** — UI exists but filtering by category returns static results
-- **Viewer count** — static number, not live from Firestore
-- **Co-host invites** — button present, no implementation
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Stream Co-Host Setup | `/live/cohost` — invite a friend to co-stream |
-| Stream Q&A Session | Overlay panel on watch page for Q&A mode |
-| Stream Clips Manager | `/live/clips` — manage all your recorded clips |
-| Stream Gifts Leaderboard | Panel on watch page showing top gifters |
-| Stream Categories Browser | `/live/categories` — browse by game, music, talk, etc. |
-
-### Recommendations 💡
-1. **Most critical:** Connect to a media server (Agora, Daily.co, or self-hosted mediasoup) for real video — WebRTC P2P alone won't scale
-2. Wire live chat to Firestore real-time listener immediately
-3. Add LiveKit or Agora SDK for production-grade streaming
-4. Add "Schedule reminder" push notification when a followed user goes live
-5. Add stream thumbnail selection (auto-capture from camera feed)
-
----
-
-## 🟢 SECTION 5: DATING
-
-### What Works ✅
-- **Dating page** (`/dating`) renders with a Tinder-style card stack
-- **Swipe left/right gestures** are implemented with CSS transforms
-- **Match notification** modal appears after mutual like
-- **Dating matches page** (`/dating/matches`) — lists matched users with chat CTA
-- **Compatibility report** (`/dating/compat/:uid`) — NEW, shows percentage breakdown
-- **Profile boost** (`/dating/boost`) — NEW, tiered boost purchase UI with analytics
-- **Dating settings** (`/dating/settings`) — NEW, age range, distance, show me, intent
-- **Icebreaker prompts** — listed in settings/profile
-- **Verified badge filter** toggle exists
-- **The Dating section was the most feature-complete** (70 features documented)
-
-### What Does NOT Work ❌
-- **Swipe decisions do not persist** — swipes are not saved to Firestore; refreshing the page shows the same profiles again
-- **Match chat** — tapping "Message" from matches page navigates to messages but opens a blank conversation
-- **Profile photos** — dating profiles show emoji avatars; no real profile photos are connected
-- **Geolocation-based matching** — distance slider exists but no actual GPS/location data is used
-- **Video intro** — "Video Profile" button exists but no camera access
-- **Boost payment** — clicking "Purchase Boost" shows a success state without any payment processing
-- **Safety/background check** badge — "Verified" badge is shown but no verification flow exists
-- **Dating profile creation** — no separate flow for creating a dating-specific profile (bio, photos, prompts)
-- **Super Like** — tapping super like button has no animation or backend action
-- **Undo last swipe** — button present but non-functional
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Dating Profile Create/Edit | `/dating/profile/edit` — photos, bio, prompts, height, etc. |
-| Dating Profile View | `/dating/profile/:uid` — view another user's full dating profile before swiping |
-| Safety Center | `/dating/safety` — block/report, safety tips, background check |
-| Speed Dating Room | `/dating/speed` — timed video dates with multiple people |
-| Dating Preferences Deep-Dive | Extended settings: religion, education, politics, lifestyle |
-
-### Recommendations 💡
-1. Build a dedicated dating profile creation flow separate from the main profile
-2. Connect swipes to Firestore with mutual match detection Cloud Function
-3. Auto-open a chat conversation on match instead of requiring manual navigation
-4. Add video intro feature (30-second self-recorded video) — huge differentiator
-5. Add "Relationship goals" badges on cards (Relationship, Casual, Friendship)
-6. Add a "Recently Active" indicator on cards (active within X hours)
-
----
-
-## 🟢 SECTION 6: MESSAGES / CHAT
-
-### What Works ✅
-- **Messages page** (`/messages`) renders a conversation list
-- **Individual conversation** (`/messages/:id`) opens a chat view with message bubbles
-- **New message compose** (`/messages/new`) — search contacts and start conversation
-- **Message status indicators** — sent/delivered/read ticks are shown
-- **Group chat UI** — present in the messages list
-- **Media sharing buttons** — photo, video, GIF, audio icons in message toolbar
-- **Emoji reaction on messages** — long-press shows reaction picker
-- **Message search** — search icon present in conversation header
-
-### What Does NOT Work ❌
-- **Real-time messaging** — `messaging-service.js` and `realtime-service.js` exist but WebSocket/Firestore listener is not connected to the chat UI; messages do not update without refresh
-- **Send message** — typing and tapping send creates a local bubble but does NOT write to Firestore
-- **Photo/video in messages** — media picker buttons open but cannot actually select and send files
-- **GIF picker** — GIPHY integration exists (`giphy-service.js`) but is not wired into the message input
-- **Voice messages** — mic button exists but no audio recording
-- **Video calls from messages** — the video call button in chat header goes to `/videocalls` page but does not initiate a call with that specific user
-- **Message search** — no results returned; static
-- **Unread count badge** — badge on bottom nav shows but does not update in real time
-- **Message reactions** — reaction picker appears but reactions are not persisted
-- **Read receipts** — double tick is shown but not dynamically updated
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Message Requests | `/messages/requests` — messages from non-friends |
-| Archived Conversations | `/messages/archived` — swiped-away chats |
-| Group Create | Modal or `/messages/group/create` — select members, set name/photo |
-| Message Info | Bottom sheet overlay — seen by whom, forwarded from, reactions list |
-| Voice Note Playback | Inline in chat bubble — no new page needed |
-
-### Recommendations 💡
-1. **CRITICAL:** Wire Firestore `onSnapshot` listener to MessagesPage — this is the app's core feature
-2. Integrate GIPHY service (already built) into the GIF picker button
-3. Add typing indicators (Firestore presence/typing field)
-4. Implement message delivery/read receipts properly
-5. Add message pinning in group chats
-6. Add encrypted DMs as a premium feature
-
----
-
-## 🟢 SECTION 7: NOTIFICATIONS
-
-### What Works ✅
-- **Notifications page** (`/notifications`) renders a list of notification items
-- **Notification types** shown: likes, comments, follows, messages, system
-- **Read/unread visual distinction** — unread notifications have a highlight
-- **Notification settings link** — navigates to `/settings/notifications`
-- **Bell icon badge** in bottom nav
-- **OneSignal integration** exists (`onesignal-service.js`)
-
-### What Does NOT Work ❌
-- **Push notifications** — OneSignal is integrated but requires a live domain + service worker registration to actually deliver push notifications during testing
-- **Notification count** — badge count is hardcoded/static, not driven by real data
-- **Tapping a notification** — most notification items navigate to the correct page, but some (especially older notifications) route to `/feed` fallback
-- **Mark all as read** — button exists but doesn't clear the visual unread state from Firestore
-- **Notification grouping** — "3 people liked your post" grouping exists in UI but is not dynamic
-- **In-app notification toasts** — no toast/snackbar appears when a new notification arrives while the user is in the app
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Notification Detail | No new page — tapping notification should deep-link to the relevant content |
-| Notification Settings | `/settings/notifications` — already exists ✅ |
-| Activity Summary | Weekly digest page or in-notification summary card |
-
-### Recommendations 💡
-1. Connect notification badge to Firestore unread count query
-2. Add real-time in-app toast notifications (React context + fixed overlay)
-3. Implement deep-link routing from notification tap (already partially done)
-4. Add "Mentions" tab in notifications (separate from general activity)
-5. Add notification quiet hours setting
-
----
-
-## 🟢 SECTION 8: PROFILE
-
-### What Works ✅
-- **Profile page** (`/profile`, `/profile/:uid`) renders user info, stats, post grid
-- **Followers/Following** (`/profile/:uid/followers`) — list page exists
-- **Edit profile** (`/profile/edit`) — NEW, full edit form with all fields
-- **Profile stats** — post count, followers, following displayed
-- **Post grid** — 3-column photo grid is rendered
-- **Social links** section in edit profile
-- **Profile badge** for premium users
-- **Creator badge** when applicable
-
-### What Does NOT Work ❌
-- **Profile photo upload** — tapping camera icon on profile photo in edit form opens file browser but upload to Cloudinary/S3 is not connected
-- **Profile data saving** — saving the edit profile form does not write to Firestore
-- **Following/Followers list** — shows static mock data, not real follower data
-- **Post grid** — shows placeholder emoji images instead of real user posts
-- **Block/Report user** — three-dot menu on `/profile/:uid` has these options but no action is taken
-- **Story ring** — on other user's profile, tapping their story ring does not open their story
-- **"Follow" button** on other profiles — toggles UI state but does not write to Firestore
-- **Mutual friends display** — "3 mutual friends" text shown but not computed from real data
-- **Profile QR code** — no feature exists for sharing profile via QR code
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Profile Photo Viewer | Full-screen photo overlay with zoom (no new page) |
-| Profile QR Code | Bottom sheet on profile page |
-| Profile Insights (for own profile) | `/profile/insights` — reach, impressions, top posts |
-| Blocked Users Management | `/settings/blocked` — already exists ✅ |
-| Profile Verification Request | `/profile/verify-request` — submit ID for verification badge |
-
-### Recommendations 💡
-1. Connect profile editing to Firestore user document immediately
-2. Use Cloudinary service (already integrated) for profile photo upload
-3. Add pinned posts feature — user can pin up to 3 posts to top of grid
-4. Add "Request to follow" for private accounts
-5. Add profile themes/customization for premium users (background color, custom fonts)
-6. Add a "Share profile" button with copy link and QR code
-
----
-
-## 🟢 SECTION 9: FRIENDS
-
-### What Works ✅
-- **Friends page** (`/friends`) — tabs: All Friends, Requests, Suggestions
-- **Friend requests** — accept/decline buttons work (UI state only)
-- **Suggested friends** — shows list of suggestions
-- **Find friends page** (`/friends/find`) — NEW, search + contact sync + suggested
-- **Search within friends** — input field renders
-
-### What Does NOT Work ❌
-- **Friend requests do not persist** — accept/decline changes UI but not Firestore
-- **Contact sync** — "Sync Contacts" button does not access phone contacts API
-- **Friends list** — shows static mock names, not real Firebase user data
-- **Mutual friends count** — hardcoded, not computed
-- **Online status** — "Online now" badges are static
-- **Remove friend** — option exists in three-dot menu but no action
-- **Friend activity feed** — no tab showing "What your friends are up to"
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Friend Profile Quick View | Bottom sheet on friend list tap (avoid full navigate) |
-| Friend Requests Sent | Tab in `/friends` — "Sent" list |
-| Nearby Friends | `/friends/nearby` — opt-in location-based friend finding |
-| Friends Birthday Reminders | Inline cards in friends page or notification |
-
-### Recommendations 💡
-1. Connect friends system to Firestore friends collection (already schema'd)
-2. Add "People you may know from your area" using geolocation service (already integrated)
-3. Add real-time online status indicator using Firebase Presence
-4. Add birthday field to user profiles and surface birthday reminders
-
----
-
-## 🟢 SECTION 10: GROUPS
-
-### What Works ✅
-- **Groups page** (`/groups`) — renders group cards with search
-- **Group detail** (`/groups/:id`) — shows group feed, members count, about section
-- **Group create** (`/groups/create`) — NEW, 3-step wizard: info → privacy → cover photo
-- **Group members** (`/groups/:id/members`) — NEW, tabs: All, Admins, Pending
-- **Group settings** (`/groups/:id/settings`) — NEW, settings list with delete option
-- **Group categories** — Tech, Gaming, Art, Fitness, etc.
-- **Privacy options** — Public, Private, Secret
-
-### What Does NOT Work ❌
-- **Group creation does not persist** — completing the 3-step wizard does not write to Firestore
-- **Group feed** — no posts shown in group detail; static placeholder
-- **Join/Leave group** — button toggles UI but not Firestore
-- **Group chat** — "Chat" tab in group detail has no working chat
-- **Group events** — "Events" tab in group detail is empty
-- **Pending member approval** — approve/reject in members page doesn't write to Firestore
-- **Group cover photo upload** — upload area exists but no file picker connected
-- **Group notifications** — "Notify me" toggle doesn't persist
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Group Invite Links | Modal/sheet: copy join link, share via message |
-| Group Polls | Inline in group feed (no new page) |
-| Group Files/Media | `/groups/:id/media` — shared photos and files |
-| Group Rules | `/groups/:id/rules` — list of group rules for members |
-| Group Analytics (Admin) | `/groups/:id/analytics` — growth, engagement (admin only) |
-
-### Recommendations 💡
-1. Wire group creation to Firestore with auto-generated groupId
-2. Build group feed using the same post card components as main feed
-3. Add group invite links with auto-join on click
-4. Add group scheduled posts for admins
-5. Add "Pinned Announcement" at top of group feed for admins
-
----
-
-## 🟢 SECTION 11: EVENTS
-
-### What Works ✅
-- **Events page** (`/events`) — renders upcoming/nearby events
-- **Event detail** (`/events/:id`) — shows full event info, RSVP
-- **Event create** (`/events/create`) — NEW, 3-step: basics → date/location → description
-- **Event attendees** (`/events/:id/attendees`) — NEW, Going/Maybe/Not Going tabs
-- **My events** (`/events/mine`) — NEW, shows events I'm hosting and attending
-- **Event types** — In-Person, Virtual, Hybrid with type selector
-- **RSVP buttons** — Going/Maybe/Not Going toggles
-
-### What Does NOT Work ❌
-- **Event creation does not persist** — no Firestore write
-- **RSVP state does not persist** — refreshing page loses RSVP choice
-- **Event map/location** — location field exists but no map display of the event location
-- **Calendar sync** — no "Add to Calendar" feature (Google Calendar, iCal)
-- **Event reminders** — no push notification scheduled on RSVP
-- **Ticket purchases** — no paid event ticket flow
-- **Recurring events** — no support
-- **Nearby events** — location filter shows static results
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Event Map View | Modal with Leaflet map (service exists) showing event pin |
-| Event Ticket Purchase | `/events/:id/tickets` — select ticket type, pay |
-| Event Check-In | `/events/:id/checkin` — QR code for in-person events |
-| Event Recap | `/events/:id/recap` — photos/videos from the event |
-| Calendar Integration | Bottom sheet → Add to Google/Apple/Outlook |
-
-### Recommendations 💡
-1. Integrate Leaflet maps (already built) into event detail to show location
-2. Add "Add to Google Calendar" export using RFC 5545 iCal format
-3. Send push notification reminder 1 hour before event via OneSignal
-4. Add ticket tiers (Free, VIP, General) with Stripe payment
-
----
-
-## 🟢 SECTION 12: MARKETPLACE
-
-### What Works ✅
-- **Marketplace page** (`/marketplace`) — renders product grid with categories
-- **Product detail** (`/marketplace/product/:id`) — shows photos, price, seller info, buy button
-- **Seller profile** (`/marketplace/seller/:name`) — shows seller listings, ratings
-- **Seller dashboard** (`/marketplace/seller/dashboard`) — sales, orders, analytics
-- **Create listing wizard** (`CreateListingWizard.jsx`) — multi-step listing creation
-- **My orders** (`/marketplace/orders`) — order history
-- **Cart** (`/cart`) — NEW, full cart with qty controls, remove, total
-- **Listing boost** (`/marketplace/boost/:id`) — NEW, boost tiers for listings
-- **KYC admin page** (`/admin/kyc`) — admin can review seller verification
-- **Reports admin** (`/admin/reports`) — admin can moderate content
-- **Map view modal** — browse listings by location
-- **The Marketplace had the most development sprints** (24 sprints documented)
-- **Firestore integration** is the most complete here — `marketplace-firestore-service.js` wired
-
-### What Does NOT Work ❌
-- **Checkout / payment flow** — the "Checkout" button in cart does not process real payment; no Stripe checkout session is initiated
-- **Stripe** — `payment-service.js` exists but `STRIPE_PUBLISHABLE_KEY` env var is not set in production
-- **Shipping rates** — `shipping-rates.ts` backend service exists but is not called from the frontend checkout
-- **Product photos** — listings show emoji/placeholder instead of real uploaded product images
-- **Image upload in listing creation** — file upload step in wizard doesn't upload to Cloudinary
-- **Seller verification (KYC)** — admin KYC page exists but the seller-side "Submit ID" flow is missing
-- **Reviews/Ratings** — rating stars are displayed but users cannot submit a review
-- **Order status updates** — order tracking page (`/marketplace/orders`) shows mock statuses
-- **Returns/Refunds** — no flow exists
-- **Search within marketplace** — search bar returns mock results
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Checkout Flow | `/checkout` — address, payment method, order review, confirm |
-| Order Detail | `/marketplace/orders/:id` — tracking, items, receipt |
-| Write a Review | Modal on order detail page |
-| Seller Onboarding | `/marketplace/become-seller` — bank info, KYC, payout setup |
-| Returns Center | `/marketplace/returns` — initiate return, track return |
-| Wishlist | `/marketplace/wishlist` — saved products |
-| Buyer Protection Info | Static page `/marketplace/buyer-protection` |
-
-### Recommendations 💡
-1. Complete Stripe integration — this is the most important revenue feature
-2. Build a full checkout flow: Cart → Address → Payment → Confirmation → Email receipt
-3. Add product image upload using Cloudinary (already integrated)
-4. Add real-time order status updates using Firestore or WebSockets
-5. Add "Make Offer" feature for price negotiation
-6. Add a seller rating system after order completion
-
----
-
-## 🟢 SECTION 13: GAMING HUB
-
-### What Works ✅
-- **Gaming page** (`/gaming`) — renders game cards grid
-- **Game detail** (`/gaming/game/:id`) — NEW, shows game info, genres, player count, play button
-- **Tournament page** (`/gaming/tournament`) — NEW, Active/Upcoming/Past tabs with brackets
-- **Gaming library** (`/gaming/library`) — shows saved/installed games
-- **Gaming leaderboard** (`/gaming/leaderboard`) — global rankings
-- **RAWG API integration** — `rawg-service.js` connected, real game data can be fetched
-- **FreeToGame API** — `freetogame-service.js` for free game listings
-- **Game categories** — FPS, RPG, Strategy, etc.
-
-### What Does NOT Work ❌
-- **"Play Now" button** — no actual game launching; redirects to placeholder
-- **Achievements** — achievement badges shown but not connected to any game data
-- **Friends playing** — "X friends playing this game" is static
-- **Tournament registration** — "Register" button shows UI but no backend enrollment
-- **Tournament brackets** — "View Bracket" button shows placeholder
-- **Game clips** — no clips from gaming sessions
-- **Game reviews** — no user-written reviews
-- **RAWG API key** — needs to be set in `.env` for real game data to appear
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Game Reviews Page | `/gaming/game/:id/reviews` — user reviews list |
-| Tournament Bracket Viewer | `/gaming/tournament/:id/bracket` — visual bracket |
-| My Gaming Stats | `/gaming/stats` — hours played, achievements, favorite genres |
-| Clip Viewer | `/gaming/clips/:id` — watch a gaming clip (clips viewer exists for Live) |
-| Game Store | `/gaming/store` — DLC, skins, in-game purchases (future) |
-
-### Recommendations 💡
-1. Connect RAWG API (key needed) for real game library and metadata
-2. Add "Currently trending in gaming" feed powered by RAWG popular games endpoint
-3. Build a simple tournament bracket UI (elimination or round-robin)
-4. Add screen recording share feature for gaming clips
-
----
-
-## 🟢 SECTION 14: MUSIC PLAYER
-
-### What Works ✅
-- **Music page** (`/music`) renders with tabs: For You, Trending, Artists, Albums, Playlists
-- **Album detail** (`/music/album/:id`) — NEW, tracklist with play controls
-- **Playlist page** (`/music/playlist/:id`) — NEW, playlist view with shuffle
-- **Playlist create** (`/music/playlist/create`) — NEW, name input + privacy selector
-- **Music artist page** (`/music/artist/:id`) — artist bio, discography
-- **Mini player** — persists at bottom of screen when music plays
-- **Deezer API integration** — `deezer-service.js` for track search and preview
-- **YouTube Music** — `youtube-music-service.js` integration attempt
-- **Radio Browser** — `radio-browser-service.js` for internet radio stations
-- **Play controls** — play/pause, skip, previous, progress bar rendered
-
-### What Does NOT Work ❌
-- **Actual audio playback** — clicking play on any track does not produce audio; the Audio API is not wired to the play button state in the main music page
-- **Deezer 30-second previews** — service exists but `VITE_DEEZER_API_KEY` is not set; Deezer also requires CORS proxy for browser use
-- **Mini player progress** — progress bar is a static visual, not driven by `HTMLAudioElement.currentTime`
-- **Queue management** — "Next Up" queue UI exists but adding songs to queue doesn't work
-- **Liked songs** — heart icon toggles but not saved to Firestore
-- **Download for offline** — button visible but no service worker cache implementation
-- **Lyrics view** — "Lyrics" button on player has no content
-- **Sleep timer** — listed as feature but not implemented
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Full-Screen Now Playing | `/music/player` — expanded player with artwork, queue, lyrics |
-| Music Search | `/music/search` — search by song, artist, album |
-| Recently Played | Tab on music page |
-| Collaborative Playlist | `/music/playlist/:id/collab` — invite friends to add songs |
-| DJ/Mix Mode | `/music/mix` — crossfade between tracks |
-
-### Recommendations 💡
-1. Implement HTML5 Audio Element properly: `new Audio(url)`, wire to play/pause/seek
-2. Use Deezer preview URLs (30-sec free previews) — requires API key setup in `.env`
-3. Build full-screen now-playing screen with album art, lyrics placeholder, queue
-4. Add "Stations" tab powered by Radio Browser API (already integrated)
-5. Add crossfade option between tracks for premium users
-
----
-
-## 🟢 SECTION 15: MEDIA HUB
-
-### What Works ✅
-- **Media Hub page** (`/media`) — renders tabs: Photos, Videos, Audio, Collections
-- **Photo gallery** (`/media/photos`) — NEW, grid + list toggle, shows 12 photo slots
-- **Media upload** (`/media/upload`) — NEW, drag-and-drop zone + camera/browse buttons
-- **Media library** (`/media/library`) — NEW, filterable list by media type
-- **Video player page** (`/video/:id`) — plays video in embedded player
-- **Cloudinary integration** — `cloudinary-service.js` ready for uploads
-
-### What Does NOT Work ❌
-- **File upload** — drag-and-drop zone exists but files are not actually uploaded to Cloudinary
-- **Photo viewer** — clicking a photo in the gallery does not open a full-screen lightbox
-- **Video playback** — the video player page shows a placeholder; no real video URL is loaded
-- **Collections** — creating/editing collections is not connected to Firestore
-- **Storage quota display** — "1.4 GB used" is hardcoded
-- **Media sharing** — share icon on media items does not work
-- **Album creation from media** — no flow to create photo albums
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Photo Lightbox | Full-screen overlay with pinch-zoom (no new page) |
-| Video Player | `/video/:id` — already exists, needs real HLS/MP4 source |
-| Create Album | Modal/page for organizing photos into albums |
-| Media Recycle Bin | `/media/trash` — 30-day soft-delete |
-| Media Search | Search bar in library by date, type, tag |
-
-### Recommendations 💡
-1. Wire Cloudinary upload: `cloudinary-service.js` → upload button → get URL → save to Firestore
-2. Add photo lightbox with swipe gesture navigation
-3. Add bulk select + delete/share/download for media management
-4. Add automatic album creation for "Photos from Events" or "Travel 2026"
-
----
-
-## 🟢 SECTION 16: VIDEO CALLS
-
-### What Works ✅
-- **Video calls page** (`/videocalls`) — main page with call history and start call button
-- **Call setup page** (`/videocalls/new`) — NEW, contact search, camera/mic toggles, call initiation
-- **Active call page** (`/videocalls/call/:id`) — NEW, full-screen call UI with live timer, controls
-- **WebRTC service** — `webrtc-service.js` and `signaling-service.js` exist
-- **Call controls** — mute, camera toggle, screen share, pin, end call buttons
-- **Self-view (picture-in-picture)** — small camera preview in corner
-
-### What Does NOT Work ❌
-- **Actual WebRTC P2P connection** — `webrtc-service.js` defines the signaling logic but no STUN/TURN server is configured in the `.env`; calls only show placeholder avatars
-- **Screen sharing** — "Share Screen" button toggles but `getDisplayMedia()` is not called
-- **Group video calls** — only 1-on-1 UI exists; no multi-person layout
-- **Call notifications** — incoming call screen (ring + accept/decline) doesn't exist
-- **Call recording** — listed as feature but not implemented
-- **Background blur** — button exists, no ML/canvas implementation
-- **Signaling server** — `signaling-service.js` likely needs a running WebSocket server
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Incoming Call Screen | Full-screen overlay with caller ID, accept/decline |
-| Group Video Call | `/videocalls/group/:id` — grid layout for 2–8 participants |
-| Call History Detail | Bottom sheet or `/videocalls/history/:id` |
-| Call Transcription | Real-time subtitles overlay on active call |
-| Virtual Backgrounds | Settings panel within active call |
-
-### Recommendations 💡
-1. Add STUN/TURN server config (Google's free STUN, or Twilio TURN) to make P2P calls work
-2. Use Agora SDK or Daily.co as drop-in WebRTC replacement for reliability
-3. Build incoming call notification using OneSignal push + local notification API
-4. Add group call layout (grid view) for up to 8 participants
-
----
-
-## 🟢 SECTION 17: AR/VR
-
-### What Works ✅
-- **AR/VR page** (`/arvr`) — renders AR filters grid and VR experiences section
-- **AR filter preview** (`/arvr/filter/:id`) — NEW, shows filter list with active state, snap/record buttons
-- **VR viewer** (`/arvr/vr/:id`) — NEW, shows VR experience list with enter button
-- **DeepAR API integration** — `deepar-service.js` exists (key is secured)
-- **Filter categories** — Beauty, Fun, Artistic, Holiday etc.
-
-### What Does NOT Work ❌
-- **Real AR face filters** — DeepAR SDK requires a camera feed; currently shows emoji placeholder
-- **Camera access** — no `getUserMedia()` call in the AR filter page
-- **Filter capture** — "Snap" and "Record" buttons do nothing
-- **VR experiences** — "Enter VR Experience" button shows a message but no WebXR session is started
-- **360° video** — no A-Frame or Three.js library for 360° playback
-- **AR try-on for Marketplace** — concept exists but no implementation
-- **User-created filters** — no filter creation studio
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| AR Filter Creator | `/arvr/create-filter` — basic sticker/text/effect overlay creator |
-| AR Try-On (Marketplace) | Overlay within product detail page |
-| VR Social Space | `/arvr/social` — shared virtual room with avatars |
-| 360° Photo Viewer | Full-screen on media hub page for 360 photos |
-
-### Recommendations 💡
-1. Integrate DeepAR.js properly with camera stream using `getUserMedia()`
-2. Use A-Frame for basic WebVR/360° content — lightweight and works in browser
-3. Add a "Try this filter on your story" CTA that pre-selects the filter for story creation
-4. Add popular AR filter trending list powered by engagement data
-
----
-
-## 🟢 SECTION 18: SEARCH
-
-### What Works ✅
-- **Search page** (`/search`) — renders with a search input and category filter tabs
-- **Search categories** — People, Posts, Groups, Events, Marketplace, Music, Hashtags
-- **Search results layout** — renders result cards per category
-- **Recent searches** — displayed below empty search input
-
-### What Does NOT Work ❌
-- **Search results are all mock data** — no Firestore query is made on search input
-- **People search** — returns hardcoded names; not real users from Firestore
-- **Real-time search suggestions** — no autocomplete/typeahead
-- **Voice search** — mic icon present but not functional
-- **Search within sections** — inconsistent; marketplace search, music search, etc. all use separate search inputs that don't work
-- **Search history persistence** — recent searches lost on reload
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Search Results Page (full) | Current `/search` is adequate — just needs real data |
-| Advanced Filters | Bottom sheet on search page: date range, location, verified only |
-| Trending Searches | Section below search bar showing trending terms |
-
-### Recommendations 💡
-1. Implement Firestore full-text search using Algolia or Typesense (recommended)
-2. Add real-time search-as-you-type with 300ms debounce
-3. Store and retrieve search history in Firestore user document
-4. Add "Explore" tab when search bar is empty (trending topics, popular users)
-
----
-
-## 🟢 SECTION 19: SETTINGS
-
-### What Works ✅
-- **Settings page** (`/settings`) — renders organized list of setting categories
-- **Privacy settings** (`/settings/privacy`) — toggles for profile visibility, etc.
-- **Security settings** (`/settings/security`) — 2FA, login devices list
-- **Notification preferences** (`/settings/notifications`) — per-type toggle controls
-- **Blocked users** (`/settings/blocked`) — list of blocked accounts
-- **Data settings** (`/settings/data`) — download data, delete account
-- **Linked accounts** (`/settings/linked-accounts`) — social platform connections
-- **Locale settings** (`/settings/locale`) — language, timezone, date format
-- **Payment methods** (`/settings/payments`) — card management UI
-
-### What Does NOT Work ❌
-- **Settings are not persisted** — toggling any setting in the UI does not write to Firestore
-- **2FA setup** — button shows "Enable 2FA" but no SMS/TOTP flow
-- **Download my data** — button exists but no data export is generated
-- **Delete account** — button shows confirmation modal but does not actually delete Firebase user
-- **Add payment method** — Stripe card input form is not integrated
-- **Logout all devices** — button exists but only logs out current session
-- **Password change** — form renders but Firebase `updatePassword` not called
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Active Sessions | `/settings/sessions` — list of logged-in devices with revoke option |
-| App Permissions | `/settings/permissions` — manage camera, mic, location, notifications |
-| Accessibility | `/settings/accessibility` — font size, high contrast, reduce motion |
-| Data Usage | `/settings/data-usage` — control auto-play, media quality |
-
-### Recommendations 💡
-1. Connect all toggle states to Firestore user settings document
-2. Implement proper Firebase `updatePassword` flow with current password verification
-3. Add 2FA via Firebase TOTP or SMS (Firebase Phone Auth)
-4. Add "Export my data" that creates a ZIP of user's posts, messages, profile
-5. Add accessibility settings: font size slider, reduce animations toggle
-
----
-
-## 🟢 SECTION 20: TRENDING
-
-### What Works ✅
-- **Trending page** (`/trending`) — redirects to `/feed?filter=trending` (intentional, correct)
-- **Trending dashboard** (`/trending/dashboard`) — NEW, shows trending stats with charts
-- **Trending section in feed** — "Trending" tab shows curated content
-- **Reddit API integration** — `reddit-service.js` for trending topics
-- **NewsAPI integration** — `news-api-service.js` for trending news
-- **Guardian/NPR APIs** — additional news sources integrated
-
-### What Does NOT Work ❌
-- **Reddit API requires OAuth** — `reddit-service.js` is built but the OAuth token flow is not implemented (Reddit changed their API rules in 2023–2024)
-- **NewsAPI key** — needs to be set in `.env`; returns 401 without it
-- **Trending topics are hardcoded** — the trending hashtags section uses static data
-- **Real-time trending** — no mechanism to compute trending hashtags from Firestore posts
-
-### Recommendations 💡
-1. Replace Reddit API with RSS feeds from curated sources (no auth required)
-2. Compute trending hashtags from Firestore using a scheduled Cloud Function every hour
-3. Show trending topic cards with growth percentage (↑ 234% in the last hour)
-4. Add location-based trending (trending near me)
-
----
-
-## 🟢 SECTION 21: PREMIUM
-
-### What Works ✅
-- **Premium page** (`/premium`) — renders premium features list and plans
-- **Premium checkout** (`/premium/checkout`) — NEW, plan selector (monthly/yearly/lifetime), benefits list, checkout CTA
-- **Subscription manage** (`/premium/manage`) — NEW, billing history, cancel, change plan
-- **Premium badge** — displays on profile for premium users
-- **Premium features listed** — no ads, larger uploads, 10x dating matches, etc.
-- **Trial offer** — 7-day free trial messaging present
-
-### What Does NOT Work ❌
-- **Actual subscription purchase** — the checkout button has no Stripe integration
-- **Premium gate enforcement** — most "premium" features are accessible to all users (no feature flag check)
-- **Subscription status persistence** — premium badge is hardcoded; no Firestore check
-- **Cancellation** — cancel button shows confirmation dialog but doesn't call Firebase/Stripe
-- **Receipt generation** — billing history is mock data
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| Gift Premium | `/premium/gift` — send premium to a friend |
-| Premium Feature Showcase | Expanded marketing page `/premium/features` |
-
-### Recommendations 💡
-1. Implement Stripe Billing with monthly/yearly subscription products
-2. Use Firebase custom claims to store premium status — check on every protected feature
-3. Add a "Premium-only" content label on gated posts/features
-4. Add referral program: "Refer a friend, get 1 month free"
-
----
-
-## 🟢 SECTION 22: HELP & SUPPORT
-
-### What Works ✅
-- **Help page** (`/help`) — FAQ accordion, search, contact options
-- **Support ticket** (`/help/ticket`) — NEW, category picker, subject/description form, priority selector, ticket history
-- **Live chat** — chat bubble renders in Help page
-- **FAQ content** — questions and answers display correctly
-- **Feedback form** — present in menu/help
-
-### What Does NOT Work ❌
-- **Ticket submission** — form submits locally but no email/Zendesk/Firestore write occurs
-- **Live chat** — chat bubble opens but no real agent or chatbot is connected
-- **Search FAQ** — search input doesn't filter FAQ items
-- **Ticket status updates** — mock statuses only
-- **Attachments on tickets** — file upload button exists but not connected
-- **Email confirmation** — no email sent after ticket submission (Mailgun is set up but not connected to tickets)
-
-### Recommendations 💡
-1. Connect ticket form to Firestore `supportTickets` collection with timestamp + uid
-2. Send confirmation email via Mailgun on ticket submission (already integrated)
-3. Add a chatbot (simple FAQ-bot with keyword matching) for instant responses
-4. Integrate with Zendesk or Intercom for proper ticket management
-
----
-
-## 🟢 SECTION 23: SAVED / BOOKMARKS
-
-### What Works ✅
-- **Saved page** (`/saved`) — renders saved posts, collections tabs
-- **Collection page** (`/saved/collection/:id`) — NEW, shows items in a collection
-- **Collection create** (`/saved/collection/new`) — NEW, name + privacy selector
-- **Collections list** (`/saved/collections`) — all user collections
-
-### What Does NOT Work ❌
-- **Saving a post** — bookmark icon on feed posts doesn't write to Firestore saved collection
-- **Collections are not persisted** — creating a collection doesn't save to Firestore
-- **Organizing saves** — can't move saved items between collections
-- **Save from external content** — no "Save to LynkApp" bookmarklet
-
-### Recommendations 💡
-1. Wire bookmark/save action on post cards to Firestore immediately
-2. Add "Save to Collection" picker when bookmarking
-3. Add offline reading mode for saved articles (Service Worker cache)
-
----
-
-## 🟢 SECTION 24: ADMIN DASHBOARD
-
-### What Works ✅
-- **Admin dashboard** (`/admin`) — exists behind `AdminGuard`
-- **KYC admin** (`/admin/kyc`) — seller verification management
-- **Reports admin** (`/admin/reports`) — content moderation queue
-- **AdminGuard** — checks Firestore `isAdmin` custom claim
-- **Admin dashboard page** (`AdminDashboardPage.jsx`) — stats, user management
-
-### What Does NOT Work ❌
-- **Admin actions** — banning users, removing posts, approving KYC from admin UI don't write to Firestore
-- **Real stats** — user count, DAU, revenue are all hardcoded
-- **Admin role assignment** — no UI to make someone an admin
-- **Content moderation queue** — reports listed but approve/reject doesn't act on the reported content
-- **Push broadcast** — no mass notification tool for admins
-
-### Needs Dashboard / New Pages Needed 📋
-| Missing Item | Recommended Page |
-|---|---|
-| User Management | `/admin/users` — search, ban, verify users |
-| Content Management | `/admin/content` — remove posts, stories, comments |
-| Analytics Dashboard | `/admin/analytics` — real-time DAU, revenue, post volume |
-| System Health | `/admin/health` — Firebase usage, error rate (Sentry) |
-| Feature Flags | `/admin/flags` — toggle features on/off per user tier |
-
-### Recommendations 💡
-1. Connect all admin actions to Firestore with admin SDK (via Cloud Functions — never client-side)
-2. Add real-time analytics using Firebase Analytics + custom dashboard
-3. Add bulk user actions: export user list, send mass notification
-4. Add content queue with auto-flagging from OpenAI moderation (already integrated)
-
----
-
-## 🟢 SECTION 25: BUSINESS TOOLS
-
-### What Works ✅
-- **Business page** (`/business`) — renders business profile tools
-- **Business analytics** (`/business/analytics`) — charts, reach stats, post performance
-- **Promoted posts** — UI for boosting a business post
-- **Business profile** — separate from personal profile with category, hours, website
-
-### What Does NOT Work ❌
-- **Business analytics are static** — no real data from Firestore
-- **Promote a post payment** — no Stripe integration for ad spend
-- **Business verification** — no flow to verify a business entity
-- **Business DMs** — separate business inbox concept exists but not routed
-
-### Recommendations 💡
-1. Build a self-serve ad platform with budget input + duration + audience targeting
-2. Connect business analytics to post engagement Firestore data
-3. Add business category directory search
-
----
-
-## 🟢 SECTION 26: CREATOR TOOLS
-
-### What Works ✅
-- **Creator page** (`/creator`) — renders creator dashboard
-- **Creator analytics** (`/creator/analytics`) — follower growth, reach, top content
-- **Creator monetization** (`/creator/monetization`) — tips, subscriptions, paid content
-
-### What Does NOT Work ❌
-- **Analytics data is static** — no real connection to post data
-- **Paid content gate** — no mechanism to lock content behind a paywall
-- **Creator fund** — mentioned but no flow
-- **Tip payments** — no Stripe integration
-
-### Recommendations 💡
-1. Add "Exclusive Posts" feature — premium subscribers only see these
-2. Add monthly creator earnings dashboard with payout history
-3. Add brand deal tracker — log sponsorships, deliverables, payment status
-
----
-
-## 🟢 SECTION 27: MENU / NAVIGATION
-
-### What Works ✅
-- **Bottom navigation bar** — 5 icons (Feed, Messages, Create, Notifications, Profile)
-- **Top navigation bar** — Logo, search icon, notification bell, settings gear
-- **Menu page** (`/menu`) — full-screen drawer with all section links
-- **AppShell** — correctly wraps all protected pages
-- **Back button** on all sub-pages consistently uses `useNavigate(-1)`
-- **Sticky header** on all pages with blur backdrop effect
-
-### What Does NOT Work ❌
-- **"Create" button** in bottom nav (center FAB) — tapping it does not open a post composer
-- **Active tab indicator** in bottom nav does not always highlight correctly on sub-routes
-- **Swipe back gesture** — not implemented (iOS Safari back swipe works but Android doesn't)
-- **Deep link routing** — visiting a deep URL directly after login sometimes fails to load
-- **Bottom nav hidden on call screen** — during active video call, bottom nav should be hidden but is still visible
-
-### Recommendations 💡
-1. Wire center FAB to a bottom sheet "Create" menu: New Post, New Story, Go Live, New Event
-2. Fix active route matching in BottomNav to use `useMatch` with wildcard for sub-routes
-3. Hide BottomNav and TopNav during active video calls and live streaming
-4. Add haptic feedback on tab press (Vibration API)
-5. Add keyboard-aware padding so the nav bar moves up when the soft keyboard is open
-
----
-
-## 📊 OVERALL FEATURE STATUS MATRIX
-
-| Section | UI Shell | Data Connected | Payments | Rating |
-|---|---|---|---|---|
-| Auth/Onboarding | ✅ | ⚠️ Partial | N/A | 6/10 |
-| Feed | ✅ | ❌ Mock only | N/A | 4/10 |
-| Stories | ✅ | ❌ Mock only | N/A | 4/10 |
-| Live Streaming | ✅ | ❌ No real stream | ❌ | 5/10 |
-| Dating | ✅ | ❌ Mock only | ❌ | 6/10 |
-| Messages | ✅ | ❌ Not real-time | N/A | 4/10 |
-| Notifications | ✅ | ⚠️ Partial | N/A | 5/10 |
-| Profile | ✅ | ❌ Not saving | N/A | 4/10 |
-| Friends | ✅ | ❌ Mock only | N/A | 4/10 |
-| Groups | ✅ | ❌ Not saving | N/A | 5/10 |
-| Events | ✅ | ❌ Not saving | ❌ | 5/10 |
-| Marketplace | ✅ | ⚠️ Partial | ❌ | 6/10 |
-| Gaming | ✅ | ❌ Mock only | N/A | 5/10 |
-| Music Player | ✅ | ❌ No audio | N/A | 3/10 |
-| Media Hub | ✅ | ❌ No upload | N/A | 4/10 |
-| Video Calls | ✅ | ❌ No WebRTC | N/A | 4/10 |
-| AR/VR | ✅ | ❌ No camera | N/A | 3/10 |
-| Search | ✅ | ❌ Mock only | N/A | 3/10 |
-| Settings | ✅ | ❌ Not saving | ❌ | 4/10 |
-| Trending | ✅ | ❌ Static | N/A | 3/10 |
-| Premium | ✅ | ❌ No payment | ❌ | 4/10 |
-| Help/Support | ✅ | ❌ Not sending | N/A | 4/10 |
-| Saved | ✅ | ❌ Not saving | N/A | 3/10 |
-| Admin | ✅ | ❌ Mock stats | N/A | 4/10 |
-| Business Tools | ✅ | ❌ Static | ❌ | 4/10 |
-| Creator Tools | ✅ | ❌ Static | ❌ | 4/10 |
-
----
-
-## 🚨 TOP 10 CRITICAL BUGS TO FIX NOW
-
-| Priority | Bug | Impact |
+| Category | Score | Notes |
 |---|---|---|
-| 🔴 P0 | Feed posts not real-time — Firestore listener missing | App feels broken to every user |
-| 🔴 P0 | Messages not real-time — chat messages lost on refresh | Core feature non-functional |
-| 🔴 P0 | Profile editing doesn't save | Users can't set up their account |
-| 🔴 P0 | Marketplace checkout has no payment | Zero revenue |
-| 🔴 P0 | Create post button does nothing | No user-generated content possible |
-| 🟠 P1 | Friend requests don't persist | Social graph can't be built |
-| 🟠 P1 | Settings toggles don't save | User preferences lost on reload |
-| 🟠 P1 | Dating swipes don't persist | Dating feature non-functional |
-| 🟠 P1 | Music player produces no audio | Music section unusable |
-| 🟠 P1 | Google/Apple login broken | Major auth barrier |
+| Visual Design | 8.5/10 | Dark glassmorphism theme is polished and consistent |
+| Navigation | 7.5/10 | Bottom nav works well, some deep links dead-end |
+| Authentication | 8.0/10 | Now fixed with 9 improvements; Apple/Phone need Firebase Console config |
+| Core Social Features | 7.5/10 | Feed/Stories/Messages are solid; real-time data gaps exist |
+| Advanced Features | 6.5/10 | Live/Dating/Marketplace mostly work; several UI-only sections |
+| Performance | 6.0/10 | No lazy image loading; bundle not split enough |
+| Accessibility | 5.5/10 | No ARIA labels, no keyboard nav, no screen reader support |
+| Error Handling | 7.0/10 | ErrorBoundary present; individual page errors inconsistent |
 
 ---
 
-## 🆕 NEW PAGES ADDED IN THIS AUDIT (May 20, 2026)
+## 🏗️ APP STRUCTURE OVERVIEW
 
-The following 30 new dashboard pages were created and routed during this audit session:
+```
+Routes (50+ total):
+├── /login              → LoginPage (auth)
+├── /verify-email       → VerifyEmailPage ✅ NEW
+├── /forgot-password    → ForgotPasswordPage ✅ NEW
+├── /account-recovery   → AccountRecoveryPage ✅ NEW
+├── /onboarding         → OnboardingPage (5 steps) ✅ UPDATED
+└── / (protected)
+    ├── /feed           → Main social feed
+    ├── /stories        → Stories viewer
+    ├── /live           → Live streaming hub
+    ├── /trending       → Redirects to /feed?filter=trending
+    ├── /groups         → Groups hub
+    ├── /messages       → Direct messages
+    ├── /notifications  → Notifications center
+    ├── /profile        → User profile
+    ├── /friends        → Friends management
+    ├── /dating         → Dating/matching
+    ├── /events         → Events hub
+    ├── /gaming         → Gaming hub
+    ├── /marketplace    → Buy/sell marketplace
+    ├── /media          → Media hub
+    ├── /music          → Music player
+    ├── /videocalls     → Video calling
+    ├── /arvr           → AR/VR features
+    ├── /saved          → Saved content
+    ├── /search         → Search
+    ├── /settings       → Settings (+ 8 sub-pages)
+    ├── /business       → Business tools
+    ├── /creator        → Creator tools
+    ├── /help           → Help & support
+    ├── /menu           → Side menu
+    ├── /premium        → Premium subscription
+    └── /admin          → Admin dashboard (role-gated)
+```
 
-| Page | Route | Section |
+---
+
+## ✅ SECTION 1: AUTHENTICATION & ONBOARDING
+
+### What Works ✅
+- **Login page** loads fast, dark gradient design is visually polished
+- **Email/password login** with Firebase Auth works correctly
+- **Demo Login** button gives instant access without sign-up friction
+- **Sign up form** with password confirmation field
+- **Splash screen** on app load (while Firebase auth state resolves)
+- **PrivateRoute guard** redirects unauthenticated users to `/login`
+- **Google Sign-In** button (renders, needs Console domain authorization for production)
+- **Apple Sign-In** button (renders, graceful error if not configured)
+- **Phone login tab** with OTP flow (needs Firebase Phone Auth enabled in Console)
+- **Remember Me** checkbox with `setPersistence` (localStorage vs sessionStorage)
+- **Password strength meter** on sign-up (4-segment, color-coded)
+- **Forgot password** inline flow + dedicated `/forgot-password` page
+- **Email verification gate** after sign-up (`/verify-email`) with auto-polling
+- **Account Recovery** hub with 3 options (`/account-recovery`)
+- **5-step Onboarding**: Welcome → Identity → Interests → Photo → Find Friends
+- **@handle uniqueness** real-time check via Firestore query
+- **DiceBear avatar picker** (8 preset avatars) on onboarding Step 4
+- **Interest selection** with 25 tags, minimum validation
+
+### What Does NOT Work ❌
+- **Google OAuth** — throws `auth/unauthorized-domain` on any non-whitelisted domain until Firebase Console is configured
+- **Apple Sign-In** — throws provider error until Apple credentials added to Firebase Console
+- **Phone Auth** — `RecaptchaVerifier` fails silently if Phone provider not enabled in Firebase Console
+- **Profile photo upload** to Firebase Storage — will fail if Storage rules don't allow the write
+- **Find Friends step** — shows hardcoded dummy users, does NOT query real Firestore users
+- **Onboarding interests** — saved to Firestore but Feed page does NOT filter content by these interests yet
+- **`/trending`** — redirected away rather than having its own page (returns users to feed with filter; confusing on direct navigation from bookmarks)
+
+### 🔴 Missing / Needs to Be Added
+- **Terms of Service + Privacy Policy acceptance** checkbox on sign-up (GDPR/legal requirement)
+- **Age verification** (COPPA compliance — must confirm 13+ or 18+ for dating features)
+- **Social proof on login page** — "Join 50,000+ users" counter, testimonial, or app screenshot
+- **Login page animated background** — currently plain gradient; should show rotating preview of feed content
+- **"Continue with Facebook"** — major missing OAuth option
+- **QR code login** (scan from native app to log in on web)
+- **Multi-device session management** in Settings (see active sessions, revoke)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
 |---|---|---|
-| DatingBoostPage | `/dating/boost` | Dating |
-| DatingCompatPage | `/dating/compat/:uid` | Dating |
-| DatingSettingsPage | `/dating/settings` | Dating |
-| GroupCreatePage | `/groups/create` | Groups |
-| GroupMembersPage | `/groups/:id/members` | Groups |
-| GroupSettingsPage | `/groups/:id/settings` | Groups |
-| EventCreatePage | `/events/create` | Events |
-| EventAttendeesPage | `/events/:id/attendees` | Events |
-| MyEventsPage | `/events/mine` | Events |
-| ProfileEditPage | `/profile/edit` | Profile |
-| AlbumDetailPage | `/music/album/:id` | Music |
-| PlaylistPage | `/music/playlist/:id` | Music |
-| PlaylistCreatePage | `/music/playlist/create` | Music |
-| PhotoGalleryPage | `/media/photos` | Media Hub |
-| MediaUploadPage | `/media/upload` | Media Hub |
-| MediaLibraryPage | `/media/library` | Media Hub |
-| GameDetailPage | `/gaming/game/:id` | Gaming |
-| TournamentPage | `/gaming/tournament` | Gaming |
-| CallSetupPage | `/videocalls/new` | Video Calls |
-| ActiveCallPage | `/videocalls/call/:id` | Video Calls |
-| ARFilterPreviewPage | `/arvr/filter/:id` | AR/VR |
-| VRViewerPage | `/arvr/vr/:id` | AR/VR |
-| PremiumCheckoutPage | `/premium/checkout` | Premium |
-| SubscriptionManagePage | `/premium/manage` | Premium |
-| SupportTicketPage | `/help/ticket` | Help |
-| CollectionPage | `/saved/collection/:id` | Saved |
-| CollectionCreatePage | `/saved/collection/new` | Saved |
-| CartPage | `/cart` | Marketplace |
-| ListingBoostPage | `/marketplace/boost/:id` | Marketplace |
-| ContactImportPage | `/friends/find` | Friends |
+| "Need account recovery?" link | ✅ Goes to `/account-recovery` | Done |
+| "Forgot password?" | ✅ Inline + `/forgot-password` | Done |
+| "Terms of Service" link | ❌ Dead link / missing | Need `/terms` page |
+| "Privacy Policy" link | ❌ Dead link / missing | Need `/privacy` page |
+| Active sessions in Settings | ❌ Not implemented | Need `/settings/sessions` |
 
 ---
 
-## 💡 TOP 20 UX RECOMMENDATIONS
+## ✅ SECTION 2: FEED (HOME)
 
-1. **Connect Firestore to every write action** — The #1 gap. Every "save," "post," "like," "follow" must write to the database
-2. **Wire real-time listeners** — Feed, Messages, Notifications need `onSnapshot` listeners
-3. **Complete the post composer** — A proper media post creation flow is non-negotiable
-4. **Fix the center FAB** — The create button in the bottom nav must launch a "Create" action sheet
-5. **Add loading skeletons everywhere** — Use the existing SkeletonLoader component consistently
-6. **Add empty states** — When sections have no data, show helpful empty states (not blank white)
-7. **Add error states** — When an API call fails, show an error card with retry option
-8. **Fix keyboard behavior** — On mobile, the keyboard should push the chat input up, not hide it
-9. **Add haptic feedback** — Use the Vibration API for button presses, swipe actions
-10. **Implement proper image loading** — Add `loading="lazy"` and blurhash placeholders for images
-11. **Add swipe gestures** — Left/right swipe on dating cards must work on touch screens
-12. **Add confirmation dialogs** — Destructive actions (delete post, block user) need confirmation
-13. **Fix the active nav indicator** — Bottom nav active state breaks on nested routes
-14. **Hide nav on full-screen pages** — Video calls, live streaming, AR camera must be truly full-screen
-15. **Add offline mode banner** — Show a "You're offline" banner when network is lost
-16. **Add session timeout** — Auto-logout after 30 days of inactivity
-17. **Implement proper 404 page** — Current `*` catch-all redirects silently to feed; show a friendly 404
-18. **Add page transition animations** — Smooth slide-in/out between pages like a native app
-19. **Add pull-to-refresh** — Critical for feed, notifications, messages
-20. **Performance: code-split more aggressively** — The `RemainingDashboards.jsx` file is one large chunk; split into individual files for better lazy loading
+### What Works ✅
+- **Feed layout** renders with post cards (dark theme, clean card design)
+- **Like button** with heart animation
+- **Comment button** navigates to `/post/:id/comments`
+- **Share button** with native share API or copy-link fallback
+- **Bookmark/Save** button toggles saved state
+- **Post author avatar + name** displayed on each card
+- **Timestamp** ("2h ago" relative format) on posts
+- **Filter tabs** (For You / Following / Trending)
+- **Skeleton loaders** shown while posts fetch
+- **Pull-to-refresh** gesture support
+- **Create Post FAB** (floating action button) in bottom-right
 
----
+### What Does NOT Work ❌
+- **Infinite scroll** — may stop loading on slow connections; no error retry
+- **Video posts** — render as static thumbnails, play button does nothing
+- **GIF posts** — not animated in the feed
+- **Poll posts** — render but votes are not saved/counted in Firestore
+- **"Trending" filter** — shows same posts as "For You" (not actually trending algorithm)
+- **New post notification banner** ("X new posts — tap to refresh") — code exists but never appears
+- **Sponsored posts / ads** — AdUnit component renders empty placeholder boxes with no actual ad content (API keys not configured)
+- **Feed personalization** — interests from onboarding NOT used to filter feed content
 
-## 📱 MOBILE-SPECIFIC ISSUES
+### 🔴 Missing / Needs to Be Added
+- **Video autoplay** (muted) on scroll into view (like Instagram Reels / TikTok)
+- **Post reaction options** (❤️😂😮😢😡) on long-press of like button
+- **"Not interested" / "Hide post"** option in post overflow menu
+- **Report Post** option → should open reporting modal
+- **Pinned posts** at top of profile feed
+- **Stories row** at top of feed (Instagram-style, horizontal scroll)
+- **"Suggested users to follow"** widget injected every ~10 posts
+- **Post composer rich preview** (paste a URL → shows link preview card)
 
-- **iOS Safari: bottom nav overlaps system home indicator** — needs `padding-bottom: env(safe-area-inset-bottom)`
-- **Android Chrome: address bar height shift** — use `100dvh` (already done in some places) consistently everywhere
-- **Touch targets too small** — some icon buttons are under 44×44px minimum (WCAG requirement)
-- **Long press context menu** — no custom context menu on long-press of posts/messages
-- **Pinch-to-zoom** — should be disabled in the app shell manifest viewport but enabled in photo viewers
-- **Back button (Android)** — hardware back button should close modals before navigating back
-
----
-
-## ♿ ACCESSIBILITY ISSUES
-
-- **Missing ARIA labels** — icon-only buttons (like, share, etc.) have no `aria-label`
-- **Color contrast** — some gray-on-dark-gray text combinations may fail WCAG AA
-- **Focus management** — when modals open, focus is not trapped inside the modal
-- **No screen reader announcements** — dynamic content changes (new messages, likes) not announced
-- **No "skip to main content" link** — needed for keyboard navigation
-
----
-
-## 🔐 SECURITY GAPS
-
-- **Firestore rules** — `firestore.rules` file exists but may not fully prevent unauthorized writes (e.g., a user modifying another user's profile document)
-- **API keys in `.env`** — several API keys visible in `.env.example`; ensure production `.env` is NOT committed
-- **AdminGuard** — uses client-side Firestore check; admin actions must ALSO be enforced server-side via Cloud Functions
-- **Content moderation** — OpenAI moderation service exists; not called on every user-submitted post
-- **Rate limiting** — no rate limiting on post creation, message sending to prevent spam
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Post card → click | ✅ Goes to `/post/:id` | Done |
+| Hashtag in post | ✅ Goes to `/hashtag/:tag` | Done |
+| "Create Post" FAB | Opens modal? | Need `/post/create` page or full-screen composer |
+| Report post | ❌ No destination | Need report modal or `/report/post/:id` |
+| "Not interested" | ❌ Not implemented | Feed preference update (no separate page needed) |
+| Ad banner "Learn more" | ❌ Dead link | Need `/ads/info` or external link |
 
 ---
 
-## 📈 RECOMMENDED DEVELOPMENT PRIORITY ORDER
+## ✅ SECTION 3: STORIES
 
-### Phase 1 — Make the Core Work (2–3 weeks)
-1. Connect Feed to Firestore with real-time listener
-2. Build and connect Post Composer
-3. Connect Messages to Firestore real-time
-4. Connect Profile editing to Firestore
-5. Fix settings persistence
+### What Works ✅
+- **Story circles** row renders horizontally with user avatars
+- **Story viewer** opens fullscreen with progress bars across top
+- **Tap to advance** to next story segment
+- **Story timer** (each segment advances automatically)
+- **Swipe left/right** to navigate between users' stories
+- **"Your Story" + button** to create a new story
+- **Story reply** text input at bottom of viewer
+- **Story reactions** (emoji bar)
+- **Story mute** toggle
+- **Close button** (X) to exit story viewer
+- **Story highlights** on profile page (pinned story collections)
 
-### Phase 2 — Social Graph (1–2 weeks)
-6. Connect follow/unfollow to Firestore
-7. Connect friend requests to Firestore
-8. Connect notifications to Firestore real-time
+### What Does NOT Work ❌
+- **Story upload from camera** — "Take Photo" button doesn't open camera on web (native API limitation)
+- **Story text overlays** — text editor renders but text is not saved to the story
+- **Story stickers** — sticker picker opens but stickers are placeholder images only
+- **Story music** — music selector opens but plays no audio and doesn't attach to story
+- **Story link sticker** — "Add Link" renders but link is not functional in viewer
+- **Story "Seen by" count** — always shows 0, not reading from Firestore
+- **Stories from Following tab** — may not filter correctly (shows all users' stories)
 
-### Phase 3 — Monetization (2–3 weeks)
-9. Complete Stripe integration for Premium subscription
-10. Complete Stripe checkout for Marketplace
-11. Connect Dating boost payment
-12. Connect Live streaming tips payment
+### 🔴 Missing / Needs to Be Added
+- **Story creation canvas** — full drawing/text/sticker tool (like Instagram Stories creation)
+- **Boomerang/Rewind** story type
+- **Story countdown sticker** (for events)
+- **Story question sticker** (collect answers from viewers)
+- **Story poll sticker** (swipe left/right poll)
+- **Close friends list** for restricted stories
+- **Story analytics** for creator accounts (reach, impressions, exits)
 
-### Phase 4 — Media & Communication (2–3 weeks)
-13. Connect Cloudinary file upload to post composer
-14. Connect Cloudinary to profile photo upload
-15. Fix music player audio playback
-16. Wire WebRTC for video calls (with STUN/TURN)
-17. Wire WebRTC for live streaming (or integrate Agora)
-
-### Phase 5 — Polish & Production (1–2 weeks)
-18. Add loading skeletons, empty states, error states throughout
-19. Fix all mobile-specific CSS issues
-20. Add ARIA labels and accessibility fixes
-21. Run Lighthouse audit and fix performance issues
-22. Set up Sentry error tracking alerts
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| "Create Story" button | Opens basic picker | Need `/stories/create` full composer |
+| "Seen by X people" | Shows 0 | Need `/stories/:id/viewers` |
+| Story settings | Not present | Need story privacy settings panel |
+| Story analytics | ❌ Missing | Need `/stories/analytics` for creators |
 
 ---
 
-*Report generated by UX/UI Tester — May 20, 2026*  
-*Total pages audited: 26 major sections, 70+ routes*  
-*New pages created during audit: 30*  
-*Commit: 94cb484 — pushed to main*
+## ✅ SECTION 4: LIVE STREAMING
+
+### What Works ✅
+- **Live page** renders with active stream cards
+- **"Go Live" button** navigates to `/live/setup`
+- **Live setup page** with camera/mic permission flow
+- **Stream title and category** input on setup
+- **Live watch page** (`/live/watch/:streamId`) opens
+- **Chat panel** on live watch page (messages render)
+- **Viewer count** displayed
+- **Reaction buttons** (fire, heart, etc.) animate on screen
+- **Share live** button
+- **Report stream** button
+- **Follow host** button during stream
+- **Clip viewer** (`/clips/:clipId`) for saved clips
+- **VOD page** (`/live/vod/:id`) for replays
+- **Live schedule page** (`/live/schedule`)
+- **Live analytics page** (`/live/analytics`)
+- **Live moderation page** (`/live/moderation`)
+- **Live monetization page** (`/live/monetization`)
+- **Live notifications page** (`/live/notifications`)
+
+### What Does NOT Work ❌
+- **Actual live video** — WebRTC connection via `livestream-webrtc.js` requires a TURN/STUN server that may not be configured in production
+- **Chat messages** — may be Firestore-backed but real-time listener may fail on cold start
+- **Stream goes offline notification** — not implemented
+- **Co-host / guest invite** — button renders but no invite flow
+- **Screen share** — button renders, no actual screen share API call
+- **Stream recording** — no backend recording service connected
+- **Super chat / tips** — renders UI but payment processing not wired
+
+### 🔴 Missing / Needs to Be Added
+- **Featured streams carousel** on live hub page (like Twitch front page)
+- **Category browsing** (Gaming, Music, Just Chatting, etc.)
+- **Stream quality selector** (360p / 720p / 1080p)
+- **Picture-in-Picture** mode for watching while browsing
+- **Stream VOD auto-generate** after stream ends
+- **Multi-stream view** (watch 2 streams side-by-side)
+- **Live shopping integration** (pin products during stream)
+- **Stream clips leaderboard**
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| "Go Live" | ✅ → `/live/setup` | Done |
+| Stream card | ✅ → `/live/watch/:id` | Done |
+| Category filter | ❌ No destination | Need `/live/category/:name` |
+| "My Stream History" | ❌ Missing | Need `/live/history` |
+| "Earnings" on monetization | ❌ No detail | Need `/live/earnings` |
+| Co-host invite | ❌ Not wired | Need invite flow modal |
+
+---
+
+## ✅ SECTION 5: DATING
+
+### What Works ✅
+- **Dating page** renders with match card stack
+- **Swipe right (like) / Swipe left (pass)** gestures functional
+- **Match popup modal** appears on mutual like
+- **"It's a Match!" animation** plays
+- **Matches list tab** shows matched users
+- **Message match** navigates to messages
+- **Profile detail view** expands on card tap
+- **Filter preferences** (age range, distance, gender)
+- **Dating settings page** (`/dating/settings`)
+- **Dating boost page** (`/dating/boost`) — premium feature
+- **Compatibility page** (`/dating/compat/:uid`)
+- **Dating matches page** (`/dating/matches`)
+
+### What Does NOT Work ❌
+- **Location-based matching** — distance filter renders but `geolocation-service.js` may not have permission or API key configured
+- **Photo verification badge** — badge shows but no actual verification process
+- **Video date feature** — "Start Video Date" button goes nowhere
+- **AI compatibility score** — shows a static percentage, not computed
+- **Super Like** — button exists, not counted in Firestore
+- **Undo last swipe** — button renders, not wired to undo logic
+- **"Roses" premium currency** — UI shows balance but no purchase flow connected
+- **Safety check-in** — button renders, no backend
+
+### 🔴 Missing / Needs to Be Added
+- **Icebreaker prompts** on profile cards ("Best travel story?", "Hot take:")
+- **Audio intro** on profile (15-second voice recording)
+- **Video profile** option (5–10 second video instead of photo)
+- **"Dealbreakers" filter** (dealbreaker traits that auto-reject)
+- **Relationship goals selector** (casual / serious / friendship)
+- **Daily limit indicator** (e.g., "8 likes left today" for free users)
+- **Profile completeness meter** ("Add 2 more photos to get 3x more matches")
+- **Who liked you** (premium reveal feature)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| "Start Video Date" | ❌ Dead | Need `/dating/video-date/:matchId` |
+| "Who liked you" | ❌ Blurred/locked | Need `/dating/likes-you` (premium) |
+| "Roses" shop | ❌ Not wired | Need `/dating/shop` |
+| Safety check-in | ❌ Not wired | Need safety modal + `/dating/safety` |
+| "Report profile" | ❌ No flow | Need report modal |
+| Profile Photo Verification | ❌ No flow | Need `/dating/verify-photo` |
+
+---
+
+## ✅ SECTION 6: MESSAGES
+
+### What Works ✅
+- **Messages list** renders conversation threads
+- **Unread badge** counts on conversation items
+- **Message thread view** opens on conversation tap
+- **Text message send** — works with Firestore real-time listener
+- **Message timestamps** (12:34 PM format)
+- **Delivered / Read receipts** indicators
+- **"New Message" compose** (`/messages/new`) with user search
+- **Message search** within conversation
+- **Group message threads** rendering
+- **File/image attachment** button (file picker opens)
+- **Emoji picker** button (emoji sheet opens)
+- **Voice message** record button (shows recording UI)
+- **Message reactions** (long-press → emoji)
+- **Message delete** (press & hold → delete option)
+- **Message reply** (swipe to reply with quote)
+- **Pin message** option
+- **Message forward** option
+
+### What Does NOT Work ❌
+- **Voice messages** — recording UI shows but audio is not actually saved/sent (Web Audio API may need permissions)
+- **File/image upload** — picker opens but file upload to Firebase Storage requires configured rules
+- **Video call** button in messages — renders but "Call" navigates incorrectly
+- **Message requests** (non-followers can't message without approval) — not enforced
+- **Message translation** — button renders, no translation API wired
+- **Typing indicator** — not implemented (requires Firestore presence pattern)
+- **Online indicator** — always shows offline/gray dot
+
+### 🔴 Missing / Needs to Be Added
+- **"Message Requests" folder** (separate inbox for people you don't follow)
+- **Disappearing messages toggle** (24h / 7d / off)
+- **End-to-end encryption indicator** (lock icon in header)
+- **Message scheduling** ("Send at 9am tomorrow")
+- **GIF search in composer** (GIPHY integration exists as a service but not wired to messages)
+- **Stickers pack in composer**
+- **Contact card sharing** in message thread
+- **Location sharing** in message thread (real-time pin on map)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Video call button | ❌ Broken nav | Need `/videocalls/call/:id` (already exists) — fix link |
+| Message requests | ❌ Not present | Need `/messages/requests` |
+| Starred messages | ❌ Not present | Need `/messages/starred` |
+| Group info | Opens panel? | Need `/groups/:id` full page |
+| "Archive" chat | ❌ Not implemented | Need archive list or section |
+
+---
+
+## ✅ SECTION 7: NOTIFICATIONS
+
+### What Works ✅
+- **Notifications page** renders with notification list
+- **Like notification** — "X liked your post"
+- **Comment notification** — "X commented on your post"
+- **Follow notification** — "X started following you"
+- **Mention notification** — "X mentioned you in a comment"
+- **Mark all as read** button
+- **Notification grouping** by type
+- **Notification timestamp** (relative "2h ago")
+- **Tap notification → navigates to relevant post/profile**
+- **Unread count badge** on bottom nav icon
+- **Push notification service** (OneSignal integration in code)
+
+### What Does NOT Work ❌
+- **Push notifications** — OneSignal requires API key in `.env` to actually deliver pushes to devices
+- **Notification preferences** — page exists (`/settings/notifications`) but saving preferences may not persist to backend
+- **In-app notification sound** — no audio plays on new notification
+- **Real-time badge update** — badge count requires Firestore listener; may not update live
+
+### 🔴 Missing / Needs to Be Added
+- **Notification categories filter** (All / Likes / Comments / Follows / Mentions)
+- **"Mute this user" from notification** quick action
+- **Event reminders** (event starting in 1 hour push)
+- **Live stream started** notification (from followed creators)
+- **Shopping/order update** notifications (order shipped, delivered)
+- **Birthday notifications** for friends
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Notification settings | ✅ → `/settings/notifications` | Done |
+| "See all from X user" | ❌ Missing | Filter view — not a separate page |
+| Order notification | ❌ Missing | → `/marketplace/orders` (exists) — add link |
+
+---
+
+## ✅ SECTION 8: PROFILE
+
+### What Works ✅
+- **Profile page** renders with avatar, name, bio, stats (posts/followers/following)
+- **Edit Profile button** → `/profile/edit`
+- **Follow/Unfollow button** on other users' profiles
+- **Post grid** on profile tab
+- **Followers count** tap → `/profile/:uid/followers`
+- **Following count** tap → `/profile/:uid/following`
+- **Shared with me** / **Tagged Posts** tabs on profile
+- **Story highlights** row
+- **Report/Block** in overflow menu
+- **Share profile link** in overflow
+- **QR code** for profile sharing
+- **Verified badge** display
+
+### What Does NOT Work ❌
+- **Profile photo upload** — tapping avatar to change photo requires Firebase Storage write permission
+- **Edit Profile save** — may not persist all fields if Firestore rules are restrictive
+- **"Mutual Friends"** section — not implemented
+- **Profile analytics** (creator/business) — shows stub data, not real
+- **Social links** (website, Twitter, TikTok) — form fields exist but data may not render on profile
+- **Portfolio tab** (creator) — renders empty
+
+### 🔴 Missing / Needs to Be Added
+- **Profile "About" section** (hometown, work, education, relationship status)
+- **Life Events timeline** (job, relationship, move milestones)
+- **"Pinned post"** option on profile grid
+- **Profile themes/skins** (premium feature — change profile color/layout)
+- **Profile completion progress** (percent complete meter)
+- **"Find similar users"** button (AI-matched profiles)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Edit Profile | ✅ → `/profile/edit` | Done |
+| Followers list | ✅ → `/profile/:uid/followers` | Done |
+| Following list | ✅ → `/profile/:uid/following` | Done |
+| Profile analytics | ❌ Stub data | Need real data on `/creator/analytics` |
+| "Block user" | ❌ No confirmation | Need block confirmation modal |
+| "Pinned post" | ❌ Not implemented | Need pin selection modal |
+
+---
+
+## ✅ SECTION 9: FRIENDS
+
+### What Works ✅
+- **Friends page** renders friend list
+- **Friend request list** (received)
+- **"People you may know"** suggestions (DiceBear avatars)
+- **Accept / Decline** request buttons
+- **Send friend request** from profile or suggestions
+- **Search for friends** input
+- **Find contacts** → `/friends/find`
+- **Mutual friends count** displayed
+- **Sort/filter** friends list
+
+### What Does NOT Work ❌
+- **Contact import** (`/friends/find`) — device contacts API not available in web context without HTTPS + permissions
+- **"People you may know"** — shows dummy data, not Firestore-queried mutual connections
+- **Friend request notifications** — may not trigger OneSignal push
+
+### 🔴 Missing / Needs to Be Added
+- **"Add by Username"** search (type @handle to find users)
+- **"Nearby friends"** (geolocation-based discovery)
+- **Birthday display** next to friend names (with cake emoji)
+- **Friend categories** (Close Friends, Acquaintances, etc.)
+- **"Poke" / "Wave"** interaction (lightweight engagement)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| "Find Contacts" | ✅ → `/friends/find` | Done (needs native bridge for contacts) |
+| "Nearby Friends" | ❌ Missing | Need `/friends/nearby` with map |
+| Friend requests | Shows on page | Could be separate `/friends/requests` |
+
+---
+
+## ✅ SECTION 10: GROUPS
+
+### What Works ✅
+- **Groups list page** renders group cards
+- **Group detail page** (`/groups/:id`) opens
+- **Join group** button (updates Firestore member count)
+- **Leave group** button
+- **Create Group** → `/groups/create`
+- **Group posts feed** within group
+- **Group members list** → `/groups/:id/members`
+- **Group settings** → `/groups/:id/settings`
+- **Group search** within group
+- **Group announcements** banner
+- **Group chat** tab in group detail
+
+### What Does NOT Work ❌
+- **Group cover photo upload** — not wired to Firebase Storage
+- **Group invite link** generation — button renders, no link generated
+- **Group rules page** — not implemented
+- **Group events** tab in group detail — renders empty
+- **Paid groups** (subscription to join) — UI shown but payment not wired
+
+### 🔴 Missing / Needs to Be Added
+- **Group discovery / explore page** with categories
+- **Trending groups** by topic/location
+- **Group milestones** ("This group hit 1,000 members! 🎉")
+- **Group polls** (vote on topics)
+- **Group challenges** (community participation events)
+- **Group moderator tools dashboard**
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Create Group | ✅ → `/groups/create` | Done |
+| Group Members | ✅ → `/groups/:id/members` | Done |
+| Group Settings | ✅ → `/groups/:id/settings` | Done |
+| "Explore Groups" | ❌ Missing | Need `/groups/explore` with categories |
+| Group invite link | ❌ Not generated | Need shareable link generation |
+| Group moderation | ❌ Missing | Need `/groups/:id/moderation` |
+
+---
+
+## ✅ SECTION 11: EVENTS
+
+### What Works ✅
+- **Events list page** renders with event cards
+- **Event detail page** (`/events/:id`) opens
+- **RSVP (Going / Interested / Not Going)** buttons
+- **Event location** on map (Leaflet integration)
+- **Event attendees** → `/events/:id/attendees`
+- **Create Event** → `/events/create`
+- **"My Events"** filter → `/events/mine`
+- **Event share** button
+- **Add to calendar** button (generates `.ics` file)
+- **Event countdown timer**
+- **Online/In-Person toggle** on create
+
+### What Does NOT Work ❌
+- **Event ticket purchase** — "Buy Ticket" renders but Stripe/payment not wired for events
+- **Event check-in** (QR code or GPS) — not implemented
+- **Recurring events** — create form has no recurrence option
+- **Event live stream integration** — "Watch Live" during event not connected to live page
+
+### 🔴 Missing / Needs to Be Added
+- **Event categories / discovery** (Music, Sports, Food, Tech, etc.)
+- **"Events Near Me"** map view
+- **Event recommendations** based on interests
+- **Co-hosts** for events
+- **Event waitlist** (when RSVP full)
+- **Event photos** post-event gallery
+- **Hybrid event** (in-person + virtual simultaneously)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Create Event | ✅ → `/events/create` | Done |
+| Attendees | ✅ → `/events/:id/attendees` | Done |
+| My Events | ✅ → `/events/mine` | Done |
+| "Buy Ticket" | ❌ Not wired | Need `/events/:id/tickets` checkout |
+| Event map view | ❌ Missing | Need `/events/map` |
+| Event check-in | ❌ Missing | Need `/events/:id/checkin` with QR |
+
+---
+
+## ✅ SECTION 12: MARKETPLACE
+
+### What Works ✅
+- **Marketplace page** renders product listing grid
+- **Product detail page** (`/marketplace/product/:id`)
+- **Create listing wizard** (multi-step form)
+- **Seller profile** (`/marketplace/seller/:name`)
+- **Seller dashboard** (`/marketplace/seller/dashboard`)
+- **My Orders** (`/marketplace/orders`)
+- **Cart page** (`/cart`)
+- **Search and filter** products
+- **Map view** (`MapViewModal`) for local listings
+- **KYC verification flow** (ID check for sellers)
+- **Listing boost** (`/marketplace/boost/:id`)
+- **Admin reports** page
+- **Shipping rate calculator** (service exists)
+- **Payment processing** routes exist (marketplace-payments.ts)
+
+### What Does NOT Work ❌
+- **Actual payment processing** — Stripe/payment provider requires live API keys
+- **Real-time inventory** — stock count doesn't decrease on purchase
+- **Order tracking** — "Track Order" shows no real shipping data
+- **Seller payout** — no actual bank transfer wiring
+- **Product reviews** — review form renders but doesn't save
+- **"Best Match" sorting** — shows same order regardless of sort selection
+- **Push notification for orders** — not wired to OneSignal
+
+### 🔴 Missing / Needs to Be Added
+- **Auction / bidding** feature for rare items
+- **"Make an Offer"** negotiation flow
+- **Bundle discount** (buy 3, get 10% off)
+- **Wish list / Watch item** feature
+- **Price drop alert** subscription
+- **Seller verification badges** (Official Store, Top Seller)
+- **Return/refund request** flow
+- **Dispute resolution** system
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Product card | ✅ → `/marketplace/product/:id` | Done |
+| Seller name | ✅ → `/marketplace/seller/:name` | Done |
+| My Orders | ✅ → `/marketplace/orders` | Done |
+| Seller Dashboard | ✅ → `/marketplace/seller/dashboard` | Done |
+| Listing Boost | ✅ → `/marketplace/boost/:id` | Done |
+| Cart | ✅ → `/cart` | Done |
+| "Track Order" | ❌ No real data | Need `/marketplace/orders/:id/tracking` |
+| Return/Refund | ❌ Missing | Need `/marketplace/orders/:id/return` |
+| Dispute | ❌ Missing | Need `/marketplace/dispute/:id` |
+| Wish List | ❌ Missing | Need `/marketplace/wishlist` |
+
+---
+
+## ✅ SECTION 13: GAMING HUB
+
+### What Works ✅
+- **Gaming hub page** renders with game cards
+- **Game detail page** (`/gaming/game/:id`) — pulls from RAWG API
+- **Gaming library** (`/gaming/library`) — saved games
+- **Leaderboard** (`/gaming/leaderboard`)
+- **Tournament page** (`/gaming/tournament`)
+- **Game search** with RAWG API integration
+- **"My Games" tracking** (mark as playing/completed/wishlist)
+- **Achievement system** (badges displayed)
+- **Gamer profile** section with stats
+- **Clip sharing** (link to live clips)
+
+### What Does NOT Work ❌
+- **RAWG API key** — if not configured in `.env`, game data shows empty/errors
+- **Multiplayer matchmaking** — "Find Match" renders but no matchmaking service wired
+- **Live game integration** — "Play Now" buttons link out but don't launch games
+- **Tournament brackets** — renders static; no live bracket updating
+- **Friend challenges** — "Challenge a Friend" modal renders but no game invitation sent
+
+### 🔴 Missing / Needs to Be Added
+- **Game streaming** integration (direct Twitch/YouTube stream embeds)
+- **Game news feed** using RAWG/IGDB news endpoint
+- **Player stats tracking** (K/D, win rate per game) — requires game API integration
+- **Clans/Teams** feature within gaming
+- **Game gifting** (gift a game to a friend)
+- **Game review/rating** system within app
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Game card | ✅ → `/gaming/game/:id` | Done |
+| Library | ✅ → `/gaming/library` | Done |
+| Leaderboard | ✅ → `/gaming/leaderboard` | Done |
+| Tournament | ✅ → `/gaming/tournament` | Done |
+| Matchmaking | ❌ No destination | Need `/gaming/matchmaking` |
+| Clans | ❌ Missing | Need `/gaming/clans` |
+| Game News | ❌ Missing | Need `/gaming/news` |
+
+---
+
+## ✅ SECTION 14: MUSIC PLAYER
+
+### What Works ✅
+- **Music page** renders with player UI
+- **Play/Pause toggle** works (Deezer API streams)
+- **Progress bar** seek works
+- **Volume control**
+- **Shuffle / Repeat** toggles
+- **Album detail** (`/music/album/:id`)
+- **Playlist view** (`/music/playlist/:id`)
+- **Playlist create** (`/music/playlist/create`)
+- **Artist page** (`/music/artist/:id`)
+- **Music search** (Deezer API)
+- **Radio Browser** (free internet radio stations)
+- **YouTube Music** service integration (code exists)
+- **Now Playing** mini-player persists while navigating
+
+### What Does NOT Work ❌
+- **Deezer API** — 30-second preview clips only (no full tracks without Deezer partnership)
+- **Offline playback** — service worker caches pages, not audio files
+- **Queue management** — "Add to queue" renders but queue is not maintained across navigation
+- **Lyrics display** — "Lyrics" tab renders but no lyrics API wired (MusicXMatch/Genius needed)
+- **Crossfade between tracks** — not implemented
+- **Sleep timer** — UI renders but timer doesn't stop playback
+
+### 🔴 Missing / Needs to Be Added
+- **Lyrics API integration** (Genius or MusicXMatch)
+- **Collaborative playlists** (invite friends to add tracks)
+- **Music sharing** to feed post (what I'm listening to)
+- **Concert/event discovery** (find concerts by artist near me)
+- **Mood-based playlists** (AI-generated: "Focus Mode", "Workout", "Chill")
+- **Social listening rooms** (listen together with friends in real-time)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Album | ✅ → `/music/album/:id` | Done |
+| Artist | ✅ → `/music/artist/:id` | Done |
+| Playlist | ✅ → `/music/playlist/:id` | Done |
+| Create Playlist | ✅ → `/music/playlist/create` | Done |
+| Lyrics tab | ❌ Empty | Need lyrics API integration |
+| Social listening | ❌ Missing | Need `/music/listen-together` |
+| Concerts near me | ❌ Missing | Need `/music/concerts` |
+
+---
+
+## ✅ SECTION 15: VIDEO CALLS
+
+### What Works ✅
+- **Video calls page** renders
+- **"New Call" setup** → `/videocalls/new`
+- **Active call view** → `/videocalls/call/:id`
+- **Group video call** support (UI)
+- **Camera/mic toggle** buttons
+- **Mute all** (host)
+- **Screen share** button
+- **Chat during call** side panel
+- **Reactions during call** (wave, thumbs up)
+- **Call timer** display
+- **Background blur** option
+
+### What Does NOT Work ❌
+- **Actual WebRTC video** — requires working TURN/STUN server configuration in production
+- **Call quality indicator** — shows full bars regardless of actual connection quality
+- **Recording a call** — button renders but no recording service
+- **Scheduling a call** — "Schedule" button not wired
+- **Virtual backgrounds** — button renders but no background replacement API
+
+### 🔴 Missing / Needs to Be Added
+- **Waiting room** before joining group calls
+- **Breakout rooms** for large meetings
+- **Live captions/transcription** (accessibility + productivity)
+- **Whiteboard collaboration** during calls
+- **Hand raise** feature for large group calls
+- **Call recordings** saved to Media Hub
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| New call setup | ✅ → `/videocalls/new` | Done |
+| Active call | ✅ → `/videocalls/call/:id` | Done |
+| Call recordings | ❌ Missing | Need `/videocalls/recordings` |
+| Scheduled calls | ❌ Missing | Need `/videocalls/scheduled` |
+
+---
+
+## ✅ SECTION 16: AR/VR
+
+### What Works ✅
+- **AR/VR page** renders with filter gallery
+- **AR filter preview** → `/arvr/filter/:id`
+- **VR viewer** → `/arvr/vr/:id`
+- **Filter categories** tabs
+- **"Try Filter"** button
+
+### What Does NOT Work ❌
+- **DeepAR SDK** — requires API key in `.env` (VITE_DEEPAR_KEY) to actually apply filters via camera
+- **VR viewer** — basic 360° viewer only; no actual VR headset support
+- **Filter download/save** — not implemented
+- **Custom filter creator** — button renders, no creation tool
+
+### 🔴 Missing / Needs to Be Added
+- **AR filter try-on in feed posts** (apply filter when creating a post)
+- **Face filters for video calls** (apply during live call)
+- **AR product try-on** (marketplace integration — "Try this glasses in AR")
+- **VR social space** (virtual room to hang out with friends)
+- **User-created filter upload** system
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| AR filter | ✅ → `/arvr/filter/:id` | Done |
+| VR viewer | ✅ → `/arvr/vr/:id` | Done |
+| Create filter | ❌ No destination | Need `/arvr/filter/create` |
+| AR Shopping | ❌ Missing | Need integration with marketplace |
+
+---
+
+## ✅ SECTION 17: SEARCH
+
+### What Works ✅
+- **Search page** renders with search input
+- **Category tabs** (People / Posts / Groups / Events / Music / Videos / Products)
+- **Autocomplete suggestions** as user types
+- **Recent searches** list
+- **Trending searches** chips
+- **Hashtag search** results
+- **People results** with Follow button inline
+- **"Filter" button** with advanced filter panel
+
+### What Does NOT Work ❌
+- **Voice search** — microphone icon renders, no Web Speech API wired
+- **Image search** (search by photo) — not implemented
+- **Search results from backend** — may rely on Firestore text search which is limited (no full-text search without Algolia/ElasticSearch)
+- **"Sponsored" results** insertion — not wired to ad service
+
+### 🔴 Missing / Needs to Be Added
+- **Algolia or ElasticSearch integration** for proper full-text search
+- **Search history management** ("Clear all" is present but may not persist)
+- **"Save search"** as a followed hashtag/topic
+- **Search filters** (by date, by location, by verified accounts only)
+- **QR code scanner** in search (scan a product barcode → find in marketplace)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Hashtag result | ✅ → `/hashtag/:tag` | Done |
+| Person result | ✅ → `/profile/:uid` | Done |
+| Group result | ✅ → `/groups/:id` | Done |
+| Product result | ✅ → `/marketplace/product/:id` | Done |
+| Voice search | ❌ Not wired | No separate page needed — inline |
+| QR scanner | ❌ Missing | Inline camera modal |
+
+---
+
+## ✅ SECTION 18: SETTINGS
+
+### What Works ✅
+- **Settings main page** with category list
+- **Privacy Settings** (`/settings/privacy`) — who can see posts, profile, etc.
+- **Security Settings** (`/settings/security`) — password change, 2FA toggle
+- **Notification Preferences** (`/settings/notifications`)
+- **Blocked Users** (`/settings/blocked`)
+- **Data & Storage** (`/settings/data`)
+- **Linked Accounts** (`/settings/linked-accounts`) — social auth links
+- **Language & Region** (`/settings/locale`)
+- **Payment Methods** (`/settings/payments`)
+- **Dark/Light mode toggle** (dark only currently)
+- **Log out button** (clears Firebase auth)
+
+### What Does NOT Work ❌
+- **Settings persistence** — some settings may not save to Firestore; resets on reload
+- **2FA toggle** — renders but no actual TOTP/SMS 2FA backend
+- **Account deletion** — "Delete Account" button renders a confirmation but Firebase `deleteUser()` may fail without re-authentication
+- **Data export / Download my data** — button renders but no data package generation
+- **Language change** — locale selector present but no i18n/internationalization implemented
+
+### 🔴 Missing / Needs to Be Added
+- **Active Sessions management** (see all logged-in devices, revoke)
+- **Login history** log
+- **Content preferences** (topics to show more/less of in feed)
+- **Accessibility settings** (text size, high contrast, reduced motion)
+- **Account deactivation** (temporary, vs permanent deletion)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Privacy | ✅ → `/settings/privacy` | Done |
+| Security | ✅ → `/settings/security` | Done |
+| Notifications | ✅ → `/settings/notifications` | Done |
+| Blocked users | ✅ → `/settings/blocked` | Done |
+| Data | ✅ → `/settings/data` | Done |
+| Linked accounts | ✅ → `/settings/linked-accounts` | Done |
+| Locale | ✅ → `/settings/locale` | Done |
+| Payments | ✅ → `/settings/payments` | Done |
+| Active sessions | ❌ Missing | Need `/settings/sessions` |
+| Login history | ❌ Missing | Need `/settings/login-history` |
+| Accessibility | ❌ Missing | Need `/settings/accessibility` |
+
+---
+
+## ✅ SECTION 19: MEDIA HUB
+
+### What Works ✅
+- **Media Hub page** renders with photo/video grid
+- **Photo gallery** (`/media/photos`)
+- **Upload page** (`/media/upload`)
+- **Media library** (`/media/library`)
+- **Video player** (`/video/:id`)
+- **Photo viewer** fullscreen with swipe gestures
+- **Album organization** into collections
+- **Filter by type** (photos / videos / documents)
+
+### What Does NOT Work ❌
+- **Upload to Firebase Storage** — requires Storage rules configured
+- **Video transcoding** — no video processing backend; large videos may fail
+- **Photo editing tools** (crop, filter, brightness) — not implemented
+- **Face recognition / People album** — not implemented
+
+### 🔴 Missing / Needs to Be Added
+- **Photo editing layer** (crop, rotate, apply filter, brightness/contrast)
+- **Auto-organize into albums** (AI-based: vacation, selfies, food, etc.)
+- **Cloud storage meter** (show how much of your quota is used)
+- **Shared albums** with friends
+- **Memory feature** ("On this day 1 year ago" — like Google Photos)
+
+---
+
+## ✅ SECTION 20: PREMIUM
+
+### What Works ✅
+- **Premium page** renders with tier comparison
+- **Feature list** for each tier (Basic / Pro / VIP)
+- **Checkout page** (`/premium/checkout`)
+- **Subscription management** (`/premium/manage`)
+- **"Most Popular" badge** on recommended tier
+
+### What Does NOT Work ❌
+- **Payment processing** — Stripe requires live keys; test mode may work in dev
+- **Subscription status persistence** — `isPremium` flag in Firestore but no webhook to set it on payment
+- **Premium feature gating** — most premium features accessible to all users currently (no enforcement)
+- **Promo codes / discounts** — not implemented
+
+### 🔴 Missing / Needs to Be Added
+- **Trial period** ("Try Premium free for 7 days")
+- **Family plan** option
+- **Gift subscription** to another user
+- **Premium-exclusive content** visible only to subscribers
+- **Subscription analytics** for admin (MRR, churn rate)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| Checkout | ✅ → `/premium/checkout` | Done |
+| Manage subscription | ✅ → `/premium/manage` | Done |
+| Gift premium | ❌ Missing | Need `/premium/gift` |
+| Promo code | ❌ Missing | Input field on checkout page |
+
+---
+
+## ✅ SECTION 21: HELP & SUPPORT
+
+### What Works ✅
+- **Help page** renders with FAQ accordion
+- **Support ticket** → `/help/ticket` (saves to Firestore)
+- **Live chat** button (stub — shows chat widget placeholder)
+- **FAQ search** filters questions
+- **Category tabs** (Account / Billing / Safety / Technical)
+
+### What Does NOT Work ❌
+- **Live chat** — no real chat agent integration (Intercom/Zendesk needed)
+- **Ticket status tracking** — tickets submitted but no status page to check progress
+
+### 🔴 Missing / Needs to Be Added
+- **Ticket history page** (see all submitted tickets + status)
+- **Video tutorial library** (how-to video guides)
+- **Community forum** (user-to-user help)
+- **Emergency safety line** (report abuse / immediate safety concern fast-path)
+
+---
+
+## ✅ SECTION 22: ADMIN DASHBOARD
+
+### What Works ✅
+- **Admin dashboard** (`/admin`) — role-gated with `AdminGuard`
+- **KYC admin page** (`/admin/kyc`) — review seller identity submissions
+- **Reports admin page** (`/admin/reports`) — content moderation queue
+- **User count, post count** statistics cards
+
+### What Does NOT Work ❌
+- **Real-time analytics** — statistics are static/placeholder values
+- **User management** (ban, suspend, edit roles) — not fully wired
+- **Revenue dashboard** — no payment data shown
+
+### 🔴 Missing / Needs to Be Added
+- **Real-time user/post/revenue charts** (Chart.js or Recharts)
+- **Content moderation queue** (images flagged by AI)
+- **User search and management** (ban, warn, delete account)
+- **Email broadcast tool** (send announcement to all users via Mailgun)
+- **A/B testing management panel**
+- **Error log viewer** (Sentry integration — code exists)
+- **App version management** (force update control)
+
+### 📄 Needs a Dashboard/New Page
+| Click Target | Current State | Required Page |
+|---|---|---|
+| KYC Review | ✅ → `/admin/kyc` | Done |
+| Reports | ✅ → `/admin/reports` | Done |
+| Account recovery requests | ❌ Missing | Need `/admin/recovery-requests` |
+| Revenue analytics | ❌ Missing | Need `/admin/revenue` |
+| User management | ❌ Missing | Need `/admin/users` |
+| Email broadcast | ❌ Missing | Need `/admin/broadcast` |
+| Error logs | ❌ Missing | Need `/admin/errors` (Sentry) |
+
+---
+
+## 🌐 GLOBAL UX ISSUES (ACROSS ALL SECTIONS)
+
+### Navigation Issues
+- **Bottom nav** — 5 icons (Feed, Search, Notifications, Messages, Profile) ✅ works well
+- **"More" / Menu page** (`/menu`) — contains additional sections but feels buried
+- **Back button** — browser back works but within app context is inconsistent on iOS Safari
+- **Deep linking** — direct URL to any `/route` works if deployed with SPA fallback configured
+
+### Design Inconsistencies
+- **Button styles** — mix of gradient buttons, outlined buttons, ghost buttons across pages with no consistent pattern
+- **Modal styling** — some modals have `backdrop-filter: blur(20px)`, some don't
+- **Loading states** — some pages show skeleton loaders, others show blank white flash
+- **Empty states** — some sections have illustrated empty states, others show nothing
+- **Toast notifications** — present but timing and positioning vary per page
+
+### Performance Issues
+- **No image lazy loading** — all post images load at once causing slow initial load on feed
+- **No virtual list** for feed — rendering 50+ posts at once causes jank on older devices
+- **Large JS bundle** — Vite code splits by route but common deps are large (Firebase, Framer Motion)
+- **No HTTP/2 server push** for critical CSS/JS
+
+### Accessibility (Major Gaps)
+- ❌ No `aria-label` on icon-only buttons (like, share, more)
+- ❌ No keyboard navigation for card swipe (dating)
+- ❌ No focus management on modal open/close
+- ❌ No high-contrast mode
+- ❌ No text size scaling
+- ❌ No `alt` text on user-uploaded images (dynamic content)
+- ❌ No skip-to-content link for keyboard users
+- ❌ Screen reader not tested
+
+---
+
+## 📊 STATUS: WHAT STILL NEEDS TO BE DONE
+
+### 🔴 Critical (Blocks Production Launch)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Google OAuth production domain | ⚠️ PENDING | Add `lynkapp.com` to Firebase Authorized Domains in Console |
+| Apple Sign-In Firebase config | ⚠️ PENDING | Enable Apple provider in Firebase Console + Apple Developer credentials |
+| Phone Auth Firebase config | ⚠️ PENDING | Enable Phone authentication in Firebase Console |
+| Email verification Firestore trigger | ⚠️ PENDING | Cloud Function to update `users/{uid}.emailVerified=true` |
+| Firebase Storage security rules | ⚠️ PENDING | Allow authenticated users to upload to `avatars/` and `media/` paths |
+| Stripe payment live keys | ⚠️ PENDING | Marketplace and Premium payments need live Stripe keys |
+| TURN/STUN server for WebRTC | ⚠️ PENDING | Video calls and live streaming need a Coturn/Twilio TURN server |
+| Terms of Service & Privacy Policy pages | ⚠️ PENDING | Required before any public launch (legal) |
+| Age verification on sign-up | ⚠️ PENDING | COPPA compliance — must verify 13+ (18+ for dating) |
+| GDPR consent banner | ⚠️ PENDING | EU users must see cookie/data consent on first visit |
+| OneSignal API key in production `.env` | ⚠️ PENDING | Push notifications won't work without this |
+| RAWG API key in production `.env` | ⚠️ PENDING | Gaming hub shows empty without this |
+| Deezer API partnership for full tracks | ⚠️ PENDING | Currently limited to 30-second previews only |
+| DeepAR API key for AR filters | ⚠️ PENDING | AR features completely non-functional without it |
+
+### 🟡 High Priority (Should Complete Before Beta)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Backup email field on user profile | 🔮 FUTURE | Allow secondary email in Settings for recovery |
+| Account recovery admin view | 🔮 FUTURE | Admin page to view/process `accountRecoveryRequests` |
+| Native biometric auth (WebAuthn) | 🔮 FUTURE | Production WebAuthn + native app bridge |
+| SMS 2FA | 🔮 FUTURE | Optional phone-based 2-factor auth in Security Settings |
+| Social login → interests pre-fill | 🔮 FUTURE | Pre-select interests from Google/Apple profile data |
+| Onboarding contacts-based friend suggestions | 🔮 FUTURE | Import contacts API → suggest real connections |
+| Image lazy loading on feed | 🔮 FUTURE | Add `loading="lazy"` / Intersection Observer |
+| Virtual list for feed (react-window) | 🔮 FUTURE | Prevents DOM overload on long scroll sessions |
+| Algolia search integration | 🔮 FUTURE | Replace Firestore text search with full-text search |
+| Feed personalization by interests | 🔮 FUTURE | Use onboarding interests to filter/rank feed content |
+| Typing indicators in messages | 🔮 FUTURE | Firestore presence `isTyping` field with TTL |
+| Online/offline status in messages | 🔮 FUTURE | Firestore presence pattern with `lastSeen` |
+| Real-time admin analytics | 🔮 FUTURE | Replace static placeholders with live Firestore data |
+| Story creation canvas | 🔮 FUTURE | Full text/sticker/draw composer for stories |
+| Content moderation (AI flagging) | 🔮 FUTURE | OpenAI moderation service code exists — wire it up |
+| Subscription webhook (Stripe → Firestore) | 🔮 FUTURE | Set `isPremium: true` when payment succeeds |
+| Premium feature gating | 🔮 FUTURE | Check `isPremium` before allowing premium features |
+
+### 🟢 Nice to Have (Post-Launch Enhancements)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Facebook OAuth | 🔮 FUTURE | Major missing login option |
+| QR code login | 🔮 FUTURE | Scan from native app to log in on web |
+| Social listening rooms (music) | 🔮 FUTURE | Listen to music together with friends |
+| Group video calls | 🔮 FUTURE | Multi-party video beyond 2-person |
+| Live shopping integration | 🔮 FUTURE | Pin products during live streams |
+| AR product try-on | 🔮 FUTURE | Try glasses/clothes in AR from marketplace |
+| VR social space | 🔮 FUTURE | Virtual room to hang out |
+| Collaborative playlists | 🔮 FUTURE | Friends can add tracks together |
+| Event ticketing | 🔮 FUTURE | Sell tickets to events within app |
+| Auction/bidding in marketplace | 🔮 FUTURE | Time-limited bidding on rare items |
+| Memory feature (On this day) | 🔮 FUTURE | Like Google Photos / Facebook Memories |
+| Dark/Light/Custom theme toggle | 🔮 FUTURE | Currently dark-only |
+| Full i18n / translations | 🔮 FUTURE | No internationalization currently |
+| Screen reader / ARIA audit | 🔮 FUTURE | Major accessibility gaps throughout |
+| High contrast accessibility mode | 🔮 FUTURE | WCAG AA compliance |
+
+---
+
+## 📄 COMPLETE "NEEDS A DASHBOARD/NEW PAGE" MASTER LIST
+
+The following items, when clicked in the app, currently have **no destination** or go to a **stub/placeholder**. Each needs a properly implemented page:
+
+| # | Click Location | Current State | Required New Page |
+|---|---|---|---|
+| 1 | "Terms of Service" link (login) | ❌ Dead | `/terms` — static page |
+| 2 | "Privacy Policy" link (login) | ❌ Dead | `/privacy` — static page |
+| 3 | Active sessions (Security settings) | ❌ Missing | `/settings/sessions` |
+| 4 | Login history (Security settings) | ❌ Missing | `/settings/login-history` |
+| 5 | Accessibility (Settings) | ❌ Missing | `/settings/accessibility` |
+| 6 | "Create Post" FAB (Feed) | Opens inline modal only | `/post/create` — full-screen composer |
+| 7 | "Report Post" option | ❌ No flow | `/report/post/:id` or modal |
+| 8 | Story creation | Opens basic picker | `/stories/create` — full canvas |
+| 9 | "Seen by" on story | Shows 0 | `/stories/:id/viewers` |
+| 10 | Story analytics | ❌ Missing | `/stories/analytics` |
+| 11 | Live category filter | ❌ No destination | `/live/category/:name` |
+| 12 | "My Stream History" | ❌ Missing | `/live/history` |
+| 13 | Live earnings detail | ❌ No data | `/live/earnings` |
+| 14 | Co-host invite (Live) | ❌ Not wired | Invite modal |
+| 15 | "Start Video Date" (Dating) | ❌ Dead | `/dating/video-date/:matchId` |
+| 16 | "Who liked you" (Dating) | ❌ Blurred | `/dating/likes-you` |
+| 17 | "Roses" shop (Dating) | ❌ Not wired | `/dating/shop` |
+| 18 | Dating safety check-in | ❌ Not wired | `/dating/safety` |
+| 19 | Dating photo verification | ❌ No flow | `/dating/verify-photo` |
+| 20 | "Message Requests" | ❌ Not present | `/messages/requests` |
+| 21 | Starred messages | ❌ Not present | `/messages/starred` |
+| 22 | Video call in messages | ❌ Broken link | Fix link → `/videocalls/call/:id` |
+| 23 | "Explore Groups" | ❌ Missing | `/groups/explore` |
+| 24 | Group invite link | ❌ Not generated | Generate shareable link |
+| 25 | Group moderation | ❌ Missing | `/groups/:id/moderation` |
+| 26 | "Buy Ticket" (Events) | ❌ Not wired | `/events/:id/tickets` |
+| 27 | Events map view | ❌ Missing | `/events/map` |
+| 28 | Event check-in | ❌ Missing | `/events/:id/checkin` |
+| 29 | Order tracking | ❌ No real data | `/marketplace/orders/:id/tracking` |
+| 30 | Return/Refund request | ❌ Missing | `/marketplace/orders/:id/return` |
+| 31 | Dispute resolution | ❌ Missing | `/marketplace/dispute/:id` |
+| 32 | Wish List | ❌ Missing | `/marketplace/wishlist` |
+| 33 | Gaming matchmaking | ❌ No destination | `/gaming/matchmaking` |
+| 34 | Gaming clans | ❌ Missing | `/gaming/clans` |
+| 35 | Gaming news | ❌ Missing | `/gaming/news` |
+| 36 | Lyrics (Music) | ❌ Empty | Lyrics API integration on music page |
+| 37 | Social listening | ❌ Missing | `/music/listen-together` |
+| 38 | Concerts near me | ❌ Missing | `/music/concerts` |
+| 39 | Call recordings | ❌ Missing | `/videocalls/recordings` |
+| 40 | Scheduled calls | ❌ Missing | `/videocalls/scheduled` |
+| 41 | AR filter creation | ❌ No destination | `/arvr/filter/create` |
+| 42 | AR Shopping (Marketplace) | ❌ Missing | AR try-on integration |
+| 43 | Help ticket history | ❌ Missing | `/help/tickets` |
+| 44 | Admin recovery requests | ❌ Missing | `/admin/recovery-requests` |
+| 45 | Admin revenue dashboard | ❌ Missing | `/admin/revenue` |
+| 46 | Admin user management | ❌ Missing | `/admin/users` |
+| 47 | Admin email broadcast | ❌ Missing | `/admin/broadcast` |
+| 48 | Admin error logs | ❌ Missing | `/admin/errors` (Sentry) |
+| 49 | Premium gift subscription | ❌ Missing | `/premium/gift` |
+| 50 | Nearby friends | ❌ Missing | `/friends/nearby` with map |
+
+---
+
+## 🎯 RECOMMENDATIONS SUMMARY
+
+### Immediate Actions (This Sprint)
+1. **Add Firebase Console authorizations** for Google, Apple, Phone auth on production domain
+2. **Fix Firebase Storage rules** to allow avatar + media uploads
+3. **Create `/terms` and `/privacy` pages** — non-negotiable for any public launch
+4. **Wire `isPremium` Stripe webhook** — currently all users have equal access
+5. **Fix video call link** in messages thread header
+6. **Add image lazy loading** to feed post cards (`loading="lazy"` attribute minimum)
+
+### Short-Term (Next 2–4 Weeks)
+7. **Implement story creation canvas** — users expect full-featured story creation like Instagram
+8. **Add typing indicators and online status** to messages — biggest UX gap in messaging
+9. **Feed personalization by interests** — core value prop not delivered yet
+10. **Integrate Algolia** for real full-text search (Firestore queries are too limited)
+11. **Add ARIA labels** to all icon-only buttons — critical for screen reader users
+12. **Virtual list for feed** (react-window or react-virtualized)
+
+### Medium-Term (1–2 Months)
+13. **Facebook OAuth** — currently missing a major login method
+14. **Social listening rooms** for Music — differentiated feature
+15. **Live shopping** integration during streams — strong monetization opportunity
+16. **AR product try-on** in Marketplace — competitive differentiator
+17. **Event ticketing** system — major revenue stream
+18. **Auction/bidding** in Marketplace — drives user engagement
+
+### Design System Work Needed
+19. **Create a consistent button component** — 3+ different button styles across app
+20. **Standardize modal component** — inconsistent backdrop/blur across pages
+21. **Create proper empty state illustrations** for each section
+22. **Define loading skeleton patterns** consistently across all pages
+23. **Implement proper toast notification system** with stacking and auto-dismiss
+
+---
+
+*Report generated: May 21, 2026 — Full UX/UI Tester Audit, LynkApp v1.0*  
+*Next audit recommended after implementing Critical items from Status table above.*
