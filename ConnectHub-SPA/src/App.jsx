@@ -99,8 +99,10 @@ const EventCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards
 const EventAttendeesPage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventAttendeesPage })));
 const MyEventsPage         = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.MyEventsPage })));
 
-// ── Profile sub-pages (May 2026)
-const ProfileEditPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ProfileEditPage })));
+// ── SECTION-8: Profile new pages (May 2026)
+const ProfileEditPage          = lazy(() => import('./pages/profile/ProfileEditPage'));
+const ProfileInsightsPage      = lazy(() => import('./pages/profile/ProfileInsightsPage'));
+const ProfileVerifyRequestPage = lazy(() => import('./pages/profile/ProfileVerifyRequestPage'));
 
 // ── Music sub-pages (May 2026)
 const AlbumDetailPage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.AlbumDetailPage })));
@@ -401,8 +403,10 @@ export default function App() {
             <Route path="events/:id/attendees"  element={<EventAttendeesPage />} />
             <Route path="events/mine"           element={<MyEventsPage />} />
 
-            {/* Profile */}
+            {/* Profile — SECTION-8 (May 2026) */}
             <Route path="profile/edit"          element={<ProfileEditPage />} />
+            <Route path="profile/insights"      element={<ProfileInsightsPage />} />
+            <Route path="profile/verify-request" element={<ProfileVerifyRequestPage />} />
 
             {/* Music */}
             <Route path="music/album/:id"       element={<AlbumDetailPage />} />
