@@ -18,6 +18,11 @@ import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
 import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 import AccountRecoveryPage from './pages/auth/AccountRecoveryPage';
 
+// ── SECTION-6: Messages new pages (May 2026)
+const MessageRequestsPage      = lazy(() => import('./pages/messages/MessageRequestsPage'));
+const ArchivedConversationsPage = lazy(() => import('./pages/messages/ArchivedConversationsPage'));
+const GroupChatCreatePage      = lazy(() => import('./pages/messages/GroupChatCreatePage'));
+
 // New Dashboard Pages (lazy loaded)
 const PostDetailPage       = lazy(() => import('./pages/post/PostDetailPage'));
 const HashtagPage          = lazy(() => import('./pages/hashtag/HashtagPage'));
@@ -434,6 +439,11 @@ export default function App() {
 
             {/* Friends */}
             <Route path="friends/find"          element={<ContactImportPage />} />
+
+            {/* ── SECTION-6: Messages new pages (May 2026) ── */}
+            <Route path="messages/requests"     element={<MessageRequestsPage />} />
+            <Route path="messages/archived"     element={<ArchivedConversationsPage />} />
+            <Route path="messages/group/create" element={<GroupChatCreatePage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/feed" replace />} />
