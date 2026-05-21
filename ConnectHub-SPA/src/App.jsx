@@ -132,6 +132,10 @@ const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 // Main App Pages (lazy loaded)
 const FeedPage          = lazy(() => import('./pages/feed/FeedPage'));
 const StoriesPage       = lazy(() => import('./pages/stories/StoriesPage'));
+// ── SECTION-3: Story sub-pages ──────────────────────────────────────────────
+const StoryCreatePage     = lazy(() => import('./pages/stories/StoryCreatePage'));
+const StoryAnalyticsPage  = lazy(() => import('./pages/stories/StoryAnalyticsPage'));
+const StoryHighlightsPage = lazy(() => import('./pages/stories/StoryHighlightsPage'));
 const LivePage          = lazy(() => import('./pages/live/LivePage'));
 
 // Live sub-pages (LIVE-BUG-01 through LIVE-BUG-10 fixes)
@@ -238,7 +242,11 @@ export default function App() {
           <Route path="/" element={<PrivateRoute><AppShell /></PrivateRoute>}>
             <Route index element={<Navigate to="/feed" replace />} />
             <Route path="feed"          element={<FeedPage />} />
-            <Route path="stories"       element={<StoriesPage />} />
+            <Route path="stories"           element={<StoriesPage />} />
+            {/* SECTION-3: Story sub-pages */}
+            <Route path="stories/create"    element={<StoryCreatePage />} />
+            <Route path="stories/analytics" element={<StoryAnalyticsPage />} />
+            <Route path="stories/highlights" element={<StoryHighlightsPage />} />
             <Route path="live"              element={<LivePage />} />
             {/* LIVE-BUG-01-10 FIXES: new live sub-routes */}
             <Route path="live/setup"        element={<LiveSetupPage />} />
