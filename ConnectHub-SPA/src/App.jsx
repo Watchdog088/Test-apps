@@ -134,6 +134,9 @@ const FeedPage          = lazy(() => import('./pages/feed/FeedPage'));
 const StoriesPage       = lazy(() => import('./pages/stories/StoriesPage'));
 // ── SECTION-3: Story sub-pages ──────────────────────────────────────────────
 const StoryCreatePage     = lazy(() => import('./pages/stories/StoryCreatePage'));
+// ── SECTION-4B: Live Q&A + Gifts Leaderboard ────────────────────────────────
+const LiveQAPage              = lazy(() => import('./pages/live/LiveQAPage'));
+const LiveGiftsLeaderboardPage = lazy(() => import('./pages/live/LiveGiftsLeaderboardPage'));
 const StoryAnalyticsPage  = lazy(() => import('./pages/stories/StoryAnalyticsPage'));
 const StoryHighlightsPage = lazy(() => import('./pages/stories/StoryHighlightsPage'));
 const StoryArchivePage    = lazy(() => import('./pages/stories/StoryArchivePage'));
@@ -271,6 +274,9 @@ export default function App() {
             <Route path="clips/:clipId"      element={<ClipViewerPage />} />
             {/* REC-6.10: /live/vod/:id — VOD replay */}
             <Route path="live/vod/:id"       element={<LiveVODPage />} />
+            {/* SECTION-4B: Q&A session + Gifts leaderboard */}
+            <Route path="live/qa/:streamId"     element={<LiveQAPage />} />
+            <Route path="live/gifts/:streamId"  element={<LiveGiftsLeaderboardPage />} />
             {/* POLISH-18 FIX: /trending redirects to feed with filter param — no duplicate page */}
             <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
             <Route path="groups"        element={<GroupsPage />} />
