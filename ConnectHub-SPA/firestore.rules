@@ -1,349 +1,142 @@
-// firestore.rules — LIVE-BUG-05 FIX
-// Firestore Security Rules for the streams collection
-// Deploy with: firebase deploy --only firestore:rules
+// firestore.rules — ConnectHub / LynkApp
+// SECTION-8 UPDATE: Block enforcement rules added
+// Users cannot read posts/profiles/stories from accounts they have blocked or that have blocked them
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helper functions ────────────────────────────────────────────────────
-    function isAuthenticated() {
+    // ── Helper functions ─────────────────────────────────────────────────────
+    function isAuth() {
       return request.auth != null;
     }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    // BLOCK ENFORCEMENT: check if caller blocked target OR target blocked caller
+    function notBlocked(targetUid) {
+      return isAuth() &&
+        !exists(/databases/$(database)/documents/blocks/$(request.auth.uid + '_' + targetUid)) &&
+        !exists(/databases/$(database)/documents/blocks/$(targetUid + '_' + request.auth.uid));
+    }
+    // Private account check — caller must follow targetUid or be targetUid
+    function canViewPrivate(ownerUid) {
+      return isOwner(ownerUid) ||
+        isAdmin() ||
+        exists(/databases/$(database)/documents/follows/$(request.auth.uid + '_' + ownerUid));
     }
 
-    function isValidStream() {
-      let data = request.resource.data;
-      return data.keys().hasAll(['title', 'category', 'status', 'userId'])
-        && data.title is string
-        && data.title.size() > 0
-        && data.title.size() <= 60
-        && data.category is string
-        && data.status in ['live', 'ended', 'scheduled']
-        && data.userId == request.auth.uid;
+    // ── Users ─────────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isAuth() && notBlocked(uid);
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // ── streams collection ──────────────────────────────────────────────────
-    // LIVE-BUG-05: reads = all users; writes = only authenticated owner
-    match /streams/{streamId} {
-      // Anyone (including unauthenticated users) can read live streams
-      allow read: if true;
-
-      // Only authenticated user can create a stream for themselves
-      allow create: if isAuthenticated() && isValidStream();
-
-      // Only the stream owner can update/delete their own stream
-      allow update: if isAuthenticated() && isOwner(resource.data.userId);
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
-
-      // ── streams/{id}/messages sub-collection ── UX-LIVE-01 (live chat)
-      match /messages/{msgId} {
-        // Anyone who can see the stream can read messages
-        allow read: if true;
-
-        // Only authenticated, non-banned users can send messages (C-3 FIX)
-        allow create: if isAuthenticated()
-          && request.resource.data.userId == request.auth.uid
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 300
-          && !(get(/databases/$(database)/documents/streams/$(streamId)).data.bannedUsers.hasAny([request.auth.uid]));
-
-        // Users can only delete their own messages
-        allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-
-        // No editing of chat messages
-        allow update: if false;
-      }
-
-      // ── streams/{id}/guestRequests — C-4: guest join flow
-      match /guestRequests/{reqId} {
-        allow read: if isAuthenticated()
-          && (resource.data.uid == request.auth.uid
-              || get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid);
-        allow create: if isAuthenticated();
-      }
-
-      // ── streams/{id}/handRaises — viewer raise-hand signal
-      match /handRaises/{raiseId} {
-        allow read: if isAuthenticated()
-          && get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid;
-        allow create: if isAuthenticated();
-      }
-
-      // ── streams/{id}/cohosts sub-collection ── IMPROVE-LIVE-04
-      match /cohosts/{coHostId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated() && isOwner(resource.data.streamOwnerId);
-      }
-
-      // ── streams/{id}/viewers sub-collection ── viewer presence (BUG-7 FIX)
-      match /viewers/{viewerId} {
-        allow read: if isAuthenticated();
-        // Viewer can only write their own presence doc
-        allow write: if isAuthenticated() && request.auth.uid == viewerId;
-      }
-
-      // ── streams/{id}/clips sub-collection ── MISSING-7
-      match /clips/{clipId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && request.resource.data.requestedBy == request.auth.uid;
-        allow delete: if isAuthenticated() && resource.data.requestedBy == request.auth.uid;
-        allow update: if false; // only server can update clip status
-      }
-
-      // ── streams/{id}/modSettings ── BUG-21/22 FIX
-      match /modSettings/{doc} {
-        allow read, write: if isAuthenticated()
-          && get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid;
-      }
-
-      // ── streams/{id}/banned ── BUG-21 FIX
-      match /banned/{doc} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated()
-          && get(/databases/$(database)/documents/streams/$(streamId)).data.userId == request.auth.uid;
-      }
-    }
-
-    // ── gifts collection ── BUG-30 FIX (gift economy loop)
-    match /gifts/{giftId} {
-      // Only sender or stream owner can read their gift records
-      allow read: if isAuthenticated() && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.streamerId == request.auth.uid
-      );
-      // Only the authenticated sender can create a gift for themselves
-      allow create: if isAuthenticated()
-        && request.resource.data.senderId == request.auth.uid;
-      // No edits or deletes — gifts are permanent records
-      allow update, delete: if false;
-    }
-
-    // ── transactions collection ── BUG-28 FIX (coin purchase audit trail)
-    match /transactions/{txnId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // ── scheduled streams ── BUG-25/26 FIX
-    match /scheduledStreams/{schedId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // ── users collection (general) ──────────────────────────────────────────
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isOwner(userId);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // MARKETPLACE RULES — added Sprint 5 production tasks
-    // ═══════════════════════════════════════════════════════════════════════
-
-    // ── Helper: is the user a verified seller? ───────────────────────────────
-    function isVerifiedSeller() {
-      return isAuthenticated()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.id_verified == true;
-    }
-
-    // ── Helper: listing validation ───────────────────────────────────────────
-    function isValidListing() {
-      let d = request.resource.data;
-      return d.keys().hasAll(['title', 'price', 'category', 'sellerId'])
-        && d.title is string
-        && d.title.size() > 0
-        && d.title.size() <= 120
-        && d.price is number
-        && d.price >= 0
-        && d.sellerId == request.auth.uid;
-    }
-
-    // ── marketplace_listings ─────────────────────────────────────────────────
-    match /marketplace_listings/{listingId} {
-      // Anyone can browse listings
-      allow read: if true;
-
-      // Any authenticated user can publish a new listing (not just verified)
-      allow create: if isAuthenticated() && isValidListing();
-
-      // Only the listing owner may update or delete their own listing
-      allow update: if isAuthenticated()
-        && resource.data.sellerId == request.auth.uid;
-      allow delete: if isAuthenticated()
-        && resource.data.sellerId == request.auth.uid;
-
-      // ── reviews sub-collection ────────────────────────────────────────────
-      match /reviews/{reviewId} {
-        allow read: if true;
-        // Only verified buyers (any authenticated user for now) can write a review
-        allow create: if isAuthenticated()
-          && request.resource.data.reviewerId == request.auth.uid
-          && request.resource.data.rating is number
-          && request.resource.data.rating >= 1
-          && request.resource.data.rating <= 5;
-        // No editing or deleting reviews
-        allow update, delete: if false;
-      }
-    }
-
-    // ── marketplace_chats ─────────────────────────────────────────────────────
-    match /marketplace_chats/{chatId} {
-      // Only participants may read the chat thread
-      allow read: if isAuthenticated()
-        && (resource.data.buyerId == request.auth.uid
-            || resource.data.sellerId == request.auth.uid);
-
-      // Either participant may create the thread document
-      allow create: if isAuthenticated()
-        && (request.resource.data.buyerId == request.auth.uid
-            || request.resource.data.sellerId == request.auth.uid);
-
-      allow update, delete: if false;
-
-      // ── messages sub-collection ───────────────────────────────────────────
-      match /messages/{msgId} {
-        // Only participants may read messages
-        allow read: if isAuthenticated()
-          && (get(/databases/$(database)/documents/marketplace_chats/$(chatId)).data.buyerId == request.auth.uid
-              || get(/databases/$(database)/documents/marketplace_chats/$(chatId)).data.sellerId == request.auth.uid);
-
-        // Only the sender may write a message; enforce senderId matches auth uid
-        allow create: if isAuthenticated()
-          && request.resource.data.senderId == request.auth.uid
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 2000;
-
-        allow update, delete: if false;
-      }
-    }
-
-    // ── marketplace_disputes ──────────────────────────────────────────────────
-    match /marketplace_disputes/{disputeId} {
-      // Only the filing user or an admin can read their dispute
-      allow read: if isAuthenticated()
-        && resource.data.filedBy == request.auth.uid;
-
-      // Any authenticated user can file a dispute for their own order
-      allow create: if isAuthenticated()
-        && request.resource.data.filedBy == request.auth.uid
-        && request.resource.data.orderId is string;
-
-      allow update, delete: if false;
-    }
-
-    // ── users/{uid}/marketplace_cart ──────────────────────────────────────────
-    match /users/{userId}/marketplace_cart/{doc} {
-      allow read, write: if isAuthenticated() && isOwner(userId);
-    }
-
-    // ── users/{uid}/marketplace_orders ────────────────────────────────────────
-    match /users/{userId}/marketplace_orders/{orderId} {
-      allow read: if isAuthenticated() && isOwner(userId);
-      // Orders can only be created by the buyer themselves
-      allow create: if isAuthenticated() && isOwner(userId)
-        && request.resource.data.buyerId == request.auth.uid;
-      // Status updates are only allowed by the owning user
-      allow update: if isAuthenticated() && isOwner(userId);
-      // No deleting order records
-      allow delete: if false;
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // SECTION 2 FEED RULES — Sprint 2 (May 2026)
-    // ══════════════════════════════════════════════════════════════════════
-
-    // reports — any auth user can file; only admins can read/update
-    match /reports/{docId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-    }
-
-    // post reactions — user owns only their own reaction doc
-    match /posts/{postId}/reactions/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-
-    // feed preferences (Not Interested) — user owns their own prefs
-    match /users/{userId}/feedPrefs/{prefId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // post comments subcollection — auth users can read/create; author can delete
-    match /posts/{postId}/comments/{commentId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
-    }
-
-    // posts — auth users can read; authenticated user can create for themselves
+    // ── Posts ─────────────────────────────────────────────────────────────────
     match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null &&
-        request.resource.data.authorUid == request.auth.uid;
-      allow update: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
-      allow delete: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
+      allow read: if isAuth() &&
+        notBlocked(resource.data.userId) &&
+        (
+          !get(/databases/$(database)/documents/users/$(resource.data.userId)).data.get('isPrivate', false)
+          || canViewPrivate(resource.data.userId)
+        );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
-    // ── stories — SECTION-3 FIXED RULES ──────────────────────────────────
-    // update allowed for ANY authenticated user so seenBy/reactions arrayUnion works.
-    // The Cloud Function cleanExpiredStories handles TTL deletions server-side.
-    match /stories/{storyId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null &&
-        request.resource.data.authorUid == request.auth.uid;
-      // author can delete their own story
-      allow delete: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
-      // any authenticated user may update (seenBy arrayUnion, reactions arrayUnion)
-      allow update: if request.auth != null;
+    // ── Follows ───────────────────────────────────────────────────────────────
+    match /follows/{followId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.followerId == request.auth.uid
+        && notBlocked(request.resource.data.followeeId);
+      allow delete: if isAuth() && resource.data.followerId == request.auth.uid;
     }
 
-    // ── storyHighlights — SECTION-3 NEW ──────────────────────────────────
-    match /storyHighlights/{hlId} {
-      allow read: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
-      allow create: if request.auth != null &&
-        request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if request.auth != null &&
-        resource.data.authorUid == request.auth.uid;
-    }
-
-    // ── storyReplies — SECTION-3 NEW ─────────────────────────────────────
-    match /storyReplies/{replyId} {
-      allow read: if request.auth != null && (
-        resource.data.senderUid == request.auth.uid ||
-        resource.data.storyAuthorUid == request.auth.uid
+    // ── Follow Requests (private accounts) ───────────────────────────────────
+    match /followRequests/{reqId} {
+      allow read: if isAuth() && (
+        resource.data.requestorId == request.auth.uid ||
+        resource.data.targetId == request.auth.uid ||
+        isAdmin()
       );
-      allow create: if request.auth != null &&
-        request.resource.data.senderUid == request.auth.uid &&
-        request.resource.data.text is string &&
-        request.resource.data.text.size() > 0 &&
-        request.resource.data.text.size() <= 500;
-      allow update, delete: if false;
+      allow create: if isAuth() && request.resource.data.requestorId == request.auth.uid
+        && notBlocked(request.resource.data.targetId);
+      allow update: if isAuth() && resource.data.targetId == request.auth.uid;
+      allow delete: if isAuth() && (
+        resource.data.requestorId == request.auth.uid ||
+        resource.data.targetId == request.auth.uid
+      );
     }
 
-    // ── storyReactions — SECTION-3 NEW ───────────────────────────────────
-    match /storyReactions/{reactionId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null &&
-        request.resource.data.reactorUid == request.auth.uid;
-      allow update, delete: if false;
+    // ── Blocks ────────────────────────────────────────────────────────────────
+    match /blocks/{blockId} {
+      allow read: if isAuth() && (
+        resource.data.blockerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuth() && request.resource.data.blockerId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.blockerId == request.auth.uid;
     }
 
-    // ── Default deny ────────────────────────────────────────────────────────
+    // ── Reports ───────────────────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAuth() && request.resource.data.reporterId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    // ── Stories ───────────────────────────────────────────────────────────────
+    match /stories/{storyId} {
+      allow read: if isAuth() &&
+        notBlocked(resource.data.userId) &&
+        (
+          !get(/databases/$(database)/documents/users/$(resource.data.userId)).data.get('isPrivate', false)
+          || canViewPrivate(resource.data.userId)
+        );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // ── Messages / Conversations ──────────────────────────────────────────────
+    match /conversations/{convId} {
+      allow read, write: if isAuth() && request.auth.uid in resource.data.participants;
+    }
+    match /messages/{msgId} {
+      allow read: if isAuth() && request.auth.uid in
+        get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participants;
+      allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.senderId) || isAdmin();
+    }
+
+    // ── Verification Requests ─────────────────────────────────────────────────
+    match /verificationRequests/{reqId} {
+      allow read: if isAdmin() || isOwner(resource.data.uid);
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/verificationRequests/$(request.auth.uid));
+      allow update: if isAdmin();
+    }
+
+    // ── Analytics ─────────────────────────────────────────────────────────────
+    match /analytics/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Clips ─────────────────────────────────────────────────────────────────
+    match /clips/{clipId} {
+      allow read: if isAuth() && notBlocked(resource.data.userId);
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // ── Default deny ──────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

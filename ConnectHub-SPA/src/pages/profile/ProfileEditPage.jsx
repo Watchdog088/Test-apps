@@ -51,6 +51,8 @@ export default function ProfileEditPage() {
     socialLinks: { twitter: '', instagram: '', tiktok: '', youtube: '', website: '' },
     photoURL: '',
     coverUrl: '',
+    isPrivate: false,
+    theme: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,6 +87,8 @@ export default function ProfileEditPage() {
             socialLinks: { twitter: '', instagram: '', tiktok: '', youtube: '', website: '', ...(data.socialLinks || {}) },
             photoURL: data.photoURL || '',
             coverUrl: data.coverUrl || '',
+            isPrivate: data.isPrivate || false,
+            theme: data.theme || '',
           });
           setPinnedPosts(data.pinnedPosts || []);
         }
@@ -199,6 +203,8 @@ export default function ProfileEditPage() {
         photoURL: form.photoURL,
         coverUrl: form.coverUrl,
         pinnedPosts,
+        isPrivate: form.isPrivate,
+        theme: form.theme,
         updatedAt: serverTimestamp(),
       });
       showToast('✅ Profile saved successfully!');
@@ -391,7 +397,43 @@ export default function ProfileEditPage() {
         </>
       )}
 
-      {/* Danger Zone */}
+      {/* Privacy */}
+      <div style={S.section}>Privacy</div>
+      <div style={S.card}>
+        <div style={{ ...S.field, borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: '#f1f5f9' }}>🔒 Private Account</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Only approved followers can see your posts</div>
+          </div>
+          <button onClick={() => set('isPrivate', !form.isPrivate)} style={{ width: 48, height: 26, borderRadius: 13, background: form.isPrivate ? 'linear-gradient(135deg,#6366f1,#ec4899)' : 'rgba(255,255,255,0.12)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+            <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: form.isPrivate ? 24 : 4, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Profile Theme (Premium only) */}
+      {form.isPremium !== false && (
+        <>
+          <div style={S.section}>🎨 Profile Theme (Premium)</div>
+          <div style={S.card}>
+            <div style={{ ...S.field, borderBottom: 'none' }}>
+              <div style={S.label}>Background Color</div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                {['#0a0a18','#0d1117','#0f172a','#1a0a2e','#0a1628','#0d1f0d','#1a0a0a','linear-gradient(135deg,#0f0c29,#302b63)'].map(color => (
+                  <button key={color} onClick={() => set('theme', color)}
+                    style={{ width: 36, height: 36, borderRadius: 10, background: color, border: form.theme === color ? '2px solid #6366f1' : '2px solid transparent', cursor: 'pointer', outline: 'none' }} />
+                ))}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', cursor: 'pointer' }}>
+                  Custom: <input type="color" value={form.theme.startsWith('#') ? form.theme : '#0a0a18'} onChange={e => set('theme', e.target.value)} style={{ width: 36, height: 36, border: 'none', borderRadius: 8, cursor: 'pointer', background: 'none' }} />
+                </label>
+              </div>
+              {form.theme && <button onClick={() => set('theme', '')} style={{ marginTop: 8, fontSize: 11, color: '#475569', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Reset to default</button>}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Account */}
       <div style={S.section}>Account</div>
       <div style={S.card}>
         <div style={{ ...S.field, borderBottom: 'none' }}>
