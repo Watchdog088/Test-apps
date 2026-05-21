@@ -146,6 +146,10 @@ const LiveMonetizationPage   = lazy(() => import('./pages/live/LiveMonetizationP
 const LiveModerationPage     = lazy(() => import('./pages/live/LiveModerationPage'));
 const LiveSchedulePage       = lazy(() => import('./pages/live/LiveSchedulePage'));
 const LiveAnalyticsPage      = lazy(() => import('./pages/live/LiveAnalyticsPage'));
+// SECTION-4 NEW: Three missing dashboard pages
+const LiveCohostPage         = lazy(() => import('./pages/live/LiveCohostPage'));
+const LiveClipsPage          = lazy(() => import('./pages/live/LiveClipsPage'));
+const LiveCategoriesPage     = lazy(() => import('./pages/live/LiveCategoriesPage'));
 // BUG-04 FIX: New page — bell icon on /live now has a destination
 const LiveNotificationsPage  = lazy(() => import('./pages/live/LiveNotificationsPage'));
 // BUG-05 FIX: New page — clip cards on /live now have a destination
@@ -257,6 +261,10 @@ export default function App() {
             <Route path="live/moderation"   element={<LiveModerationPage />} />
             <Route path="live/schedule"     element={<LiveSchedulePage />} />
             <Route path="live/analytics"    element={<LiveAnalyticsPage />} />
+            {/* SECTION-4 NEW: Co-host, clips manager, categories browser */}
+            <Route path="live/cohost"       element={<LiveCohostPage />} />
+            <Route path="live/clips"        element={<LiveClipsPage />} />
+            <Route path="live/categories"   element={<LiveCategoriesPage />} />
             {/* BUG-04 FIX: /live/notifications — bell icon destination */}
             <Route path="live/notifications" element={<LiveNotificationsPage />} />
             {/* BUG-05 FIX: /clips/:clipId — trending clips destination */}
