@@ -43,7 +43,14 @@ const GroupRulesPage       = lazy(() => import('./pages/groups/GroupSubPages').t
 const GroupAnalyticsPage   = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupAnalyticsPage })));
 const GroupPollsPage       = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupPollsPage })));
 const GroupJoinPage        = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupJoinPage })));
+// ── SECTION-11: Events new pages (May 2026)
 const EventDetailPage      = lazy(() => import('./pages/events/EventDetailPage'));
+const EventCreatePage      = lazy(() => import('./pages/events/EventCreatePage'));
+const EventAttendeesPage   = lazy(() => import('./pages/events/EventAttendeesPage'));
+const MyEventsPage         = lazy(() => import('./pages/events/EventSubPages').then(m => ({ default: m.MyEventsPage })));
+const EventTicketsPage     = lazy(() => import('./pages/events/EventSubPages').then(m => ({ default: m.EventTicketsPage })));
+const EventCheckInPage     = lazy(() => import('./pages/events/EventSubPages').then(m => ({ default: m.EventCheckInPage })));
+const EventRecapPage       = lazy(() => import('./pages/events/EventSubPages').then(m => ({ default: m.EventRecapPage })));
 const ProductDetailPage    = lazy(() => import('./pages/marketplace/ProductDetailPage'));
 const MyOrdersPage         = lazy(() => import('./pages/marketplace/MyOrdersPage'));
 const SellerDashboardPage  = lazy(() => import('./pages/marketplace/SellerDashboardPage'));
@@ -101,10 +108,7 @@ const DatingPreferencesDeepPage = lazy(() => import('./pages/dating/DatingPrefer
 // ── Group sub-pages now loaded from proper files (Section 10 — May 2026)
 // (GroupCreatePage, GroupMembersPage, GroupSettingsPage, etc. declared above)
 
-// ── Event sub-pages (May 2026)
-const EventCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventCreatePage })));
-const EventAttendeesPage   = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventAttendeesPage })));
-const MyEventsPage         = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.MyEventsPage })));
+// ── Event sub-pages are now loaded from proper files above (Section 11 — May 2026)
 
 // ── SECTION-8: Profile new pages (May 2026)
 const ProfileEditPage          = lazy(() => import('./pages/profile/ProfileEditPage'));
@@ -413,10 +417,13 @@ export default function App() {
             <Route path="groups/:id/polls"      element={<GroupPollsPage />} />
             <Route path="groups/join/:token"    element={<GroupJoinPage />} />
 
-            {/* Events */}
-            <Route path="events/create"         element={<EventCreatePage />} />
-            <Route path="events/:id/attendees"  element={<EventAttendeesPage />} />
-            <Route path="events/mine"           element={<MyEventsPage />} />
+            {/* Events — SECTION-11 (May 2026) */}
+            <Route path="events/create"           element={<EventCreatePage />} />
+            <Route path="events/mine"             element={<MyEventsPage />} />
+            <Route path="events/:id/attendees"    element={<EventAttendeesPage />} />
+            <Route path="events/:id/tickets"      element={<EventTicketsPage />} />
+            <Route path="events/:id/checkin"      element={<EventCheckInPage />} />
+            <Route path="events/:id/recap"        element={<EventRecapPage />} />
 
             {/* Profile — SECTION-8 (May 2026) */}
             <Route path="profile/edit"          element={<ProfileEditPage />} />
