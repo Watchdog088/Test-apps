@@ -34,6 +34,15 @@ const FollowersPage        = lazy(() => import('./pages/profile/FollowersPage'))
 const DatingMatchesPage    = lazy(() => import('./pages/dating/DatingMatchesPage'));
 const NewMessagePage       = lazy(() => import('./pages/messages/NewMessagePage'));
 const GroupDetailPage      = lazy(() => import('./pages/groups/GroupDetailPage'));
+// ── SECTION-10: Groups new pages (May 2026)
+const GroupCreatePage      = lazy(() => import('./pages/groups/GroupCreatePage'));
+const GroupMembersPage     = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupMembersPage })));
+const GroupSettingsPage    = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupSettingsPage })));
+const GroupMediaPage       = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupMediaPage })));
+const GroupRulesPage       = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupRulesPage })));
+const GroupAnalyticsPage   = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupAnalyticsPage })));
+const GroupPollsPage       = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupPollsPage })));
+const GroupJoinPage        = lazy(() => import('./pages/groups/GroupSubPages').then(m => ({ default: m.GroupJoinPage })));
 const EventDetailPage      = lazy(() => import('./pages/events/EventDetailPage'));
 const ProductDetailPage    = lazy(() => import('./pages/marketplace/ProductDetailPage'));
 const MyOrdersPage         = lazy(() => import('./pages/marketplace/MyOrdersPage'));
@@ -89,10 +98,8 @@ const SafetyCenterPage         = lazy(() => import('./pages/dating/SafetyCenterP
 const SpeedDatingPage          = lazy(() => import('./pages/dating/SpeedDatingPage'));
 const DatingPreferencesDeepPage = lazy(() => import('./pages/dating/DatingPreferencesDeepPage'));
 
-// ── Group sub-pages (May 2026)
-const GroupCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupCreatePage })));
-const GroupMembersPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupMembersPage })));
-const GroupSettingsPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.GroupSettingsPage })));
+// ── Group sub-pages now loaded from proper files (Section 10 — May 2026)
+// (GroupCreatePage, GroupMembersPage, GroupSettingsPage, etc. declared above)
 
 // ── Event sub-pages (May 2026)
 const EventCreatePage      = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.EventCreatePage })));
@@ -396,10 +403,15 @@ export default function App() {
             <Route path="dating/speed"          element={<SpeedDatingPage />} />
             <Route path="dating/preferences"    element={<DatingPreferencesDeepPage />} />
 
-            {/* Groups */}
+            {/* Groups — SECTION-10 (May 2026) */}
             <Route path="groups/create"         element={<GroupCreatePage />} />
             <Route path="groups/:id/members"    element={<GroupMembersPage />} />
             <Route path="groups/:id/settings"   element={<GroupSettingsPage />} />
+            <Route path="groups/:id/media"      element={<GroupMediaPage />} />
+            <Route path="groups/:id/rules"      element={<GroupRulesPage />} />
+            <Route path="groups/:id/analytics"  element={<GroupAnalyticsPage />} />
+            <Route path="groups/:id/polls"      element={<GroupPollsPage />} />
+            <Route path="groups/join/:token"    element={<GroupJoinPage />} />
 
             {/* Events */}
             <Route path="events/create"         element={<EventCreatePage />} />
