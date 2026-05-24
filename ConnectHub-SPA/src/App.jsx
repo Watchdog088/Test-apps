@@ -151,6 +151,11 @@ const CollectionCreatePage = lazy(() => import('./pages/misc/RemainingDashboards
 // ── Marketplace extras (May 2026)
 const CartPage             = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.CartPage })));
 const ListingBoostPage     = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ListingBoostPage })));
+// ── Marketplace Sprint 25 — Section 12 fixes (May 2026)
+const CheckoutPage         = lazy(() => import('./pages/marketplace/CheckoutPage'));
+const SellerKYCPage        = lazy(() => import('./pages/marketplace/SellerKYCPage'));
+const WriteReviewPage      = lazy(() => import('./pages/marketplace/WriteReviewPage'));
+const ReturnsPage          = lazy(() => import('./pages/marketplace/ReturnsPage'));
 
 // ── Friends extras (May 2026)
 const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ContactImportPage })));
@@ -463,9 +468,14 @@ export default function App() {
             <Route path="saved/collection/:id"  element={<CollectionPage />} />
             <Route path="saved/collection/new"  element={<CollectionCreatePage />} />
 
-            {/* Marketplace */}
-            <Route path="cart"                        element={<CartPage />} />
-            <Route path="marketplace/boost/:id"       element={<ListingBoostPage />} />
+            {/* Marketplace — Section 12 Sprint 25 fixes (May 2026) */}
+            <Route path="cart"                          element={<CartPage />} />
+            <Route path="marketplace/boost/:id"         element={<ListingBoostPage />} />
+            <Route path="marketplace/checkout"          element={<CheckoutPage />} />
+            <Route path="marketplace/kyc"               element={<SellerKYCPage />} />
+            <Route path="marketplace/review/:orderId"   element={<WriteReviewPage />} />
+            <Route path="marketplace/returns"           element={<ReturnsPage />} />
+            <Route path="marketplace/returns/:orderId"  element={<ReturnsPage />} />
 
             {/* Friends */}
             {/* Friends sub-pages — Section 9 (May 2026) */}
