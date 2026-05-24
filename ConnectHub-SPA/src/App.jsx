@@ -182,6 +182,9 @@ const MessagesPage      = lazy(() => import('./pages/messages/MessagesPage'));
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'));
 const ProfilePage       = lazy(() => import('./pages/profile/ProfilePage'));
 const FriendsPage       = lazy(() => import('./pages/friends/FriendsPage'));
+const FriendFindPage    = lazy(() => import('./pages/friends/FriendFindPage'));
+const FriendNearbyPage  = lazy(() => import('./pages/friends/FriendNearbyPage'));
+const FriendBirthdaysPage = lazy(() => import('./pages/friends/FriendBirthdaysPage'));
 const DatingPage        = lazy(() => import('./pages/dating/DatingPage'));
 const EventsPage        = lazy(() => import('./pages/events/EventsPage'));
 const GamingPage        = lazy(() => import('./pages/gaming/GamingPage'));
@@ -446,7 +449,10 @@ export default function App() {
             <Route path="marketplace/boost/:id"       element={<ListingBoostPage />} />
 
             {/* Friends */}
-            <Route path="friends/find"          element={<ContactImportPage />} />
+            {/* Friends sub-pages — Section 9 (May 2026) */}
+            <Route path="friends/find"          element={<FriendFindPage />} />
+            <Route path="friends/nearby"        element={<FriendNearbyPage />} />
+            <Route path="friends/birthdays"     element={<FriendBirthdaysPage />} />
 
             {/* ── SECTION-6: Messages new pages (May 2026) ── */}
             <Route path="messages/requests"     element={<MessageRequestsPage />} />
