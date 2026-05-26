@@ -20,7 +20,7 @@ import {
   createPaymentIntent,
   confirmCardPayment,
   saveOrderToFirestore,
-  calculateShipping,
+  fetchShippingRates,
 } from '../../services/marketplace-backend-service.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -97,9 +97,9 @@ export default function CheckoutPage() {
     const c = loadCart();
     if (!c.length) { navigate('/cart'); return; }
     setCart(c);
-    // Fetch shipping rates for first item's category
-    calculateShipping({ itemId: c[0]?.listing?.id, category: c[0]?.listing?.category })
-      .then(rates => { if (rates && rates.length) setShippingRates(rates.map((r, i) => ({ ...r, value: parseFloat(r.price) || 0 }))); })
+    // Fetch shipping rates — uses fetchShippingRates() which returns array format
+    fetchShippingRates({ itemId: c[0]?.listing?.id, category: c[0]?.listing?.category, priceUSD: c.reduce((s, x) => s + x.listing.price * x.qty, 0) })
+      .then(rates => { if (rates && rates.length) setShippingRates(rates); })
       .catch(() => {});
   }, [navigate]);
 

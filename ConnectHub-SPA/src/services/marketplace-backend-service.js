@@ -360,6 +360,8 @@ export const notifyNewMessage = (fromName, preview) =>
 // ============================================================================
 // BE-08 — Shipping fee calculation
 // Uses zip-code first digit to determine region, then returns flat-rate tiers.
+// calculateShipping() — synchronous, returns object (legacy use)
+// fetchShippingRates() — async, returns array format for CheckoutPage
 // ============================================================================
 export function calculateShipping({ fromZip = '', toZip = '', weightLbs = 1, priceUSD = 0 }) {
   // Free shipping on orders over $200
@@ -382,6 +384,31 @@ export function calculateShipping({ fromZip = '', toZip = '', weightLbs = 1, pri
     estimatedDaysStandard: zone === 'Same' ? '1-2' : zone === 'Northeast' ? '2-3' : '3-5',
     estimatedDaysExpress:  '1-2',
   };
+}
+
+/**
+ * fetchShippingRates({ itemId, category, fromZip, toZip, weightLbs, priceUSD })
+ * Async wrapper that returns an array of rate objects compatible with CheckoutPage.
+ * FIX-SHIP-01: CheckoutPage calls `await calculateShipping(...)` and expects an array —
+ *              this function provides that interface without breaking legacy callers.
+ */
+export async function fetchShippingRates({ itemId, category, fromZip = '', toZip = '', weightLbs = 1, priceUSD = 0 } = {}) {
+  // TODO: when EASYPOST_API_KEY is set in the backend env, call the real carrier API
+  // via POST /api/marketplace/shipping-rates. Until then, use local flat-rate table.
+  const raw = calculateShipping({ fromZip, toZip, weightLbs, priceUSD });
+
+  if (raw.freeShipping) {
+    return [
+      { label: 'Free Shipping',         price: 'FREE',   value: 0,    days: '3-7' },
+      { label: 'Express (2-3 days)',     price: '$9.99',  value: 9.99, days: '2-3' },
+    ];
+  }
+
+  return [
+    { label: `Standard (${raw.estimatedDaysStandard} days)`, price: `$${raw.standard.toFixed(2)}`, value: raw.standard, days: raw.estimatedDaysStandard },
+    { label: `Express (${raw.estimatedDaysExpress} days)`,   price: `$${raw.express.toFixed(2)}`,  value: raw.express,  days: raw.estimatedDaysExpress  },
+    { label: 'Local Pickup',                                  price: 'FREE',                        value: 0,            days: 'Today'                   },
+  ];
 }
 
 // ============================================================================
@@ -461,9 +488,41 @@ export async function deleteListing(listingId) {
 
 // ============================================================================
 // Reviews — Firestore write
+// FIX-REVIEW-01: Accept a single review object (WriteReviewPage passes one arg).
+//                Old two-arg form is kept as an overloaded path for backward compat.
 // ============================================================================
-export async function submitReviewToFirestore(listingId, { rating, text, reviewer }) {
-  const col = collection(db, 'marketplace_listings', String(listingId), 'reviews');
+export async function submitReviewToFirestore(listingIdOrReview, legacyFields = null) {
+  // New single-object form: submitReviewToFirestore(reviewObj)
+  if (legacyFields === null && typeof listingIdOrReview === 'object') {
+    const review = listingIdOrReview;
+    const listingId = review.itemId || review.listingId || 'unknown';
+    // Write to top-level reviews collection (queryable) AND per-listing subcollection
+    const topCol = collection(db, 'marketplace_reviews');
+    await addDoc(topCol, {
+      ...review,
+      reviewerId: uid(),
+      submittedAt: serverTimestamp(),
+    });
+    // Also update the listing's review subcollection for real-time display
+    try {
+      const subCol = collection(db, 'marketplace_listings', String(listingId), 'reviews');
+      await addDoc(subCol, {
+        rating: review.rating,
+        text: review.text,
+        reviewer: review.reviewer || 'Anonymous',
+        tags: review.tags || [],
+        photoUrls: review.photoUrls || [],
+        orderId: review.orderId || '',
+        reviewerId: uid(),
+        submittedAt: serverTimestamp(),
+      });
+    } catch { /* subcollection write is best-effort */ }
+    return;
+  }
+
+  // Legacy two-arg form: submitReviewToFirestore(listingId, { rating, text, reviewer })
+  const { rating, text, reviewer } = legacyFields || {};
+  const col = collection(db, 'marketplace_listings', String(listingIdOrReview), 'reviews');
   await addDoc(col, {
     rating, text, reviewer,
     reviewerId: uid(),
