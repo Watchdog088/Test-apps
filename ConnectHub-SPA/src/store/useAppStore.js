@@ -52,6 +52,8 @@ const useAppStore = create((set, get) => ({
   incrementUnreadMessages: () => set((s) => ({ unreadMessages: s.unreadMessages + 1 })),
   incrementUnreadNotifications: () => set((s) => ({ unreadNotifications: s.unreadNotifications + 1 })),
   resetUnreadMessages: () => set({ unreadMessages: 0 }),
+  // BUG-6 FIX: Added resetUnreadNotifications so NotificationsPage can clear badge on mount
+  resetUnreadNotifications: () => set({ unreadNotifications: 0 }),
 
   // ── Feed State ────────────────────────────────────────────
   feedPosts: [],

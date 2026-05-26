@@ -394,6 +394,8 @@ export default function AppShell() {
   const [coinToast,        setCoinToast]        = useState(null);
   const [liveNotif,        setLiveNotif]        = useState(null); // GAP-03
   const [isOffline,        setIsOffline]        = useState(!navigator.onLine); // Mobile offline banner
+  // BUG-1 FIX: Track mobile breakpoint to remove left padding on phones
+  const [isMobile,         setIsMobile]         = useState(window.innerWidth < 640);
   const prevPath = useRef(pathname);
   const seenStreamsRef = useRef(new Set()); // GAP-03: track already-notified stream IDs
 
@@ -402,6 +404,13 @@ export default function AppShell() {
   const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
 
   const hideChrome = CHROME_HIDDEN.some(p => pathname.startsWith(p));
+
+  // BUG-1 FIX: Listen for window resize to update isMobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // GAP-03: Subscribe to live streams from followed creators
   useEffect(() => {
@@ -508,7 +517,8 @@ export default function AppShell() {
       <main style={{
         flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
         paddingTop: hideChrome ? 0 : 'var(--top-nav-h, 56px)',
-        paddingLeft: hideChrome ? 0 : 72,
+        // BUG-1 FIX: Remove left padding on mobile so content fills the full screen width
+        paddingLeft: hideChrome ? 0 : (isMobile ? 0 : 72),
         paddingBottom: mainPaddingBottom,
       }}>
         <Outlet />

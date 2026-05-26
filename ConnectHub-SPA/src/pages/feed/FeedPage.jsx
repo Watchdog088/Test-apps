@@ -18,9 +18,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   collection, query, orderBy, limit, onSnapshot,
   addDoc, serverTimestamp, doc, setDoc, getDoc, updateDoc,
-  startAfter, getDocs, where, arrayUnion, increment,
-  collectionGroup,
+  startAfter, getDocs, where, arrayUnion, arrayRemove, increment,
+  collectionGroup, deleteDoc, writeBatch,
 } from 'firebase/firestore';
+// BUG-2 FIX: arrayRemove added for unlike
+// BUG-4 FIX: deleteDoc added for post deletion
 import { db } from '@fb/config';
 import { useAuth } from '@hooks/useAuth';
 import useAppStore from '@store/useAppStore';
