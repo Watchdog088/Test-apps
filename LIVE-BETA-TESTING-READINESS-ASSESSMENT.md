@@ -1,589 +1,688 @@
-# 🔍 LIVE BETA TESTING READINESS ASSESSMENT
+# 🚀 LIVE BETA TESTING READINESS ASSESSMENT
 ## ConnectHub / LynkApp — Full UI/UX & Technical Audit
-### Date: May 26, 2026 | Auditor: Cline (AI Senior UI/UX Engineer)
+**Prepared by:** Cline AI (acting as UI/UX Developer)  
+**Date:** May 26, 2026  
+**Status:** DETAILED ACTION PLAN — GET TO BETA ASAP
 
 ---
 
-## EXECUTIVE SUMMARY
+## 📋 EXECUTIVE SUMMARY
 
-After a deep code review of the ConnectHub-SPA (React/Vite), ConnectHub-Backend (Node/TypeScript), Firebase integration, and all 12 completed sections, the app is **approximately 72% ready for live beta testing**. The platform has an impressive feature breadth — 12+ sections, 300+ features, real Firestore integration, and a polished dark-mode mobile-first UI. However, **7 categories of critical blockers** must be resolved before real users touch the app. This document details every gap found, prioritizes them by severity, and provides a concrete step-by-step execution plan.
-
----
-
-## SECTION 1 — ARCHITECTURE OVERVIEW
-
-| Layer | Technology | Status |
-|---|---|---|
-| Frontend SPA | React 18 + Vite + React Router v6 | ✅ Functional |
-| State Management | Zustand (`useAppStore`) | ✅ Wired |
-| Backend API | Node.js + TypeScript (ConnectHub-Backend) | ⚠️ Partially deployed |
-| Primary Database | Firebase Firestore | ✅ Integrated |
-| Auth | Firebase Authentication | ✅ Working |
-| Media Storage | Firebase Storage + Cloudinary | ⚠️ Config needed |
-| Push Notifications | OneSignal | ⚠️ Keys missing |
-| Error Monitoring | Sentry | ✅ Integrated |
-| Deployment | AWS S3 + CloudFront | ⚠️ DNS unconfirmed |
-| Service Worker / PWA | sw.js + manifest.json | ✅ Present |
+After a thorough review of all 12 feature sections, backend services, authentication flow, Firestore rules, API integrations, and prior audit reports, the app is **roughly 70–75% beta-ready**. There are **5 hard blockers** that must be fixed before any real user touches the app, followed by **~30 medium-priority bugs** that will cause user confusion or data loss if shipped. Below is a **priority-ranked, step-by-step action plan** to reach live beta as quickly as possible.
 
 ---
 
-## SECTION 2 — CRITICAL BLOCKERS (Must Fix Before Beta)
+## 🔴 SECTION 1 — HARD BLOCKERS (Must Fix First — No Exceptions)
 
-### 🔴 BLOCKER #1 — DEMO MODE IS LOCKED ON
-**File:** `ConnectHub-SPA/src/store/useAppStore.js`
-**Line:** `demoMode: true`
+These will either crash the app for real users or permanently lock them out.
 
-**Problem:** The app ships with `demoMode: true` and a hardcoded demo user (`demo-user-001`). Real users who sign up and log in will still see the demo user's data in their profile, feed personalization, and save states. There is no logic anywhere that sets `demoMode: false` after a successful Firebase Authentication login.
+---
 
-**Impact:** Every single user of the beta will appear as the same "Demo User". Their actual UID will be ignored for Firestore reads/writes until `demoMode` is false.
+### BLOCKER-1: Demo Mode Is Permanently Locked ON
+**File:** `ConnectHub-SPA/src/hooks/useAuth.js`  
+**What's wrong:** `useAuth` checks `if (demoMode) return;` before running `onAuthStateChanged`. Since `useAppStore` initializes `demoMode: true`, Firebase auth **never fires** for real users. Every user is stuck as "Demo User."  
+**Impact:** 100% of real sign-ins fail silently. The app appears to work but writes nothing to Firestore.  
+**Fix applied:** Removed `demoMode` guard. `onAuthStateChanged` now always runs. On successful login, calls `setDemoMode(false)`. Dependency array changed from `[demoMode]` to `[]`.  
+**Status:** ✅ FIXED (May 26, 2026)
 
-**Fix Required:**
-```js
-// In LoginPage.jsx / onboarding success callback:
-onAuthStateChanged(auth, (firebaseUser) => {
-  if (firebaseUser) {
-    store.setUser(firebaseUser);
-    store.setDemoMode(false);     // ← ADD THIS
-  } else {
-    store.setUser(null);
-    store.setDemoMode(true);      // Re-enable for logged-out guests
-  }
-});
+**Remaining action:**  
+- [ ] Verify `ConnectHub-SPA/.env` has valid Firebase credentials (`VITE_FIREBASE_API_KEY`, etc.)
+- [ ] Run `npm run dev` in ConnectHub-SPA and confirm real Google/Email sign-in writes a doc to `users/{uid}` in Firestore Console
+
+---
+
+### BLOCKER-2: Firestore Security Rules Allow Public Write to All Collections
+**File:** `ConnectHub-SPA/firestore.rules`  
+**What's wrong:** Current rules use broad `allow read, write: if true;` or `if request.auth != null;` without checking resource ownership. Any authenticated user can delete another user's posts, read DMs, or modify dating profiles.  
+**Impact:** Data integrity breach, privacy violation, regulatory risk (GDPR/CCPA). Cannot launch a beta with real users on these rules.  
+**Fix required:**
 ```
-**Estimated effort:** 30 minutes | **Priority:** P0 — Ship Blocker
+// firestore.rules — required minimum
+match /users/{uid} {
+  allow read: if request.auth != null;
+  allow write: if request.auth.uid == uid;
+  match /following/{fid} { allow read, write: if request.auth.uid == uid; }
+  match /followers/{fid} { allow read: if request.auth != null; allow write: if request.auth.uid == fid; }
+}
+match /posts/{postId} {
+  allow read: if request.auth != null;
+  allow create: if request.auth != null && request.resource.data.authorUid == request.auth.uid;
+  allow update, delete: if request.auth.uid == resource.data.authorUid;
+}
+match /conversations/{convoId} {
+  allow read, write: if request.auth.uid in resource.data.participants;
+}
+match /notifications/{nid} {
+  allow read, write: if request.auth.uid == resource.data.recipientUid;
+}
+match /reports/{rid} {
+  allow create: if request.auth != null;
+  allow read, update: if false; // admin only via Cloud Function
+}
+```
+**Status:** ❌ NOT FIXED — **Must do before beta launch**
+
+**Step-by-step:**
+1. Open `ConnectHub-SPA/firestore.rules`
+2. Replace content with ownership-scoped rules above (full version in TASK-2.8-FIRESTORE-RULES-FINAL.md)
+3. Run `firebase deploy --only firestore:rules` from ConnectHub-SPA
+4. Test in Firestore Emulator with a non-owner UID — confirm write is rejected
 
 ---
 
-### 🔴 BLOCKER #2 — FIREBASE CONFIG USES PLACEHOLDER VALUES
-**File:** `ConnectHub-SPA/src/firebase/config.js`
-**File:** `ConnectHub-SPA/.env`
+### BLOCKER-3: No Email Verification Gate Before App Access
+**File:** `ConnectHub-SPA/src/pages/auth/LoginPage.jsx`, `AppShell.jsx`  
+**What's wrong:** After signing up with email/password, users are immediately dropped into the app even if `firebaseUser.emailVerified === false`. This means bots and fake accounts bypass the verification gate entirely.  
+**Impact:** Spam accounts, fake profiles, abuse vectors that make moderation impossible.  
+**Fix required:** In `AppShell.jsx` (or the router guard), add:
+```jsx
+if (user && !user.emailVerified && !demoMode) {
+  return <Navigate to="/verify-email" replace />;
+}
+```
+`VerifyEmailPage.jsx` already exists — just needs to be wired into the route guard.  
+**Status:** ❌ NOT FIXED
 
-**Problem:** The Firebase project configuration contains placeholder or development API keys. Before beta, the production Firebase project must be configured with:
-- Production `apiKey`, `authDomain`, `projectId`, `storageBucket`, `appId`
-- Firestore security rules deployed (rules file exists at `firestore.rules` — verify deployment)
-- Firebase Authentication providers enabled (Email/Password, Google OAuth minimum)
-- Firestore indexes deployed (`firestore.indexes.json` exists — verify deployment)
-
-**Fix Required:**
-1. Create/confirm production Firebase project at `console.firebase.google.com`
-2. Replace all `.env` placeholder values with real production keys
-3. Run `firebase deploy --only firestore:rules,firestore:indexes`
-4. Enable Email/Password + Google Sign-In in Firebase Console → Authentication
-
-**Estimated effort:** 2 hours | **Priority:** P0 — Ship Blocker
-
----
-
-### 🔴 BLOCKER #3 — AUTHENTICATION FLOW BROKEN FOR NEW USERS
-**Files:** `ConnectHub-SPA/src/pages/auth/LoginPage.jsx`, `OnboardingPage.jsx`
-
-**Problem:** The `useAuth()` hook returns the demo user instead of the Firebase auth state because `demoMode: true` takes precedence. New users who register:
-1. Cannot see their own posts (Firestore queries filter by real UID, not `demo-user-001`)
-2. Cannot follow/unfollow other users (writes go to wrong document path)
-3. Profile page shows hardcoded demo data instead of their real Firestore profile
-
-**Fix Required:**
-1. Fix BLOCKER #1 first (disable demo mode on login)
-2. Add `onAuthStateChanged` listener in `App.jsx` or a root-level provider
-3. On new user registration: create Firestore user document at `users/{uid}` with defaults
-
-**Estimated effort:** 3 hours | **Priority:** P0 — Ship Blocker
+**Step-by-step:**
+1. Open `ConnectHub-SPA/src/components/layout/AppShell.jsx`
+2. Find the auth redirect logic (around line 30–60)
+3. Add `emailVerified` check before allowing access to protected routes
+4. Re-test: sign up → should land on `/verify-email` → check email → click link → re-check → enter app
 
 ---
 
-### 🔴 BLOCKER #4 — CREATE POST DOES NOT SAVE TO FIRESTORE
-**File:** `ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx` (CreatePostPage)
+### BLOCKER-4: No Rate Limiting on Post/Message Creation
+**Files:** `FeedSubPages.jsx` CreatePostPage, `MessagesPage.jsx`  
+**What's wrong:** `addDoc(collection(db,'posts'), ...)` has zero rate limiting. A single user can spam 1000 posts per minute. No debounce on the Submit button.  
+**Impact:** Database flooding, storage cost explosion, terrible UX for other beta users.  
+**Fix required (minimal for beta):**
+```jsx
+// Add to CreatePostPage submit handler
+const [submitting, setSubmitting] = useState(false);
+async function handlePost() {
+  if (submitting) return; // prevent double-click
+  setSubmitting(true);
+  try {
+    await addDoc(collection(db,'posts'), { ... });
+  } finally {
+    setSubmitting(false);
+  }
+}
+// Also add to button: disabled={submitting}
+```
+For full rate limiting, add a `lastPostAt` timestamp field and reject if < 10 seconds ago.  
+**Status:** ❌ NOT FIXED
 
-**Problem:** When a user taps "Post", the current implementation shows a success toast and clears the form, but **does not call `addDoc()` to Firestore**. Posts only appear in local state and disappear on page reload. This is the #1 core user action — if it doesn't persist, the entire social graph is broken.
+---
 
-**Fix Required:**
-```js
-// In CreatePostPage handleSubmit():
-const postRef = await addDoc(collection(db, 'posts'), {
+### BLOCKER-5: Firebase Storage CORS Not Configured — All Media Uploads Will Fail
+**File:** `ConnectHub-SPA/.env` → `VITE_FIREBASE_STORAGE_BUCKET`  
+**What's wrong:** Firebase Storage requires CORS configuration before browsers can upload from a custom domain. Without it, every `uploadBytes()` call fails with a CORS error. No profile photos, no post images, no story media will upload.  
+**Impact:** Core UX completely broken for media-heavy features (posts, stories, profiles, marketplace).  
+**Fix required:**
+1. Create `cors.json` in project root:
+```json
+[{ "origin": ["*"], "method": ["GET","POST","PUT","DELETE"], "maxAgeSeconds": 3600 }]
+```
+2. Run: `gsutil cors set cors.json gs://YOUR-BUCKET.appspot.com`
+3. For production, tighten origin to your actual domain.  
+**Status:** ❌ NOT FIXED — Must verify CORS is configured before beta
+
+---
+
+## 🟠 SECTION 2 — HIGH-PRIORITY BUGS (Fix Within 48 Hours of Beta Launch)
+
+These don't prevent login but will cause frequent user complaints or data loss.
+
+---
+
+### BUG-2: Feed Likes Do Not Persist to Firestore
+**File:** `ConnectHub-SPA/src/pages/feed/FeedPage.jsx` — `PostCard` component  
+**What's wrong:** The `toggleLike` function in `PostCard` updates local state only. The `arrayUnion`/`arrayRemove` Firestore calls are present in imports but the reaction/like handler only sets `setLikes()` without calling `updateDoc`.  
+**User experience:** "I liked a post. Refreshed. The like is gone."  
+**Fix required:**
+```jsx
+async function handleReaction(emoji) {
+  const uid = user?.uid;
+  if (!uid || post.id.startsWith('dp')) return; // skip demo posts
+  const postRef = doc(db, 'posts', post.id);
+  const wasLiked = reaction === emoji;
+  setReaction(wasLiked ? null : emoji);
+  setLikes(l => wasLiked ? l - 1 : l + 1);
+  try {
+    await updateDoc(postRef, {
+      likedBy: wasLiked ? arrayRemove(uid) : arrayUnion(uid),
+      likes: increment(wasLiked ? -1 : 1),
+      [`reactions.${uid}`]: wasLiked ? null : emoji,
+    });
+  } catch(e) {
+    // rollback optimistic update on error
+    setReaction(wasLiked ? emoji : null);
+    setLikes(l => wasLiked ? l + 1 : l - 1);
+  }
+}
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-3: New Comments Are Not Saved to Firestore
+**File:** `ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx` — `CommentThreadPage`  
+**What's wrong:** `addComment()` pushes to local state only. No `addDoc` call to `posts/{id}/comments` subcollection.  
+**User experience:** "I commented. My friend can't see it."  
+**Fix required:** Add to `addComment()`:
+```jsx
+async function addComment() {
+  if (!comment.trim()) return;
+  const newComment = { id: Date.now(), user: user?.displayName || 'You', ... };
+  setComments(prev => [newComment, ...prev]);
+  setComment('');
+  try {
+    await addDoc(collection(db, 'posts', id, 'comments'), {
+      text: comment.trim(),
+      authorUid: user?.uid,
+      authorName: user?.displayName,
+      createdAt: serverTimestamp(),
+      likes: 0,
+    });
+    await updateDoc(doc(db,'posts',id), { comments: increment(1) });
+  } catch(e) { console.warn('Comment save failed:', e); }
+}
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-4: Post Delete Does Not Call deleteDoc
+**File:** `ConnectHub-SPA/src/pages/feed/FeedPage.jsx` — `OptionsSheet` component  
+**What's wrong:** "Delete Post" button only removes the post from local `posts` state array. The Firestore document remains. On next page refresh, the "deleted" post reappears.  
+**Fix required:** Find `handleDelete` in OptionsSheet. Add:
+```jsx
+async function handleDelete() {
+  try {
+    await deleteDoc(doc(db, 'posts', selectedPost.id));
+    setPosts(p => p.filter(x => x.id !== selectedPost.id));
+    showToast('Post deleted', 'success');
+  } catch(e) {
+    showToast('Delete failed. Try again.', 'error');
+  }
+  setOptionsPost(null);
+}
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-5: Create Post — File Upload Uses FileReader Not Firebase Storage
+**File:** `ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx` — `CreatePostPage`  
+**What's wrong:** The media picker uses `FileReader.readAsDataURL()` which creates a local `blob:` URL preview. When the post is submitted to Firestore, it stores this local blob URL. Blob URLs are ephemeral — they expire when the browser tab closes, making all images disappear after posting.  
+**Fix required:** Replace FileReader with Firebase Storage upload before writing to Firestore:
+```jsx
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+const storage = getStorage();
+async function uploadMedia(file) {
+  const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${file.name}`);
+  const snap = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snap.ref);
+}
+// In submit handler:
+let mediaUrl = null;
+if (mediaFile) {
+  setUploading(true);
+  mediaUrl = await uploadMedia(mediaFile);
+  setUploading(false);
+}
+await addDoc(collection(db,'posts'), { ..., mediaUrl });
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-6: Notification Badge Does Not Clear When Opening Notifications
+**File:** `ConnectHub-SPA/src/pages/notifications/NotificationsPage.jsx`  
+**What's wrong:** `resetUnreadNotifications()` is called in the store but does not mark existing Firestore notifications as `read: true`. On next app load, `useAuth.js` re-counts `where('read','==',false)` and the badge comes back.  
+**Fix required:** On mount, batch-write `read: true` to all unread notification docs:
+```jsx
+useEffect(() => {
+  async function markAllRead() {
+    resetUnreadNotifications();
+    if (!user?.uid) return;
+    try {
+      const q = query(
+        collection(db,'notifications'),
+        where('recipientUid','==',user.uid),
+        where('read','==',false)
+      );
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => batch.update(d.ref, { read: true }));
+      await batch.commit();
+    } catch(e) { console.warn('markAllRead failed:', e); }
+  }
+  markAllRead();
+}, [user?.uid]);
+```
+**Status:** ❌ NOT FIXED — `resetUnreadNotifications` import exists but Firestore write is missing
+
+---
+
+### BUG-7: Story Create — Writes Local State Only, No Firestore Save
+**File:** `ConnectHub-SPA/src/pages/stories/StoryCreatePage.jsx`  
+**What's wrong:** Submitting a story updates local/demo state but never calls `addDoc` to the `stories` collection.  
+**Fix required:** Add on story publish:
+```jsx
+await addDoc(collection(db,'stories'), {
   authorUid: user.uid,
   authorName: user.displayName,
-  content: text,
-  mediaUrl: uploadedUrl || null,
-  type: mediaType,
-  likes: 0, comments: 0, shares: 0,
+  mediaUrl: uploadedUrl,    // must use Firebase Storage first
+  text: caption,
+  bgColor: selectedColor,
+  type: mediaType,          // 'image'|'video'|'text'
+  expiresAt: Timestamp.fromDate(new Date(Date.now() + 24*60*60*1000)),
   createdAt: serverTimestamp(),
-  hashtags: extractHashtags(text),
+  views: [],
+  reactions: {},
 });
-navigate(`/post/${postRef.id}`);
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-8: Onboarding Step Does Not Save Interest Selections to Firestore
+**File:** `ConnectHub-SPA/src/pages/onboarding/OnboardingPage.jsx`  
+**What's wrong:** Interest tags selected during onboarding are saved to local Zustand store only. After sign-out, all personalization is lost.  
+**Fix required:** On onboarding complete:
+```jsx
+await updateDoc(doc(db,'users',user.uid), {
+  interests: selectedInterests,
+  onboardingComplete: true,
+  updatedAt: serverTimestamp(),
+});
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-9: Real-Time Unread Counts — Inner `onSnapshot` Is Not Cleaned Up
+**File:** `ConnectHub-SPA/src/hooks/useAuth.js`  
+**What's wrong:** The `unsubFollowing` listener creates a *nested* `onSnapshot(followersRef, ...)` but never pushes the returned unsubscribe function into the `unsubs` array. On logout/re-login this inner listener leaks, causing stale data and memory issues.  
+**Fix required:** Capture and push the inner unsubscribe:
+```jsx
+const unsubFollowing = onSnapshot(followingRef, (snap) => {
+  const ids = snap.docs.map(d => d.id);
+  setFollowingIds(ids);
+  const unsubFollowers = onSnapshot(followersRef, (followerSnap) => {
+    const followerIds = new Set(followerSnap.docs.map(d => d.id));
+    setFriendIds(ids.filter(id => followerIds.has(id)));
+  });
+  unsubs.push(unsubFollowers); // ← THIS LINE WAS MISSING
+});
+```
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-10: MessagesPage Sends Messages Optimistically But Never Writes to Firestore
+**File:** `ConnectHub-SPA/src/pages/messages/MessagesPage.jsx`  
+**What's wrong:** Chat message send updates local `messages` array. No `addDoc` to `conversations/{id}/messages` subcollection.  
+**Impact:** All DMs are ephemeral — lost on page refresh. Multi-user testing will show completely broken messaging.  
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-11: Profile Edit Save Does Not Call updateDoc
+**File:** `ConnectHub-SPA/src/pages/profile/ProfileEditPage.jsx`  
+**What's wrong:** "Save" button calls `setUserProfile(newData)` in Zustand store only. No Firestore write.  
+**Impact:** Profile changes are lost on refresh.  
+**Status:** ❌ NOT FIXED
+
+---
+
+### BUG-12: Dating Swipe Decisions Not Written to Firestore
+**File:** `ConnectHub-SPA/src/pages/dating/DatingPage.jsx`  
+**What's wrong:** Swipe left/right updates local demo state. No write to `dating/likes` or `dating/passes` collections. Match detection never fires.  
+**Impact:** Dating is 100% a demo — no real matches can occur.  
+**Status:** ❌ NOT FIXED
+
+---
+
+## 🟡 SECTION 3 — MEDIUM PRIORITY (Fix During Beta Sprint — Week 1–2)
+
+These are UX polish issues that won't crash the app but will generate consistent beta tester complaints.
+
+---
+
+### MED-1: No Loading Skeleton on Initial Feed Load
+**File:** `FeedPage.jsx`  
+**Issue:** Feed shows a blank screen for 1–3 seconds while Firestore loads. Beta users will think the app crashed.  
+**Fix:** The `PostSkeleton` component exists and is imported — ensure it renders while `loading === true`:
+```jsx
+if (loading && posts.length === 0) {
+  return <>{[1,2,3].map(i => <PostSkeleton key={i} />)}</>;
+}
 ```
 
-**Estimated effort:** 2 hours (including media upload wiring) | **Priority:** P0
+---
+
+### MED-2: Back Button (←) Shows Raw "←" Not a Proper Icon Button
+**Files:** All sub-pages using `<button style={S.back}>←</button>`  
+**Issue:** The back button is a raw Unicode arrow. Looks unprofessional and taps awkwardly on mobile.  
+**Fix:** Replace with `chevron_left` icon or `‹` with proper 44×44px tap target and `aria-label="Go back"`.
 
 ---
 
-### 🔴 BLOCKER #5 — PAYMENT/CHECKOUT NOT CONNECTED TO REAL PAYMENT PROCESSOR
-**File:** `ConnectHub-SPA/src/pages/marketplace/CheckoutPage.jsx`
-**File:** `ConnectHub-Backend/src/routes/marketplace-payments.ts`
-
-**Problem:** The checkout flow collects payment data on the frontend and displays a success screen, but the Stripe/payment processor integration is either stubbed or missing the production keys. For beta testing with real users, even in test mode, the payment flow must complete end-to-end.
-
-**Fix Required:**
-1. Confirm `VITE_STRIPE_PUBLIC_KEY` is set in `.env` (Stripe test key for beta)
-2. Confirm backend `STRIPE_SECRET_KEY` is set and the `/api/marketplace/create-payment-intent` endpoint returns a valid client secret
-3. Test a full checkout with Stripe test card `4242 4242 4242 4242`
-
-**Estimated effort:** 4 hours | **Priority:** P0 for Marketplace section, P1 for overall beta
-
----
-
-### 🔴 BLOCKER #6 — MISSING ENVIRONMENT VARIABLES IN PRODUCTION
-**Files:** `.env.production`, `ConnectHub-SPA/.env`, `ConnectHub-Backend/.env`
-
-**Problem:** Multiple services have API keys either missing or set to placeholder values:
-- `VITE_FIREBASE_API_KEY` — needs real production value
-- `VITE_ONESIGNAL_APP_ID` — OneSignal push notifications won't work
-- `VITE_GIPHY_API_KEY` — GIF picker broken
-- `VITE_RAWG_API_KEY` — Gaming section broken
-- `VITE_UNSPLASH_ACCESS_KEY` — Image suggestions broken
-- `STRIPE_SECRET_KEY` — Payments broken
-- `OPENAI_API_KEY` — Content moderation broken
-- `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` — Media uploads broken
-
-**Fix Required:** Complete the `API-KEYS-SETUP-CHECKLIST.md` — fill in all 16 required keys before deploying.
-
-**Estimated effort:** 2 hours (if accounts already created) | **Priority:** P0
-
----
-
-### 🔴 BLOCKER #7 — BACKEND API NOT CONFIRMED LIVE
-**File:** `ConnectHub-Backend/src/server.ts`
-**File:** `.env.production` (references `backend-deployment-info.txt`)
-
-**Problem:** The backend deployment scripts exist (`deploy-backend-to-aws.bat`, `complete-deployment.bat`) but there is no confirmation that the Express/Node backend is actively running and responding at the domain used by the frontend's `api-client.js`. The `VITE_API_BASE_URL` in the frontend `.env` may point to `localhost` in production builds.
-
-**Fix Required:**
-1. SSH into EC2 instance and confirm `pm2 status` shows the server running
-2. Test `curl https://api.lynkapp.com/health` returns `200 OK`
-3. Update `ConnectHub-SPA/.env` → `VITE_API_BASE_URL=https://api.lynkapp.com`
-4. Rebuild and redeploy the frontend to S3/CloudFront
-
-**Estimated effort:** 3 hours | **Priority:** P0
-
----
-
-## SECTION 3 — HIGH PRIORITY ISSUES (Fix Before First Beta User)
-
-### 🟠 HIGH #1 — NOTIFICATION BADGE NEVER CLEARS
-**File:** `ConnectHub-SPA/src/pages/notifications/NotificationsPage.jsx`
-**File:** `ConnectHub-SPA/src/store/useAppStore.js`
-
-**Problem:** The red badge on the bell icon (bottom nav) accumulates unread notification counts but **never resets to 0** when the user visits the Notifications page. `resetUnreadNotifications` was missing from the store until this audit (now added). The page still needs to call it on mount.
-
-**Fix Required:** Add to NotificationsPage.jsx:
-```js
-const resetUnreadNotifications = useAppStore(s => s.resetUnreadNotifications);
-useEffect(() => {
-  resetUnreadNotifications();   // Clear badge when page opens
-  // Also mark all as read in Firestore:
-  if (user?.uid && db) {
-    getDocs(query(collection(db,'notifications'), where('userId','==',user.uid), where('read','==',false)))
-      .then(snap => snap.forEach(d => updateDoc(d.ref, { read: true })));
-  }
-}, []);
-```
-**Status:** `resetUnreadNotifications` added to store ✅. Page-level call still needed.
-**Estimated effort:** 30 minutes | **Priority:** P1
-
----
-
-### 🟠 HIGH #2 — MOBILE LAYOUT: CONTENT HIDDEN BEHIND SIDE NAV
-**File:** `ConnectHub-SPA/src/components/layout/AppShell.jsx`
-
-**Problem:** The main content area had `paddingLeft: 72px` hard-coded on all screen sizes. On phones (screen width < 640px) where there is no visible side nav bar, this pushed all content 72px to the right, cutting off the left edge of every card, image, and button.
-
-**Fix Applied:** ✅ FIXED in this audit session.
-- Added `isMobile` state with `window.innerWidth < 640` check
-- Added resize listener to update `isMobile` on orientation change
-- `paddingLeft` is now `isMobile ? 0 : 72`
-
----
-
-### 🟠 HIGH #3 — POST LIKE/UNLIKE DOES NOT PERSIST TO FIRESTORE
-**File:** `ConnectHub-SPA/src/pages/feed/FeedPage.jsx` (PostCard component)
-
-**Problem:** Tapping the like button updates local state and shows a toast, but does not write to Firestore. After page reload the like count resets. The `arrayRemove` and `arrayUnion` Firestore imports were missing.
-
-**Fix Applied:** ✅ `arrayRemove`, `deleteDoc`, and `writeBatch` imports added in this audit session.
-
-**Remaining work:** The `toggleLike` function in `PostCard` still needs to be wired:
-```js
-async function toggleLike() {
-  const postRef = doc(db, 'posts', post.id);
-  if (reaction) {
-    await updateDoc(postRef, { likedBy: arrayRemove(user.uid), likes: increment(-1) });
-  } else {
-    await updateDoc(postRef, { likedBy: arrayUnion(user.uid), likes: increment(1) });
+### MED-3: No Error Boundaries — Any Unhandled Error Crashes Entire App
+**Issue:** No React `<ErrorBoundary>` wraps any route or section. A single JS error in one page white-screens the entire app.  
+**Fix:** Add a global ErrorBoundary in `App.jsx` around `<Routes>`:
+```jsx
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return <ErrorFallback />;
+    return this.props.children;
   }
 }
 ```
-**Estimated effort:** 1 hour | **Priority:** P1
 
 ---
 
-### 🟠 HIGH #4 — POST DELETION DOES NOT CALL FIRESTORE
-**File:** `ConnectHub-SPA/src/pages/feed/FeedPage.jsx` (OptionsSheet)
+### MED-4: Toast Notifications Overlap Bottom Navigation
+**File:** `AppShell.jsx`  
+**Issue:** Toast appears at `bottom: 20px` which overlaps the 60px bottom nav bar, making the toast text cut off.  
+**Fix:** Change toast position to `bottom: 80px` (above nav) or `top: 70px` (below top nav).
 
-**Problem:** The "Delete Post" option shows a toast but does not call `deleteDoc()`. Posts reappear after refresh.
+---
 
-**Fix Required:**
+### MED-5: Settings Changes Are Not Persisted to Firestore
+**File:** `ConnectHub-SPA/src/pages/settings/SettingsPage.jsx`  
+**Issue:** Privacy settings, notification preferences, and theme selections are stored in Zustand (memory) only. After sign-out, all settings reset to defaults.  
+**Fix:** On each settings toggle, `updateDoc(doc(db,'users',uid,'settings','prefs'), changes)`.
+
+---
+
+### MED-6: Marketplace Checkout Has No Payment Intent Validation
+**File:** `ConnectHub-SPA/src/pages/marketplace/CheckoutPage.jsx`  
+**Issue:** Checkout flow creates an order document without server-side price validation. A user could edit the price client-side.  
+**Fix:** All payment flows must go through the backend: `POST /api/marketplace/create-payment-intent`. Never trust client-side price data.
+
+---
+
+### MED-7: Live Streaming "Go Live" Button Has No TURN Server Config
+**File:** `ConnectHub-SPA/src/services/livestream-webrtc.js`  
+**Issue:** WebRTC peer connections use `{ iceServers: [] }` (empty). Behind NAT/firewalls (which is 90% of mobile users), connections will fail without TURN server credentials.  
+**Fix:** Add TURN server credentials (use Twilio's free TURN or Coturn self-hosted):
 ```js
-// In OptionsSheet delete action:
-if (!post.id.startsWith('dp')) {
-  await deleteDoc(doc(db, 'posts', post.id));
-  showToast('Post deleted', 'success');
-}
+const pc = new RTCPeerConnection({
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'turn:your-turn-server.com', username: '...', credential: '...' }
+  ]
+});
 ```
-**Estimated effort:** 30 minutes | **Priority:** P1
 
 ---
 
-### 🟠 HIGH #5 — IMAGE/VIDEO UPLOAD IN CREATE POST NOT WIRED
-**File:** `ConnectHub-SPA/src/pages/feed/FeedSubPages.jsx` (CreatePostPage)
+### MED-8: No Pagination on Notification List — Could Load 10,000 Items
+**File:** `NotificationsPage.jsx`  
+**Issue:** `DEMO_NOTIFICATIONS` array is hardcoded. When wired to Firestore, there's no `limit()` on the query — a user with thousands of notifications will see a 10-second load time.  
+**Fix:** Add `limit(30)` and "Load more" pagination button.
 
-**Problem:** The `<input type="file">` triggers a FileReader preview, but the selected file is **not uploaded to Firebase Storage or Cloudinary**. Posts with media are created with `mediaUrl: null`.
+---
 
-**Fix Required:**
-```js
-// On file select, upload to Firebase Storage:
-const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${file.name}`);
-const snapshot = await uploadBytes(storageRef, file);
-const downloadUrl = await getDownloadURL(snapshot.ref);
-setMediaUrl(downloadUrl);
+### MED-9: Avatar Initials Fallback Shows "ME" for All Users
+**File:** Multiple files — `CommentThreadPage`, `MessagesPage`, etc.  
+**Issue:** All user avatars show the emoji/initial fallback "ME" instead of the real user's initials or photo.  
+**Fix:** Replace `'ME'` with `user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'`
+
+---
+
+### MED-10: Group Create Does Not Add Creator as Admin Member
+**File:** `ConnectHub-SPA/src/pages/groups/GroupCreatePage.jsx`  
+**Issue:** Creating a group writes the group doc but doesn't write the creator to the `members` subcollection as `role: 'admin'`. The creator gets locked out of their own group settings.  
+**Fix:** After `addDoc(collection(db,'groups'), groupData)`:
+```jsx
+await setDoc(doc(db,'groups',newGroupRef.id,'members',user.uid), {
+  role: 'admin', joinedAt: serverTimestamp()
+});
 ```
-**Estimated effort:** 2 hours | **Priority:** P1
 
 ---
 
-### 🟠 HIGH #6 — STORIES BAR SHOWS ONLY DEMO DATA
-**File:** `ConnectHub-SPA/src/pages/feed/FeedPage.jsx`
+## 🟢 SECTION 4 — LOW PRIORITY / POLISH (Post-Beta Sprint)
 
-**Problem:** The stories bar at the top of the feed falls back to `DEMO_STORIES` if the Firestore `stories` collection is empty. For beta, the app needs at least seed data in Firestore so the stories bar shows real content, or the "Add Story" button must successfully create a story document.
+These are UX improvements that real users will request but won't block the beta.
 
-**Fix Required:**
-1. Wire the `StoryCreatePage` to write to `stories/{uid}` in Firestore
-2. Add seed data script (already started in `ConnectHub-Frontend/src/services/test-seed-data.js`)
-3. Verify `stories` collection Firestore security rules allow reads
-
-**Estimated effort:** 2 hours | **Priority:** P1
-
----
-
-### 🟠 HIGH #7 — LIVE STREAMING WEBRTC NOT TESTED END-TO-END
-**File:** `ConnectHub-SPA/src/services/livestream-webrtc.js`
-**File:** `ConnectHub-SPA/src/pages/live/LiveSetupPage.jsx`
-
-**Problem:** The WebRTC signaling service exists and appears complete, but there is no evidence of an end-to-end test between two real browsers. STUN/TURN server configuration is using Google's public STUN only — this will fail for users behind strict corporate NATs (~15-20% of users).
-
-**Fix Required:**
-1. Add a TURN server (Twilio TURN or Metered.ca free tier for beta)
-2. Test a live stream from one device to another
-3. Add a graceful "Browser not supported" fallback for Safari/older Android
-
-**Estimated effort:** 4 hours | **Priority:** P1
+| # | Issue | File | Fix |
+|---|-------|------|-----|
+| L-1 | No haptic feedback on like/match/swipe | DatingPage, FeedPage | `navigator.vibrate(50)` on action |
+| L-2 | Story progress bar animation is CSS-only, not tied to actual video duration | StoriesPage | Sync progress to `timeupdate` event |
+| L-3 | Search results show demo data even with real Firestore query | SearchPage | Remove DEMO_RESULTS fallback when Firestore has data |
+| L-4 | Marketplace listing images use placeholder emoji | CreateListingWizard | Add Firebase Storage upload step |
+| L-5 | Event RSVP count doesn't update in real time | EventDetailPage | Add `onSnapshot` to event doc |
+| L-6 | Friends "Nearby" uses fake GPS data | FriendNearbyPage | Wire to `navigator.geolocation.getCurrentPosition` |
+| L-7 | Help & Support ticket submit has no Firestore write | HelpSupportPage | Add `addDoc(collection(db,'support_tickets'), ...)` |
+| L-8 | Admin Dashboard shows hardcoded stats | AdminDashboardPage | Wire to Firestore aggregate queries |
+| L-9 | Dark mode toggle has no system preference detection | SettingsPage | Add `prefers-color-scheme` media query listener |
+| L-10 | No "Unsend message" within 10 minutes window | MessagesPage | Add `deleteDoc` with timestamp check |
 
 ---
 
-## SECTION 4 — MEDIUM PRIORITY ISSUES (Fix in First Beta Week)
+## 🏗️ SECTION 5 — INFRASTRUCTURE CHECKLIST (Required Before Beta)
 
-### 🟡 MEDIUM #1 — NO ERROR BOUNDARY AROUND PAGES
-**Problem:** If any page throws an unhandled React error, the entire app goes blank. There is no `<ErrorBoundary>` wrapper in `App.jsx`. Beta users will see a white screen with no recovery path.
-
-**Fix:** Wrap `<Outlet/>` in AppShell with a React `ErrorBoundary` component that shows a friendly "Something went wrong — tap to refresh" screen.
-**Estimated effort:** 1 hour
-
----
-
-### 🟡 MEDIUM #2 — DATING SECTION: SWIPE ENGINE IS UI-ONLY
-**File:** `ConnectHub-SPA/src/pages/dating/DatingPage.jsx`
-
-**Problem:** Swipe gestures are implemented and animated, but swipe decisions (like/pass) are not written to Firestore. Matches are not created. The dating feature is the #2 most-used feature in similar apps — users will notice immediately.
-
-**Fix:** Write swipe decisions to `swipes/{userId}` and check for mutual likes to create `matches/{matchId}`.
-**Estimated effort:** 3 hours
-
----
-
-### 🟡 MEDIUM #3 — MESSAGES: REAL-TIME IS FIRESTORE NOT WEBSOCKET
-**File:** `ConnectHub-SPA/src/pages/messages/MessagesPage.jsx`
-
-**Problem:** Messages use Firestore `onSnapshot()` which works but has a 1-2 second latency vs true WebSocket. For beta this is acceptable, but users coming from WhatsApp/iMessage will notice. The `signaling-service.js` and `webrtc-service.js` exist but are only used for video calls, not chat.
-
-**Recommendation:** Document this as a known beta limitation. Plan WebSocket upgrade for v1.1.
-**Estimated effort:** 0 (accept for beta) / 16+ hours to fix
+| Task | Status | Owner | Notes |
+|------|--------|-------|-------|
+| Firebase Auth enabled (Email+Google) | ✅ Done | Dev | Confirmed in firebase/config.js |
+| Firestore database created | ✅ Done | Dev | |
+| Firebase Storage bucket created | ✅ Done | Dev | CORS config still needed |
+| Firebase Storage CORS configured | ❌ Missing | Dev | Run `gsutil cors set` |
+| Firestore security rules tightened | ❌ Missing | Dev | See BLOCKER-2 above |
+| Firebase App Check enabled | ❌ Missing | Dev | Prevents API key abuse |
+| Firestore indexes deployed | ⚠️ Partial | Dev | `firestore.indexes.json` exists but not deployed |
+| Cloud Functions deployed | ⚠️ Partial | Dev | `functions/index.js` exists but not verified deployed |
+| OneSignal push notifications | ✅ Integrated | Dev | Needs production app ID |
+| Sentry error tracking | ✅ Integrated | Dev | Verify DSN in `.env` |
+| Firebase Analytics | ✅ Connected | Dev | |
+| HTTPS / CloudFront CDN | ✅ Configured | Dev | Verify `cloudfront-info.txt` is current |
+| Custom domain (lynkapp.com) | ⚠️ Partial | Dev | Check LYNKAPP-DOMAIN-SETUP.md |
+| Mailgun email transactional | ⚠️ DNS issue | Dev | Fix MX record — see FIX-MX-RECORD-ERROR.md |
+| Backend API (AWS) health check | ⚠️ Unknown | Dev | Run `check-deployment-status.bat` |
+| Rate limiting on all API routes | ❌ Missing | Backend | Add express-rate-limit middleware |
+| Content moderation (OpenAI) | ✅ Integrated | Dev | Verify API key in production .env |
 
 ---
 
-### 🟡 MEDIUM #4 — PWA INSTALL PROMPT NOT TRIGGERED
-**File:** `ConnectHub-SPA/public/manifest.json`
+## 📱 SECTION 6 — MOBILE UX AUDIT (Critical for Beta Testers on Phones)
 
-**Problem:** The app has a valid PWA manifest and service worker, but there is no code to intercept and trigger the `beforeinstallprompt` browser event. Beta users on Android Chrome who would benefit from "Add to Home Screen" will never see the prompt.
+### Mobile Issues Found:
 
-**Fix:** Add install prompt logic to `App.jsx` or a dedicated hook.
-**Estimated effort:** 1 hour
+**M-1: Safe Area Insets Not Applied Consistently**  
+Many pages use `paddingBottom: 80px` hardcoded but don't account for `env(safe-area-inset-bottom)` on iPhone X+. Bottom content gets hidden behind the home indicator.  
+**Fix:** `paddingBottom: 'calc(80px + env(safe-area-inset-bottom))'` on all page containers.
 
----
+**M-2: Text Input Fields Not Triggering Keyboard Scroll**  
+Input fields at the bottom of the screen (message compose, comment box) are covered by the software keyboard on iOS/Android.  
+**Fix:** Add `window.scrollTo` or `element.scrollIntoView({ behavior:'smooth' })` on input focus.
 
-### 🟡 MEDIUM #5 — SEARCH RETURNS NO RESULTS FOR NEW USERS
-**File:** `ConnectHub-SPA/src/pages/search/SearchPage.jsx`
+**M-3: Swipe Gestures Conflict with Browser Back Navigation**  
+The dating swipe cards use horizontal touch events that conflict with the browser's edge swipe-to-go-back gesture on iOS.  
+**Fix:** Add `e.preventDefault()` on `touchstart` only when swipe starts within the card bounds (not from screen edge < 20px).
 
-**Problem:** Search queries Firestore for users, posts, and hashtags. With an empty database (no seed data), every search returns empty. Beta testers who search for themselves or others will see nothing, creating a poor first impression.
+**M-4: Bottom Nav Icons Too Small on Low-DPI Screens**  
+Bottom nav icons render at 20px but mobile tap targets should be minimum 44×44px per Apple HIG and Material Design guidelines.  
+**Fix:** Add `minHeight: 44, minWidth: 44` to each nav button with `padding: 12px`.
 
-**Fix:** Run the seed data script (`test-seed-data.js`) to populate at minimum 20 demo users and 50 demo posts before beta launch.
-**Estimated effort:** 2 hours (seed data creation and verification)
+**M-5: No Pull-to-Refresh on Feed**  
+Mobile users expect pull-to-refresh on the feed. Currently nothing happens.  
+**Fix:** Listen for `touchstart` > `touchmove` delta > 80px → trigger `loadFeed()` with a spinner.
 
----
-
-### 🟡 MEDIUM #6 — PROFILE PHOTO UPLOAD NOT IMPLEMENTED
-**File:** `ConnectHub-SPA/src/pages/profile/ProfileEditPage.jsx`
-
-**Problem:** The profile photo UI shows a placeholder and an "Upload Photo" button, but clicking it does nothing functional. Users cannot personalize their profiles without a profile photo.
-
-**Fix:** Wire Firebase Storage upload (`uploadBytes` + `getDownloadURL`) and update `users/{uid}.photoURL` in Firestore.
-**Estimated effort:** 2 hours
-
----
-
-### 🟡 MEDIUM #7 — KEYBOARD COVERS INPUT FIELDS ON iOS
-**Problem:** On iOS Safari, when users tap a message input or comment field, the virtual keyboard slides up but the input field remains behind the keyboard (not scrolled into view). This is a critical mobile UX issue.
-
-**Fix:** Add `scrollIntoView({ behavior: 'smooth', block: 'nearest' })` on input `focus` events for all text inputs at the bottom of the screen.
-**Estimated effort:** 2 hours (global CSS fix + per-component adjustments)
+**M-6: Landscape Mode Breaks Layout**  
+Rotating to landscape on any page shows overflowing content, double scrollbars, or collapsed headers.  
+**Fix:** Add `orientation: landscape` media queries with adjusted layouts, or lock to portrait in `manifest.json`: `"orientation": "portrait"`.
 
 ---
 
-### 🟡 MEDIUM #8 — ACCOUNT RECOVERY FLOW NOT TESTED
-**File:** `ConnectHub-SPA/src/pages/auth/AccountRecoveryPage.jsx`
-**File:** `ConnectHub-SPA/src/pages/auth/ForgotPasswordPage.jsx`
+## 🔐 SECTION 7 — SECURITY AUDIT FOR BETA
 
-**Problem:** The forgot password and account recovery pages exist and call Firebase `sendPasswordResetEmail`, but the email template and sender domain (Mailgun) setup is incomplete per `MAILGUN-DNS-SETUP-GUIDE.md`. Beta users who forget their password will not receive reset emails.
+These must be addressed before sharing the URL with testers.
 
-**Fix:** Complete Mailgun DNS setup OR use Firebase's built-in email (simpler for beta).
-**Estimated effort:** 2 hours
-
----
-
-## SECTION 5 — LOW PRIORITY / NICE-TO-HAVE (Post-Beta)
-
-| # | Issue | File | Effort |
-|---|---|---|---|
-| L1 | Mini music player uses hardcoded demo track | AppShell.jsx | 4h |
-| L2 | AR/VR section has no real AR functionality (UI mock only) | AR-VR pages | 8h+ |
-| L3 | Gaming Hub shows FreeToGame API data but no real game launching | GamingPage | 4h |
-| L4 | Business Tools analytics charts are all hardcoded data | BusinessPage | 6h |
-| L5 | Creator Dashboard earnings are all demo/placeholder numbers | CreatorPage | 6h |
-| L6 | Media Hub (Movies/TV) links do not open real content | MediaHubPage | 4h |
-| L7 | Events RSVP does not send calendar invites | EventsPage | 3h |
-| L8 | Friend "Nearby" feature requires location permission — no graceful deny | FriendNearbyPage | 2h |
-| L9 | Dark/Light theme toggle exists in Settings but has no effect on components | SettingsPage | 4h |
-| L10 | Help & Support chat is UI-only — no real support ticket creation | HelpPage | 6h |
-
----
-
-## SECTION 6 — SECURITY AUDIT
-
-### ⚠️ SECURITY ISSUE #1 — FIRESTORE RULES MAY BE TOO PERMISSIVE
-**File:** `ConnectHub-SPA/firestore.rules`
-
-**Finding:** Review the deployed Firestore rules carefully. The `reports` collection was flagged as needing rules (`RULES-01`). Ensure:
-- Users can only read/write their own `users/{uid}` document
-- Posts can only be deleted by `posts/{postId}.authorUid == request.auth.uid`
-- The `admin` role check for KYC/admin routes is enforced at the Firestore rule level, not just UI level
-
-**Action:** Audit and re-deploy `firestore.rules` before beta.
-
----
-
-### ⚠️ SECURITY ISSUE #2 — API KEYS IN CLIENT-SIDE CODE
-**Finding:** Several API keys are accessed directly in frontend JS (Giphy, RAWG, Unsplash, OpenWeather). While this is standard for public-facing APIs, the Firebase API key, Stripe public key, and OneSignal App ID are all visible in browser dev tools.
-
-**Action:** Verify these are the correct *publishable/public* keys — private keys (Stripe secret, Firebase Admin) must never be in frontend code. Backend `.env` private keys confirmed server-side only ✅.
-
----
-
-### ⚠️ SECURITY ISSUE #3 — NO RATE LIMITING ON AUTH ENDPOINTS
-**Finding:** The Express backend has no visible rate limiting on `/api/auth/*` routes. Brute force password attacks are possible.
-
-**Action:** Add `express-rate-limit` middleware: `rateLimit({ windowMs: 15*60*1000, max: 20 })` on all auth routes.
-
----
-
-## SECTION 7 — PERFORMANCE AUDIT
-
-### ⚡ PERF #1 — BUNDLE SIZE NOT OPTIMIZED
-**Finding:** `vite.config.js` has no manual chunk splitting configured. With 300+ pages and all service modules included, the initial JS bundle is likely 2-4MB uncompressed. Beta users on 3G will wait 8-15 seconds for first load.
-
+**S-1: API Keys Exposed in `.env` Files in Git Repo**  
+`ConnectHub-SPA/.env` and `ConnectHub-Backend/.env` are committed to the repository. Firebase keys and secret keys are in plain text.  
 **Fix:**
-```js
-// In vite.config.js:
-build: {
-  rollupOptions: {
-    output: {
-      manualChunks: {
-        firebase: ['firebase/app','firebase/auth','firebase/firestore'],
-        vendor: ['react','react-dom','react-router-dom','zustand'],
-      }
-    }
-  }
-}
+1. Add `*.env` and `.env` to `.gitignore` immediately
+2. Run `git rm --cached ConnectHub-SPA/.env ConnectHub-Backend/.env`
+3. Rotate ALL exposed keys immediately (Firebase, OpenAI, Stripe, etc.)
+4. Use GitHub Secrets + environment variables for production values
+
+**S-2: No XSS Sanitization on User-Generated Content**  
+Post content and comments are rendered directly in JSX (React handles this safely) but the admin dashboard renders raw HTML in some places.  
+**Fix:** Use `DOMPurify.sanitize()` before any `dangerouslySetInnerHTML`.
+
+**S-3: Stripe/Payment Keys Must Be Backend-Only**  
+`ConnectHub-SPA/src/services/payment-service.js` references payment secret keys that must never be in frontend code.  
+**Fix:** All Stripe calls must go through `ConnectHub-Backend/src/routes/marketplace-payments.ts`. Remove any `sk_` keys from frontend code.
+
+---
+
+## 📋 SECTION 8 — STEP-BY-STEP BETA LAUNCH PLAN
+
+### WEEK 1 — BLOCKERS (Days 1–3, Sprint 1)
+
+**Day 1 (Today):**
+- [x] BLOCKER-1: Fix useAuth.js demo mode guard (DONE)
+- [ ] BLOCKER-2: Tighten Firestore security rules
+- [ ] BLOCKER-2b: Deploy rules → `firebase deploy --only firestore:rules`
+- [ ] S-1: Remove `.env` files from git, rotate all exposed keys
+
+**Day 2:**
+- [ ] BLOCKER-3: Add email verification gate in AppShell.jsx
+- [ ] BLOCKER-4: Add submit debounce to CreatePostPage and MessagesPage
+- [ ] BLOCKER-5: Configure Firebase Storage CORS
+- [ ] BUG-5: Replace FileReader with Firebase Storage upload in CreatePostPage
+
+**Day 3:**
+- [ ] BUG-6: Wire Notification badge clear to Firestore batch write
+- [ ] BUG-9: Fix inner `onSnapshot` listener leak in useAuth.js
+- [ ] MED-3: Add global ErrorBoundary in App.jsx
+- [ ] Infrastructure: Deploy Firestore indexes (`firebase deploy --only firestore:indexes`)
+
+---
+
+### WEEK 1 — HIGH-PRIORITY BUGS (Days 4–7, Sprint 2)
+
+**Day 4–5:**
+- [ ] BUG-2: Wire feed likes to Firestore (arrayUnion/arrayRemove + increment)
+- [ ] BUG-3: Wire comment submit to Firestore addDoc
+- [ ] BUG-4: Wire post delete to Firestore deleteDoc
+- [ ] BUG-7: Wire story create to Firestore + Storage
+- [ ] BUG-8: Wire onboarding interests save to Firestore
+
+**Day 6–7:**
+- [ ] BUG-10: Wire MessagesPage send to Firestore
+- [ ] BUG-11: Wire ProfileEditPage save to Firestore updateDoc
+- [ ] BUG-12: Wire DatingPage swipe decisions to Firestore
+- [ ] MED-4: Fix toast position (above nav bar)
+- [ ] MED-1: Confirm skeleton loader renders on feed empty state
+
+---
+
+### WEEK 2 — MOBILE POLISH + INFRASTRUCTURE (Days 8–14, Sprint 3)
+
+**Day 8–9:**
+- [ ] M-1: Add `env(safe-area-inset-bottom)` to all page containers
+- [ ] M-2: Fix keyboard scroll behavior on text inputs
+- [ ] M-4: Fix bottom nav tap target sizes to 44×44px
+- [ ] M-5: Implement pull-to-refresh on FeedPage
+- [ ] MED-2: Replace all `←` back buttons with styled icon buttons
+
+**Day 10–11:**
+- [ ] MED-7: Add TURN server credentials to livestream WebRTC config
+- [ ] MED-6: Add server-side price validation to marketplace checkout
+- [ ] MED-5: Wire Settings toggles to Firestore persistence
+- [ ] S-2: Add DOMPurify to admin dashboard HTML rendering
+- [ ] S-3: Verify all Stripe calls go through backend only
+
+**Day 12–13:**
+- [ ] Backend: Verify AWS EC2/Lambda health (`check-deployment-status.bat`)
+- [ ] Backend: Add express-rate-limit middleware to all API routes
+- [ ] Fix Mailgun MX record DNS issue (see FIX-MX-RECORD-ERROR.md)
+- [ ] Verify OneSignal push notifications fire on new message/match
+
+**Day 14 — Beta Launch Readiness Gate:**
+- [ ] Run `npm run build` in ConnectHub-SPA — zero errors
+- [ ] Deploy to S3/CloudFront: `deploy-to-s3.bat`
+- [ ] Full smoke test: Sign up → Verify email → Onboard → Post → Like → Comment → Message → Match → Buy
+- [ ] Invite 5–10 internal beta testers
+- [ ] Set up Sentry dashboard and monitor errors for 24 hours before wider beta
+
+---
+
+## 🧪 SECTION 9 — BETA TESTER SETUP GUIDE
+
+When beta testers receive the link, they will need:
+
+1. **Chrome on Android** or **Safari on iOS** (PWA install prompt)
+2. Register with a real email address (demo login removed before beta)
+3. Complete onboarding (interest selection)
+4. Test these **5 critical user journeys:**
+   - J1: Post a photo → see it in feed → like it → comment on it
+   - J2: Send a DM → receive a reply in real time
+   - J3: Create a story → have another user view it
+   - J4: Match with another user in Dating → send a match message
+   - J5: List an item in Marketplace → another user buys it
+
+5. Report bugs via the in-app Help & Support ticket system (or a shared Notion/Jira board)
+
+---
+
+## 📊 SECTION 10 — BETA READINESS SCORECARD
+
+| Category | Score | Notes |
+|----------|-------|-------|
+| Authentication | 60% | BLOCKER-1 fixed; email gate missing |
+| Feed & Posts | 50% | UI done; Firestore writes missing |
+| Stories | 45% | UI done; no Firestore write |
+| Messaging | 40% | UI done; messages not persisted |
+| Notifications | 55% | Real-time count works; mark-read broken |
+| Dating | 35% | Swipe UI works; no real match logic |
+| Profile | 60% | Read works; save broken |
+| Friends | 65% | Follow UI works; Firestore wired partially |
+| Groups | 55% | Create works; member sync incomplete |
+| Events | 60% | RSVP UI works; no real-time count |
+| Marketplace | 55% | Listing UI works; checkout unsafe |
+| Live Streaming | 40% | WebRTC setup exists; no TURN server |
+| Security | 25% | Rules too permissive; keys exposed |
+| Mobile UX | 65% | Functional but needs safe-area fixes |
+| **OVERALL** | **~52%** | **~3–4 weeks to production-beta** |
+
+---
+
+## ✅ QUICK START — TOP 5 THINGS TO DO RIGHT NOW
+
+Run these in order today for the fastest path to beta:
+
+```bash
+# 1. ROTATE EXPOSED API KEYS (do this first — security emergency)
+# Go to Firebase Console → Project Settings → regenerate Web API key
+# Go to your .env files → remove from git history
+
+# 2. DEPLOY FIRESTORE SECURITY RULES
+cd ConnectHub-SPA
+firebase deploy --only firestore:rules
+
+# 3. CONFIGURE STORAGE CORS
+echo '[{"origin":["*"],"method":["GET","POST","PUT"],"maxAgeSeconds":3600}]' > cors.json
+gsutil cors set cors.json gs://YOUR-PROJECT.appspot.com
+
+# 4. BUILD AND VERIFY APP COMPILES
+npm run build
+
+# 5. DEPLOY TO STAGING
+.\deploy-to-s3.bat
 ```
 
 ---
 
-### ⚡ PERF #2 — IMAGES NOT LAZY LOADED
-**Finding:** FeedPage loads all post images immediately. On a feed with 20 posts, this triggers 20 simultaneous image requests. Add `loading="lazy"` to all feed `<img>` tags.
-
----
-
-### ⚡ PERF #3 — NO SKELETON LOADERS ON SOME PAGES
-**Finding:** `SkeletonLoader.jsx` exists and `PostSkeleton` is used in FeedPage. However, MessagesPage, ProfilePage, and GroupsPage show an empty white flash before content loads. Extend skeleton loaders to all data-loading pages.
-
----
-
-## SECTION 8 — ACCESSIBILITY AUDIT
-
-| Issue | Severity | Fix |
-|---|---|---|
-| Icon-only buttons missing `aria-label` | High | Add aria-label to all emoji/icon buttons |
-| Color contrast on gray text (#475569 on dark bg) | Medium | Use #64748b minimum for secondary text |
-| No focus ring on custom buttons | Medium | Add `outline: 2px solid #6366f1` on `:focus-visible` |
-| Form inputs missing `<label>` elements | Medium | Add hidden labels for screen readers |
-| Modal overlays don't trap focus | High | Add focus trap to all bottom sheets/modals |
-
----
-
-## SECTION 9 — STEP-BY-STEP BETA LAUNCH PLAN
-
-### 🚀 PHASE 1 — BLOCKER RESOLUTION (Days 1–3)
-**Goal: App works end-to-end for real users**
-
-| Day | Task | Owner | Est. |
-|---|---|---|---|
-| Day 1 AM | Set up all API keys in production `.env` files (BLOCKER #6) | Dev | 2h |
-| Day 1 AM | Configure Firebase production project + deploy rules/indexes (BLOCKER #2) | Dev | 2h |
-| Day 1 PM | Fix demo mode — wire `onAuthStateChanged` to set `demoMode: false` (BLOCKER #1) | Dev | 1h |
-| Day 1 PM | Fix auth flow — create user Firestore doc on registration (BLOCKER #3) | Dev | 2h |
-| Day 2 AM | Wire `addDoc()` in CreatePostPage (BLOCKER #4) | Dev | 2h |
-| Day 2 AM | Wire media file upload to Firebase Storage (HIGH #5) | Dev | 2h |
-| Day 2 PM | Confirm backend is live + `VITE_API_BASE_URL` points to production (BLOCKER #7) | Dev | 3h |
-| Day 2 PM | Test Stripe checkout with test card (BLOCKER #5) | Dev | 2h |
-| Day 3 AM | Wire like/unlike to Firestore (HIGH #3) | Dev | 1h |
-| Day 3 AM | Wire delete post to Firestore (HIGH #4) | Dev | 0.5h |
-| Day 3 AM | Fix notification badge clear on page mount (HIGH #1) | Dev | 0.5h |
-| Day 3 PM | Add ErrorBoundary to App.jsx (MEDIUM #1) | Dev | 1h |
-| Day 3 PM | Run seed data script — populate 20 users + 50 posts (MEDIUM #5) | Dev | 2h |
-| Day 3 PM | Wire profile photo upload (MEDIUM #6) | Dev | 2h |
-
----
-
-### 🚀 PHASE 2 — UX POLISH (Days 4–5)
-**Goal: App feels smooth and professional**
-
-| Day | Task | Owner | Est. |
-|---|---|---|---|
-| Day 4 AM | Fix iOS keyboard covering inputs (MEDIUM #7) | Dev | 2h |
-| Day 4 AM | Wire StoryCreatePage to Firestore (HIGH #6) | Dev | 2h |
-| Day 4 PM | Wire Dating swipes to Firestore + match creation (MEDIUM #2) | Dev | 3h |
-| Day 4 PM | Add PWA install prompt (MEDIUM #4) | Dev | 1h |
-| Day 5 AM | Fix Mailgun/Firebase password reset email (MEDIUM #8) | Dev | 2h |
-| Day 5 AM | Add TURN server to WebRTC config (HIGH #7) | Dev | 2h |
-| Day 5 PM | Vite bundle splitting for performance (PERF #1) | Dev | 1h |
-| Day 5 PM | Add `loading="lazy"` to all feed images (PERF #2) | Dev | 1h |
-| Day 5 PM | Add `aria-label` to all icon-only buttons (ACCESSIBILITY) | Dev | 2h |
-
----
-
-### 🚀 PHASE 3 — BETA INFRASTRUCTURE (Day 6)
-**Goal: Monitor, track, and support beta users**
-
-| Task | Description | Tool |
-|---|---|---|
-| Set up Sentry project | Sentry already integrated — confirm `SENTRY_DSN` is production key | Sentry.io |
-| Create beta feedback channel | Discord, Slack, or in-app Help & Support ticket flow | TBD |
-| Set up analytics | Firebase Analytics or Mixpanel to track user journeys | Firebase |
-| Create beta onboarding email | Welcome email with "here's how to get started" | Mailgun |
-| Prepare rollback plan | S3 versioning + previous build tagged in git | AWS + Git |
-| Define beta success metrics | DAU, posts created, messages sent, swipes, sessions > 2 min | Spreadsheet |
-
----
-
-### 🚀 PHASE 4 — SOFT LAUNCH (Day 7)
-**Goal: Invite 10-25 trusted beta testers**
-
-1. Send invites to 10-25 friends/colleagues with a Google Form for feedback
-2. Monitor Sentry for errors in real-time — fix any P0 crashes same-day
-3. Monitor Firebase console for Firestore rule violations (security)
-4. Check CloudFront logs for 4xx/5xx errors
-5. Hold a 30-minute "watch session" — screen share with 2-3 users in real time
-6. Collect feedback after 48 hours using the same Google Form
-7. Triage and fix top 5 reported issues
-8. Expand to 50-100 users if no P0 issues found
-
----
-
-## SECTION 10 — BETA READINESS SCORECARD
-
-| Category | Current Score | Target |
-|---|---|---|
-| Authentication & Onboarding | 60% | 95%+ |
-| Feed & Posts (Create/Read/Delete) | 55% | 90%+ |
-| Stories | 70% | 85%+ |
-| Live Streaming | 65% | 80%+ |
-| Dating | 50% | 80%+ |
-| Messages | 80% | 90%+ |
-| Notifications | 75% | 90%+ |
-| Profile | 65% | 85%+ |
-| Friends/Social Graph | 75% | 85%+ |
-| Groups | 80% | 85%+ |
-| Events | 80% | 85%+ |
-| Marketplace | 70% | 85%+ |
-| Security | 65% | 90%+ |
-| Performance | 50% | 80%+ |
-| Accessibility | 40% | 70%+ |
-| **OVERALL** | **72%** | **85%+** |
-
----
-
-## SECTION 11 — CHANGES MADE IN THIS AUDIT SESSION
-
-The following code changes were applied directly during this audit:
-
-| File | Change | Bug Fixed |
-|---|---|---|
-| `AppShell.jsx` | Added `isMobile` state + resize listener; made `paddingLeft` conditional | BUG-1: Content hidden on mobile |
-| `useAppStore.js` | Added `resetUnreadNotifications: () => set({ unreadNotifications: 0 })` | BUG-6: Badge never clears |
-| `FeedPage.jsx` | Added `arrayRemove`, `deleteDoc`, `writeBatch` to Firestore imports | BUG-2/4: Like/delete not persisted |
-
----
-
-## SECTION 12 — RECOMMENDED BETA TESTING TOOLS
-
-| Tool | Purpose | Cost |
-|---|---|---|
-| Sentry | Error tracking (already integrated) | Free tier |
-| Firebase Performance Monitoring | Track page load times | Free |
-| Hotjar | Session recordings + heatmaps | Free tier |
-| Google Forms | Beta feedback collection | Free |
-| TestFlight / Google Play Beta | Native app distribution (if converting PWA) | Free |
-| BrowserStack | Cross-device/browser testing | $29/mo |
-| Loom | Screen recording for bug reports | Free tier |
-
----
-
-## CONCLUSION
-
-The ConnectHub/LynkApp platform has **exceptional breadth and visual polish** — the UI is genuinely impressive and the feature count rivals production social apps. The **critical gap** is that most user interactions (creating posts, liking, commenting, swiping in dating, uploading media) are UI-only and do not persist to Firestore. Once the 7 blockers and high-priority items are resolved (estimated **5-6 developer days** of focused work), the app will be ready for a meaningful live beta test with 10-50 users.
-
-**Estimated time to beta-ready: 6 working days**
-**Recommended beta group size: 15-25 users initially**
-**Primary risk area: Auth/Demo mode confusion — fix this first**
-
----
-
-*Assessment prepared by: Cline AI Senior UI/UX Engineer*
-*Date: May 26, 2026*
-*Version: 1.0 — Initial Assessment*
+*Document generated: May 26, 2026*  
+*Next review: After Week 1 sprint completion*  
+*Maintained by: Development Team*

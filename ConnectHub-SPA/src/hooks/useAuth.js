@@ -1,12 +1,13 @@
 // src/hooks/useAuth.js
 // BUG-02 (FULL FIX): Loads followingIds + friendIds from Firestore on login
 // BUG-09 (FULL FIX): Real-time Firestore listeners for unreadMessages + unreadNotifications
+// BLOCKER-1 FIX: Removed demoMode guard — auth always runs and sets demoMode=false on real login
 
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, query, where,
-  onSnapshot, orderBy, limit, setDoc, serverTimestamp,
+  onSnapshot, limit, setDoc, serverTimestamp,
 } from 'firebase/firestore';
 import { auth, db } from '@fb/config';
 import useAppStore from '@store/useAppStore';
@@ -16,13 +17,11 @@ export function useAuth() {
     user, setUser, setUserProfile,
     setFollowingIds, setFriendIds,
     setUnreadMessages, setUnreadNotifications,
-    demoMode,
+    setDemoMode,
   } = useAppStore();
 
   useEffect(() => {
-    // Demo mode — no Firebase needed
-    if (demoMode) return;
-
+    // BLOCKER-1 FIX: Always run onAuthStateChanged — never skip based on demoMode
     const unsubs = [];
 
     const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -40,6 +39,8 @@ export function useAuth() {
         return;
       }
 
+      // BLOCKER-1 FIX: Real user is logged in — disable demo mode
+      setDemoMode(false);
       setUser(firebaseUser);
 
       // --- Load or create profile doc ---
@@ -144,7 +145,7 @@ export function useAuth() {
       unsubAuth();
       unsubs.forEach(fn => fn());
     };
-  }, [demoMode]);
+  }, []); // BLOCKER-1 FIX: run once on mount — no longer gated by demoMode
 
   return {
     user,
