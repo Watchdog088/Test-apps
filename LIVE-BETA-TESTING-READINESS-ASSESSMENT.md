@@ -449,6 +449,305 @@ await setDoc(doc(db,'groups',newGroupRef.id,'members',user.uid), {
 
 ---
 
+---
+
+## 🟠 SECTION 2B — SEVERITY 2: MAJOR FEATURE GAPS (Fix Before Beta)
+> *Source: app SECTION 2 SEVERITY 2 — MAJOR.txt — imported May 26, 2026*  
+> *These are core features users will test. If they don't work, beta feedback will be 100% negative.*
+
+---
+
+### GAP-1: Dating — All Profiles Are Mock (5 Hardcoded Users)
+**File:** `ConnectHub-SPA/src/pages/dating/DatingPage.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** In production, the dating section shows ZERO real people. The entire experience is fake.
+
+**What's Needed:**
+1. Firestore query for users where `datingProfile.active == true` and NOT in current user's swipe history
+2. Swipe decisions saved to `users/{uid}/swipes/{targetUid}` → `{ action: 'like'|'pass', timestamp }`
+3. Cloud Function for match detection: if user B liked user A when A likes B → create `matches/{matchId}`
+4. Real-time match notification via OneSignal + in-app notification to both users
+5. Dating preferences saved to `users/{uid}/datingPrefs` Firestore document
+
+**What Was Completed (UI Only — No Backend):**
+- ✅ Swipe card UI with animations
+- ✅ Match modal UI
+- ✅ Dating preferences UI page
+- ✅ Safety center UI page
+- ✅ Speed dating UI page
+
+**What Still Needs To Be Done:**
+- ❌ Real Firestore query replacing 5 hardcoded demo profiles
+- ❌ Swipe decisions written to Firestore
+- ❌ Cloud Function match detection (`functions/index.js`)
+- ❌ Match push notification via OneSignal
+- ❌ Dating preferences saved to Firestore
+
+**Estimated Time:** 3–5 days  
+**Priority:** 🟠 HIGH — Dating is a core differentiator
+
+---
+
+### GAP-2: Messages — Cannot Start New Conversations
+**File:** `ConnectHub-SPA/src/pages/messages/MessagesPage.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** Users can see the messages list but have NO WAY to start a new chat.
+
+**What's Needed:**
+1. "New Message" FAB (floating action button) on the messages list page → navigate to `/messages/new`
+2. `NewMessagePage.jsx` (already exists at `/messages/new`) needs live user search + create conversation flow
+3. Dating → Messages handoff: "Send a Message" in Match Modal must auto-create `conversations/{id}` doc with both user IDs, then navigate to thread
+
+**What Was Completed (UI Only):**
+- ✅ Messages list page with conversation thread UI
+- ✅ `NewMessagePage.jsx` file exists (empty/stub)
+- ✅ Match modal has "Send a Message" button
+
+**What Still Needs To Be Done:**
+- ❌ FAB button on MessagesPage pointing to `/messages/new`
+- ❌ NewMessagePage: real user search from Firestore
+- ❌ NewMessagePage: `addDoc(collection(db,'conversations'), { participants: [uid1, uid2], ... })` on select
+- ❌ Dating match modal → auto-create conversation → navigate to thread
+- ❌ All message sends write to `conversations/{id}/messages` subcollection
+
+**Estimated Time:** 1–2 days  
+**Priority:** 🟠 HIGH
+
+---
+
+### GAP-3: Premium Has No Payment Processing
+**File:** `ConnectHub-SPA/src/pages/premium/PremiumPage.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** "Upgrade to Premium" button does absolutely nothing. All premium gates never convert.
+
+**What's Needed:**
+1. `VITE_STRIPE_PUBLISHABLE_KEY` in `ConnectHub-SPA/.env`
+2. Stripe Checkout session — Cloud Function creates session, frontend redirects to Stripe
+3. Webhook handler in `ConnectHub-Backend` receives `checkout.session.completed`, updates `users/{uid}` with `{ premium: true, premiumExpiry: timestamp }`
+4. `/settings/payments` (already routed) must show plan details and cancel option
+
+**What Was Completed (UI Only):**
+- ✅ Premium page with tier selection UI
+- ✅ Feature comparison table UI
+- ✅ Settings/payments route registered in `App.jsx`
+
+**What Still Needs To Be Done:**
+- ❌ Stripe publishable key added to `.env`
+- ❌ Cloud Function `createCheckoutSession` in `functions/index.js`
+- ❌ Stripe webhook handler in `ConnectHub-Backend/src/routes/marketplace-payments.ts` (or new file)
+- ❌ `users/{uid}` premium status update on successful payment
+- ❌ Premium gate enforcement on locked features (e.g., dating boosts, extended swipes)
+- ❌ `/settings/payments` subscription management page wired with real Stripe data
+
+**Estimated Time:** 2–3 days  
+**Priority:** 🟠 HIGH — Revenue critical
+
+---
+
+### GAP-4: Push Notifications Not Wired to Events
+**Files:** `ConnectHub-SPA/src/services/` (OneSignal integrated but not triggered)  
+**Status:** ❌ NOT FIXED  
+**Impact:** Users NEVER receive notifications for likes, matches, messages, or friend requests. Retention will be near zero.
+
+**What's Needed:**
+1. Register OneSignal device token immediately after login (in `useAuth.js` after `setUser()`)
+2. Cloud Functions that trigger OneSignal for:
+   - New like on post → notify post author
+   - New comment → notify post author
+   - Friend request received → notify target user
+   - Dating match → notify both users
+   - New message → notify recipient
+3. Notification deep-linking: tapping notification navigates to relevant content
+
+**What Was Completed:**
+- ✅ OneSignal SDK integrated (`ConnectHub-SPA/src/services/onesignal-service.js`)
+- ✅ `ONESIGNAL-PUSH-NOTIFICATIONS-INTEGRATION-COMPLETE.md` — service file exists
+- ✅ OneSignal setup guide exists (`ONESIGNAL-SETUP-STEP-BY-STEP.md`)
+
+**What Still Needs To Be Done:**
+- ❌ `OneSignal.setExternalUserId(uid)` called in `useAuth.js` after login
+- ❌ Cloud Functions for like/comment/friend/match/message triggers
+- ❌ `functions/index.js` populated with Firestore trigger functions
+- ❌ Deep-link routing: notification payload includes `url` field pointing to `/post/:id`, `/messages/:id`, etc.
+- ❌ Production OneSignal App ID added to `.env` files
+
+**Estimated Time:** 2–3 days (Cloud Functions)  
+**Priority:** 🟠 HIGH
+
+---
+
+### GAP-5: Settings Changes Don't Persist
+**File:** `ConnectHub-SPA/src/pages/settings/SettingsPage.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** Every setting toggled resets after page refresh. Users cannot customize their experience.
+
+**What's Needed:**
+1. All settings written to `users/{uid}/settings` Firestore document on toggle change
+2. Settings loaded from Firestore on app mount → merged into Zustand store
+3. Settings requiring persistence:
+   - Post visibility (Public/Friends/Private)
+   - Who can message me
+   - Notification preferences (per-type toggles)
+   - Dark/Light mode preference
+   - Language/region
+
+**What Was Completed (UI Only):**
+- ✅ Settings page with all 20 sub-dashboards
+- ✅ All toggles are visually functional in local state
+- ✅ Zustand store holds settings in memory
+
+**What Still Needs To Be Done:**
+- ❌ `updateDoc(doc(db,'users',uid,'settings','prefs'), { [key]: value })` on every toggle change
+- ❌ Settings loaded from Firestore on `useAuth` login → `setUserSettings(data)` in store
+- ❌ Theme preference applied globally via CSS class on `<body>` based on saved setting
+
+**Estimated Time:** 1 day  
+**Priority:** 🟠 HIGH
+
+---
+
+### GAP-6: No Back Button on Nested Routes (TopNav)
+**File:** `ConnectHub-SPA/src/components/layout/TopNav.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** No back arrow on nested routes (`/live/watch/123`, `/marketplace/product/456`). PWA users cannot navigate back.
+
+**Fix Required (2–3 hours):**
+```jsx
+// TopNav.jsx — add to component:
+import { useNavigate, useLocation } from 'react-router-dom';
+const navigate = useNavigate();
+const location = useLocation();
+const isNested = location.pathname.split('/').length > 2;
+
+// In JSX render:
+{isNested && (
+  <button
+    onClick={() => navigate(-1)}
+    aria-label="Go back"
+    style={{ background:'none', border:'none', color:'#f1f5f9', fontSize:22, cursor:'pointer', padding:'8px', minWidth:44, minHeight:44 }}>
+    ‹
+  </button>
+)}
+```
+
+**What Was Completed:**
+- ✅ TopNav component exists and renders on all pages
+- ✅ `useNavigate` is available throughout the SPA
+
+**What Still Needs To Be Done:**
+- ❌ `isNested` detection + back arrow render in `TopNav.jsx`
+- ❌ Test on: `/live/watch/:id`, `/marketplace/product/:id`, `/post/:id`, `/profile/:uid`, `/groups/:id`, `/events/:id`
+
+**Estimated Time:** 2–3 hours  
+**Priority:** 🟠 HIGH — UX critical for mobile PWA
+
+---
+
+### GAP-7: Saved Posts Page Doesn't Load from Firestore
+**File:** `ConnectHub-SPA/src/pages/saved/SavedPage.jsx`  
+**Status:** ❌ NOT FIXED  
+**Impact:** Saved page shows empty / placeholder content even though bookmark action writes to Firestore correctly.
+
+**Fix Required (3–4 hours):**
+```jsx
+useEffect(() => {
+  async function loadSaved() {
+    if (!user?.uid) return;
+    const savedSnap = await getDocs(collection(db, 'users', user.uid, 'saved'));
+    const postIds = savedSnap.docs.map(d => d.id);
+    // Fetch each post document
+    const postDocs = await Promise.all(
+      postIds.map(id => getDoc(doc(db, 'posts', id)))
+    );
+    setSavedPosts(postDocs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() })));
+  }
+  loadSaved();
+}, [user?.uid]);
+```
+
+**What Was Completed:**
+- ✅ Save/bookmark action writes `users/{uid}/saved/{postId}` to Firestore (in FeedPage)
+- ✅ SavedPage component exists with layout
+
+**What Still Needs To Be Done:**
+- ❌ Load saved post IDs from `users/{uid}/saved` subcollection on mount
+- ❌ Fetch full post data for each saved post ID from `posts/{id}`
+- ❌ Render post cards with "unsave" button
+- ❌ Real-time listener for saved collection changes
+
+**Estimated Time:** 3–4 hours  
+**Priority:** 🟠 HIGH
+
+---
+
+### GAP-8: Music Player Has No Actual Audio Playback
+**Files:** `ConnectHub-SPA/src/components/layout/AppShell.jsx` + Music/MediaHub pages  
+**Status:** ❌ NOT FIXED  
+**Impact:** Music player shows animated progress bars but plays absolutely NO sound. Entire music experience is visual theater.
+
+**Fix Required (1–2 days):**
+```jsx
+// 1. Add to AppShell.jsx:
+const audioRef = useRef(new Audio());
+const { currentTrack } = useAppStore();
+useEffect(() => {
+  if (!currentTrack?.url) return;
+  audioRef.current.src = currentTrack.url;
+  audioRef.current.play().catch(()=>{});
+}, [currentTrack]);
+
+// 2. Add to useAppStore.js:
+currentTrack: null,
+setCurrentTrack: (track) => set({ currentTrack: track }),
+isPlaying: false,
+setIsPlaying: (v) => set({ isPlaying: v }),
+
+// 3. In Music page play buttons:
+setCurrentTrack({ url: track.streamUrl, title: track.title, artist: track.artist, artwork: track.artwork });
+
+// 4. navigator.mediaSession for OS-level controls:
+navigator.mediaSession.metadata = new MediaMetadata({
+  title: currentTrack.title, artist: currentTrack.artist, artwork: [{ src: currentTrack.artwork }]
+});
+```
+
+> ⚠️ **Note:** Deezer API is shut down. Use **Radio Browser** (free, already integrated at `radio-browser-service.js`) for real audio streams, or **YouTube embed API** for music videos.
+
+**What Was Completed:**
+- ✅ Music player UI with animated equalizer and progress bar
+- ✅ `radio-browser-service.js` integrated with free stream URLs
+- ✅ Mini player component renders in AppShell
+- ✅ `deezer-service.js` exists (but Deezer is shut down — use Radio Browser instead)
+
+**What Still Needs To Be Done:**
+- ❌ Global `<audio>` ref added to AppShell
+- ❌ `currentTrack` + `setCurrentTrack` + `isPlaying` added to `useAppStore.js`
+- ❌ Music page play buttons call `setCurrentTrack()` with Radio Browser stream URL
+- ❌ AppShell mini player subscribes to `currentTrack` store and controls audio ref
+- ❌ `navigator.mediaSession` API wired for OS media controls
+- ❌ Replace Deezer API calls with Radio Browser streams throughout
+
+**Estimated Time:** 1–2 days  
+**Priority:** 🟠 HIGH — Users expect music to play
+
+---
+
+## 📊 SECTION 2B SUMMARY — GAPS TRACKING
+
+| Gap | Feature | Status | Est. Time | Priority |
+|-----|---------|--------|-----------|---------|
+| GAP-1 | Dating — real profiles + match logic | ❌ NOT STARTED | 3–5 days | 🟠 HIGH |
+| GAP-2 | Messages — start new conversation | ❌ NOT STARTED | 1–2 days | 🟠 HIGH |
+| GAP-3 | Premium — Stripe payment processing | ❌ NOT STARTED | 2–3 days | 🟠 HIGH |
+| GAP-4 | Push notifications wired to events | ❌ NOT STARTED | 2–3 days | 🟠 HIGH |
+| GAP-5 | Settings — persist to Firestore | ❌ NOT STARTED | 1 day | 🟠 HIGH |
+| GAP-6 | Back button on nested routes | ❌ NOT STARTED | 2–3 hrs | 🟠 HIGH |
+| GAP-7 | Saved posts load from Firestore | ❌ NOT STARTED | 3–4 hrs | 🟠 HIGH |
+| GAP-8 | Music player — real audio playback | ❌ NOT STARTED | 1–2 days | 🟠 HIGH |
+| **TOTAL** | | **0/8 complete** | **~12–16 days** | |
+
+---
+
 ## 🟢 SECTION 4 — LOW PRIORITY / POLISH (Post-Beta Sprint)
 
 These are UX improvements that real users will request but won't block the beta.
