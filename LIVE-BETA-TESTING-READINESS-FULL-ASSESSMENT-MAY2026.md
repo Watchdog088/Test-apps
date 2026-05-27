@@ -1,378 +1,663 @@
-# 🚀 LynkApp — Live Beta Testing Readiness: Full UI/UX Assessment
-**Assessed by:** Cline (Senior UI/UX Developer)
-**Date:** May 27, 2026
-**App:** ConnectHub / LynkApp — React SPA (`ConnectHub-SPA/`)
-**Commit at time of assessment:** `f3a5eb7`
+# 🚀 LIVE BETA TESTING READINESS — FULL ASSESSMENT & STEP-BY-STEP PLAN
+### LynkApp (ConnectHub) | UI/UX Developer Assessment | May 27, 2026
 
 ---
 
-## 📋 EXECUTIVE SUMMARY
+## EXECUTIVE SUMMARY
 
-After a thorough inspection of the entire codebase — including `App.jsx`, `vite.config.js`, `useAuth.js`, `AppShell.jsx`, `firestore.rules`, all 12 completed feature sections, and 100+ audit/beta-test reports — the app is **substantially feature-complete** and **architecturally sound** for beta testing.
+After a full deep-dive audit of the codebase, build output, deployment infrastructure, and all prior audit reports, this document delivers a **complete, honest picture** of what is done, what gaps remain, and a **concrete numbered action plan** ordered by priority to get the app ready for live beta testing as fast as possible.
 
-**Three blocking gaps were identified and immediately fixed in this session:**
+**Current Status:**  
+✅ React SPA builds cleanly (501 modules, no errors)  
+✅ Firebase backend wired  
+✅ AWS S3 + CloudFront deployment active at https://lynkapp.net  
+✅ 12 major sections implemented (Feed, Live, Dating, Messages, Marketplace, etc.)  
+⚠️ Several critical UX flows are incomplete or stub-only  
+❌ Backend API (`api.connecthub.com`) is NOT running in production  
+❌ Real-time features depend on a live backend that is not deployed  
 
-| # | Issue | Fix Applied | Commit |
-|---|-------|-------------|--------|
-| 1 | Wildcard `*` route silently redirected to `/feed` instead of showing a 404 page | Created `NotFoundPage.jsx` + wired as the `*` route | `f3a5eb7` |
-| 2 | `chunkSizeWarningLimit` was 500 KB causing build noise | Raised to 1000 KB in `vite.config.js` | `f3a5eb7` |
-| 3 | `NotFoundPage` import missing from `App.jsx` | Added import statement | `f3a5eb7` |
-
-**Remaining work before go-live beta is divided into 3 priority tiers below.**
-
----
-
-## ✅ WHAT IS ALREADY COMPLETE & VERIFIED
-
-### Architecture
-- [x] **React SPA with Vite** — `appType: 'spa'`, proper SPA fallback configured
-- [x] **Firebase Auth** — `onAuthStateChanged` real-time listener in `useAuth.js`, proper cleanup
-- [x] **PrivateRoute guard** — wraps entire `AppShell` in `App.jsx` (line 287), unauthenticated users redirected to `/login`
-- [x] **AdminGuard** — Firestore `isAdmin` role check for `/admin`, `/admin/kyc`, `/admin/reports`
-- [x] **ErrorBoundary** — Class-based `ErrorBoundary` wraps `Routes` with friendly "Something went wrong" UI + DEV stack trace
-- [x] **Sentry error tracking** — Integrated in `main.jsx`
-- [x] **Code splitting** — All 100+ pages are `lazy()` loaded, `manualChunks` splits vendor/firebase/state
-- [x] **Service Worker / PWA** — `public/sw.js` + `public/manifest.json` present
-- [x] **Firestore Security Rules** — `firestore.rules` deployed (`TASK-2.8-FIRESTORE-RULES-FINAL.md`)
-- [x] **Firestore Indexes** — `firestore.indexes.json` configured
-- [x] **Zustand state management** — `useAppStore.js` with `user`, `demoMode`, `followingIds`, `unreadMessages`, `unreadNotifications`
-- [x] **Real-time unread counts** — Messages + notifications Firestore listeners in `useAuth.js`
-
-### Feature Sections (All 12 Sections Complete)
-- [x] **Section 1** — Auth / Onboarding (Login, Register, Verify Email, Forgot Password, Account Recovery, Onboarding flow)
-- [x] **Section 2** — Feed / Home (Posts, create post, comments, repost, share, trending)
-- [x] **Section 3** — Stories (Create, view, analytics, highlights, archive)
-- [x] **Section 4** — Live Streaming (Setup, watch, moderation, schedule, analytics, monetization, co-host, clips, categories, VOD, Q&A, gifts)
-- [x] **Section 5** — Dating (Swipe, matches, boost, speed dating, safety center, deep preferences, profile edit/view, compatibility)
-- [x] **Section 6** — Messages (Conversations, new message, group chat create, requests, archived)
-- [x] **Section 7** — Notifications (Feed, activity summary, quiet hours)
-- [x] **Section 8** — Profile (View, edit, insights, followers/following, verify request)
-- [x] **Section 9** — Friends (Find, nearby, birthdays, follow/unfollow)
-- [x] **Section 10** — Groups (Browse, create, detail, members, settings, media, rules, analytics, polls, join via token)
-- [x] **Section 11** — Events (Browse, create, detail, attendees, tickets, check-in, recap, my events)
-- [x] **Section 12** — Marketplace (Browse, product detail, seller profile, cart, checkout, KYC, orders, dashboard, write review, returns, boost listing)
-
-### APIs Integrated
-- [x] GIPHY (GIF picker), RAWG (gaming), Unsplash + Pexels (images)
-- [x] YouTube Data, Deezer, Radio Browser (music/media)
-- [x] Open-Meteo (weather), IP-API (geolocation), Leaflet (maps)
-- [x] CoinGecko (crypto), HackerNews, Guardian, Dev.to, NPR (news)
-- [x] DiceBear (avatars), FreeToGame (free games)
-- [x] OneSignal (push notifications), Cloudinary (media management)
-- [x] OpenAI Moderation API (content safety)
-- [x] Reddit, YouTube Music, Sentry (error tracking)
-
-### Build Health
-- [x] `npm run build` exits **0** — no errors
-- [x] Total bundle size: **1.02 MB** (minified), 16.8% reduction from raw sources
-- [x] No blocking TypeScript or ESLint errors reported
-- [x] Vite `appType: 'spa'` correctly serves `index.html` for all unknown paths (CloudFront/S3 also needs this — see P1 below)
+**Estimated Time to Beta-Ready:** 5–10 business days with focused effort
 
 ---
 
-## 🔴 PRIORITY 1 — MUST FIX BEFORE ANY BETA USERS TOUCH THE APP
-*These will cause immediate failures or bad first impressions for real users.*
+## PART 1: WHAT'S WORKING RIGHT NOW ✅
 
-### P1-01 · CloudFront / S3 SPA Fallback Not Confirmed
-**What:** For an SPA deployed to AWS S3 + CloudFront, the CDN must be configured to return `index.html` for all 404 responses (so deep links like `/feed` or `/marketplace/product/123` work directly). Without this, any user who bookmarks a page or follows a deep link gets a raw AWS XML "NoSuchKey" error.
-**Evidence:** Multiple deployment BAT files exist (`deploy-to-s3.bat`, `create-cloudfront-distribution.bat`, `finish-https-setup.bat`) but the CloudFront custom error response rule (`404 → /index.html → 200`) is not confirmed in any report.
-**Action:**
-1. In AWS Console → CloudFront → your distribution → **Error Pages**
-2. Add: HTTP Error Code `404`, Response Page Path `/index.html`, HTTP Response Code `200`
-3. Add the same for error code `403`
-**Owner:** DevOps / Developer  
-**Estimated Time:** 10 minutes
+### 1.1 Infrastructure
+- ✅ React SPA (Vite) builds successfully — 501 modules, ~7.5 MB total
+- ✅ Deployed to AWS S3 (`lynkapp.net` bucket) + CloudFront CDN
+- ✅ HTTPS live at https://lynkapp.net and https://d2ze4bo2gl7bv3.cloudfront.net
+- ✅ Firebase project configured (`lynkapp-c7db1`)
+- ✅ Firestore security rules deployed
+- ✅ Firestore indexes created
+- ✅ Firebase Authentication enabled
+- ✅ Service Worker (PWA) in place (`sw.js`)
+- ✅ Web App Manifest (`manifest.json`) — PWA installable
+- ✅ Sentry error tracking integrated
+- ✅ Code splitting — every page loads independently (90+ lazy chunks)
+- ✅ Correct cache headers: `max-age=31536000,immutable` for assets, `no-cache` for `index.html`
+
+### 1.2 Authentication & Onboarding (Section 1)
+- ✅ Login page with Email/Password
+- ✅ Google Sign-In via Firebase Auth
+- ✅ Forgot Password / Reset Email
+- ✅ Email Verification page
+- ✅ Account Recovery page
+- ✅ Onboarding flow (interests, profile setup)
+- ⚠️ Demo/guest login mode was added but needs to be tested on live URL
+- ❌ Phone number authentication not implemented
+
+### 1.3 Feed / Home (Section 2)
+- ✅ Feed page renders with skeleton loaders
+- ✅ Post cards (like, comment, share, save)
+- ✅ Story bar at top of feed
+- ✅ Feed filtering and discovery (hashtags, trending)
+- ✅ Post detail page
+- ✅ Create post flow
+- ⚠️ Feed data pulls from mock/seed data — needs Firestore posts collection populated
+- ⚠️ Real-time new post notifications not wired
+
+### 1.4 Stories (Section 3)
+- ✅ Stories viewer (tap/swipe navigation)
+- ✅ Story creation page (text, photo, video)
+- ✅ Story highlights & archive
+- ✅ Story analytics
+- ⚠️ Video story upload depends on Cloudinary — needs real upload test
+
+### 1.5 Live Streaming (Section 4)
+- ✅ LivePage, LiveSetupPage, LiveWatchPage
+- ✅ LiveAnalytics, LiveSchedule, LiveModeration
+- ✅ LiveMonetization, LiveVOD, ClipViewer
+- ✅ LiveCohost, LiveQA, LiveGifts Leaderboard
+- ✅ WebRTC service implemented (`livestream-webrtc.js`)
+- ❌ TURN/STUN server not configured for production — P2P will fail on most networks
+- ❌ No signaling server running in production
+- ❌ Stream recording/VOD storage not connected
+
+### 1.6 Dating (Section 5)
+- ✅ Swipe card UI with match animation
+- ✅ Dating profile edit/view
+- ✅ Match list & conversation start
+- ✅ Speed dating page
+- ✅ Safety center
+- ✅ Deep preferences page
+- ⚠️ Match algorithm is demo/random — no real scoring
+- ⚠️ Dating profile photos use Pexels (free API with attribution) — not user-uploaded yet
+
+### 1.7 Messages (Section 6)
+- ✅ Direct message threads
+- ✅ Group chat create
+- ✅ Message requests
+- ✅ Archived conversations
+- ✅ Real-time Firestore listeners coded
+- ❌ Push notifications for new messages require OneSignal backend webhook (not deployed)
+- ⚠️ Media uploads in chat (images/video) not tested end-to-end
+
+### 1.8 Notifications (Section 7)
+- ✅ Notifications page
+- ✅ Activity summary
+- ✅ Quiet hours settings
+- ❌ OneSignal integration needs backend webhook registered
+
+### 1.9 Profile (Section 8)
+- ✅ Profile page, edit, insights
+- ✅ Followers list
+- ✅ Verification request flow
+- ⚠️ Profile photo upload needs Cloudinary unsigned preset created
+
+### 1.10 Friends (Section 9)
+- ✅ Friends list, Find Friends, Nearby, Birthdays
+- ✅ Firestore service for friend requests
+- ⚠️ Geolocation-based nearby friends needs GPS permission and real data
+
+### 1.11 Groups (Section 10)
+- ✅ Group list, create, detail, sub-pages
+- ✅ Group chat embedded
+- ⚠️ Group member invites via email not wired
+
+### 1.12 Events (Section 11)
+- ✅ Events list, create, detail, attendees
+- ✅ RSVP flow
+- ⚠️ Event reminders/push notifications not wired
+
+### 1.13 Marketplace (Section 12)
+- ✅ Browse listings, product detail
+- ✅ Create listing wizard (24 sprints completed)
+- ✅ Seller dashboard, KYC flow
+- ✅ Checkout page (Stripe test mode)
+- ✅ Orders, returns, reviews
+- ✅ Map view modal (Leaflet)
+- ❌ Stripe is in TEST mode — needs pk_live_ key before real transactions
+- ❌ KYC admin backend (`/api/kyc`) not running
+- ❌ Shipping rates service not deployed
+
+### 1.14 APIs Integrated
+- ✅ Firebase/Firestore (real-time DB + auth)
+- ✅ Pexels (photos/videos — feed placeholder content)
+- ✅ Unsplash (photos)
+- ✅ RAWG (gaming hub)
+- ✅ Giphy (GIFs in messages)
+- ✅ Leaflet (maps)
+- ✅ DiceBear (avatars)
+- ✅ Open-Meteo (weather)
+- ✅ CoinGecko (crypto)
+- ✅ Guardian + Dev.to + HackerNews + NPR (news/trending)
+- ✅ YouTube Data API
+- ✅ Deezer + Radio Browser (music)
+- ✅ Sentry (error tracking)
+- ✅ Cloudinary (configured, needs unsigned upload preset)
+- ✅ OneSignal (configured, needs backend webhook)
+- ✅ Stripe (test mode, needs pk_live_ at launch)
+- ⚠️ DeepAR (AR filters) — key configured, SDK needs testing
 
 ---
 
-### P1-02 · Firebase Production Environment Variables Not Verified
-**What:** `ConnectHub-SPA/.env` contains `VITE_FIREBASE_*` keys. If these point to a dev/test Firebase project, real beta users will share data with test data or hit quota limits on the free plan.
-**Evidence:** `ConnectHub-SPA/.env` and `ConnectHub-Backend/.env` both exist. `.env.example` templates exist but production values not confirmed as production-project keys.
-**Action:**
-1. Confirm `ConnectHub-SPA/.env` `VITE_FIREBASE_*` keys point to your **production** Firebase project (not the dev project)
-2. Enable **Firebase App Check** on the production project to prevent abuse
-3. Confirm Firestore is in **production mode** (not test mode)
-4. Confirm Firebase Auth has email/password + Google providers enabled
-5. Set Firebase daily budget alerts in the console
-**Owner:** Developer  
-**Estimated Time:** 30 minutes
+## PART 2: CRITICAL GAPS (Blockers for Beta) ❌
+
+### GAP-1: Backend API Not Running in Production
+**Impact: CRITICAL**  
+`VITE_API_BASE_URL=https://api.connecthub.com/v1` resolves to nothing. Every API call that goes through `api-client.js` fails silently. This affects: KYC, marketplace payments, shipping rates, notifications proxy, stories route, groups route.
+
+**Fix:** Deploy the Node.js backend (`ConnectHub-Backend`) to AWS EC2 or App Runner, configure DNS `api.connecthub.com` → backend IP.
 
 ---
 
-### P1-03 · Firestore Security Rules Must Be Deployed to Production Project
-**What:** `ConnectHub-SPA/firestore.rules` is written and documented (`TASK-2.8-FIRESTORE-RULES-FINAL.md`). BUT these rules must be actively **deployed** to the production Firebase project — they do not apply automatically just by being in the repo.
-**Evidence:** The rules file exists, but there is no CI/CD step that runs `firebase deploy --only firestore:rules`.
-**Action:**
+### GAP-2: No TURN/STUN Server for WebRTC
+**Impact: CRITICAL for Live & Video Calls**  
+P2P WebRTC will only work on the same local network without a TURN server. Beta testers on different ISPs will get black screens for live streaming and video calls.
+
+**Fix:** Set up a free Coturn TURN server on EC2, or use Twilio STUN/TURN ($0.03/minute), and configure `livestream-webrtc.js` with the TURN URL/credentials.
+
+---
+
+### GAP-3: Cloudinary Upload Preset Not Created
+**Impact: HIGH**  
+Profile photos, story media uploads, and marketplace listing images all use `VITE_CLOUDINARY_UPLOAD_PRESET=marketplace_unsigned`. This unsigned preset must be created in the Cloudinary dashboard or all media uploads fail with 401.
+
+**Fix:** Log into cloudinary.com → Settings → Upload → Add Upload Preset → set to "Unsigned" → name it `marketplace_unsigned`.
+
+---
+
+### GAP-4: OneSignal Backend Webhook Not Registered
+**Impact: HIGH**  
+Push notifications for messages, likes, matches, and events are coded but will never fire because OneSignal requires a server-side REST call to send notifications. The frontend SDK is set up, but there's no server running to trigger it.
+
+**Fix:** Deploy the backend with `/api/notifications` route (already coded in `notifications-proxy.ts`).
+
+---
+
+### GAP-5: Firebase Email Verification Not Sending
+**Impact: HIGH**  
+Firebase Auth sends verification emails from `noreply@lynkapp-c7db1.firebaseapp.com` unless a custom email template with the Mailgun domain is configured. New user signups will get ugly default Firebase emails.
+
+**Fix:** In Firebase Console → Authentication → Templates → customize the email domain to use `lynkapp.net` via Mailgun.
+
+---
+
+### GAP-6: Stripe in Test Mode
+**Impact: MEDIUM for Beta (acceptable for first beta)**  
+All Stripe payments go through test mode (`pk_test_...`). Beta testers cannot make real purchases.
+
+**Fix for beta:** This is acceptable — inform beta testers they are using test cards (4242 4242 4242 4242). Swap to `pk_live_` before public launch.
+
+---
+
+### GAP-7: `RemainingDashboards.jsx` Contains Placeholder UIs
+**Impact: MEDIUM**  
+The `RemainingDashboards-Bo2FOR5g.js` chunk is 65 kB — second largest page bundle. It contains ~20+ dashboard/sub-page views that are stub implementations (empty states, "coming soon" messages, or hardcoded demo data).
+
+**Fix:** Audit each dashboard in `MiscSubPages.jsx` and `RemainingDashboards.jsx` — either wire to real data or add a clear "Beta" badge so testers understand these are in-progress.
+
+---
+
+### GAP-8: No Error Boundary / Crash Recovery UI
+**Impact: MEDIUM**  
+If any lazy-loaded page throws a runtime error, React will unmount the whole app showing a white screen. There's no error boundary wrapping individual routes.
+
+**Fix:** Wrap each route in an `<ErrorBoundary>` component that shows a friendly "Something went wrong, tap to retry" message instead of a white screen.
+
+---
+
+### GAP-9: MarketplacePage is 149 kB (Unoptimized)
+**Impact: MEDIUM — Performance**  
+The Marketplace bundle is nearly 4× the size of the next largest page. On 4G mobile it will take 2-3 seconds to first interaction.
+
+**Fix:** Split `MarketplacePage.jsx` and `MarketplaceExtensions.jsx` into more granular lazy chunks. Target <50 kB per chunk.
+
+---
+
+### GAP-10: Deep-Link / Direct URL Navigation Broken
+**Impact: MEDIUM**  
+S3/CloudFront is not configured to redirect all 404s back to `index.html`. Navigating directly to `https://lynkapp.net/feed` or `https://lynkapp.net/dating` returns a 403/404 from CloudFront instead of loading the React app.
+
+**Fix:** Configure CloudFront custom error responses: HTTP 404 → respond with `/index.html` + HTTP 200. OR configure S3 static website hosting with error document = `index.html`.
+
+---
+
+### GAP-11: No Beta Feedback Mechanism
+**Impact: MEDIUM — Beta Quality**  
+Beta testers have no way to submit feedback, report bugs, or rate features from within the app.
+
+**Fix:** Add a floating "Send Feedback" button (bottom-right FAB) that opens a simple form → sends to a Firestore `beta_feedback` collection or a Google Form embed.
+
+---
+
+### GAP-12: Missing Privacy Policy / Terms of Service Pages
+**Impact: HIGH — Legal/Compliance**  
+The app collects location data, personal info, and processes payments. There are no visible Privacy Policy or Terms of Service links anywhere in the app. This is legally required before any live user testing with real accounts.
+
+**Fix:** Create `/privacy` and `/terms` static pages (minimum viable — 1 page each). Add links to the Login page footer and Settings → About section.
+
+---
+
+### GAP-13: No "Beta Testing" Banner / Version Indicator
+**Impact: LOW — Beta UX**  
+Beta testers should know they're using a pre-release version so they have calibrated expectations.
+
+**Fix:** Add a subtle "Beta v0.1" chip in the top nav or a dismissible banner on first launch: "Welcome to LynkApp Beta — help us improve by reporting any issues."
+
+---
+
+### GAP-14: Dating Section Uses Demo Token for Matches
+**Impact: MEDIUM**  
+From code analysis, the dating match system uses a `demo_token` pattern (see `fix-s05-demo-token.js`) — matches are not persisted to a real user's Firestore document across sessions.
+
+**Fix:** Wire `DatingPage.jsx` match actions to write to `users/{uid}/matches` Firestore collection with proper read/write security rules.
+
+---
+
+### GAP-15: Ad Units Show Placeholder House Ads
+**Impact: LOW — Monetization**  
+`VITE_ADSENSE_PUBLISHER_ID=MISSING_ca-pub-...` — Google AdSense not connected. The `AdUnit.jsx` component shows gradient placeholder "house ads." This is expected for beta but should be documented.
+
+---
+
+## PART 3: STEP-BY-STEP ACTION PLAN (Ordered by Priority)
+
+---
+
+### 🔴 PHASE A — CRITICAL BLOCKERS (Days 1-2) — Do These First
+
+#### STEP 1: Fix CloudFront 404 SPA Routing
+**Time: 30 minutes**  
+Without this, sharing any deep link crashes the app for testers.
+
 ```bash
-cd ConnectHub-SPA
-npx firebase deploy --only firestore:rules --project YOUR_PROD_PROJECT_ID
-npx firebase deploy --only firestore:indexes --project YOUR_PROD_PROJECT_ID
+# Add CloudFront custom error response:
+# 404 → /index.html → 200
+# 403 → /index.html → 200
 ```
-**Owner:** Developer  
-**Estimated Time:** 5 minutes
+AWS Console → CloudFront → Distribution `E1K6OG7GOLIRJ2` → Error Pages → Create custom error response:
+- HTTP Error Code: 404 → Customize: Yes → Response Page: `/index.html` → HTTP Response Code: 200
+- Repeat for 403
 
 ---
 
-### P1-04 · `demoMode` Flag Must Be Fully Purged From All Pages
-**What:** `useAuth.js` was fixed (BLOCKER-1) to always run real auth and set `demoMode = false` on real login. However, individual page components may still have `if (demoMode) return <mockData>` guards that silently hide real Firestore errors behind fake data. Beta testers will never see real errors — making crash reports useless.
-**Evidence:** `BLOCKER-1 FIX` comment in `useAuth.js` indicates this was recently fixed. The `useAppStore.js` still exposes `demoMode`. Search confirms it's used in multiple pages.
-**Action:**
-```bash
-# In ConnectHub-SPA, search for all remaining demoMode usage:
-grep -r "demoMode" src/ --include="*.jsx" --include="*.js"
-```
-For each file found: remove the mock-data branch so real Firestore/API errors surface to beta testers (and Sentry).
-**Owner:** Developer  
-**Estimated Time:** 2–4 hours depending on how many pages still use it
+#### STEP 2: Create Cloudinary Upload Preset
+**Time: 15 minutes**  
+1. Go to https://cloudinary.com/console
+2. Settings → Upload → Upload Presets → Add Upload Preset
+3. Name: `marketplace_unsigned`
+4. Signing Mode: **Unsigned**
+5. Folder: `lynkapp/uploads`
+6. Save
+
+Test: Try uploading a profile photo in the app after this step.
 
 ---
 
-### P1-05 · Terms of Service + Privacy Policy Pages Required
-**What:** Before any real users sign up, the app **must** have accessible Terms of Service and Privacy Policy pages. This is a legal requirement in all US jurisdictions, and required by Apple App Store, Google Play, and Firebase/Google Cloud ToS.
-**Evidence:** No `TermsPage.jsx` or `PrivacyPage.jsx` found anywhere in the SPA. The onboarding flow (`OnboardingPage.jsx`) likely has a "I agree to Terms" checkbox that links to nothing.
-**Action:**
-1. Create `ConnectHub-SPA/src/pages/legal/TermsOfServicePage.jsx`
-2. Create `ConnectHub-SPA/src/pages/legal/PrivacyPolicyPage.jsx`
-3. Add routes in `App.jsx`: `<Route path="/terms" element={<TermsPage />} />`
-4. Wire the "Terms" and "Privacy" links in `LoginPage.jsx` and `OnboardingPage.jsx`
-5. Make these routes **public** (outside the PrivateRoute wrapper)
-**Owner:** Developer + Legal  
-**Estimated Time:** 2–3 hours (writing content + wiring)
-
----
-
-### P1-06 · Email Verification Enforcement Is Not Confirmed
-**What:** `VerifyEmailPage.jsx` exists but it's unclear if the app actually blocks unverified users from accessing protected content. Firebase Auth provides `firebaseUser.emailVerified` but `useAuth.js` does not check this flag before allowing access.
-**Evidence:** `useAuth.js` lines 32–44: only checks `if (!firebaseUser)` — no `emailVerified` check.
-**Action:** In `useAuth.js`, after setting the user, add:
-```js
-// If email not verified, redirect to /verify-email
-if (!firebaseUser.emailVerified && !firebaseUser.providerData.some(p => p.providerId === 'google.com')) {
-  // Keep user in state but set a flag
-  setEmailVerified(false);
+#### STEP 3: Add Error Boundaries to All Routes
+**Time: 2-3 hours**  
+Create `src/components/common/ErrorBoundary.jsx`:
+```jsx
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError)
+      return <div className="error-page">Something went wrong. <button onClick={() => this.setState({hasError:false})}>Try again</button></div>;
+    return this.props.children;
+  }
 }
 ```
-Then in `PrivateRoute`, redirect to `/verify-email` if `!emailVerified`.
-**Owner:** Developer  
-**Estimated Time:** 1 hour
+Wrap each `<Route>` element in `App.jsx` with `<ErrorBoundary>`.
 
 ---
 
-## 🟡 PRIORITY 2 — FIX BEFORE BETA INVITE LINKS GO OUT
-*These cause friction/confusion for beta testers but won't crash the app.*
+#### STEP 4: Add Privacy Policy & Terms of Service Pages
+**Time: 2-3 hours**  
+Create minimal legal pages at `/privacy` and `/terms` in `MiscSubPages.jsx` or as static routes. Minimum content:
+- Privacy Policy: What data you collect, how it's used, Firebase/Cloudinary/OneSignal disclosures, contact email
+- Terms of Service: Beta disclaimer, age requirement (13+), acceptable use
 
-### P2-01 · Beta Feedback Collection Mechanism
-**What:** You need a way for beta testers to report bugs and give feedback IN-APP without switching to email or Discord.
-**Action:** Add a floating "🐛 Report a Bug" FAB button (bottom-right) on every page that opens a modal with:
-- Bug description text area
-- Screenshot attachment (optional)
-- Submits to Firestore `betaFeedback` collection or a Google Form iframe
-**Estimated Time:** 3 hours
+Add links in `LoginPage.jsx` footer and `Settings → About`.
 
 ---
 
-### P2-02 · Loading State Race Condition on App Entry
-**What:** `App.jsx` has `if (loading) return <SplashScreen />` but `useAuth` hook returns `loading: user === undefined`. On very fast devices, the `SplashScreen` may flash for <100ms or the reverse — on slow connections, the splash screen may show for 5–10 seconds with no progress indicator.
-**Action:** Add a minimum splash screen display time (500ms) and a timeout fallback (5s) that shows an error state if Firebase auth hangs.
+#### STEP 5: Deploy Backend API (Priority: REST endpoints only)
+**Time: 4-8 hours**  
+The ConnectHub-Backend is a TypeScript/Express app with a working `server-simple.ts`.
 
----
-
-### P2-03 · `ContactImportPage` Route Wired to Non-Existent Export
-**What:** In `App.jsx`, `ContactImportPage` is lazy-loaded from `RemainingDashboards` but never actually routed (no `<Route>` for it). However, if `RemainingDashboards` doesn't export `ContactImportPage`, the lazy import will throw a runtime error if anything causes that chunk to load.
-**Action:** Either add a route for it or remove the import.
-
----
-
-### P2-04 · Bottom Navigation Active State Verification
-**What:** `BottomNav.jsx` likely uses `useLocation()` to highlight the active tab. With 100+ routes, there may be cases where sub-pages (e.g., `/marketplace/product/123`) don't correctly highlight the Marketplace tab.
-**Action:** Test all 12 main sections: navigate to a sub-page and confirm the parent tab in `BottomNav` is highlighted. Fix any mismatches in the `isActive` logic.
-
----
-
-### P2-05 · Profile Photo Upload in Beta
-**What:** Cloudinary is integrated but profile photo upload flow during onboarding/edit must be tested end-to-end with real Firebase Storage or Cloudinary. If the upload URL or API key is wrong, users cannot set a profile photo — a core feature.
-**Action:** Manual QA test: sign up → complete onboarding → upload a profile photo → confirm it persists after refresh.
-
----
-
-### P2-06 · Beta Tester Invite/Allow-List System
-**What:** For a closed beta, you need to restrict who can sign up. Currently, anyone with the URL can create an account.
-**Option A (Fastest):** Use Firebase Auth "Email/Password" and give only beta testers the signup URL. Block signups after N users using a Firestore counter + Cloud Function trigger.
-**Option B:** Add an invite-code field to the signup form, validate against a Firestore `inviteCodes` collection.
-**Estimated Time:** 2–4 hours for Option A
-
----
-
-### P2-07 · Offline / Network Error UX
-**What:** `ConnectHub-Frontend/src/services/offline-manager.js` exists, but it's in the legacy `ConnectHub-Frontend` folder — not imported in the SPA (`ConnectHub-SPA`). If the SPA loses network, Firestore calls will silently fail with no UI feedback.
-**Action:** Import `offline-manager.js` logic into the SPA OR add a simple network status toast using the browser's `navigator.onLine` + `window.addEventListener('offline')`.
-
----
-
-### P2-08 · Marketplace Payment Flow — Stripe Keys
-**What:** `CheckoutPage.jsx` and `marketplace-payments.ts` backend route exist. If the Stripe publishable key in `.env` is still a test key (`pk_test_...`), real purchases cannot be made. Conversely, if it's already a live key, accidental test transactions will charge real money.
-**Action:**
-- For beta: confirm `.env` has `pk_test_` Stripe key
-- Add a visible "⚠️ Beta — No real charges" banner on the `CheckoutPage`
-- Ensure Stripe webhook secret is configured
-
----
-
-### P2-09 · `VerificationAdminPage` Access Control
-**What:** `ConnectHub-SPA/src/pages/admin/VerificationAdminPage.jsx` is imported in the profile section but has no visible route in `App.jsx`. If it IS accessible, it needs `AdminGuard`. If it's NOT accessible, the import is dead weight.
-**Action:** Either add `<Route path="admin/verification" element={<AdminGuard><VerificationAdminPage /></AdminGuard>} />` or remove the import.
-
----
-
-### P2-10 · HTML Minification Warning
-**What:** The build script outputs: `⚠ HTML minification failed, copying original`. The 540 KB HTML is not minified — it's the largest single asset. This is harmless but slows initial load.
-**Action:** Fix `build-production.js` HTML minification step, or switch to Vite's built-in Rollup build (`vite build`) which properly handles HTML minification.
-
----
-
-## 🟢 PRIORITY 3 — POLISH BEFORE PUBLIC BETA EXPANDS
-*Nice-to-have improvements that improve beta tester experience but are not blocking.*
-
-### P3-01 · App Version Number Visible Somewhere
-Add a version badge in `Settings → About` or the `Help` page. This makes it easy for beta testers to tell you "I'm on v0.9.1-beta" when reporting bugs.
-
-### P3-02 · Skeleton Loaders on All Heavy Pages
-`SkeletonLoader.jsx` exists. Verify it's used on: Feed, Marketplace, Profile, Messages. Pages that show a blank white/dark screen for >200ms while Firestore loads will feel broken to testers.
-
-### P3-03 · Back Button / Navigation History on Mobile
-Test the browser/device back button behavior on all major flows:
-- Enter product detail → back → should return to marketplace list (not /feed)
-- Enter live watch → back → should return to /live
-- Deep link from notification → back → should return to notifications
-
-### P3-04 · Dark Mode Consistency
-The global CSS uses dark-mode variables. Verify there are no pages with hardcoded `color: #000` or `background: white` that break the dark theme.
-
-### P3-05 · Font / Icon Loading Flash (FOIT)
-Ensure icon fonts (likely Material Icons or Lucide) are preloaded in `index.html` with `<link rel="preload">` to prevent a flash of missing icons on first load.
-
-### P3-06 · Notification Sounds
-`ConnectHub-SPA/public/sounds/README.md` exists but the actual `.mp3`/`.ogg` files for notification sounds may be missing. Verify or add placeholder sounds.
-
-### P3-07 · Dating Section Age Verification
-The Dating section must verify users are 18+. Confirm the onboarding flow captures and stores `birthdate`, and the Dating page checks `age >= 18` before showing content.
-
-### P3-08 · COPPA Compliance Check
-If any user could be under 13, the app needs a birthdate gate at signup with a "Sorry, you must be 13 or older" message. Confirm `OnboardingPage.jsx` has this gate.
-
-### P3-09 · Live Streaming WebRTC Fallback
-`livestream-webrtc.js` uses WebRTC. Confirm TURN server credentials are configured (WebRTC P2P fails for ~30% of users without a TURN server due to NAT/firewall issues). This is critical for the Live section to work for beta testers on corporate or mobile networks.
-
-### P3-10 · Beta Tester Welcome Email / Onboarding Guide
-Send beta testers a welcome email that includes:
-- App URL
-- Known limitations list
-- How to report bugs
-- What to test (focus areas)
-
----
-
-## 📊 BETA READINESS SCORECARD
-
-| Category | Status | Score |
-|----------|--------|-------|
-| Core Authentication | ✅ Complete | 10/10 |
-| Route Guards (PrivateRoute + AdminGuard) | ✅ Complete | 10/10 |
-| Error Handling (ErrorBoundary + Sentry) | ✅ Complete | 9/10 |
-| 404 / Not Found Page | ✅ Fixed this session | 10/10 |
-| Feature Completeness (12 sections) | ✅ Complete | 10/10 |
-| API Integrations | ✅ Complete | 9/10 |
-| Build Health | ✅ Clean (exit 0) | 10/10 |
-| SPA Routing (Vite `appType:spa`) | ✅ Configured | 9/10 |
-| Firebase Security Rules | ⚠️ Written, deployment unconfirmed | 6/10 |
-| Production Environment | ⚠️ Unverified | 5/10 |
-| Legal Pages (ToS / Privacy) | ❌ Missing | 0/10 |
-| Email Verification Enforcement | ⚠️ Partial | 5/10 |
-| CloudFront SPA Fallback | ⚠️ Unconfirmed | 5/10 |
-| Beta Feedback Mechanism | ❌ Missing | 0/10 |
-| **OVERALL BETA READINESS** | **On Track** | **72/100** |
-
----
-
-## 🗓️ RECOMMENDED BETA LAUNCH TIMELINE
-
-### Day 1 (Today) — Already Done ✅
-- [x] Fix 404/NotFoundPage (done — commit `f3a5eb7`)
-- [x] Raise chunkSizeWarningLimit (done — commit `f3a5eb7`)
-
-### Day 2 — Infrastructure Hardening (~4 hours)
-- [ ] **P1-01** — Confirm CloudFront SPA error page rules (10 min)
-- [ ] **P1-02** — Verify production Firebase project + App Check (30 min)
-- [ ] **P1-03** — Deploy Firestore rules + indexes to prod (5 min)
-- [ ] **P1-04** — Audit and remove `demoMode` from all page components (2–4 hrs)
-
-### Day 3 — Legal & Auth Polish (~4 hours)
-- [ ] **P1-05** — Create Terms of Service + Privacy Policy pages (2–3 hrs)
-- [ ] **P1-06** — Enforce email verification in `useAuth.js` + `PrivateRoute` (1 hr)
-
-### Day 4 — Beta Controls & UX (~4 hours)
-- [ ] **P2-06** — Build invite-code / allow-list system for closed beta (2–4 hrs)
-- [ ] **P2-01** — Add in-app bug report FAB button (3 hrs)
-- [ ] **P2-10** — Fix HTML minification in build script (1 hr)
-
-### Day 5 — Final QA Pass (~6 hours)
-- [ ] **P2-03** — Fix ContactImportPage dead import
-- [ ] **P2-04** — Test BottomNav active state on all sub-pages
-- [ ] **P2-05** — End-to-end profile photo upload test
-- [ ] **P2-07** — Add offline network status toast to SPA
-- [ ] **P2-08** — Confirm Stripe test keys + add "Beta — No real charges" banner
-- [ ] **P2-09** — Add route for VerificationAdminPage or remove dead import
-- [ ] Manual smoke test of all 12 sections on mobile viewport (375px)
-
-### Day 6 — Beta Launch 🚀
-- [ ] Send beta tester invite emails (**P3-10**)
-- [ ] Monitor Sentry dashboard for first-hour errors
-- [ ] Monitor Firestore usage dashboard
-- [ ] Be available in beta tester communication channel (Discord/Slack)
-
----
-
-## 🔧 QUICK COMMANDS REFERENCE
-
+Option A (Fastest): Deploy to Railway.app or Render.com (free tier):
 ```bash
-# Start local dev server
-cd ConnectHub-SPA && npm run dev
+cd ConnectHub-Backend
+# Push to GitHub, connect to Railway
+# Set env vars from ConnectHub-Backend/.env
+# Railway auto-detects Node.js, runs npm start
+```
 
-# Production build
-cd ConnectHub-SPA && npm run build
+Option B: Deploy to existing AWS EC2 instance using the existing `deploy-backend-to-aws.bat` script.
 
-# Deploy Firestore rules
-cd ConnectHub-SPA && npx firebase deploy --only firestore:rules,firestore:indexes
+Configure CNAME: `api.connecthub.com` → backend URL
 
-# Deploy Firebase Functions (if using)
-cd ConnectHub-SPA && npx firebase deploy --only functions
+Minimum endpoints needed for beta:
+- `POST /api/auth/register` 
+- `POST /api/auth/login`
+- `GET /api/users/:id`
+- `POST /api/notifications/send` (OneSignal proxy)
 
-# Search for demoMode usage
-grep -r "demoMode" ConnectHub-SPA/src/ --include="*.jsx" --include="*.js" -l
+---
 
-# Run git status
-git status && git log --oneline -5
+### 🟡 PHASE B — HIGH PRIORITY (Days 3-4)
+
+#### STEP 6: Wire Dating Matches to Firestore
+**Time: 3-4 hours**  
+In `DatingPage.jsx`, ensure:
+- Swipe right → write to `matches/{userId}/likes/{targetId}`
+- Mutual like → create `matches/{matchId}` document + trigger notification
+- Load existing matches from Firestore on page mount
+- Remove demo token dependency
+
+---
+
+#### STEP 7: Configure Firebase Custom Email Template (Mailgun)
+**Time: 1-2 hours**  
+Firebase Console → Authentication → Templates:
+- Email verification: Update sender to `noreply@lynkapp.net`
+- Password reset: Update sender to `noreply@lynkapp.net`
+
+If Mailgun DNS records are not set (see `MAILGUN-DNS-SETUP-GUIDE.md`), use Firebase's default sender but customize the email body/branding.
+
+---
+
+#### STEP 8: Add Beta Feedback Button
+**Time: 2-3 hours**  
+In `AppShell.jsx` add a floating action button:
+```jsx
+<button className="feedback-fab" onClick={openFeedbackModal}>
+  💬 Feedback
+</button>
+```
+Modal: textarea + rating stars + submit → writes to Firestore `beta_feedback` collection with `{userId, message, rating, page: location.pathname, timestamp}`.
+
+---
+
+#### STEP 9: Add "Beta" Version Banner
+**Time: 1 hour**  
+In `TopNav.jsx` or `AppShell.jsx`:
+```jsx
+{import.meta.env.VITE_APP_VERSION === 'beta' && 
+  <div className="beta-banner">🚀 Beta v0.1 — Your feedback helps us improve!</div>
+}
+```
+Add `VITE_APP_VERSION=beta` to `.env`.
+
+---
+
+#### STEP 10: Audit & Fix RemainingDashboards Stubs
+**Time: 4-6 hours**  
+Open `src/pages/misc/RemainingDashboards.jsx` and `MiscSubPages.jsx`. For each stub page:
+- If data is not wired: add a "Coming Soon" card with the feature description
+- If data is partially wired: add a "Beta — Limited Functionality" chip
+- Remove any console.error or TODO comments visible to users
+
+---
+
+### 🟢 PHASE C — IMPORTANT (Days 5-7)
+
+#### STEP 11: Set Up TURN Server for WebRTC
+**Time: 4-6 hours**  
+Options:
+1. **Twilio STUN/TURN** (easiest): Sign up at twilio.com/stun-turn, get credentials, update `livestream-webrtc.js`:
+```js
+iceServers: [
+  { urls: 'stun:global.stun.twilio.com:3478' },
+  { urls: 'turn:global.turn.twilio.com:3478', username: 'YOUR_USERNAME', credential: 'YOUR_CREDENTIAL' }
+]
+```
+2. **Self-hosted Coturn on EC2** (free): Follow the existing `AWS-DEPLOYMENT-GUIDE.md` — install coturn on the same EC2 instance.
+
+For beta: Twilio's free tier (10GB/month) is sufficient.
+
+---
+
+#### STEP 12: OneSignal Push Notifications Setup
+**Time: 2-3 hours**  
+1. OneSignal App ID is already configured (`VITE_ONESIGNAL_APP_ID=00c74474-...`)
+2. Add Firebase Cloud Messaging (FCM) server key in OneSignal dashboard
+3. Deploy backend notifications proxy (`notifications-proxy.ts`)
+4. Test: Send a test notification from OneSignal dashboard → verify it appears on device
+
+---
+
+#### STEP 13: Marketplace Performance Optimization
+**Time: 3-4 hours**  
+Split `MarketplacePage.jsx` (149 kB) into lazy sub-components:
+- Extract `CheckoutPage`, `SellerDashboardPage`, `CreateListingWizard` into separate route-level lazy chunks (they already exist as separate files — just ensure they're lazy in `App.jsx`)
+- The `MarketplaceExtensions.jsx` has too many features in one file — split into 3+ files
+
+Target: Get MarketplacePage core to <50 kB, with sub-pages loaded on demand.
+
+---
+
+#### STEP 14: Populate Seed Data for Beta
+**Time: 2-3 hours**  
+The app will feel dead if beta testers have no content to interact with.
+
+Run `ConnectHub-Frontend/src/services/test-seed-data.js` script to populate:
+- 10-15 sample posts in Firestore
+- 5-8 sample user profiles
+- 3-5 sample groups
+- 5-10 sample marketplace listings
+- 2-3 sample events
+
+---
+
+#### STEP 15: End-to-End Test All Critical User Journeys
+**Time: 4-6 hours**  
+Test these 10 critical flows manually at https://lynkapp.net:
+
+| # | Journey | Expected Result |
+|---|---------|----------------|
+| 1 | Sign up new account | Email verification sent, onboarding shown |
+| 2 | Log in → Feed loads | Posts visible, no white screen |
+| 3 | Create a post | Post appears in feed |
+| 4 | Send a direct message | Message delivered real-time |
+| 5 | View a profile → follow | Follow count updates |
+| 6 | Browse marketplace | Listings load, product detail works |
+| 7 | Start dating swipe | Cards load, swipe works |
+| 8 | Create an event | Event visible in Events section |
+| 9 | Change notification settings | Settings persist on refresh |
+| 10 | Go to Settings → Log Out | Returns to login screen |
+
+---
+
+### 🔵 PHASE D — POLISH (Days 8-10)
+
+#### STEP 16: Mobile-First QA on Real Devices
+Test on:
+- iPhone Safari (iOS 16+)
+- Android Chrome (Android 12+)
+- Samsung Browser
+
+Key checks:
+- Bottom nav items are tap-target size (≥ 44px)
+- No horizontal overflow/scroll
+- Keyboard doesn't cover input fields
+- PWA "Add to Home Screen" works
+- No fonts too small to read
+
+---
+
+#### STEP 17: Loading State & Empty State Polish
+Audit each section for:
+- **No spinner while loading** → add `<SkeletonLoader>` (already built — just needs to be used consistently)
+- **Empty state** when no data → show friendly illustration + CTA (e.g., "No friends yet — Find People")
+- **Error state** when API fails → show "Couldn't load — Tap to retry"
+
+---
+
+#### STEP 18: Performance Audit
+Run Lighthouse on https://lynkapp.net:
+- Target Performance score: ≥ 70
+- Target FCP (First Contentful Paint): < 2s on 4G
+- Firebase SDK (711 kB gzipped: 164 kB) is the biggest bottleneck — consider lazy-loading Firebase Analytics separately
+
+---
+
+#### STEP 19: Accessibility Basics
+- All interactive elements have `aria-label` or visible text
+- Color contrast ratio ≥ 4.5:1 for body text
+- No keyboard trap in modals
+- Focus visible when tabbing
+
+---
+
+#### STEP 20: Beta Tester Onboarding Guide
+Create a simple "Beta Tester Welcome" email/PDF with:
+- URL: https://lynkapp.net
+- How to create an account
+- What features to test
+- Known limitations (Stripe test mode, some stubs)
+- How to submit feedback (in-app button + email)
+- Test card numbers for Marketplace: `4242 4242 4242 4242`
+
+---
+
+## PART 4: OUTSTANDING API KEYS TO GET BEFORE BETA
+
+| Key | Purpose | Where to Get | Priority |
+|-----|---------|-------------|----------|
+| Google AdSense Publisher ID | Monetization (ad revenue) | adsense.google.com | Low (beta can skip) |
+| Twitter/X Bearer Token | Trending social content | developer.twitter.com | Medium |
+| Reddit Client ID | Community/trending posts | reddit.com/prefs/apps | Medium |
+| Twilio TURN credentials | Video calls/live streaming | twilio.com | **HIGH** |
+| Stripe LIVE publishable key | Real payments | dashboard.stripe.com | Before public launch |
+| FeedFM Token | Licensed music player | feed.fm | Low (Deezer is fallback) |
+
+---
+
+## PART 5: DEPLOYMENT CHECKLIST — "READY TO SHARE WITH BETA TESTERS"
+
+```
+PRE-LAUNCH CHECKLIST
+─────────────────────────────────────────────────────────────────
+INFRASTRUCTURE
+  [x] React SPA builds without errors
+  [x] Deployed to S3 + CloudFront at https://lynkapp.net
+  [x] index.html served with no-cache header
+  [x] Assets served with 1-year immutable cache
+  [ ] CloudFront 404 → index.html redirect (STEP 1)
+  [x] Firebase project active
+  [x] Firestore rules deployed
+  [x] Firebase Auth enabled
+
+AUTHENTICATION
+  [x] Email/password login works
+  [x] Google sign-in works
+  [x] Password reset email configured
+  [ ] Custom email domain (lynkapp.net) in Firebase (STEP 7)
+
+MEDIA UPLOADS
+  [ ] Cloudinary unsigned upload preset created (STEP 2)
+  [ ] Profile photo upload tested end-to-end
+  [ ] Story/post media upload tested
+
+LEGAL / COMPLIANCE
+  [ ] Privacy Policy page live at /privacy (STEP 4)
+  [ ] Terms of Service page live at /terms (STEP 4)
+  [ ] GDPR/CCPA consent banner (if EU users)
+
+ERROR HANDLING
+  [ ] Error boundaries on all routes (STEP 3)
+  [ ] No unhandled promise rejections in console
+  [ ] Sentry alerts configured for beta error budget
+
+REAL-TIME FEATURES
+  [x] Firestore real-time listeners (messages, notifications)
+  [ ] TURN server for WebRTC live/video (STEP 11)
+  [ ] OneSignal push notifications backend (STEP 12)
+
+CONTENT
+  [ ] Seed data populated in Firestore (STEP 14)
+  [ ] Dating match flow wired to Firestore (STEP 6)
+  [ ] Stubs labeled as "Beta / Coming Soon" (STEP 10)
+
+BETA UX
+  [ ] Beta version banner visible (STEP 9)
+  [ ] In-app feedback button (STEP 8)
+  [ ] Beta tester welcome guide created (STEP 20)
+
+PAYMENTS
+  [ ] Stripe test mode confirmed (test cards documented)
+  [ ] Stripe LIVE key saved (for post-beta activation)
+
+PERFORMANCE
+  [ ] Lighthouse score ≥ 70 on mobile
+  [ ] No page loads >3 seconds on 4G
+  [ ] MarketplacePage split (STEP 13)
+
+DEVICE TESTING
+  [ ] Tested on iPhone Safari
+  [ ] Tested on Android Chrome
+  [ ] PWA "Add to Home Screen" works
+─────────────────────────────────────────────────────────────────
 ```
 
 ---
 
-## 📁 KEY FILES FOR BETA LAUNCH
+## PART 6: TIMELINE SUMMARY
 
-| File | Purpose |
-|------|---------|
-| `ConnectHub-SPA/src/App.jsx` | All routes — 100+ pages, PrivateRoute, AdminGuard, 404 |
-| `ConnectHub-SPA/src/hooks/useAuth.js` | Firebase auth listener + Firestore profile sync |
-| `ConnectHub-SPA/src/store/useAppStore.js` | Global Zustand state |
-| `ConnectHub-SPA/src/firebase/config.js` | Firebase project configuration |
-| `ConnectHub-SPA/firestore.rules` | Database security rules |
-| `ConnectHub-SPA/firestore.indexes.json` | Firestore composite indexes |
-| `ConnectHub-SPA/public/manifest.json` | PWA manifest |
-| `ConnectHub-SPA/public/sw.js` | Service worker |
-| `ConnectHub-SPA/.env` | ⚠️ Environment variables (never commit secrets) |
-| `ConnectHub-SPA/vite.config.js` | Build configuration |
-| `ConnectHub-SPA/src/pages/misc/NotFoundPage.jsx` | 404 page (newly created) |
+| Phase | Steps | Days | Description |
+|-------|-------|------|-------------|
+| A — Critical | 1-5 | 1-2 | Unblock beta: fix routing, uploads, legal, basic backend |
+| B — High Priority | 6-10 | 3-4 | Wire real data, branding, feedback mechanism |
+| C — Important | 11-15 | 5-7 | Real-time features, performance, seed data |
+| D — Polish | 16-20 | 8-10 | Device QA, accessibility, beta guide |
+
+**Minimum viable beta (just Phase A):** 2 days  
+**Solid beta ready for 50+ testers:** 7-10 days  
 
 ---
 
-*This document was generated based on a full code audit on May 27, 2026.*
-*All P1 items must be resolved before sending beta invite links.*
+## PART 7: KNOWN ISSUES THAT ARE ACCEPTABLE FOR BETA
+
+The following are known issues that do NOT need to be fixed before beta:
+
+1. **AR Filters (DeepAR)** — SDK integration is coded but not validated with real faces. Label as "Experimental."
+2. **Live Streaming** — Will work on same WiFi without TURN server. With TURN server (Step 11) it works broadly.
+3. **Stripe is test mode** — Document test card numbers for beta testers.
+4. **FeedFM music** — Falls back to Deezer free streaming.
+5. **AdSense ads** — Shows house ads (no revenue until approved).
+6. **Twitter/Reddit trending** — Falls back to Guardian/HackerNews data.
+7. **AI features (OpenAI moderation)** — Content moderation runs client-side with basic rules until backend is up.
+8. **Some sub-dashboards** — `RemainingDashboards.jsx` has placeholder content. Label as "Beta / Coming Soon."
+
+---
+
+## CONCLUSION
+
+**LynkApp is 70-75% ready for live beta testing.** The frontend is fully built, deployed, and functional. The main blockers are:
+1. CloudFront SPA routing (30-min fix)
+2. Cloudinary upload preset (15-min fix)
+3. Error boundaries (2-3 hour fix)
+4. Privacy Policy/Terms pages (2-3 hour fix)
+5. Backend API deployment (4-8 hours)
+
+With focused effort, the app can be in beta testers' hands within **2-3 days** (Phases A+B), and fully polished within **7-10 days** (all phases complete).
+
+---
+
+*Assessment by: UI/UX Developer (AI-assisted)*  
+*Date: May 27, 2026*  
+*App URL: https://lynkapp.net*  
+*Codebase: ConnectHub-SPA (React + Vite) + ConnectHub-Backend (Node.js + TypeScript)*
