@@ -6,13 +6,15 @@
 // UX-15 FIX: Added Toast renderer component
 // POLISH-08 FIX: Music player progress bar now animates
 
+// VERIFY-FIX (May 27 2026): Redirect unverified email users to /verify-email
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import TopNav    from './TopNav';
 import SideNav   from './BottomNav';
 import AdUnit    from '@components/ads/AdUnit';
 import adService from '@services/ad-service';
 import useAppStore from '@store/useAppStore';
+import { useAuth } from '@hooks/useAuth';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 
@@ -387,6 +389,14 @@ function LiveNowBanner({ stream, onClose, onClick }) {
 export default function AppShell() {
   const { pathname }    = useLocation();
   const navigate        = useNavigate();
+
+  // VERIFY-FIX: Gate — unverified email users must verify before accessing the app
+  // isAnonymous guard prevents guest/social sign-ins from being blocked
+  const { user: firebaseUser } = useAuth();
+  if (firebaseUser && !firebaseUser.emailVerified && !firebaseUser.isAnonymous) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
   const [showMiniPlayer,   setShowMiniPlayer]   = useState(true);
   const [showFullPlayer,   setShowFullPlayer]   = useState(false);
   const [showInterstitial, setShowInterstitial] = useState(false);

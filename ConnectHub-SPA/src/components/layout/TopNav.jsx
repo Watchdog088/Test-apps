@@ -4,6 +4,7 @@
 // POLISH-17 FIX: Search icon active state (accent color when on /search)
 // UX-14 FIX: Removed duplicate ☰ button from TopNav — it stays in SideNav only
 // POLISH-11 FIX: Avatar touch target 44×44px
+// BACK-BTN FIX (May 27 2026): Show ← back button on nested sub-routes (depth > 1)
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -54,6 +55,14 @@ const PAGE_TITLES = {
   '/trending':      '🔥 Trending',
 };
 
+// Top-level routes that should NOT show a back button (they have bottom-nav tabs)
+const TOP_LEVEL_ROUTES = new Set([
+  '/feed','/','/stories','/live','/groups','/messages','/notifications',
+  '/profile','/friends','/dating','/events','/gaming','/marketplace',
+  '/media','/music','/videocalls','/arvr','/saved','/search','/settings',
+  '/business','/creator','/help','/menu','/premium','/trending',
+]);
+
 export default function TopNav() {
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -61,14 +70,19 @@ export default function TopNav() {
   const { unreadNotifications, setCreatePostOpen } = useAppStore();
 
   const path = location.pathname;
-  const isFeed   = path === '/feed' || path === '/';
-  const isSearch = path.startsWith('/search');
+  const isFeed    = path === '/feed' || path === '/';
+  const isSearch  = path.startsWith('/search');
+
+  // BACK-BTN FIX: Show back button on any route deeper than 1 segment
+  // e.g. /settings/privacy, /live/setup, /groups/abc123, /post/123/comments
+  const segments = path.split('/').filter(Boolean); // ['settings','privacy']
+  const isNested = segments.length > 1 && !TOP_LEVEL_ROUTES.has(path);
 
   async function handleSignOut() {
     try { await signOut(auth); navigate('/login', { replace: true }); } catch {}
   }
 
-  const pageTitle = PAGE_TITLES[path] || PAGE_TITLES[`/${path.split('/')[1]}`] || 'LynkApp';
+  const pageTitle = PAGE_TITLES[path] || PAGE_TITLES[`/${segments[0]}`] || '← Back';
 
   return (
     <header style={{
@@ -79,9 +93,22 @@ export default function TopNav() {
       display:'flex', alignItems:'center', justifyContent:'space-between',
       padding:'0 16px',
     }}>
-      {/* Left: Logo on Feed, page title elsewhere */}
-      {/* UX-13 FIX: Personalised greeting on Feed showing user's first name */}
+      {/* Left: Back button on nested pages, Logo on Feed, title elsewhere */}
       <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+        {/* BACK-BTN FIX: ← back button on sub-pages */}
+        {isNested && (
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+            style={{
+              minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+              background:'transparent', border:'none',
+              color:'#94a3b8', fontSize:22, fontWeight:700,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              cursor:'pointer', flexShrink:0, marginLeft:-8,
+            }}
+          >←</button>
+        )}
         {isFeed ? (
           <div style={{ display:'flex', flexDirection:'column', gap:1 }}>
             <LynkLogo />

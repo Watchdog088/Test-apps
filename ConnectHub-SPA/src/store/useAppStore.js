@@ -2,35 +2,20 @@
 // Replaces the scattered global variables from the monolith
 // BUG-13 FIX (May 12 2026): showToast now accepts type param (success/warning/info/error)
 // DATING FIX (May 12 2026): Added datingState + setDatingState for cross-section dating data
+// LIVE-FIX (May 27 2026): Removed hardcoded demo user — user starts as undefined so Firebase
+//   auth resolves before PrivateRoute evaluates. demoMode now starts false.
+// AUDIO-FIX (May 27 2026): Added currentTrack + isPlaying for global music player state.
 
 import { create } from 'zustand';
 
 const useAppStore = create((set, get) => ({
   // ── Auth ──────────────────────────────────────────────────
-  // DEMO MODE: Pre-populated so the app renders without Firebase credentials.
-  // Change demoMode to false and clear user/userProfile when real Firebase is configured.
-  user: {
-    uid: 'demo-user-001',
-    email: 'demo@connecthub.app',
-    displayName: 'Demo User',
-    photoURL: null,
-  },
-  userProfile: {
-    uid: 'demo-user-001',
-    displayName: 'Demo User',
-    email: 'demo@connecthub.app',
-    photoURL: null,
-    bio: 'Welcome to ConnectHub demo!',
-    postsCount: 12,
-    followersCount: 248,
-    followingCount: 93,
-    following: [],
-    followers: [],
-    interests: ['tech', 'music', 'gaming'],
-    isVerified: true,
-    onboardingComplete: true,
-  },
-  demoMode: true,
+  // LIVE MODE: user starts as `undefined` so loading=true while Firebase resolves.
+  // Once onAuthStateChanged fires: real user object OR null (redirects to /login).
+  // demoMode is false — real Firebase auth always runs.
+  user: undefined,
+  userProfile: null,
+  demoMode: false,
   setUser: (user) => set({ user }),
   setUserProfile: (profile) => set({ userProfile: profile }),
   setDemoMode: (v) => set({ demoMode: v }),
@@ -105,6 +90,15 @@ const useAppStore = create((set, get) => ({
   incrementDatingMatches: () => set((s) => ({
     datingState: { ...s.datingState, matchCount: s.datingState.matchCount + 1 }
   })),
+
+  // ── Global Music Player (Step 7.1 — Audio state) ──────────
+  // currentTrack: { url, title, artist, artwork } or null
+  // isPlaying: drives AudioRef in AppShell
+  currentTrack: null,
+  isPlaying: false,
+  setCurrentTrack: (track) => set({ currentTrack: track, isPlaying: !!track }),
+  setIsPlaying: (v) => set({ isPlaying: v }),
+  stopAudio: () => set({ currentTrack: null, isPlaying: false }),
 }));
 
 export default useAppStore;
