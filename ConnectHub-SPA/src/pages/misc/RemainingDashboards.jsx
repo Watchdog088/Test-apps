@@ -316,7 +316,7 @@ export function MyEventsPage() {
         ))}
       </div>
       {events[tab].map(e => (
-        <div key={e.title} onClick={() => nav('/events/1')} style={S.card} style={{ ...S.card, cursor: 'pointer', margin: '10px 16px' }}>
+        <div key={e.title} onClick={() => nav('/events/1')} style={{ ...S.card, cursor: 'pointer', margin: '10px 16px' }}>
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{e.title}</div>
           <div style={{ fontSize: 13, color: '#64748b' }}>📅 {e.date}</div>
           <div style={{ fontSize: 13, color: '#64748b' }}>📍 {e.loc}</div>

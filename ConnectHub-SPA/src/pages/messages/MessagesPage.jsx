@@ -21,7 +21,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../hooks/useAuth';
-import { giphyService } from '../../services/giphy-service';
+import giphyService from '../../services/giphy-service';
 
 // ─── Static seed data (fallback when Firestore is unavailable) ───────────────
 const ONLINE_FRIENDS = [

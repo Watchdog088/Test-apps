@@ -1340,7 +1340,7 @@ function DatingPageInner({ navigate, showToast, userProfile, setDatingState, inc
             onClick={activateBoost}
             aria-label={boostSecsLeft > 0 ? `Boost active: ${fmtTime(boostSecsLeft)} remaining` : 'Activate Boost'}
             style={{
-              padding:'6px 12px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:700,
+              padding:'6px 12px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:700,
               background: boostSecsLeft > 0
                 ? 'linear-gradient(135deg,#f59e0b,#ef4444)'
                 : 'rgba(245,158,11,0.15)',

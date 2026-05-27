@@ -91,7 +91,6 @@ export default function MapViewModal({ open, onClose, products, onSelectItem }) 
                 position: 'absolute',
                 bottom: '-22px',
                 left: '50%',
-                transform: 'translateX(-50%) rotate(45deg)',
                 background: '#0f172a',
                 border: '1px solid ' + (isSelected ? '#10b981' : '#6366f1'),
                 borderRadius: '6px',
