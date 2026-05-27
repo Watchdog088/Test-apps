@@ -11,6 +11,8 @@ import SplashScreen from './components/common/SplashScreen';
 import { useAuth } from './hooks/useAuth';
 // Sprint 20/21: AdminGuard + BoostListingModal — Firestore isAdmin role guard
 import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
+// 404 page — replaces wildcard Navigate redirect
+import NotFoundPage from './pages/misc/NotFoundPage';
 
 // Auth Pages — Section 1 full implementation
 import LoginPage           from './pages/auth/LoginPage';
@@ -496,7 +498,7 @@ export default function App() {
             <Route path="settings/notifications/quiet-hours" element={<NotificationQuietHoursPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/feed" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
