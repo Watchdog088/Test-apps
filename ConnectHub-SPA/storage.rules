@@ -1,0 +1,68 @@
+// storage.rules — LynkApp / ConnectHub
+// Authenticated users may read/write files in their own uid folder only.
+// Marketplace listings, story media, profile photos, and chat attachments
+// each use a per-uid path so this single rule covers all upload types.
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── User profile photos & banners ─────────────────────────────────────
+    match /users/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024  // 10 MB max
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ── Story media (images + short videos) ───────────────────────────────
+    match /stories/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.size < 50 * 1024 * 1024  // 50 MB max
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType.matches('video/.*'));
+    }
+
+    // ── Marketplace listing photos ─────────────────────────────────────────
+    match /marketplace/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.size < 15 * 1024 * 1024  // 15 MB max
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ── Chat / message attachments ─────────────────────────────────────────
+    match /messages/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.size < 25 * 1024 * 1024;  // 25 MB max
+    }
+
+    // ── Live stream thumbnails ─────────────────────────────────────────────
+    match /streams/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024   // 5 MB max
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ── KYC documents (seller verification) — write once, admin reads ─────
+    match /kyc/{uid}/{allPaths=**} {
+      allow read:  if request.auth != null && (
+                     request.auth.uid == uid ||
+                     request.auth.token.admin == true
+                   );
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.size < 10 * 1024 * 1024
+                    && (request.resource.contentType.matches('image/.*')
+                        || request.resource.contentType == 'application/pdf');
+      allow update, delete: if request.auth.token.admin == true;
+    }
+
+    // ── Default deny everything else ──────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
