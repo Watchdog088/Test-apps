@@ -8,7 +8,7 @@
 // ✅ FIX-06: Biometric login stub (Face ID / Touch ID)
 // ✅ FIX-07: Password strength indicator on signup
 // ✅ FIX-08: Send email verification after signup
-// ✅ FIX-09: Demo login persists across refresh via sessionStorage
+// ✅ FIX-09: Demo login removed for production — all auth via Firebase
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -31,26 +31,6 @@ import {
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@fb/config';
 import useAppStore from '@store/useAppStore';
-
-/* ─── Demo user data ─────────────────────────────────────────────── */
-const DEMO_USER = {
-  uid: 'demo-user-001',
-  email: 'demo@lynkapp.com',
-  displayName: 'Demo User',
-  photoURL: null,
-  emailVerified: true,
-};
-const DEMO_PROFILE = {
-  uid: 'demo-user-001',
-  displayName: 'Demo User',
-  email: 'demo@lynkapp.com',
-  photoURL: null,
-  bio: '👋 Exploring LynkApp — demo account',
-  postsCount: 12,
-  followersCount: 248,
-  followingCount: 64,
-  isVerified: false,
-};
 
 /* ─── Password strength helper ────────────────────────────────────── */
 function getPasswordStrength(pw) {
@@ -104,15 +84,9 @@ export default function LoginPage() {
 
   const pwStrength = mode === 'signup' ? getPasswordStrength(password) : null;
 
-  /* ── FIX-09: Restore demo session across refresh ─────────────────── */
+  /* ── Clear any stale demo session on mount (production cleanup) ── */
   useEffect(() => {
-    const stored = sessionStorage.getItem('lynk_demo_mode');
-    if (stored === '1') {
-      setDemoMode(true);
-      setUser(DEMO_USER);
-      setUserProfile(DEMO_PROFILE);
-      navigate('/feed', { replace: true });
-    }
+    sessionStorage.removeItem('lynk_demo_mode');
   }, []);
 
   /* ── FIX-04: apply Firebase persistence based on Remember Me ────── */
@@ -292,14 +266,6 @@ export default function LoginPage() {
     }
   }
 
-  /* ── FIX-09: Demo login ─────────────────────────────────────────── */
-  function handleDemoLogin() {
-    sessionStorage.setItem('lynk_demo_mode', '1');
-    setDemoMode(true);
-    setUser(DEMO_USER);
-    setUserProfile(DEMO_PROFILE);
-    navigate('/feed', { replace: true });
-  }
 
   /* ── Biometric stub ─────────────────────────────────────────────── */
   function handleBiometric() {
@@ -547,14 +513,6 @@ export default function LoginPage() {
               <span>🔒</span> Face ID / Touch ID
             </button>
 
-            {/* ── Demo Login ── */}
-            <button onClick={handleDemoLogin} disabled={loading}
-              style={{ width: '100%', padding: '12px', borderRadius: '12px',
-                border: '1px dashed rgba(99,102,241,0.5)', background: 'rgba(99,102,241,0.08)',
-                color: '#a5b4fc', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span>🚀</span> Demo Login (No account needed)
-            </button>
           </>
         )}
       </div>

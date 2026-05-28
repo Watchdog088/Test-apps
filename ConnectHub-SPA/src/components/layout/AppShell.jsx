@@ -19,7 +19,8 @@ import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/f
 import { db, auth } from '@/firebase/config';
 
 const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
-const DEMO_TRACK = { title: 'Blinding Lights', artist: 'The Weeknd', emoji: '🎵' };
+// Music mini-player only shows when a real track is selected by the user
+const DEMO_TRACK = null; // No hardcoded song — populated via Deezer/store
 
 // ── UX-15 FIX: Toast renderer ────────────────────────────────────────────────
 // BUG-11 FIX: Moved to top:72px so it never overlaps bottom nav or action buttons
@@ -537,13 +538,13 @@ export default function AppShell() {
       {/* ── Side Navigation ── */}
       {!hideChrome && <SideNav />}
 
-      {/* ── Persistent Mini Music Player (Rec #15) ── */}
-      {!hideChrome && showMiniPlayer && (
+      {/* ── Persistent Mini Music Player — only shown when a real track is playing ── */}
+      {!hideChrome && showMiniPlayer && DEMO_TRACK && (
         <MiniPlayer track={DEMO_TRACK} onExpand={() => setShowFullPlayer(true)} />
       )}
 
       {/* ── Full Music Player Modal ── */}
-      {showFullPlayer && (
+      {showFullPlayer && DEMO_TRACK && (
         <FullMusicPlayer track={DEMO_TRACK} onClose={() => setShowFullPlayer(false)} />
       )}
 
