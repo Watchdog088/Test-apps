@@ -5,8 +5,10 @@
 // UX-14 FIX: Removed duplicate ☰ button from TopNav — it stays in SideNav only
 // POLISH-11 FIX: Avatar touch target 44×44px
 // BACK-BTN FIX (May 27 2026): Show ← back button on nested sub-routes (depth > 1)
+// BETA-FEEDBACK (May 28 2026): Wire BetaFeedbackModal into TopNav via 🧪 Feedback button
 
-import React from 'react';
+import React, { useState, lazy, Suspense } from 'react';
+const BetaFeedbackModal = lazy(() => import('@components/common/BetaFeedbackModal'));
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '@fb/config';
@@ -68,6 +70,7 @@ export default function TopNav() {
   const location  = useLocation();
   const { user }  = useAuth();
   const { unreadNotifications, setCreatePostOpen } = useAppStore();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const path = location.pathname;
   const isFeed    = path === '/feed' || path === '/';
@@ -178,6 +181,24 @@ export default function TopNav() {
             </span>
           )}
         </button>
+
+        {/* 🧪 Beta Feedback — BETA-FEEDBACK (May 28 2026) */}
+        <button
+          onClick={() => setFeedbackOpen(true)}
+          aria-label="Send beta feedback"
+          style={{
+            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+            background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)',
+            color:'#10b981', fontSize:14, fontWeight:700,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          }}>
+          🧪 Feedback
+        </button>
+        {feedbackOpen && (
+          <Suspense fallback={null}>
+            <BetaFeedbackModal onClose={() => setFeedbackOpen(false)} />
+          </Suspense>
+        )}
 
         {/* Avatar — POLISH-11 FIX: 44×44px */}
         <button
