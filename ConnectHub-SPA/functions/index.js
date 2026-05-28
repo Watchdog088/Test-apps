@@ -668,6 +668,33 @@ exports.notifyStoryReaction = functions.firestore
     return null;
   });
 
+// ── Dating: Detect mutual swipe (match) ──────────────────────────────────
+exports.onSwipeCreate = functions.firestore
+  .document('dating_swipes/{swipeId}')
+  .onCreate(async (snap, context) => {
+    const { fromUid, toUid, direction } = snap.data();
+    if (direction !== 'right') return null;
+    // Check if toUid already swiped right on fromUid
+    const reverseSnap = await admin.firestore()
+      .collection('dating_swipes')
+      .where('fromUid', '==', toUid)
+      .where('toUid',   '==', fromUid)
+      .where('direction','==','right')
+      .limit(1)
+      .get();
+    if (reverseSnap.empty) return null;
+    // It's a match! Create match document + send notifications to both users
+    const matchId = [fromUid, toUid].sort().join('_');
+    await admin.firestore().collection('dating_matches').doc(matchId).set({
+      users: [fromUid, toUid],
+      matchedAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: 'active',
+    });
+    // Send push notifications via OneSignal (optional - requires OneSignal Admin API)
+    console.log(`Match created: ${matchId}`);
+    return null;
+  });
+
 // ── cleanupEndedStreams: hide ended streams older than 24h ─────────
 exports.cleanupEndedStreams = functions.pubsub
   .schedule('every 1 hours').onRun(async () => {

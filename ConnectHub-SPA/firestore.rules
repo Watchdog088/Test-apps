@@ -221,6 +221,25 @@ service cloud.firestore {
       allow update: if isAuth() && (resource.data.hostId == request.auth.uid || isAdmin());
     }
 
+    // dating_swipes — written by client, read by Cloud Function & owner
+    match /dating_swipes/{swipeId} {
+      allow read: if isAuth() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid   == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.fromUid == request.auth.uid
+        && notBlocked(request.resource.data.toUid);
+      allow delete: if isAuth() && resource.data.fromUid == request.auth.uid;
+    }
+
+    // dating_matches — created by onSwipeCreate Cloud Function (admin SDK bypasses rules)
+    match /dating_matches/{matchId} {
+      allow read:   if isAuth() && request.auth.uid in resource.data.users;
+      allow create: if isAdmin(); // Cloud Function only
+      allow update: if isAuth() && request.auth.uid in resource.data.users;
+      allow delete: if isAdmin();
+    }
+
 
     // ══════════════════════════════════════════════════════════════════════════
     // SECTION 6 — MESSAGES
@@ -573,6 +592,19 @@ service cloud.firestore {
     match /hashtags/{tag} {
       allow read: if isAuth();
       allow write: if isAdmin();
+    }
+
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // BETA FEEDBACK
+    // ══════════════════════════════════════════════════════════════════════════
+
+    match /betaFeedback/{docId} {
+      // Any signed-in user can submit feedback
+      allow create: if request.auth != null;
+      // Only admins can read feedback
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
 
