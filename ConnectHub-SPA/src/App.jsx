@@ -261,10 +261,19 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// ONBOARDING-GATE FIX: PrivateRoute now also redirects new users to /onboarding
+// if their profile has onboardingComplete === false (set by useAuth on first login)
+import useAppStore from './store/useAppStore';
+
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
+  const userProfile = useAppStore((s) => s.userProfile);
   if (loading) return <SplashScreen />;
   if (!user) return <Navigate to="/login" replace />;
+  // Redirect new users to onboarding if not yet complete
+  if (userProfile !== null && userProfile !== undefined && userProfile.onboardingComplete === false) {
+    return <Navigate to="/onboarding" replace />;
+  }
   return children;
 }
 

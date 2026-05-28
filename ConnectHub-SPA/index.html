@@ -17,12 +17,8 @@
          Required for Stripe Elements (card field) used in MarketplacePage checkout flow.
          Must be loaded before the React app so window.Stripe is available on mount. -->
     <script src="https://js.stripe.com/v3/" async></script>
-    <style>
-      * { margin:0; padding:0; box-sizing:border-box; }
-      html, body, #root { height:100%; }
-      body { background:#0a0a18; color:#f1f5f9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    <!-- Base reset extracted to /base.css to fix Vite 5 html-inline-proxy @keyframes build error -->
+    <link rel="stylesheet" href="/base.css" />
   </head>
   <body>
     <div id="root"></div>
