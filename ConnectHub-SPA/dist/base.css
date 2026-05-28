@@ -1,9 +1,0 @@
-/* LynkApp base reset — extracted from index.html to fix Vite 5 html-inline-proxy build error */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body, #root { height: 100%; }
-body {
-  background: #0a0a18;
-  color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,7 +1,25 @@
 node_modules
+
+# ── NEVER commit any .env files ───────────────────────────────────────────────
+# API keys, Firebase credentials, secrets — local only
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+
+# Allow only .env.example template files (no real values)
+!.env.example
+!**/.env.example
+
+# Specific known env files — explicitly blocked
 ConnectHub-Frontend/.env
 ConnectHub-Backend/.env
-*.env
-!.env.example
-!.env.production
-backend-deploy.zip  
+ConnectHub-SPA/.env
+ConnectHub-SPA/.env.production
+ConnectHub-SPA/.env.local
+ConnectHub-SPA/.env.staging
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+backend-deploy.zip
