@@ -1,25 +1,29 @@
 // livestream-webrtc.js
 // TECH-3: WebRTC track replacement (camera/quality switching mid-stream)
 // TECH-5: TURN server configuration for production WebRTC
-//         Supports both hardcoded credentials AND dynamic TURN token fetch
+//         Uses Metered.ca TURN (lynkapp.metered.live) — configured May 28, 2026
+//         Primary:  dynamic credentials fetched via Metered REST API
+//         Fallback: static credentials from VITE_TURN_USERNAME / VITE_TURN_PASSWORD
 // MOB-5: WiFi→cellular reconnect detection via iceConnectionState
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TURN server config
-// Set VITE_TURN_URL / VITE_TURN_USERNAME / VITE_TURN_CREDENTIAL in .env
-// OR call LivestreamWebRTC.fetchTurnCredentials() for dynamic tokens (Metered/Twilio)
+// Metered TURN credentials (static fallback — read from .env.production)
 // ─────────────────────────────────────────────────────────────────────────────
+const _TURN_USER = import.meta.env.VITE_TURN_USERNAME || '';
+const _TURN_PASS = import.meta.env.VITE_TURN_PASSWORD || '';
 
 const DEFAULT_ICE_SERVERS = [
-  // Free STUN servers (Google)
+  // STUN servers
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  // TECH-5: Production TURN servers (reads from env)
-  ...(import.meta.env.VITE_TURN_URL ? [{
-    urls: import.meta.env.VITE_TURN_URL,
-    username: import.meta.env.VITE_TURN_USERNAME || '',
-    credential: import.meta.env.VITE_TURN_CREDENTIAL || '',
-  }] : []),
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  // Metered TURN servers (static fallback — all 4 ports/protocols)
+  ...(_TURN_USER ? [
+    { urls: 'turn:global.relay.metered.ca:80',                    username: _TURN_USER, credential: _TURN_PASS },
+    { urls: 'turn:global.relay.metered.ca:80?transport=tcp',      username: _TURN_USER, credential: _TURN_PASS },
+    { urls: 'turn:global.relay.metered.ca:443',                   username: _TURN_USER, credential: _TURN_PASS },
+    { urls: 'turns:global.relay.metered.ca:443?transport=tcp',    username: _TURN_USER, credential: _TURN_PASS },
+  ] : []),
 ];
 
 /**
