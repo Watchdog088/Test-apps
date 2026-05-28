@@ -69,37 +69,7 @@ function engagementScore(post) {
 function isGif(url)   { if (!url) return false; return url.toLowerCase().includes('.gif') || url.toLowerCase().includes('giphy.com'); }
 function isVideo(url) { if (!url) return false; return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || url.includes('video'); }
 
-const UNSPLASH = [
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
-  'https://images.unsplash.com/photo-1524236218286-f99f70e2c4c7?w=600',
-  'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600',
-  'https://images.unsplash.com/photo-1518655048521-f130df041f66?w=600',
-  'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=600',
-];
-
-const DEMO_POSTS = [
-  { id:'dp1', authorName:'Jordan Maxwell', authorEmoji:'🎵', authorUid:'u1', likes:248, comments:32, shares:12, content:'Just dropped my new track 🎵 Let me know what you think!', mediaUrl:UNSPLASH[0], type:'image', createdAt:{ toDate:()=>new Date(Date.now()-120000) } },
-  { id:'dp2', authorName:'Alex Chen', authorEmoji:'✈️', authorUid:'u2', likes:184, comments:21, shares:8, content:'Tokyo is absolutely breathtaking at night. Can\'t believe this view! 🗼', mediaUrl:UNSPLASH[1], type:'image', createdAt:{ toDate:()=>new Date(Date.now()-360000) } },
-  { id:'dp3', authorName:'Riley Johnson', authorEmoji:'💪', authorUid:'u3', likes:92, comments:14, shares:3, content:'Morning run complete 💪 5 miles before breakfast. Who else is out there grinding?', mediaUrl:null, type:'text', createdAt:{ toDate:()=>new Date(Date.now()-600000) } },
-  { id:'dp4', authorName:'Morgan Taylor', authorEmoji:'🎨', authorUid:'u4', likes:312, comments:45, shares:28, content:'Finished my latest piece. 40 hours of work, 10 gallons of coffee ☕', mediaUrl:UNSPLASH[2], type:'image', createdAt:{ toDate:()=>new Date(Date.now()-900000) } },
-  { id:'dp5', authorName:'Sam Rivera', authorEmoji:'🍕', authorUid:'u5', likes:156, comments:19, shares:6, content:'Homemade ramen from scratch tonight. The broth alone took 8 hours 🍜', mediaUrl:UNSPLASH[3], type:'image', createdAt:{ toDate:()=>new Date(Date.now()-1800000) } },
-  { id:'dp6', authorName:'Chris Park', authorEmoji:'📊', authorUid:'u6', likes:88, comments:33, shares:4, content:'What\'s your favorite programming language?', type:'poll', pollOptions:[{id:'a',text:'JavaScript',votes:142},{id:'b',text:'Python',votes:98},{id:'c',text:'TypeScript',votes:76},{id:'d',text:'Rust',votes:31}], pollTotalVotes:347, createdAt:{ toDate:()=>new Date(Date.now()-2400000) } },
-];
-
-const DEMO_STORIES = [
-  { id:'s1', name:'Jordan', emoji:'🎵', color:'#ec4899', seen:false, uid:'u1' },
-  { id:'s2', name:'Alex',   emoji:'✈️', color:'#6366f1', seen:true,  uid:'u2' },
-  { id:'s3', name:'Riley',  emoji:'💪', color:'#10b981', seen:false, uid:'u3' },
-  { id:'s4', name:'Morgan', emoji:'🎨', color:'#8b5cf6', seen:true,  uid:'u4' },
-  { id:'s5', name:'Sam',    emoji:'🍕', color:'#f59e0b', seen:false, uid:'u5' },
-];
-
-const DEMO_USERS = [
-  { uid:'su1', name:'Zara Ahmed', handle:'@zaradesigns', followersCount:12400, emoji:'🎨', bio:'Digital artist & creator' },
-  { uid:'su2', name:'Leo Santos', handle:'@leofitness', followersCount:8900,  emoji:'💪', bio:'Personal trainer & wellness coach' },
-  { uid:'su3', name:'Nina Patel', handle:'@ninacooks',  followersCount:23100, emoji:'🍜', bio:'Food photographer & recipe creator' },
-  { uid:'su4', name:'Max Turner', handle:'@maxtech',    followersCount:45700, emoji:'💻', bio:'Dev advocate & open source enthusiast' },
-];
+// Production: no hardcoded demo data — all content comes from Firestore
 
 const FILTERS = ['For You', 'Following', 'Friends', 'Trending', 'Live'];
 
@@ -295,12 +265,14 @@ function ReportModal({ post, user, onClose, showToast }) {
 // ─── REAL-02: Suggested Users Widget — real Firestore data ───────────────────
 function SuggestedUsersWidget({ navigate, showToast, realUsers }) {
   const [followed, setFollowed] = useState({});
-  const users = realUsers?.length > 0 ? realUsers : DEMO_USERS;
+  const users = realUsers || [];
 
   return (
     <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.15)', borderRadius:20, margin:'12px 16px', padding:'16px' }}>
       <div style={{ fontWeight:700, fontSize:15, color:'#f1f5f9', marginBottom:12 }}>👥 Suggested for you</div>
-      {users.slice(0, 4).map(u => (
+      {users.length === 0 ? (
+        <div style={{ textAlign:'center', color:'#64748b', fontSize:13, padding:'8px 0' }}>No suggestions yet</div>
+      ) : users.slice(0, 4).map(u => (
         <div key={u.uid} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
           <div onClick={()=>navigate(`/profile/${u.uid}`)} style={{ width:42, height:42, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, cursor:'pointer', flexShrink:0 }}>
             {u.emoji || u.displayName?.[0] || '?'}
@@ -482,10 +454,7 @@ function CommentSheet({ post, onClose, user }) {
   // REAL-03: Subscribe to posts/{id}/comments subcollection
   useEffect(() => {
     if (isDemo || !db) {
-      setComments([
-        { id:1, authorName:'Riley', authorEmoji:'💪', text:'Love this! 🔥', createdAt:{ toDate:()=>new Date(Date.now()-120000) } },
-        { id:2, authorName:'Alex',  authorEmoji:'✈️', text:'Amazing work!',  createdAt:{ toDate:()=>new Date(Date.now()-300000) } },
-      ]);
+      setComments([]);
       setLoading(false);
       return;
     }
@@ -682,8 +651,7 @@ export default function FeedPage() {
   // ── Initial Firestore load ─────────────────────────────────────────────────
   useEffect(() => {
     if (!db) {
-      setPosts(DEMO_POSTS);
-      currentIdsRef.current = new Set(DEMO_POSTS.map(p=>p.id));
+      setPosts([]);
       setLoading(false);
       setHasMore(false);
       return;
@@ -692,8 +660,7 @@ export default function FeedPage() {
     const q = query(collection(db,'posts'), orderBy('createdAt','desc'), limit(PAGE_SIZE));
     const unsub = onSnapshot(q, snap => {
       if (snap.empty) {
-        setPosts(DEMO_POSTS);
-        currentIdsRef.current = new Set(DEMO_POSTS.map(p=>p.id));
+        setPosts([]);
         setHasMore(false);
       } else {
         const freshPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -709,8 +676,7 @@ export default function FeedPage() {
       setLoading(false);
       setLoadError(null);
     }, err => {
-      setPosts(DEMO_POSTS);
-      currentIdsRef.current = new Set(DEMO_POSTS.map(p=>p.id));
+      setPosts([]);
       setHasMore(false);
       setLoading(false);
       setLoadError(err.message);
@@ -823,7 +789,7 @@ export default function FeedPage() {
   const feedItems = buildFeedItems(filteredPosts);
 
   // ── Stories to display ────────────────────────────────────────────────────
-  const displayStories = realStories.length > 0 ? realStories : DEMO_STORIES;
+  const displayStories = realStories;
 
   return (
     <div ref={feedRef} onScroll={onScroll} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
