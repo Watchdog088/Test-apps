@@ -14,6 +14,10 @@ import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 // 404 page — replaces wildcard Navigate redirect
 import NotFoundPage from './pages/misc/NotFoundPage';
 
+// ── LEGAL: Terms of Service & Privacy Policy (May 2026)
+const TermsPage   = lazy(() => import('./pages/legal/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
+
 // Auth Pages — Section 1 full implementation
 import LoginPage           from './pages/auth/LoginPage';
 import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
@@ -293,6 +297,10 @@ export default function App() {
 
           {/* Onboarding — public but only reachable after sign-up */}
           <Route path="/onboarding" element={<OnboardingPage />} />
+
+          {/* ── LEGAL: Public routes — no auth required (May 2026) */}
+          <Route path="/terms"   element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Protected */}
           <Route path="/" element={<PrivateRoute><AppShell /></PrivateRoute>}>
