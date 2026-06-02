@@ -2,8 +2,9 @@
 // BUG-02 (FULL FIX): Loads followingIds + friendIds from Firestore on login
 // BUG-09 (FULL FIX): Real-time Firestore listeners for unreadMessages + unreadNotifications
 // BLOCKER-1 FIX: Removed demoMode guard — auth always runs and sets demoMode=false on real login
+// TIMEOUT-FIX: Added 5-second timeout so app never stays stuck on splash screen
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, query, where,
@@ -20,11 +21,27 @@ export function useAuth() {
     setDemoMode,
   } = useAppStore();
 
+  // Use explicit loading state with timeout fallback
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    // TIMEOUT-FIX: If Firebase doesn't respond in 5s, treat as unauthenticated
+    const timeoutId = setTimeout(() => {
+      console.warn('[useAuth] Firebase auth timeout — treating as unauthenticated');
+      const currentUser = useAppStore.getState().user;
+      if (currentUser === undefined) {
+        setUser(null);
+      }
+      setLoading(false);
+    }, 5000);
+
     // BLOCKER-1 FIX: Always run onAuthStateChanged — never skip based on demoMode
     const unsubs = [];
 
     const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Cancel timeout since we got a response
+      clearTimeout(timeoutId);
+
       // Clean up previous listeners
       unsubs.forEach(fn => fn());
       unsubs.length = 0;
@@ -36,6 +53,7 @@ export function useAuth() {
         setFriendIds([]);
         setUnreadMessages(0);
         setUnreadNotifications(0);
+        setLoading(false);
         return;
       }
 
@@ -139,9 +157,13 @@ export function useAuth() {
       } catch (err) {
         console.warn('[useAuth] Notifications subscription error:', err);
       }
+
+      // Done loading
+      setLoading(false);
     });
 
     return () => {
+      clearTimeout(timeoutId);
       unsubAuth();
       unsubs.forEach(fn => fn());
     };
@@ -149,7 +171,7 @@ export function useAuth() {
 
   return {
     user,
-    loading: user === undefined,
+    loading,
   };
 }
 
