@@ -9,8 +9,9 @@ import './styles/global.css';
 // ─── Sentry Error Tracking ────────────────────────────────────────────────────
 // Project: lynkapp-frontend
 // Dashboard: https://sentry.io/organizations/lynkapp/projects/lynkapp-frontend/
+// DSN is stored in .env as VITE_SENTRY_DSN — never hardcode it here
 Sentry.init({
-  dsn: 'https://56aef8380f12ebb5e5340d45a1935fd9@o4511411845726208.ingest.us.sentry.io/4511411877445632',
+  dsn: import.meta.env.VITE_SENTRY_DSN,
   sendDefaultPii: true,
   integrations: [
     Sentry.browserTracingIntegration(),
