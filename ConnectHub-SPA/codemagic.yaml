@@ -1,0 +1,100 @@
+workflows:
+  ios-app-store:
+    name: LynkApp iOS App Store
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: net.lynkapp.app
+      vars:
+        BUNDLE_ID: net.lynkapp.app
+        APP_STORE_APP_ID: "REPLACE_WITH_YOUR_APP_ID_FROM_APP_STORE_CONNECT"
+      node: latest
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+
+      - name: Install Capacitor iOS
+        script: |
+          npm install @capacitor/core @capacitor/cli @capacitor/ios
+
+      - name: Build web app
+        script: |
+          npm run build
+
+      - name: Initialize and sync Capacitor
+        script: |
+          npx cap init LynkApp net.lynkapp.app --web-dir dist || true
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install
+
+      - name: Build iOS IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App" \
+            --archive-flags="-destination 'generic/platform=iOS'"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        # Change submit_to_app_store to true when ready for full public release
+        submit_to_app_store: false
+
+  # Optional: Android Google Play workflow (for future use)
+  android-google-play:
+    name: LynkApp Android Google Play
+    max_build_duration: 60
+    instance_type: linux_x2
+
+    environment:
+      android_signing:
+        - keystore_reference
+      vars:
+        PACKAGE_NAME: net.lynkapp.app
+      node: latest
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+
+      - name: Install Capacitor Android
+        script: |
+          npm install @capacitor/android
+
+      - name: Build web app
+        script: |
+          npm run build
+
+      - name: Sync Capacitor Android
+        script: |
+          npx cap add android || true
+          npx cap sync android
+
+      - name: Build Android APK/AAB
+        script: |
+          cd android && ./gradlew bundleRelease
+
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
