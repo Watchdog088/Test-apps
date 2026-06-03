@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- IMPROVE-05: LynkApp PWA icons + theme -->
+    <link rel="icon" type="image/svg+xml" href="/lynk-icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a18" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LynkApp" />
+    <meta name="description" content="LynkApp — Connect, Create, and Explore" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>LynkApp</title>
+    <!-- Stripe.js — loaded from Stripe CDN so the secret key never touches the browser bundle.
+         Required for Stripe Elements (card field) used in MarketplacePage checkout flow.
+         Must be loaded before the React app so window.Stripe is available on mount. -->
+    <script src="https://js.stripe.com/v3/" async></script>
+    <!-- Base reset extracted to /base.css to fix Vite 5 html-inline-proxy @keyframes build error -->
+    <link rel="stylesheet" href="/base.css" />
+    <!-- Google AdSense verification snippet -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4537191429219090"
+         crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- Sprint 19: Register PWA service worker for offline marketplace caching -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => console.log('[SW] Registered, scope:', reg.scope))
+            .catch(err => console.warn('[SW] Registration failed:', err));
+        });
+      }
+    </script>
+  </body>
+</html>
