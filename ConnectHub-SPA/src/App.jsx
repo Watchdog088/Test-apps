@@ -18,6 +18,9 @@ import NotFoundPage from './pages/misc/NotFoundPage';
 const TermsPage   = lazy(() => import('./pages/legal/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
 
+// ── PUBLIC LANDING PAGE (AdSense-compliant, no auth required)
+import LandingPage from './pages/landing/LandingPage';
+
 // Auth Pages — Section 1 full implementation
 import LoginPage           from './pages/auth/LoginPage';
 import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
@@ -281,6 +284,15 @@ function PrivateRoute({ children }) {
   return children;
 }
 
+// SmartRoot: shows LandingPage for unauthenticated visitors (AdSense review),
+// redirects authenticated users directly to /feed.
+function SmartRoot() {
+  const { user, loading } = useAuth();
+  if (loading) return <SplashScreen />;
+  if (!user) return <LandingPage />;
+  return <Navigate to="/feed" replace />;
+}
+
 export default function App() {
   const { loading } = useAuth();
   if (loading) return <SplashScreen />;
@@ -289,6 +301,9 @@ export default function App() {
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* ── PUBLIC LANDING PAGE — no auth required, AdSense-compliant ── */}
+          <Route path="/" element={<SmartRoot />} />
+
           {/* Public auth routes — Section 1 */}
           <Route path="/login"            element={<LoginPage />} />
           <Route path="/verify-email"     element={<VerifyEmailPage />} />
@@ -302,9 +317,8 @@ export default function App() {
           <Route path="/terms"   element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
 
-          {/* Protected */}
-          <Route path="/" element={<PrivateRoute><AppShell /></PrivateRoute>}>
-            <Route index element={<Navigate to="/feed" replace />} />
+          {/* Protected app shell — pathless layout so sub-routes stay at /feed, /messages, etc. */}
+          <Route element={<PrivateRoute><AppShell /></PrivateRoute>}>
             <Route path="feed"          element={<FeedPage />} />
             <Route path="stories"           element={<StoriesPage />} />
             {/* SECTION-3: Story sub-pages */}
