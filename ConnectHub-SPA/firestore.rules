@@ -46,8 +46,16 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if isAuth() && notBlocked(uid);
-      allow create: if isOwner(uid);
-      allow update: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid)
+        // On create, user CANNOT self-assign admin/moderator role
+        && !('role' in request.resource.data);
+      // Users can update their OWN profile BUT cannot touch role, isAdmin, or isModerator fields
+      allow update: if isOwner(uid)
+        && !('role' in request.resource.data)
+        && !('isAdmin' in request.resource.data)
+        && !('isModerator' in request.resource.data);
+      // Only admins can promote/demote roles or delete accounts
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 

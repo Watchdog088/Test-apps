@@ -1,4 +1,11 @@
 // Firebase Cloud Functions — ConnectHub SPA
+// ── Admin Role Management (secure server-side promotion/demotion) ─────────────
+const adminRoleFunctions = require('./set-admin-role');
+exports.setAdminRole    = adminRoleFunctions.setAdminRole;
+exports.removeAdminRole = adminRoleFunctions.removeAdminRole;
+exports.checkAdminStatus = adminRoleFunctions.checkAdminStatus;
+exports.makeFirstAdmin  = adminRoleFunctions.makeFirstAdmin;
+
 // MISSING-1 FIX: Push notifications when a followed streamer goes live
 // REC-5 FIX: Server-side chat word filter enforcer
 // REC-4 FIX: VOD archive record written when stream ends

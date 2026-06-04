@@ -24,7 +24,7 @@ const KYC_QUEUE = [
   { id: 'k2', name: 'Casey Lee', submitDate: 'May 19, 2026', docType: 'Passport', status: 'Pending' },
 ];
 
-const TABS = ['Overview', 'Reports', 'KYC', 'Users'];
+const TABS = ['Overview', 'Reports', 'KYC', 'Users', 'More'];
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
                 ['⚠️', 'Review Reports', () => setActiveTab('Reports')],
                 ['🪪', 'KYC Queue', () => setActiveTab('KYC')],
                 ['📊', 'Analytics', () => navigate('/creator/analytics')],
-                ['📢', 'Announcements', () => {}],
+                ['📢', 'Announcements', () => navigate('/admin/announcements')],
               ].map(([icon, label, action]) => (
                 <button key={label} onClick={action} style={{ padding: '14px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer', textAlign: 'center' }}>
                   <div style={{ fontSize: 24, marginBottom: 4 }}>{icon}</div>
@@ -128,7 +128,26 @@ export default function AdminDashboardPage() {
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>👥</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>User Management</div>
-            <div style={{ fontSize: 14, color: '#64748b' }}>Full user management panel — search, ban, verify, and manage all 12,847 users</div>
+            <div style={{ fontSize: 14, color: '#64748b', marginBottom: 20 }}>Search, ban, verify, and manage all 12,847 users</div>
+            <button onClick={() => navigate('/admin/users')} style={{ background: 'linear-gradient(135deg,#6366f1,#ec4899)', border: 'none', borderRadius: 14, padding: '14px 32px', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>👥 Open User Management</button>
+          </div>
+        )}
+
+        {activeTab === 'More' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {[
+              ['👥', 'User Management', '/admin/users'],
+              ['📢', 'Announcements', '/admin/announcements'],
+              ['✅', 'Verifications', '/admin/verification'],
+              ['🏷️', 'KYC Review', '/admin/kyc'],
+              ['🚩', 'Reports Queue', '/admin/reports'],
+              ['📊', 'Creator Analytics', '/creator/analytics'],
+            ].map(([icon, label, path]) => (
+              <button key={label} onClick={() => navigate(path)} style={{ padding: '16px 10px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: 26, marginBottom: 6 }}>{icon}</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>{label}</div>
+              </button>
+            ))}
           </div>
         )}
       </div>

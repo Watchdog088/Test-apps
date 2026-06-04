@@ -21,5 +21,13 @@ ConnectHub-SPA/.env.production
 ConnectHub-SPA/.env.local
 ConnectHub-SPA/.env.staging
 
+# ── Firebase Service Account Keys — NEVER commit these ───────────────────────
+# These files grant FULL admin access to your Firebase project
+serviceAccountKey.json
+*serviceAccountKey*.json
+*service-account*.json
+*service_account*.json
+ConnectHub-SPA/serviceAccountKey.json
+
 # ── Build artifacts ───────────────────────────────────────────────────────────
 backend-deploy.zip

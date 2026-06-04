@@ -63,8 +63,14 @@ const EventRecapPage       = lazy(() => import('./pages/events/EventSubPages').t
 const ProductDetailPage    = lazy(() => import('./pages/marketplace/ProductDetailPage'));
 const MyOrdersPage         = lazy(() => import('./pages/marketplace/MyOrdersPage'));
 const SellerDashboardPage  = lazy(() => import('./pages/marketplace/SellerDashboardPage'));
-const AdminDashboardPage   = lazy(() => import('./pages/admin/AdminDashboardPage'));
-const TrendingPage         = lazy(() => import('./pages/trending/TrendingPage'));
+const AdminDashboardPage      = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminUsersPage          = lazy(() => import('./pages/admin/AdminSubPages').then(m => ({ default: m.AdminUsersPage })));
+const AdminAnnouncementsPage  = lazy(() => import('./pages/admin/AdminSubPages').then(m => ({ default: m.AdminAnnouncementsPage })));
+const VerificationAdminPage   = lazy(() => import('./pages/admin/VerificationAdminPage'));
+const CreatorEarningsPage     = lazy(() => import('./pages/creator/CreatorExtraPages').then(m => ({ default: m.CreatorEarningsPage })));
+const CreatorContentPage      = lazy(() => import('./pages/creator/CreatorExtraPages').then(m => ({ default: m.CreatorContentPage })));
+const VideoCallsHistoryPage   = lazy(() => import('./pages/videocalls/VideoCallsHistoryPage'));
+const TrendingPage            = lazy(() => import('./pages/trending/TrendingPage'));
 
 // Settings sub-pages
 const { PrivacySettingsPage, SecuritySettingsPage, NotificationPreferencesPage,
@@ -397,8 +403,11 @@ export default function App() {
             <Route path="marketplace/product/:id"     element={<ProductDetailPage />} />
             <Route path="marketplace/orders"          element={<MyOrdersPage />} />
             <Route path="marketplace/seller/dashboard" element={<SellerDashboardPage />} />
-            {/* Admin home dashboard */}
-            <Route path="admin"                 element={<AdminGuard><AdminDashboardPage /></AdminGuard>} />
+            {/* Admin home dashboard + new sub-pages */}
+            <Route path="admin"                       element={<AdminGuard><AdminDashboardPage /></AdminGuard>} />
+            <Route path="admin/users"                 element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
+            <Route path="admin/announcements"         element={<AdminGuard><AdminAnnouncementsPage /></AdminGuard>} />
+            <Route path="admin/verification"          element={<AdminGuard><VerificationAdminPage /></AdminGuard>} />
             {/* Settings sub-pages */}
             <Route path="settings/privacy"      element={<PrivacySettingsPage />} />
             <Route path="settings/security"     element={<SecuritySettingsPage />} />
@@ -411,6 +420,8 @@ export default function App() {
             {/* Creator sub-pages */}
             <Route path="creator/analytics"     element={<CreatorAnalyticsPage />} />
             <Route path="creator/monetization"  element={<CreatorMonetizationPage />} />
+            <Route path="creator/earnings"      element={<CreatorEarningsPage />} />
+            <Route path="creator/content"       element={<CreatorContentPage />} />
             {/* Business analytics */}
             <Route path="business/analytics"    element={<BusinessAnalyticsPage />} />
             {/* Gaming sub-pages */}
@@ -485,6 +496,7 @@ export default function App() {
             {/* Video Calls */}
             <Route path="videocalls/new"        element={<CallSetupPage />} />
             <Route path="videocalls/call/:id"   element={<ActiveCallPage />} />
+            <Route path="videocalls/history"    element={<VideoCallsHistoryPage />} />
 
             {/* AR/VR */}
             <Route path="arvr/filter/:id"       element={<ARFilterPreviewPage />} />
