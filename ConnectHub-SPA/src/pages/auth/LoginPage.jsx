@@ -28,7 +28,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@fb/config';
 import useAppStore from '@store/useAppStore';
 
@@ -107,8 +107,18 @@ export default function LoginPage() {
       await applyPersistence();
 
       if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate('/feed', { replace: true });
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        /* ── Check if admin → redirect to /admin, else /feed ── */
+        try {
+          const snap = await getDoc(doc(db, 'users', cred.user.uid));
+          if (snap.exists() && snap.data().isAdmin === true) {
+            navigate('/admin', { replace: true });
+          } else {
+            navigate('/feed', { replace: true });
+          }
+        } catch {
+          navigate('/feed', { replace: true });
+        }
       } else {
         /* ── Signup ── */
         const cred = await createUserWithEmailAndPassword(auth, email, password);

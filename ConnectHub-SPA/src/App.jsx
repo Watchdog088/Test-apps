@@ -197,6 +197,12 @@ const ReturnsPage          = lazy(() => import('./pages/marketplace/ReturnsPage'
 // ── Friends extras (May 2026)
 const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ContactImportPage })));
 
+// ── BETA CRITICAL: 4 New Dashboards (Jun 2026)
+const DatingChatPage       = lazy(() => import('./pages/dating/DatingChatPage'));
+const DeleteAccountPage    = lazy(() => import('./pages/settings/DeleteAccountPage'));
+const ReportPage           = lazy(() => import('./pages/misc/ReportPage'));
+const AdminAnalyticsPage   = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+
 // Onboarding (POLISH-15)
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 
@@ -379,7 +385,8 @@ export default function App() {
             <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
             <Route path="groups"        element={<GroupsPage />} />
             <Route path="messages"      element={<MessagesPage />} />
-            <Route path="messages/:id"  element={<MessagesPage />} />
+            {/* FIX: messages/:id must open ConversationPage, not MessagesPage */}
+            <Route path="messages/:id"  element={<ConversationPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile"       element={<ProfilePage />} />
             <Route path="profile/:uid"  element={<ProfilePage />} />
@@ -565,6 +572,18 @@ export default function App() {
             <Route path="notifications/activity-summary" element={<ActivitySummaryPage />} />
             {/* Quiet hours setting — mute non-urgent notifications by schedule */}
             <Route path="settings/notifications/quiet-hours" element={<NotificationQuietHoursPage />} />
+
+            {/* ── BETA CRITICAL: 4 New Routes (Jun 2026) ── */}
+            {/* Dating in-app chat between matched users */}
+            <Route path="dating/chat/:matchId"         element={<DatingChatPage />} />
+            {/* GDPR-required account deletion flow */}
+            <Route path="settings/delete-account"      element={<DeleteAccountPage />} />
+            {/* Unified report flow for posts/users/comments/stories */}
+            <Route path="report/:type/:id"             element={<ReportPage />} />
+            {/* Admin analytics — DAU/MAU, top content, reports queue */}
+            <Route path="admin/analytics"              element={<AdminGuard><AdminAnalyticsPage /></AdminGuard>} />
+            {/* Friends contact import (was imported but had no route) */}
+            <Route path="friends/import"               element={<ContactImportPage />} />
 
             {/* ── BETA CRITICAL: 10 Missing Routes (Jun 2026) ── */}
             <Route path="messages/conversation/:id"   element={<ConversationPage />} />
