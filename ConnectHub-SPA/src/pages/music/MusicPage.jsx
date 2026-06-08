@@ -22,7 +22,7 @@ export default function MusicPage() {
     <div style={{ background:'#0f172a', minHeight:'100vh', paddingBottom:'80px' }}>
       <div style={{ padding:'16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <span style={{ fontSize:'20px', fontWeight:700, color:'#f1f5f9' }}>🎵 Music</span>
-        <span style={{ fontSize:'20px' }}>🔍</span>
+        <span style={{ fontSize:'20px', cursor:'pointer' }} onClick={() => navigate('/search')} title="Search music">🔍</span>
       </div>
 
       {/* ── Podcasts banner ── */}
@@ -55,7 +55,7 @@ export default function MusicPage() {
         {tab === 'Playlists' ? (
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
             {PLAYLISTS.map(pl => (
-              <div key={pl.name} style={{ borderRadius:'16px', background:pl.color, padding:'20px 16px', cursor:'pointer' }}>
+              <div key={pl.name} onClick={() => navigate('/music/playlist/' + pl.name.toLowerCase().replace(/\s+/g, '-'))} style={{ borderRadius:'16px', background:pl.color, padding:'20px 16px', cursor:'pointer' }}>
                 <div style={{ fontSize:'32px' }}>{pl.emoji}</div>
                 <div style={{ color:'white', fontWeight:700, fontSize:'15px', marginTop:'8px' }}>{pl.name}</div>
                 <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'12px' }}>{pl.count} songs</div>
@@ -84,9 +84,9 @@ export default function MusicPage() {
                   <div style={{ color:'#64748b', fontSize:'11px' }}>{TRACKS.find(t=>t.id===playing)?.artist}</div>
                 </div>
                 <div style={{ display:'flex', gap:'12px' }}>
-                  <span style={{ fontSize:'22px', cursor:'pointer' }}>⏮</span>
+                  <span style={{ fontSize:'22px', cursor:'pointer' }} onClick={() => setPlaying(p => { const i = TRACKS.findIndex(t=>t.id===p); return TRACKS[(i-1+TRACKS.length)%TRACKS.length].id; })}>⏮</span>
                   <span style={{ fontSize:'22px', cursor:'pointer' }} onClick={() => setPlaying(null)}>⏸</span>
-                  <span style={{ fontSize:'22px', cursor:'pointer' }}>⏭</span>
+                  <span style={{ fontSize:'22px', cursor:'pointer' }} onClick={() => setPlaying(p => { const i = TRACKS.findIndex(t=>t.id===p); return TRACKS[(i+1)%TRACKS.length].id; })}>⏭</span>
                 </div>
               </div>
             )}

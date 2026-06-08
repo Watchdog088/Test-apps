@@ -320,6 +320,42 @@ function ShowDashboard({ show, userId, onBack }) {
   const [episodes, setEpisodes] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [view, setView]         = useState('episodes'); // 'episodes' | 'upload' | 'analytics'
+  const [editingEp,  setEditingEp]  = useState(null);   // { id, title, desc } when editing episode
+  const [editingShow, setEditingShow] = useState(false); // toggle inline show-edit form
+  const [showForm,   setShowForm]   = useState({ title: show.title, category: show.category, desc: show.description || '' });
+  const [showCopied, setShowCopied] = useState(false);
+
+  const shareShow = () => {
+    const url = `${window.location.origin}/music/podcasts`;
+    navigator.clipboard.writeText(url)
+      .then(() => { setShowCopied(true); setTimeout(() => setShowCopied(false), 2500); })
+      .catch(() => {});
+  };
+
+  const saveShowEdits = async () => {
+    try {
+      await updateDoc(doc(db, 'podcast_shows', show.id), {
+        title: showForm.title.trim() || show.title,
+        category: showForm.category,
+        description: showForm.desc.trim(),
+      });
+      setEditingShow(false);
+    } catch (e) { /* silently fail */ }
+  };
+
+  const saveEpEdits = async () => {
+    if (!editingEp) return;
+    try {
+      await updateDoc(doc(db, 'podcast_episodes', editingEp.id), {
+        title: editingEp.title.trim() || editingEp.title,
+        description: editingEp.desc,
+      });
+      setEpisodes(arr => arr.map(e =>
+        e.id === editingEp.id ? { ...e, title: editingEp.title, description: editingEp.desc } : e
+      ));
+      setEditingEp(null);
+    } catch (e) { /* silently fail */ }
+  };
 
   async function loadEpisodes() {
     setLoading(true);
@@ -374,6 +410,41 @@ function ShowDashboard({ show, userId, onBack }) {
             <div style={{ color:'#94a3b8', fontSize:12, marginTop:2 }}>{episodes.length} episode{episodes.length !== 1 ? 's' : ''}</div>
           </div>
         </div>
+
+        {/* ── Edit Show + Share row ── */}
+        <div style={{ display:'flex', gap:8, marginTop:14 }}>
+          <button onClick={() => setEditingShow(v => !v)} style={{
+            flex:1, padding:'8px', borderRadius:10, fontSize:12, fontWeight:700,
+            background: editingShow ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.12)',
+            border:'1px solid rgba(99,102,241,0.4)', color:'#a5b4fc', cursor:'pointer',
+          }}>✎ {editingShow ? 'Close Editor' : 'Edit Show'}</button>
+          <button onClick={shareShow} style={{
+            flex:1, padding:'8px', borderRadius:10, fontSize:12, fontWeight:700,
+            background: showCopied ? 'rgba(16,185,129,0.15)' : 'rgba(51,65,85,0.6)',
+            border:'1px solid rgba(255,255,255,0.1)', color: showCopied ? '#34d399' : '#94a3b8', cursor:'pointer',
+          }}>{showCopied ? '✓ Link Copied!' : '🔗 Share Show'}</button>
+        </div>
+
+        {/* ── Inline Edit Show form ── */}
+        {editingShow && (
+          <div style={{ marginTop:12, background:'#1e293b', borderRadius:14, padding:'14px' }}>
+            <div style={{ fontSize:12, fontWeight:800, color:'#6366f1', marginBottom:10, textTransform:'uppercase', letterSpacing:'0.08em' }}>Edit Show Details</div>
+            <input value={showForm.title} onChange={e => setShowForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="Show title"
+              style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:8, padding:'9px 11px', color:'#f1f5f9', fontSize:13, boxSizing:'border-box', marginBottom:8 }} />
+            <textarea value={showForm.desc} onChange={e => setShowForm(f => ({ ...f, desc: e.target.value }))} rows={2}
+              placeholder="Show description (optional)"
+              style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:8, padding:'9px 11px', color:'#f1f5f9', fontSize:13, resize:'none', boxSizing:'border-box', marginBottom:8 }} />
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={saveShowEdits} style={{ flex:1, padding:'9px', borderRadius:8, background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none', color:'white', fontWeight:700, fontSize:13, cursor:'pointer' }}>
+                💾 Save Changes
+              </button>
+              <button onClick={() => setEditingShow(false)} style={{ padding:'9px 14px', borderRadius:8, background:'#0f172a', border:'1px solid #334155', color:'#94a3b8', fontSize:13, cursor:'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tab bar */}
@@ -425,15 +496,37 @@ function ShowDashboard({ show, userId, onBack }) {
               <div key={ep.id} style={{ background:'#1e293b', borderRadius:14, padding:'14px', marginBottom:10, display:'flex', gap:12, alignItems:'flex-start' }}>
                 <div style={{ fontSize:28, flexShrink:0, marginTop:2 }}>🎵</div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:700, color:'#f1f5f9', fontSize:14, marginBottom:2 }}>{ep.title}</div>
-                  <div style={{ color:'#64748b', fontSize:12 }}>
-                    S{ep.season} E{ep.episodeNumber}
-                    {ep.duration ? ` · ${fmtDur(ep.duration)}` : ''}
-                    {ep.fileSize ? ` · ${fmtSize(ep.fileSize)}` : ''}
-                  </div>
-                  <div style={{ color:'#94a3b8', fontSize:12, marginTop:2 }}>{(ep.plays||0).toLocaleString()} plays</div>
+                  {editingEp?.id === ep.id ? (
+                    <div>
+                      <input value={editingEp.title}
+                        onChange={e => setEditingEp(v => ({ ...v, title: e.target.value }))}
+                        style={{ width:'100%', background:'#0f172a', border:'1px solid #6366f1', borderRadius:7, padding:'7px 10px', color:'#f1f5f9', fontSize:13, boxSizing:'border-box', marginBottom:6 }} />
+                      <textarea value={editingEp.desc}
+                        onChange={e => setEditingEp(v => ({ ...v, desc: e.target.value }))} rows={2}
+                        placeholder="Show notes…"
+                        style={{ width:'100%', background:'#0f172a', border:'1px solid #334155', borderRadius:7, padding:'7px 10px', color:'#f1f5f9', fontSize:12, resize:'none', boxSizing:'border-box', marginBottom:6 }} />
+                      <div style={{ display:'flex', gap:6 }}>
+                        <button onClick={saveEpEdits} style={{ flex:1, padding:'6px', borderRadius:7, background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none', color:'white', fontWeight:700, fontSize:12, cursor:'pointer' }}>💾 Save</button>
+                        <button onClick={() => setEditingEp(null)} style={{ padding:'6px 10px', borderRadius:7, background:'#0f172a', border:'1px solid #334155', color:'#94a3b8', fontSize:12, cursor:'pointer' }}>✕</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight:700, color:'#f1f5f9', fontSize:14, marginBottom:2 }}>{ep.title}</div>
+                      <div style={{ color:'#64748b', fontSize:12 }}>
+                        S{ep.season} E{ep.episodeNumber}
+                        {ep.duration ? ` · ${fmtDur(ep.duration)}` : ''}
+                        {ep.fileSize ? ` · ${fmtSize(ep.fileSize)}` : ''}
+                      </div>
+                      <div style={{ color:'#94a3b8', fontSize:12, marginTop:2 }}>{(ep.plays||0).toLocaleString()} plays</div>
+                    </>
+                  )}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6, flexShrink:0 }}>
+                  <button onClick={() => setEditingEp({ id: ep.id, title: ep.title, desc: ep.description || '' })}
+                    style={{ background:'rgba(99,102,241,0.15)', border:'none', borderRadius:8, padding:'5px 10px', color:'#a5b4fc', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                    ✎ Edit
+                  </button>
                   <button onClick={() => togglePublish(ep)}
                     style={{ background: ep.published ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)', border:'none', borderRadius:8, padding:'5px 10px', color: ep.published ? '#10b981' : '#64748b', fontSize:11, fontWeight:700, cursor:'pointer' }}>
                     {ep.published ? '✓ Live' : '○ Draft'}
