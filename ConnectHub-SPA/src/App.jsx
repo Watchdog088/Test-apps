@@ -98,6 +98,12 @@ const { PrivacySettingsPage, SecuritySettingsPage, NotificationPreferencesPage,
   PaymentMethodsPage: lazy(() => import('./pages/settings/SettingsSubPages').then(m => ({ default: m.PaymentMethodsPage }))),
 };
 
+// Extra Settings sub-pages (Jun 2026 — contact, appearance, accessibility, activity)
+const ContactInfoPage     = lazy(() => import('./pages/settings/SettingsExtraPages').then(m => ({ default: m.ContactInfoPage })));
+const AppearancePage      = lazy(() => import('./pages/settings/SettingsExtraPages').then(m => ({ default: m.AppearancePage })));
+const AccessibilityPage   = lazy(() => import('./pages/settings/SettingsExtraPages').then(m => ({ default: m.AccessibilityPage })));
+const ActivityStatusPage  = lazy(() => import('./pages/settings/SettingsExtraPages').then(m => ({ default: m.ActivityStatusPage })));
+
 // Creator sub-pages
 const CreatorAnalyticsPage    = lazy(() => import('./pages/creator/CreatorSubPages').then(m => ({ default: m.CreatorAnalyticsPage })));
 const CreatorMonetizationPage = lazy(() => import('./pages/creator/CreatorSubPages').then(m => ({ default: m.CreatorMonetizationPage })));
@@ -428,6 +434,10 @@ export default function App() {
             <Route path="settings/data"         element={<DataSettingsPage />} />
             <Route path="settings/linked-accounts" element={<LinkedAccountsPage />} />
             <Route path="settings/locale"       element={<LocaleSettingsPage />} />
+            <Route path="settings/contact"      element={<ContactInfoPage />} />
+            <Route path="settings/appearance"   element={<AppearancePage />} />
+            <Route path="settings/accessibility" element={<AccessibilityPage />} />
+            <Route path="settings/activity"     element={<ActivityStatusPage />} />
             <Route path="settings/payments"     element={<PaymentMethodsPage />} />
             {/* Creator sub-pages */}
             <Route path="creator/analytics"     element={<CreatorAnalyticsPage />} />

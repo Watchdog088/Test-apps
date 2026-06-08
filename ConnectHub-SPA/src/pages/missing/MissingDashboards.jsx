@@ -34,6 +34,7 @@ export function WalletPage() {
   const { user } = useAuth();
   const [wallet, setWallet] = useState({ balance: 0, pending: 0, lifetime: 0, payouts: [] });
   const [loading, setLoading] = useState(true);
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -63,7 +64,7 @@ export function WalletPage() {
         <div style={{ fontSize:40, fontWeight:800 }}>${(wallet.balance||0).toFixed(2)}</div>
         <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', marginTop:6 }}>Pending: ${(wallet.pending||0).toFixed(2)}</div>
         <button style={{ ...S.btn, marginTop:20, background:'rgba(255,255,255,0.2)', borderRadius:30 }}
-          onClick={() => {}}>Request Payout</button>
+          onClick={() => setShowPayoutModal(true)}>Request Payout</button>
       </div>
 
       {/* Stats */}
