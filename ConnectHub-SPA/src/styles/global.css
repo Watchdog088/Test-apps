@@ -300,6 +300,155 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 .feed-pill-active   { background: var(--accent-grad); color: #fff; }
 .feed-pill-inactive { background: var(--glass); color: var(--text-secondary); border-color: var(--glass-border); }
 
+/* ================================================================
+   WIREFRAME / OUTLINE BUTTON SYSTEM
+   Applied to: Cancel, Go Back, Following toggles, Skip, Share,
+   Add to Wishlist, inactive filter pills, back-nav squares.
+   PRIMARY CTAs, FAB, destructive buttons stay FILLED.
+   ================================================================ */
+
+/* Base outline button — indigo brand color */
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(99, 102, 241, 0.55);
+  border-radius: 12px;
+  color: #818cf8;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px; /* touch target */
+  width: 100%;
+}
+.btn-outline:hover {
+  background: rgba(99, 102, 241, 0.09);
+  border-color: rgba(99, 102, 241, 0.8);
+  color: #a5b4fc;
+}
+.btn-outline:active { transform: scale(0.98); }
+.btn-outline:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Danger outline — for cancel/escape next to a destructive CTA */
+.btn-outline-danger {
+  background: transparent;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  color: #f87171;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  width: 100%;
+}
+.btn-outline-danger:hover {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.7);
+}
+.btn-outline-danger:active { transform: scale(0.98); }
+
+/* Neutral outline — for plain secondary actions (Share, Save, Go Back) */
+.btn-outline-neutral {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  color: #94a3b8;
+  padding: 11px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+}
+.btn-outline-neutral:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #cbd5e1;
+}
+.btn-outline-neutral:active { transform: scale(0.98); }
+
+/* Pill outline — for inactive filter / category / tab chips */
+.btn-outline-pill {
+  background: transparent;
+  border: 1.5px solid rgba(99, 102, 241, 0.38);
+  border-radius: 9999px;
+  color: #94a3b8;
+  padding: 6px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-outline-pill:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.65);
+  color: #818cf8;
+}
+
+/* Outline back-arrow button (small square/circle) */
+.btn-outline-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: #94a3b8;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-outline-back:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #cbd5e1;
+}
+
+/* Following-state toggle (outline = already following) */
+.btn-following {
+  background: transparent;
+  border: 1.5px solid rgba(99, 102, 241, 0.5);
+  border-radius: 9999px;
+  color: #818cf8;
+  padding: 8px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn-following:hover {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+.btn-following:hover::after { content: ' ✕'; }
+.btn-following:active { transform: scale(0.96); }
+
 /* -- Floating Action Button (FAB) --------------------------------- */
 .fab {
   position: fixed;

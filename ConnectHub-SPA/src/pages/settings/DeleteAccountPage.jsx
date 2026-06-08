@@ -12,7 +12,7 @@ const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
 const S = {
   page: { minHeight: '100vh', background: '#0a0818', color: '#f1f5f9', paddingBottom: 40 },
   header: { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)' },
-  back: { width: 38, height: 38, borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: 'none', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
+  back: { width: 38, height: 38, borderRadius: 12, background: 'transparent', border: '1.5px solid rgba(255,255,255,0.18)', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
   title: { fontWeight: 800, fontSize: 19, color: '#f87171' },
   body: { padding: '20px 16px' },
   warningBox: { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 16, padding: '16px', marginBottom: 20 },
@@ -28,7 +28,7 @@ const S = {
     color: active ? '#fff' : '#475569', fontWeight: 800, fontSize: 15,
     cursor: active ? 'pointer' : 'not-allowed', marginBottom: 12, transition: 'all 0.2s',
   }),
-  cancelBtn: { width: '100%', padding: '13px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontWeight: 700, fontSize: 14, cursor: 'pointer' },
+  /* cancelBtn is now handled by className="btn-outline-neutral" */
 };
 
 export default function DeleteAccountPage() {
@@ -153,7 +153,7 @@ export default function DeleteAccountPage() {
             <button style={S.deleteBtn(phraseMatch && !deleting)} onClick={handleProceed} disabled={!phraseMatch || deleting}>
               {deleting ? 'Deleting…' : '🗑 Permanently Delete Account'}
             </button>
-            <button style={S.cancelBtn} onClick={() => navigate(-1)}>Cancel — Keep My Account</button>
+            <button className="btn-outline-neutral" onClick={() => navigate(-1)}>Cancel — Keep My Account</button>
           </>
         )}
 
@@ -174,7 +174,7 @@ export default function DeleteAccountPage() {
             <button style={S.deleteBtn(!!password && !deleting)} onClick={handleDelete} disabled={!password || deleting}>
               {deleting ? 'Deleting…' : '🗑 Confirm Delete Account'}
             </button>
-            <button style={S.cancelBtn} onClick={() => navigate(-1)}>Cancel</button>
+            <button className="btn-outline-neutral" onClick={() => navigate(-1)}>Cancel</button>
           </>
         )}
 
