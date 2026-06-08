@@ -1,7 +1,8 @@
 // src/components/layout/BottomNav.jsx
-// Left-side vertical sidebar — Home | Live | Dating | Messages | Marketplace
+// Left-side vertical sidebar — Home | Live | Dating | Messages | Marketplace | Search | Notifications | Profile
 // UX-01 FIX: Sidebar defaults to collapsed (false) on mobile viewports < 640px
 // BUG-06 FIX: Removed fake timer for live badge; only shows when real data says so
+// CRITICAL-FIX Jun-2026: Added Search, Notifications (with unread badge), and Profile tabs
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -9,17 +10,20 @@ import useAppStore from '@store/useAppStore';
 
 const NAV_WIDTH = 72; // px
 
-// ── Sidebar tabs (per recommendation: Home | Live | Dating | Messages | Marketplace)
+// ── Sidebar tabs — Home | Live | Dating | Messages | Shop | Search | Alerts | Profile | More
 const TABS = [
-  { path: '/feed',        icon: '🏠', label: 'Home' },
-  { path: '/live',        icon: '🔴', label: 'Live',      live: true },
-  { path: '/dating',      icon: '❤️', label: 'Dating' },
-  { path: '/messages',    icon: '💬', label: 'Messages',  badge: 'unreadMessages' },
-  { path: '/marketplace', icon: '🛒', label: 'Shop' },
-  { path: '/menu',        icon: '☰',  label: 'More' },
+  { path: '/feed',          icon: '🏠', label: 'Home' },
+  { path: '/live',          icon: '🔴', label: 'Live',     live: true },
+  { path: '/dating',        icon: '❤️', label: 'Dating' },
+  { path: '/messages',      icon: '💬', label: 'Messages', badge: 'unreadMessages' },
+  { path: '/marketplace',   icon: '🛒', label: 'Shop' },
+  { path: '/search',        icon: '🔍', label: 'Search' },
+  { path: '/notifications', icon: '🔔', label: 'Alerts',   badge: 'unreadNotifications' },
+  { path: '/profile',       icon: '👤', label: 'Profile' },
+  { path: '/menu',          icon: '☰',  label: 'More' },
 ];
 
-const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace'];
+const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace', '/search', '/notifications', '/profile'];
 
 export default function SideNav() {
   const navigate          = useNavigate();
@@ -33,9 +37,10 @@ export default function SideNav() {
   // For now we leave it false — no fake timer, no misleading badge
   const [friendsLive, setFriendsLive] = useState(false);
 
-  const unreadMessages    = useAppStore((s) => s.unreadMessages);
-  const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
-  const counts = { unreadMessages };
+  const unreadMessages       = useAppStore((s) => s.unreadMessages);
+  const unreadNotifications  = useAppStore((s) => s.unreadNotifications ?? 0);
+  const setMoreDrawerOpen    = useAppStore((s) => s.setMoreDrawerOpen);
+  const counts = { unreadMessages, unreadNotifications };
 
   // BUG-06 FIX: In production, replace this with a real Firestore listener:
   // e.g. query(collection(db,'streams'), where('isLive','==',true), where('userId','in', followingIds))

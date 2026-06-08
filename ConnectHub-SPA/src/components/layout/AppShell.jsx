@@ -11,6 +11,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import TopNav          from './TopNav';
 import SideNav         from './BottomNav';
+import MobileBottomNav, { MOBILE_NAV_H } from './MobileBottomNav';
 import AdUnit          from '@components/ads/AdUnit';
 import adService       from '@services/ad-service';
 import useAppStore     from '@store/useAppStore';
@@ -546,12 +547,14 @@ export default function AppShell() {
     }
   };
 
-  // UX-02 FIX: paddingBottom accounts for mini player (56px) + bottom bar (56px) + safe area
+  // UX-02 FIX: paddingBottom accounts for chrome height (mobile nav or mini player)
+  // On mobile (< 640px): MobileBottomNav = 64px; MiniPlayer floats above it at bottom:64px
+  // On desktop (>= 640px): side nav has no bottom footprint; MiniPlayer = 56px if showing
+  const mobileNavH = isMobile ? MOBILE_NAV_H : 0;
+  const miniPlayerH = (!isMobile && showMiniPlayer && DEMO_TRACK) ? 56 : 0;
   const mainPaddingBottom = hideChrome
     ? 0
-    : showMiniPlayer
-      ? 'calc(56px + 56px + env(safe-area-inset-bottom, 0px))'
-      : 'calc(56px + env(safe-area-inset-bottom, 0px))';
+    : `calc(${mobileNavH + miniPlayerH}px + env(safe-area-inset-bottom, 0px))`;
 
   return (
     <div style={{ height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -607,8 +610,18 @@ export default function AppShell() {
         </PageErrorBoundary>
       </main>
 
-      {/* ── Side Navigation ── */}
-      {!hideChrome && <SideNav />}
+      {/* ── Desktop Side Navigation — hidden on mobile (isMobile hides via CSS) ── */}
+      {!hideChrome && !isMobile && <SideNav />}
+
+      {/* ── Mobile Bottom Tab Bar — only on mobile viewports < 640px ── */}
+      {!hideChrome && isMobile && (
+        <MobileBottomNav
+          onCreatePost={() => {
+            const setCreatePostOpen = useAppStore.getState().setCreatePostOpen;
+            if (setCreatePostOpen) setCreatePostOpen(true);
+          }}
+        />
+      )}
 
       {/* ── Persistent Mini Music Player — only shown when a real track is playing ── */}
       {!hideChrome && showMiniPlayer && DEMO_TRACK && (

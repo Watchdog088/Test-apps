@@ -398,8 +398,8 @@ export default function App() {
             {/* SECTION-4B: Q&A session + Gifts leaderboard */}
             <Route path="live/qa/:streamId"     element={<LiveQAPage />} />
             <Route path="live/gifts/:streamId"  element={<LiveGiftsLeaderboardPage />} />
-            {/* POLISH-18 FIX: /trending redirects to feed with filter param — no duplicate page */}
-            <Route path="trending"      element={<Navigate to="/feed?filter=trending" replace />} />
+            {/* CRITICAL-FIX Jun-2026: /trending now renders TrendingPage — was incorrectly redirecting to feed */}
+            <Route path="trending"      element={<TrendingPage />} />
             <Route path="groups"        element={<GroupsPage />} />
             <Route path="messages"      element={<MessagesPage />} />
             {/* FIX: messages/:id must open ConversationPage, not MessagesPage */}
