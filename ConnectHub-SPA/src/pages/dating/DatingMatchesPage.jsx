@@ -2,6 +2,7 @@
 // All mutual matches dashboard — sortable by date / compatibility
 
 import React, { useState } from 'react';
+import VerifiedBadge from '../../components/common/VerifiedBadge';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
 
@@ -92,7 +93,7 @@ export default function DatingMatchesPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                 <span style={{ fontWeight: 700, fontSize: 16, color: '#f1f5f9' }}>{m.name}, {m.age}</span>
-                {m.verified && <span style={{ fontSize: 14 }}>✅</span>}
+                {m.verified && <VerifiedBadge variant="dating" size="sm" style={{ marginLeft: 2 }} />}
                 <span style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b' }}>{m.time}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

@@ -55,6 +55,7 @@
 import React, {
   useState, useEffect, useRef, useMemo, useCallback
 } from 'react';
+import VerifiedBadge from '../../components/common/VerifiedBadge';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
 
@@ -539,7 +540,7 @@ function ProfileDetailSheet({ profile, compat, onClose, onLike, onPass, onReport
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:6 }}>
             <div>
               <span style={{ fontSize:22, fontWeight:900, color:'#f1f5f9' }}>{profile.name}, {profile.age}</span>
-              {profile.verified && <span style={{ marginLeft:8, fontSize:13 }}>✅</span>}
+              {profile.verified && <VerifiedBadge variant="dating" size="sm" style={{ marginLeft:6 }} />}
               {profile.online && <span style={{ marginLeft:4, fontSize:12 }}>🟢</span>}
             </div>
             {/* Compat badge with tooltip */}
@@ -1599,9 +1600,7 @@ function DatingPageInner({ navigate, showToast, userProfile, setDatingState, inc
                           color:'#22c55e', fontWeight:700 }}>🟢 Online</span>
                       )}
                       {current.verified && (
-                        <span style={{ fontSize:11, background:'rgba(99,102,241,0.2)',
-                          border:'1px solid #6366f1', borderRadius:20, padding:'2px 8px',
-                          color:'#a5b4fc', fontWeight:700 }}>✅ Verified</span>
+                        <VerifiedBadge variant="dating" size="xs" style={{ marginLeft:2 }} />
                       )}
                       {current.mutualFriends > 0 && (
                         <span style={{ fontSize:11, background:'rgba(168,85,247,0.2)',

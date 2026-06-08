@@ -5,6 +5,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
+import VerifiedBadge from '../../components/common/VerifiedBadge';
 import { useNavigate, useParams } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
 
@@ -177,7 +178,7 @@ export default function DatingProfileViewPage() {
             <div>
               <div style={{ fontSize:26, fontWeight:900, color:'#f1f5f9' }}>
                 {profile.name}, {profile.age}
-                {profile.verified && <span style={{ marginLeft:6, fontSize:16 }}>✅</span>}
+                {profile.verified && <VerifiedBadge variant="dating" size="md" style={{ marginLeft:8 }} />}
               </div>
               <div style={{ fontSize:13, color:'#94a3b8', marginTop:2 }}>
                 💼 {profile.job} · 📍 {profile.distance} mi away
