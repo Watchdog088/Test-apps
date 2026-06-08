@@ -31,6 +31,7 @@ import {
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@fb/config';
 import useAppStore from '@store/useAppStore';
+// Link is already imported above from react-router-dom (BETA FIX Jun 2026 — back-to-home)
 
 /* ─── Password strength helper ────────────────────────────────────── */
 function getPasswordStrength(pw) {
@@ -528,10 +529,17 @@ export default function LoginPage() {
       </div>
 
       {/* ── Footer links ─────────────────────────── */}
-      <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#475569' }}>
-        <Link to="/account-recovery" style={{ color: '#475569', marginRight: 16 }}>Account Recovery</Link>
-        <span style={{ color: '#1e293b' }}>|</span>
-        <a href="#privacy" style={{ color: '#475569', marginLeft: 16 }}>Privacy Policy</a>
+      {/* BETA FIX (Jun 2026): Footer links → proper routes */}
+      <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#475569', display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+        <Link to="/" style={{ color: '#475569' }}>← Home</Link>
+        <span style={{ color: '#1e293b' }}>·</span>
+        <Link to="/account-recovery" style={{ color: '#475569' }}>Account Recovery</Link>
+        <span style={{ color: '#1e293b' }}>·</span>
+        <Link to="/privacy" style={{ color: '#475569' }}>Privacy</Link>
+        <span style={{ color: '#1e293b' }}>·</span>
+        <Link to="/terms" style={{ color: '#475569' }}>Terms</Link>
+        <span style={{ color: '#1e293b' }}>·</span>
+        <Link to="/about" style={{ color: '#475569' }}>About</Link>
       </div>
     </div>
   );

@@ -15,8 +15,12 @@ import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 import NotFoundPage from './pages/misc/NotFoundPage';
 
 // ── LEGAL: Terms of Service & Privacy Policy (May 2026)
-const TermsPage   = lazy(() => import('./pages/legal/TermsPage'));
-const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
+const TermsPage        = lazy(() => import('./pages/legal/TermsPage'));
+const PrivacyPage      = lazy(() => import('./pages/legal/PrivacyPage'));
+// ── BETA FIX (Jun 2026): About, Contact, Cookie Policy pages
+const AboutPage        = lazy(() => import('./pages/legal/AboutPage'));
+const ContactPage      = lazy(() => import('./pages/legal/ContactPage'));
+const CookiePolicyPage = lazy(() => import('./pages/legal/CookiePolicyPage'));
 
 // ── PUBLIC LANDING PAGE (AdSense-compliant, no auth required)
 import LandingPage from './pages/landing/LandingPage';
@@ -365,8 +369,12 @@ export default function App() {
           <Route path="/onboarding" element={<OnboardingPage />} />
 
           {/* ── LEGAL: Public routes — no auth required (May 2026) */}
-          <Route path="/terms"   element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms"         element={<TermsPage />} />
+          <Route path="/privacy"       element={<PrivacyPage />} />
+          {/* BETA FIX (Jun 2026): About, Contact, Cookie Policy — required for beta trust + GDPR */}
+          <Route path="/about"         element={<AboutPage />} />
+          <Route path="/contact"       element={<ContactPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
 
           {/* Protected app shell — pathless layout so sub-routes stay at /feed, /messages, etc. */}
           <Route element={<PrivateRoute><AppShell /></PrivateRoute>}>

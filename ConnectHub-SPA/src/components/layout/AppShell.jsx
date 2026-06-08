@@ -18,6 +18,8 @@ import useAppStore     from '@store/useAppStore';
 import { useAuth }     from '@hooks/useAuth';
 import BetaFeedbackModal    from '@components/common/BetaFeedbackModal';
 import BetaWelcomeTooltip   from '@components/common/BetaWelcomeTooltip';
+// BETA FIX (Jun 2026): Cookie consent banner — GDPR/CCPA required
+import CookieConsentBanner  from '@components/common/CookieConsentBanner';
 import PageErrorBoundary from '@components/common/PageErrorBoundary';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
@@ -662,6 +664,9 @@ export default function AppShell() {
 
       {/* ── Beta Welcome Tooltip — shown once to every new beta tester ── */}
       <BetaWelcomeTooltip />
+
+      {/* ── BETA FIX (Jun 2026): Cookie Consent Banner — GDPR/CCPA required ── */}
+      <CookieConsentBanner />
 
       {/* ── Feature #8: PWA Install Banner — shown after 3+ visits ── */}
       {showPwaBanner && (
