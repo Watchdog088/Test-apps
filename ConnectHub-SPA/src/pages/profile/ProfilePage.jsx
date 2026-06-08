@@ -7,6 +7,7 @@
 // NEW-P12: Private account lock icon shown on header
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import VerifiedBadge from '@components/common/VerifiedBadge';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   doc, getDoc, collection, query, where, orderBy, getDocs,
@@ -426,7 +427,7 @@ export default function ProfilePage() {
         {/* Name + badges */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
           <div style={{ fontWeight: 800, fontSize: 17, color: '#f1f5f9' }}>{displayName}</div>
-          {isVerified && <span title="Verified" style={{ fontSize: 16 }}>✅</span>}
+          {isVerified && <VerifiedBadge variant="user" size="md" style={{ marginLeft: 2 }} />}
           {/* NEW-P12: Lock icon for private accounts */}
           {isPrivate && !isOwn && <span title="Private Account" style={{ fontSize: 14 }}>🔒</span>}
           {isPrivate && isOwn && <span title="Private Account" style={{ fontSize: 12, background: 'rgba(255,255,255,0.1)', borderRadius: 6, padding: '1px 6px', color: '#94a3b8' }}>🔒 Private</span>}

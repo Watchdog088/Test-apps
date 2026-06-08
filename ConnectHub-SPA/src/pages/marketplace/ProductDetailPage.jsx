@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
+import VerifiedBadge from '../../components/common/VerifiedBadge';
 
 const DEMO_PRODUCT = {
   id: 'p1', title: 'Vintage Leather Camera Bag — Canon/Nikon Compatible',
@@ -107,7 +108,8 @@ export default function ProductDetailPage() {
           <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{DEMO_PRODUCT.sellerEmoji}</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', display: 'flex', gap: 6, alignItems: 'center' }}>
-              {DEMO_PRODUCT.seller} {DEMO_PRODUCT.verified && '✅'}
+              {DEMO_PRODUCT.seller}
+              {DEMO_PRODUCT.verified && <VerifiedBadge variant="marketplace" size="sm" style={{ marginLeft: 4 }} />}
             </div>
             <div style={{ fontSize: 12, color: '#64748b' }}>⭐ {DEMO_PRODUCT.sellerRating} · {DEMO_PRODUCT.sellerSales} sales</div>
           </div>

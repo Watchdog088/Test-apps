@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+import VerifiedBadge from '../../components/common/VerifiedBadge';
+
 // ─── Seed seller data (mirrors MarketplacePage seed) ──────────────────────────
 const SELLER_DATA = {
   'Alex Thompson': {
@@ -134,7 +136,7 @@ export default function SellerProfilePage() {
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
               <span style={{ fontWeight:800, fontSize:'18px', color:'#f1f5f9' }}>{sellerName}</span>
-              {seller.verified && <span style={{ background:'rgba(16,185,129,0.15)', border:'1px solid #10b981', borderRadius:'6px', padding:'2px 8px', fontSize:'11px', color:'#6ee7b7', fontWeight:700 }}>✓ Verified</span>}
+              {seller.verified && <VerifiedBadge variant="marketplace" size="sm" style={{ marginLeft: 2 }} />}
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:'4px', marginTop:'4px' }}>
               {'⭐'.repeat(5).split('').map((s,i) => <span key={i} style={{ color: i < Math.round(seller.rating) ? '#fbbf24' : '#334155', fontSize:'13px' }}>{s}</span>)}
@@ -146,9 +148,19 @@ export default function SellerProfilePage() {
 
         {/* Badges */}
         <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'14px' }}>
-          {seller.badges.map((b,i) => (
-            <span key={i} style={{ background:'#0f172a', border:'1px solid #334155', borderRadius:'10px', padding:'4px 10px', fontSize:'11px', color:'#94a3b8', fontWeight:600 }}>{b}</span>
-          ))}
+          {seller.badges.map((b,i) => {
+            // Replace the plain text '✅ Verified' badge with the branded purple SVG badge
+            if (b === '✅ Verified') {
+              return (
+                <span key={i} style={{ background:'rgba(168,85,247,0.12)', border:'1px solid rgba(168,85,247,0.35)', borderRadius:'10px', padding:'4px 10px', fontSize:'11px', color:'#d8b4fe', fontWeight:700, display:'inline-flex', alignItems:'center', gap:4 }}>
+                  <VerifiedBadge variant="marketplace" size="xs" /> Verified Seller
+                </span>
+              );
+            }
+            return (
+              <span key={i} style={{ background:'#0f172a', border:'1px solid #334155', borderRadius:'10px', padding:'4px 10px', fontSize:'11px', color:'#94a3b8', fontWeight:600 }}>{b}</span>
+            );
+          })}
         </div>
 
         {/* Bio */}
