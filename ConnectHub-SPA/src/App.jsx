@@ -201,7 +201,10 @@ const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards
 const DatingChatPage       = lazy(() => import('./pages/dating/DatingChatPage'));
 const DeleteAccountPage    = lazy(() => import('./pages/settings/DeleteAccountPage'));
 const ReportPage           = lazy(() => import('./pages/misc/ReportPage'));
-const AdminAnalyticsPage   = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminAnalyticsPage        = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminBetaFeedbackPage     = lazy(() => import('./pages/admin/AdminExtraPages').then(m => ({ default: m.AdminBetaFeedbackPage })));
+const AdminContentModerationPage = lazy(() => import('./pages/admin/AdminExtraPages').then(m => ({ default: m.AdminContentModerationPage })));
+const AdminUsersFirestorePage   = lazy(() => import('./pages/admin/AdminExtraPages').then(m => ({ default: m.AdminUsersFirestorePage })));
 
 // Onboarding (POLISH-15)
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
@@ -436,11 +439,15 @@ export default function App() {
             <Route path="marketplace/product/:id"     element={<ProductDetailPage />} />
             <Route path="marketplace/orders"          element={<MyOrdersPage />} />
             <Route path="marketplace/seller/dashboard" element={<SellerDashboardPage />} />
-            {/* Admin home dashboard + new sub-pages */}
+            {/* Admin home dashboard + all sub-pages */}
             <Route path="admin"                       element={<AdminGuard><AdminDashboardPage /></AdminGuard>} />
-            <Route path="admin/users"                 element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
+            {/* /admin/users — Firestore live version replaces hardcoded dummy data */}
+            <Route path="admin/users"                 element={<AdminGuard><AdminUsersFirestorePage /></AdminGuard>} />
             <Route path="admin/announcements"         element={<AdminGuard><AdminAnnouncementsPage /></AdminGuard>} />
             <Route path="admin/verification"          element={<AdminGuard><VerificationAdminPage /></AdminGuard>} />
+            {/* NEW Jun 2026: Beta feedback review + content moderation */}
+            <Route path="admin/beta-feedback"         element={<AdminGuard><AdminBetaFeedbackPage /></AdminGuard>} />
+            <Route path="admin/content"               element={<AdminGuard><AdminContentModerationPage /></AdminGuard>} />
             {/* Settings sub-pages */}
             <Route path="settings/privacy"      element={<PrivacySettingsPage />} />
             <Route path="settings/security"     element={<SecuritySettingsPage />} />
