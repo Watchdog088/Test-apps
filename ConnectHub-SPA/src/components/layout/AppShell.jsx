@@ -657,6 +657,37 @@ export default function AppShell() {
       {/* ── UX-15 FIX: Toast Renderer ── */}
       <ToastRenderer />
 
+      {/* ── BETA Jun-2026: Persistent floating feedback FAB — visible on all authenticated pages ── */}
+      {!showBetaFeedback && (
+        <button
+          onClick={() => setShowBetaFeedback(true)}
+          aria-label="Open beta feedback"
+          title="Send feedback"
+          style={{
+            position: 'fixed',
+            bottom: 88,
+            right: 16,
+            zIndex: 280,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg,#6366f1,#ec4899)',
+            border: 'none',
+            boxShadow: '0 4px 18px rgba(99,102,241,0.55)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 20,
+            transition: 'transform 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(99,102,241,0.7)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 18px rgba(99,102,241,0.55)'; }}
+        >
+          💬
+        </button>
+      )}
+
       {/* ── Feature #6: BetaFeedbackModal — shake or long-press trigger ── */}
       {showBetaFeedback && (
         <BetaFeedbackModal onClose={() => setShowBetaFeedback(false)} />

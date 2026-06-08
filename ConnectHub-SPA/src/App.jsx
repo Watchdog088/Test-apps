@@ -31,6 +31,9 @@ import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
 import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 import AccountRecoveryPage from './pages/auth/AccountRecoveryPage';
 
+// ── BETA Jun-2026: Invite / Referral page
+const InvitePage = lazy(() => import('./pages/invite/InvitePage'));
+
 // ── BETA CRITICAL: 10 Missing Dashboards (Jun 2026)
 const ConversationPage              = lazy(() => import('./pages/messages/ConversationPage'));
 const VideoCallRoomPage             = lazy(() => import('./pages/videocalls/VideoCallRoomPage'));
@@ -428,7 +431,8 @@ export default function App() {
             <Route path="music/podcasts"        element={<PodcastPage />} />
             <Route path="music/podcasts/studio" element={<PodcastStudioPage />} />
             <Route path="videocalls"    element={<VideoCallsPage />} />
-            <Route path="livestream"    element={<LivePage />} />
+            {/* ROUTE-FIX Jun-2026: /livestream removed — duplicate of /live; kept only for legacy deep-links */}
+            <Route path="livestream"    element={<Navigate to="/live" replace />} />
             <Route path="arvr"          element={<ARVRPage />} />
             <Route path="saved"         element={<SavedPage />} />
             <Route path="search"        element={<SearchPage />} />
@@ -615,6 +619,9 @@ export default function App() {
             <Route path="admin/analytics"              element={<AdminGuard><AdminAnalyticsPage /></AdminGuard>} />
             {/* Friends contact import (was imported but had no route) */}
             <Route path="friends/import"               element={<ContactImportPage />} />
+
+            {/* ── BETA Jun-2026: Invite / Referral page ── */}
+            <Route path="invite"                       element={<InvitePage />} />
 
             {/* ── BETA CRITICAL: 10 Missing Routes (Jun 2026) ── */}
             <Route path="messages/conversation/:id"   element={<ConversationPage />} />

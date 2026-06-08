@@ -68,30 +68,33 @@ const features = [
   },
 ];
 
+// BETA FIX (Jun 2026): Replaced fake/misleading stats with honest beta copy
 const stats = [
-  { value: '500K+', label: 'Active Members' },
+  { value: 'Beta', label: 'Be Among the First' },
   { value: '12+', label: 'App Sections' },
-  { value: '4.8★', label: 'User Rating' },
-  { value: '150+', label: 'Countries' },
+  { value: 'Free', label: 'Early Beta Access' },
+  { value: '100%', label: 'Building Together' },
 ];
 
+// BETA FIX (Jun 2026): Testimonials relabelled as "early design partner previews" —
+// not fabricated social proof for a new app.
 const testimonials = [
   {
     name: 'Marcus T.',
-    role: 'Content Creator',
-    text: 'LynkApp completely changed how I connect with my audience. The live streaming and tipping features help me earn while doing what I love.',
+    role: 'Content Creator — Design Preview',
+    text: 'The live streaming setup looks incredibly smooth. The co-host features and gift animations are exactly what creators need.',
     avatar: '🎨',
   },
   {
     name: 'Priya S.',
-    role: 'Small Business Owner',
-    text: "I've sold over 200 items in the Marketplace. The seller tools are incredibly easy to use and the reach is amazing.",
+    role: 'Small Business Owner — Design Preview',
+    text: 'The marketplace KYC onboarding flow is really clean. Seller dashboards and order tracking feel professional and intuitive.',
     avatar: '🛍️',
   },
   {
     name: 'Jordan L.',
-    role: 'Gamer & Streamer',
-    text: 'The gaming hub and live stream combo is unreal. I went from 0 to 10,000 followers in three months on LynkApp.',
+    role: 'Gamer & Streamer — Design Preview',
+    text: 'The gaming hub + live combo design is sharp. Tournament brackets and leaderboards fit perfectly in the social flow.',
     avatar: '🎮',
   },
 ];
