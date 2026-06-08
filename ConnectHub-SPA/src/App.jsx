@@ -255,6 +255,7 @@ const ReportsAdminPage     = lazy(() => import('./pages/admin/ReportsAdminPage')
 const MediaHubPage      = lazy(() => import('./pages/mediahub/MediaHubPage'));
 const MusicPage         = lazy(() => import('./pages/music/MusicPage'));
 const PodcastPage       = lazy(() => import('./pages/music/PodcastPage'));
+const PodcastStudioPage = lazy(() => import('./pages/music/PodcastStudioPage'));
 const VideoCallsPage    = lazy(() => import('./pages/videocalls/VideoCallsPage'));
 const ARVRPage          = lazy(() => import('./pages/arvr/ARVRPage'));
 const SavedPage         = lazy(() => import('./pages/saved/SavedPage'));
@@ -401,7 +402,8 @@ export default function App() {
             <Route path="admin/reports"            element={<AdminGuard><ReportsAdminPage /></AdminGuard>} />
             <Route path="media"         element={<MediaHubPage />} />
             <Route path="music"         element={<MusicPage />} />
-            <Route path="music/podcasts" element={<PodcastPage />} />
+            <Route path="music/podcasts"        element={<PodcastPage />} />
+            <Route path="music/podcasts/studio" element={<PodcastStudioPage />} />
             <Route path="videocalls"    element={<VideoCallsPage />} />
             <Route path="livestream"    element={<LivePage />} />
             <Route path="arvr"          element={<ARVRPage />} />

@@ -387,6 +387,27 @@ export default function PodcastPage() {
         )}
       </div>
 
+      {/* ── Creator Studio CTA ── */}
+      {!selectedPodcast && (
+        <div
+          onClick={() => navigate('/music/podcasts/studio')}
+          style={{
+            margin: '0 16px 4px',
+            borderRadius: 12,
+            background: 'rgba(99,102,241,0.1)',
+            border: '1px solid rgba(99,102,241,0.28)',
+            padding: '10px 14px',
+            display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+          }}
+        >
+          <span style={{ fontSize: 22, flexShrink: 0 }}>🎙️</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#a5b4fc' }}>Start or manage your podcast →</div>
+            <div style={{ fontSize: 11, color: '#475569', marginTop: 1 }}>Upload episodes · Analytics · Your show dashboard</div>
+          </div>
+        </div>
+      )}
+
       {/* ── Tabs (only when not in episode list view) ── */}
       {!selectedPodcast && (
         <div style={{ display: 'flex', gap: 4, padding: '0 16px 16px', borderBottom: `1px solid ${C.border}` }}>
