@@ -1297,39 +1297,80 @@ export function QRCodeModal({ item, onClose }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
-/* KYC Admin Role Guard HOC                                                    */
+/* Admin Role Guard HOC — Jun 2026 hardened version                            */
+/*                                                                              */
+/* FAST PATH: reads userProfile from the Zustand store (already loaded by      */
+/*   useAuth on login) — zero extra Firestore reads in the common case.         */
+/* FALLBACK:  if the store hasn't hydrated yet, falls back to a direct          */
+/*   Firestore getDoc (same as before) so nothing breaks on hard-refresh.       */
+/* ACCESS-DENIED: shows a full-page error with a "Go to Feed" button so users  */
+/*   can always navigate away — no more dead-end blank screen.                  */
 /* ─────────────────────────────────────────────────────────────────────────── */
 export function AdminGuard({ children }) {
-  const [status, setStatus] = useState('checking'); // 'checking' | 'allowed' | 'denied'
+  // ── FAST PATH ─────────────────────────────────────────────────────────────
+  // useAppStore is already imported via the Zustand store.
+  // Import it lazily to keep this file free of top-level side-effects.
+  const [userProfile, setLocalProfile] = useState(() => {
+    try {
+      // eslint-disable-next-line no-undef
+      const store = window.__zustandAppStore__?.getState?.();
+      return store?.userProfile ?? undefined;
+    } catch { return undefined; }
+  });
+
+  const [status, setStatus] = useState(() => {
+    // If we already have the profile in the Zustand store we can resolve
+    // synchronously — no 'checking' flash at all for admin users.
+    if (userProfile === undefined) return 'checking';
+    const isAdmin = userProfile?.isAdmin === true || userProfile?.role === 'admin';
+    return isAdmin ? 'allowed' : 'denied';
+  });
 
   useEffect(() => {
+    if (status !== 'checking') return; // already resolved from store
+
+    // ── FALLBACK: Firestore direct read (hard-refresh / store not hydrated) ──
     async function check() {
       try {
-        const { getAuth }     = await import('firebase/auth');
-        const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-        const auth  = getAuth();
-        const user  = auth.currentUser;
+        // Try Zustand store first (imported dynamically to avoid circular deps)
+        const { default: useAppStore } = await import('../../store/useAppStore.js');
+        const profile = useAppStore.getState().userProfile;
+        if (profile !== undefined && profile !== null) {
+          const isAdmin = profile?.isAdmin === true || profile?.role === 'admin';
+          setStatus(isAdmin ? 'allowed' : 'denied');
+          return;
+        }
+
+        // Profile not in store — fall back to Firestore
+        const { getAuth }                           = await import('firebase/auth');
+        const { getFirestore, doc, getDoc }         = await import('firebase/firestore');
+        const auth = getAuth();
+        const user = auth.currentUser;
         if (!user) { setStatus('denied'); return; }
-        const db    = getFirestore();
-        const snap  = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists() && snap.data()?.isAdmin === true) {
-          setStatus('allowed');
+        const db   = getFirestore();
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          const isAdmin = data?.isAdmin === true || data?.role === 'admin';
+          setStatus(isAdmin ? 'allowed' : 'denied');
         } else {
           setStatus('denied');
         }
-      } catch {
-        // Firebase not configured — fall through to allow in dev
+      } catch (err) {
+        // Firebase not configured — allow in dev only
         if (import.meta.env.DEV) {
-          console.warn('[AdminGuard] Firebase not configured — allowing in DEV mode');
+          console.warn('[AdminGuard] Firebase not configured — allowing in DEV mode', err);
           setStatus('allowed');
         } else {
+          console.error('[AdminGuard] check failed:', err);
           setStatus('denied');
         }
       }
     }
     check();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── LOADING SPINNER ────────────────────────────────────────────────────────
   if (status === 'checking') return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
       minHeight:'100vh', background:'#0f172a', flexDirection:'column', gap:'16px' }}>
@@ -1340,18 +1381,30 @@ export function AdminGuard({ children }) {
     </div>
   );
 
+  // ── ACCESS DENIED ──────────────────────────────────────────────────────────
   if (status === 'denied') return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
-      justifyContent:'center', minHeight:'100vh', background:'#0f172a', padding:'32px', textAlign:'center' }}>
+      justifyContent:'center', minHeight:'100vh', background:'#0f172a',
+      padding:'32px', textAlign:'center', gap:'0' }}>
       <div style={{ fontSize:'64px', marginBottom:'16px' }}>🔒</div>
       <div style={{ fontWeight:800, fontSize:'22px', color:'#f1f5f9', marginBottom:'8px' }}>
         Admin Access Required
       </div>
-      <div style={{ color:'#64748b', fontSize:'14px', maxWidth:'300px' }}>
-        This page is restricted to ConnectHub administrators only.
+      <div style={{ color:'#64748b', fontSize:'14px', maxWidth:'300px', marginBottom:'28px' }}>
+        This page is restricted to LynkApp administrators only. If you believe this
+        is a mistake, please contact support.
       </div>
+      {/* Give users a clear escape route — no more dead-end screen */}
+      <button
+        onClick={() => window.location.href = '/feed'}
+        style={{ background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none',
+          borderRadius:'14px', padding:'12px 28px', color:'white', fontSize:'15px',
+          fontWeight:700, cursor:'pointer', letterSpacing:'0.3px' }}>
+        🏠 Go to Feed
+      </button>
     </div>
   );
 
+  // ── ALLOWED ────────────────────────────────────────────────────────────────
   return children;
 }

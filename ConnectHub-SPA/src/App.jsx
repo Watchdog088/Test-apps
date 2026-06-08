@@ -324,11 +324,23 @@ function PrivateRoute({ children }) {
 }
 
 // SmartRoot: shows LandingPage for unauthenticated visitors (AdSense review),
-// redirects authenticated users directly to /feed.
+// redirects ADMIN users → /admin, regular users → /feed.
+// Waits for the Firestore profile to be in the Zustand store before routing
+// so the isAdmin / role field is available (avoids flicker to /feed for admins).
 function SmartRoot() {
   const { user, loading } = useAuth();
+  const userProfile = useAppStore((s) => s.userProfile);
   if (loading) return <SplashScreen />;
   if (!user) return <LandingPage />;
+  // userProfile is `undefined` while the Firestore doc is still being fetched,
+  // and `null` only if the user has no profile doc at all.
+  // Hold on splash until the profile resolves so we know the role.
+  if (userProfile === undefined) return <SplashScreen />;
+  // ── ADMIN AUTO-REDIRECT ──────────────────────────────────────────────────
+  // Checks both the boolean flag (isAdmin) and the role string.
+  if (userProfile?.isAdmin === true || userProfile?.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
   return <Navigate to="/feed" replace />;
 }
 
