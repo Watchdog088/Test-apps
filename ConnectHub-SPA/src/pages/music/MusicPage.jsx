@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 const TRACKS = [
   { id:1, title:'Summer Vibes', artist:'Jordan M.', duration:'3:24', emoji:'🎵', color:'#ec4899', plays:'1.2M' },
   { id:2, title:'Midnight Drive', artist:'Alex Chen', duration:'4:12', emoji:'🌙', color:'#6366f1', plays:'890K' },
@@ -13,6 +14,7 @@ const PLAYLISTS = [
   { name:'Late Night', count:15, emoji:'🌙', color:'linear-gradient(135deg,#1e293b,#6366f1)' },
 ];
 export default function MusicPage() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('Discover');
   const [playing, setPlaying] = useState(null);
   const [liked, setLiked] = useState({});
@@ -21,6 +23,28 @@ export default function MusicPage() {
       <div style={{ padding:'16px', borderBottom:'1px solid #1e293b', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <span style={{ fontSize:'20px', fontWeight:700, color:'#f1f5f9' }}>🎵 Music</span>
         <span style={{ fontSize:'20px' }}>🔍</span>
+      </div>
+
+      {/* ── Podcasts banner ── */}
+      <div
+        onClick={() => navigate('/music/podcasts')}
+        style={{
+          margin:'12px 16px 0',
+          borderRadius:16,
+          background:'linear-gradient(135deg,#6366f1 0%,#ec4899 100%)',
+          padding:'14px 16px',
+          display:'flex', alignItems:'center', gap:14, cursor:'pointer',
+          boxShadow:'0 4px 24px rgba(99,102,241,0.35)',
+        }}
+      >
+        <div style={{ fontSize:32, lineHeight:1, flexShrink:0 }}>🎙️</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontWeight:800, fontSize:16, color:'white', letterSpacing:'-0.3px' }}>Podcasts</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.8)', marginTop:2 }}>
+            4M+ shows · Free · No sign-up needed
+          </div>
+        </div>
+        <div style={{ color:'rgba(255,255,255,0.7)', fontSize:20 }}>›</div>
       </div>
       <div style={{ display:'flex', borderBottom:'1px solid #1e293b' }}>
         {['Discover','Playlists','Library'].map(t => (
