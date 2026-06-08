@@ -27,6 +27,18 @@ import VerifyEmailPage     from './pages/auth/VerifyEmailPage';
 import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 import AccountRecoveryPage from './pages/auth/AccountRecoveryPage';
 
+// ── BETA CRITICAL: 10 Missing Dashboards (Jun 2026)
+const ConversationPage              = lazy(() => import('./pages/messages/ConversationPage'));
+const VideoCallRoomPage             = lazy(() => import('./pages/videocalls/VideoCallRoomPage'));
+const FollowingPage                 = lazy(() => import('./pages/profile/FollowingPage'));
+const WalletPage                    = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.WalletPage })));
+const NotifPreferencesPage          = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.NotificationPreferencesPage })));
+const BlockedAccountsPage           = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.BlockedUsersPage })));
+const OrderDetailPage               = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.OrderDetailPage })));
+const CreatorAnalyticsDashboard     = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.CreatorAnalyticsDashboard })));
+const AccountStatusPage             = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.AccountStatusPage })));
+const DataPrivacyPage               = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.DataPrivacyPage })));
+
 // ── SECTION-6: Messages new pages (May 2026)
 const MessageRequestsPage      = lazy(() => import('./pages/messages/MessageRequestsPage'));
 const ArchivedConversationsPage = lazy(() => import('./pages/messages/ArchivedConversationsPage'));
@@ -390,7 +402,7 @@ export default function App() {
             <Route path="hashtag/:tag"          element={<HashtagPage />} />
             {/* Profile followers/following */}
             <Route path="profile/:uid/followers"  element={<FollowersPage />} />
-            <Route path="profile/:uid/following"  element={<FollowersPage />} />
+            <Route path="profile/:uid/following"  element={<FollowingPage />} />
             {/* Dating matches */}
             <Route path="dating/matches"        element={<DatingMatchesPage />} />
             {/* New message compose */}
@@ -539,6 +551,17 @@ export default function App() {
             <Route path="notifications/activity-summary" element={<ActivitySummaryPage />} />
             {/* Quiet hours setting — mute non-urgent notifications by schedule */}
             <Route path="settings/notifications/quiet-hours" element={<NotificationQuietHoursPage />} />
+
+            {/* ── BETA CRITICAL: 10 Missing Routes (Jun 2026) ── */}
+            <Route path="messages/conversation/:id"   element={<ConversationPage />} />
+            <Route path="video-call/:roomId"           element={<VideoCallRoomPage />} />
+            <Route path="wallet"                       element={<WalletPage />} />
+            <Route path="notifications/preferences"   element={<NotifPreferencesPage />} />
+            <Route path="settings/blocked-users"      element={<BlockedAccountsPage />} />
+            <Route path="marketplace/orders/:orderId" element={<OrderDetailPage />} />
+            <Route path="creator/analytics-overview"  element={<CreatorAnalyticsDashboard />} />
+            <Route path="settings/account-status"     element={<AccountStatusPage />} />
+            <Route path="settings/data-privacy"       element={<DataPrivacyPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
