@@ -9,12 +9,14 @@
 // VERIFY-FIX (May 27 2026): Redirect unverified email users to /verify-email
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import TopNav    from './TopNav';
-import SideNav   from './BottomNav';
-import AdUnit    from '@components/ads/AdUnit';
-import adService from '@services/ad-service';
-import useAppStore from '@store/useAppStore';
-import { useAuth } from '@hooks/useAuth';
+import TopNav          from './TopNav';
+import SideNav         from './BottomNav';
+import AdUnit          from '@components/ads/AdUnit';
+import adService       from '@services/ad-service';
+import useAppStore     from '@store/useAppStore';
+import { useAuth }     from '@hooks/useAuth';
+import BetaFeedbackModal from '@components/common/BetaFeedbackModal';
+import PageErrorBoundary from '@components/common/PageErrorBoundary';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
 
@@ -404,11 +406,16 @@ export default function AppShell() {
   const [showRewarded,     setShowRewarded]     = useState(false);
   const [coinToast,        setCoinToast]        = useState(null);
   const [liveNotif,        setLiveNotif]        = useState(null); // GAP-03
-  const [isOffline,        setIsOffline]        = useState(!navigator.onLine); // Mobile offline banner
-  // BUG-1 FIX: Track mobile breakpoint to remove left padding on phones
+  const [isOffline,        setIsOffline]        = useState(!navigator.onLine);
   const [isMobile,         setIsMobile]         = useState(window.innerWidth < 640);
+  // Feature #6: BetaFeedbackModal — shake or long-press
+  const [showBetaFeedback, setShowBetaFeedback] = useState(false);
+  // Feature #8: PWA install banner
+  const [pwaPrompt,        setPwaPrompt]        = useState(null);
+  const [showPwaBanner,    setShowPwaBanner]    = useState(false);
   const prevPath = useRef(pathname);
-  const seenStreamsRef = useRef(new Set()); // GAP-03: track already-notified stream IDs
+  const seenStreamsRef = useRef(new Set());
+  const longPressTimer = useRef(null);
 
   // ── Global More Drawer state from store ────────────────────
   const moreDrawerOpen    = useAppStore((s) => s.moreDrawerOpen);
@@ -480,6 +487,64 @@ export default function AppShell() {
     }
   }, [pathname, hideChrome]);
 
+  // ── Feature #6: Shake detection → open BetaFeedbackModal ──────────────────
+  useEffect(() => {
+    if (!window.DeviceMotionEvent) return;
+    let lastShake = 0;
+    const threshold = 18;
+    const handleMotion = (e) => {
+      const a = e.accelerationIncludingGravity;
+      if (!a) return;
+      const total = Math.abs(a.x || 0) + Math.abs(a.y || 0) + Math.abs(a.z || 0);
+      if (total > threshold) {
+        const now = Date.now();
+        if (now - lastShake > 2000) {
+          lastShake = now;
+          setShowBetaFeedback(true);
+        }
+      }
+    };
+    window.addEventListener('devicemotion', handleMotion);
+    return () => window.removeEventListener('devicemotion', handleMotion);
+  }, []);
+
+  // ── Feature #6: Long-press (2 s) anywhere → open BetaFeedbackModal ─────────
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => setShowBetaFeedback(true), 2000);
+  };
+  const handleTouchEnd = () => {
+    clearTimeout(longPressTimer.current);
+  };
+
+  // ── Feature #8: PWA install prompt — show after 3+ visits ──────────────────
+  useEffect(() => {
+    // Track visit count
+    const visits = parseInt(localStorage.getItem('lynk_visits') || '0', 10) + 1;
+    localStorage.setItem('lynk_visits', String(visits));
+
+    // Capture the beforeinstallprompt event
+    const handler = (e) => {
+      e.preventDefault();
+      setPwaPrompt(e);
+      // Only show banner after 3rd visit
+      if (visits >= 3 && !localStorage.getItem('lynk_pwa_dismissed')) {
+        setShowPwaBanner(true);
+      }
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (!pwaPrompt) return;
+    pwaPrompt.prompt();
+    const { outcome } = await pwaPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowPwaBanner(false);
+      setPwaPrompt(null);
+    }
+  };
+
   // UX-02 FIX: paddingBottom accounts for mini player (56px) + bottom bar (56px) + safe area
   const mainPaddingBottom = hideChrome
     ? 0
@@ -524,15 +589,21 @@ export default function AppShell() {
       {!hideChrome && <TopNav onWatchAd={() => setShowRewarded(true)} />}
 
       {/* ── Main content ── */}
-      {/* paddingTop accounts for fixed TopNav (56px); paddingLeft for SideNav (72px) */}
-      <main style={{
-        flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
-        paddingTop: hideChrome ? 0 : 'var(--top-nav-h, 56px)',
-        // BUG-1 FIX: Remove left padding on mobile so content fills the full screen width
-        paddingLeft: hideChrome ? 0 : (isMobile ? 0 : 72),
-        paddingBottom: mainPaddingBottom,
-      }}>
-        <Outlet />
+      <main
+        style={{
+          flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
+          paddingTop: hideChrome ? 0 : 'var(--top-nav-h, 56px)',
+          paddingLeft: hideChrome ? 0 : (isMobile ? 0 : 72),
+          paddingBottom: mainPaddingBottom,
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchEnd}
+      >
+        {/* Feature #7: PageErrorBoundary — page-level so one crash doesn't kill the whole app */}
+        <PageErrorBoundary>
+          <Outlet />
+        </PageErrorBoundary>
       </main>
 
       {/* ── Side Navigation ── */}
@@ -569,6 +640,38 @@ export default function AppShell() {
 
       {/* ── UX-15 FIX: Toast Renderer ── */}
       <ToastRenderer />
+
+      {/* ── Feature #6: BetaFeedbackModal — shake or long-press trigger ── */}
+      {showBetaFeedback && (
+        <BetaFeedbackModal onClose={() => setShowBetaFeedback(false)} />
+      )}
+
+      {/* ── Feature #8: PWA Install Banner — shown after 3+ visits ── */}
+      {showPwaBanner && (
+        <div style={{
+          position:'fixed', bottom: hideChrome ? 0 : 120, left:12, right:12,
+          background:'rgba(15,12,41,0.97)', backdropFilter:'blur(20px)',
+          border:'1px solid rgba(99,102,241,0.35)', borderRadius:18,
+          padding:'14px 16px', zIndex:9000,
+          boxShadow:'0 8px 32px rgba(0,0,0,0.5)',
+          display:'flex', alignItems:'center', gap:12,
+          animation:'slideUp 0.3s ease',
+        }}>
+          <div style={{ fontSize:28, flexShrink:0 }}>📲</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontWeight:800, fontSize:14, color:'#f1f5f9' }}>Add LynkApp to Home Screen</div>
+            <div style={{ fontSize:12, color:'#64748b', marginTop:2 }}>Get the full app experience — works offline too!</div>
+          </div>
+          <button onClick={handleInstallPWA}
+            style={{ padding:'8px 14px', borderRadius:12, background:'linear-gradient(135deg,#6366f1,#ec4899)',
+              border:'none', color:'white', fontWeight:700, fontSize:13, cursor:'pointer', flexShrink:0 }}>
+            Install
+          </button>
+          <button onClick={() => { setShowPwaBanner(false); localStorage.setItem('lynk_pwa_dismissed','1'); }}
+            style={{ color:'#475569', fontSize:18, flexShrink:0, lineHeight:1, padding:'4px 6px' }}
+            aria-label="Dismiss install banner">✕</button>
+        </div>
+      )}
     </div>
   );
 }

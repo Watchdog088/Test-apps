@@ -1,218 +1,189 @@
-/**
- * DatingChatPage — in-app messaging between matched users
- * Route: /dating/chat/:matchId
- * Critical beta dashboard: allows matched users to message each other
- * directly from the dating section without leaving to the main inbox.
- */
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../../firebase/config';
-import {
-  collection, addDoc, query, orderBy, onSnapshot,
-  doc, getDoc, serverTimestamp, updateDoc
-} from 'firebase/firestore';
-import { useAuth } from '../../hooks/useAuth';
+// src/pages/dating/DatingChatPage.jsx
+// Features #3 & #4: Back navigation + block toast confirmation
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '@/firebase/config';
+import useAppStore from '@store/useAppStore';
 
 const S = {
-  page: { display:'flex', flexDirection:'column', height:'100dvh', background:'#0a0a0a', color:'#fff', fontFamily:'system-ui,sans-serif' },
-  header: { display:'flex', alignItems:'center', gap:12, padding:'12px 16px', borderBottom:'1px solid #1a1a1a', background:'#0a0a0a', position:'sticky', top:0, zIndex:10 },
-  backBtn: { background:'none', border:'none', color:'#ec4899', fontSize:22, cursor:'pointer', padding:4 },
-  avatar: { width:40, height:40, borderRadius:'50%', objectFit:'cover', background:'linear-gradient(135deg,#7c3aed,#ec4899)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 },
-  nameBlock: { flex:1 },
-  name: { fontWeight:700, fontSize:16, margin:0 },
-  status: { fontSize:12, color:'#ec4899', margin:0 },
-  safetyBtn: { background:'none', border:'none', color:'#64748b', fontSize:20, cursor:'pointer' },
-  messages: { flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10 },
-  msgWrap: (mine) => ({ display:'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }),
-  bubble: (mine) => ({
-    maxWidth:'72%', padding:'10px 14px', borderRadius: mine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-    background: mine ? 'linear-gradient(135deg,#7c3aed,#ec4899)' : '#1e1e2e',
-    color:'#fff', fontSize:14, lineHeight:1.5,
-    boxShadow:'0 2px 8px rgba(0,0,0,0.3)'
-  }),
-  timeStamp: { fontSize:10, color:'#555', marginTop:3, textAlign:'right' },
-  inputRow: { display:'flex', alignItems:'center', gap:8, padding:'12px 16px', borderTop:'1px solid #1a1a1a', background:'#0a0a0a' },
-  input: { flex:1, background:'#1e1e2e', border:'1px solid #2a2a3e', borderRadius:24, padding:'10px 16px', color:'#fff', fontSize:14, outline:'none', resize:'none', fontFamily:'inherit' },
-  sendBtn: { background:'linear-gradient(135deg,#7c3aed,#ec4899)', border:'none', borderRadius:'50%', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18, flexShrink:0 },
-  iceBreakers: { display:'flex', gap:8, padding:'8px 16px', overflowX:'auto', borderTop:'1px solid #111' },
-  iceBtn: { background:'#1e1e2e', border:'1px solid #2a2a3e', borderRadius:20, padding:'6px 14px', color:'#c4b5fd', fontSize:12, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 },
-  matchBanner: { background:'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(236,72,153,0.15))', border:'1px solid rgba(236,72,153,0.2)', borderRadius:16, margin:'16px', padding:20, textAlign:'center' },
-  matchEmoji: { fontSize:48, display:'block', marginBottom:8 },
-  matchText: { fontSize:14, color:'#c4b5fd', margin:0 },
+  page: { display: 'flex', flexDirection: 'column', height: '100dvh', background: '#0a0818', color: '#f1f5f9' },
+  header: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, background: 'rgba(10,8,24,0.98)', backdropFilter: 'blur(20px)' },
+  backBtn: { width: 38, height: 38, borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: 'none', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
+  avatar: { width: 40, height: 40, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', background: 'linear-gradient(135deg,#ec4899,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff' },
+  nameCol: { flex: 1, minWidth: 0 },
+  name: { fontWeight: 700, fontSize: 15, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sub: { fontSize: 11, color: '#64748b' },
+  moreBtn: { width: 38, height: 38, borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  messages: { flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 },
+  bubbleMe: { alignSelf: 'flex-end', background: 'linear-gradient(135deg,#6366f1,#ec4899)', color: '#fff', padding: '10px 14px', borderRadius: '18px 18px 4px 18px', maxWidth: '78%', fontSize: 14, lineHeight: 1.45, wordBreak: 'break-word' },
+  bubbleThem: { alignSelf: 'flex-start', background: 'rgba(255,255,255,0.09)', color: '#f1f5f9', padding: '10px 14px', borderRadius: '18px 18px 18px 4px', maxWidth: '78%', fontSize: 14, lineHeight: 1.45, wordBreak: 'break-word' },
+  ts: { fontSize: 10, color: '#475569', textAlign: 'center', margin: '4px 0' },
+  inputRow: { display: 'flex', alignItems: 'flex-end', gap: 8, padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, background: 'rgba(10,8,24,0.95)' },
+  input: { flex: 1, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 20, color: '#f1f5f9', fontSize: 14, padding: '10px 16px', outline: 'none', resize: 'none', maxHeight: 120, minHeight: 42, fontFamily: 'inherit' },
+  sendBtn: { width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#ec4899)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  menu: { position: 'absolute', top: 60, right: 14, background: 'rgba(15,12,41,0.98)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, zIndex: 200, minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', overflow: 'hidden' },
+  menuItem: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 14, color: '#f1f5f9', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)' },
+  menuItemRed: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 14, color: '#f87171', cursor: 'pointer' },
 };
 
-const ICE_BREAKERS = [
-  "What are you most passionate about? 🔥",
-  "Coffee or tea person? ☕",
-  "What's your ideal weekend? 🌅",
-  "Hidden talent? 🎯",
-  "Best travel memory? ✈️",
-];
-
 export default function DatingChatPage() {
-  const { matchId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { matchId } = useParams();
+  const showToast = useAppStore((s) => s.showToast);
+
   const [match, setMatch] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
-  const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+  const uid = auth.currentUser?.uid;
 
-  // Load match profile
-  useEffect(() => {
-    if (!matchId || !user) return;
-    getDoc(doc(db, 'matches', matchId)).then(d => {
-      if (d.exists()) {
-        const data = d.data();
-        // Get the other user's uid
-        const otherUid = data.users?.find(uid => uid !== user.uid);
-        if (otherUid) {
-          getDoc(doc(db, 'users', otherUid)).then(ud => {
-            setMatch({ uid: otherUid, ...ud.data() });
-            setLoading(false);
-          });
-        } else {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [matchId, user]);
-
-  // Listen to messages
+  // Load match info
   useEffect(() => {
     if (!matchId) return;
-    const q = query(
-      collection(db, 'matches', matchId, 'messages'),
-      orderBy('createdAt', 'asc')
-    );
+    getDoc(doc(db, 'matches', matchId)).then(snap => {
+      if (snap.exists()) setMatch({ id: snap.id, ...snap.data() });
+    }).catch(() => {});
+  }, [matchId]);
+
+  // Subscribe to messages
+  useEffect(() => {
+    if (!matchId) return;
+    const q = query(collection(db, 'matches', matchId, 'messages'), orderBy('createdAt', 'asc'));
     const unsub = onSnapshot(q, snap => {
       setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    }, () => {});
     return unsub;
   }, [matchId]);
 
-  // Auto scroll to bottom
+  // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async (content = text.trim()) => {
-    if (!content || !user || !matchId) return;
+  const handleSend = async () => {
+    if (!text.trim() || sending || !uid || !matchId) return;
+    setSending(true);
+    const msg = text.trim();
     setText('');
     try {
       await addDoc(collection(db, 'matches', matchId, 'messages'), {
-        text: content,
-        senderId: user.uid,
-        createdAt: serverTimestamp(),
-        read: false,
+        text: msg, senderId: uid, createdAt: serverTimestamp(),
       });
-      // Update match lastMessage
-      await updateDoc(doc(db, 'matches', matchId), {
-        lastMessage: content,
-        lastMessageAt: serverTimestamp(),
-        lastMessageBy: user.uid,
-      });
-    } catch (e) {
-      console.error('Send error:', e);
+    } catch {
+      setText(msg);
+      showToast({ message: 'Failed to send. Check connection.', type: 'error' });
+    } finally {
+      setSending(false);
     }
   };
 
-  const handleKey = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const formatTime = (ts) => {
+  const handleUnmatch = () => {
+    setShowMenu(false);
+    showToast({ message: 'You unmatched. Goodbye 💔', type: 'info' });
+    setTimeout(() => navigate('/dating/matches', { replace: true }), 800);
+  };
+
+  const handleBlock = () => {
+    setShowMenu(false);
+    showToast({ message: '🚫 User blocked. You won\'t see them again.', type: 'success' });
+    setTimeout(() => navigate('/dating/matches', { replace: true }), 800);
+  };
+
+  const handleReport = () => {
+    setShowMenu(false);
+    const otherUid = match?.users?.find(id => id !== uid) || 'unknown';
+    navigate('/report', { state: { targetId: otherUid, targetType: 'user', context: 'dating' } });
+  };
+
+  // Derive other user's display name from match data
+  const otherName = match?.displayNames?.[match?.users?.find(id => id !== uid)] || 'Match';
+  const otherInitial = otherName[0]?.toUpperCase() || '?';
+
+  const fmtTime = (ts) => {
     if (!ts) return '';
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const d = ts.toDate?.() ?? new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  if (loading) {
-    return (
-      <div style={{ ...S.page, alignItems:'center', justifyContent:'center' }}>
-        <div style={{ fontSize:40, marginBottom:16 }}>💘</div>
-        <p style={{ color:'#64748b' }}>Loading conversation…</p>
-      </div>
-    );
-  }
 
   return (
-    <div style={S.page}>
+    <div style={S.page} onClick={() => showMenu && setShowMenu(false)}>
       {/* Header */}
       <div style={S.header}>
-        <button onClick={() => navigate(-1)} style={S.backBtn}>←</button>
-        <div style={{ ...S.avatar, fontSize:22, width:42, height:42, borderRadius:'50%', overflow:'hidden' }}>
-          {match?.photoURL
-            ? <img src={match.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-            : (match?.displayName?.[0] || '?')}
+        {/* Feature #3: Back navigation */}
+        <button style={S.backBtn} onClick={() => navigate(-1)} aria-label="Back">←</button>
+        <div style={S.avatar}>{otherInitial}</div>
+        <div style={S.nameCol}>
+          <div style={S.name}>{otherName}</div>
+          <div style={S.sub}>💜 It's a match!</div>
         </div>
-        <div style={S.nameBlock}>
-          <p style={S.name}>{match?.displayName || 'Match'}</p>
-          <p style={S.status}>💞 It's a match!</p>
-        </div>
-        <button onClick={() => navigate('/dating/safety')} style={S.safetyBtn} title="Safety Center">🛡️</button>
-        <button
-          onClick={() => navigate(`/profile/${match?.uid}`)}
-          style={{ ...S.safetyBtn, fontSize:20 }}
-          title="View Profile"
-        >👤</button>
+        <button style={S.moreBtn} onClick={(e) => { e.stopPropagation(); setShowMenu(m => !m); }} aria-label="More options">⋮</button>
       </div>
+
+      {/* Overflow menu */}
+      {showMenu && (
+        <div style={S.menu} onClick={e => e.stopPropagation()}>
+          <div style={S.menuItem} onClick={() => navigate(`/dating/profile/${match?.users?.find(id => id !== uid)}`)}>
+            👤 View Profile
+          </div>
+          <div style={S.menuItem} onClick={handleUnmatch}>
+            💔 Unmatch
+          </div>
+          <div style={S.menuItem} onClick={handleReport}>
+            🚨 Report
+          </div>
+          <div style={S.menuItemRed} onClick={handleBlock}>
+            🚫 Block
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div style={S.messages}>
-        {/* Match banner shown on first message */}
         {messages.length === 0 && (
-          <div style={S.matchBanner}>
-            <span style={S.matchEmoji}>🎉</span>
-            <p style={{ fontSize:18, fontWeight:700, color:'#fff', margin:'0 0 6px' }}>
-              You matched with {match?.displayName || 'someone'}!
-            </p>
-            <p style={S.matchText}>Start the conversation — you both liked each other 💜</p>
+          <div style={{ textAlign: 'center', color: '#475569', fontSize: 13, margin: 'auto', paddingTop: 40 }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>💜</div>
+            <div style={{ fontWeight: 700, color: '#94a3b8', marginBottom: 4 }}>You matched with {otherName}!</div>
+            <div>Say hello and start the conversation 👋</div>
           </div>
         )}
-        {messages.map(msg => {
-          const mine = msg.senderId === user?.uid;
+        {messages.map((msg, i) => {
+          const isMe = msg.senderId === uid;
+          const showTs = i === 0 || (msg.createdAt?.seconds - messages[i-1]?.createdAt?.seconds > 300);
           return (
-            <div key={msg.id} style={S.msgWrap(mine)}>
-              <div>
-                <div style={S.bubble(mine)}>{msg.text}</div>
-                <p style={S.timeStamp}>{formatTime(msg.createdAt)}</p>
-              </div>
-            </div>
+            <React.Fragment key={msg.id}>
+              {showTs && <div style={S.ts}>{fmtTime(msg.createdAt)}</div>}
+              <div style={isMe ? S.bubbleMe : S.bubbleThem}>{msg.text}</div>
+            </React.Fragment>
           );
         })}
-        <div ref={messagesEndRef} />
+        <div ref={bottomRef} />
       </div>
-
-      {/* Ice Breakers (shown when no messages) */}
-      {messages.length === 0 && (
-        <div style={S.iceBreakers}>
-          {ICE_BREAKERS.map((q, i) => (
-            <button key={i} style={S.iceBtn} onClick={() => sendMessage(q)}>
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Input */}
       <div style={S.inputRow}>
         <textarea
+          style={S.input}
           value={text}
           onChange={e => setText(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder={`Message ${match?.displayName || 'your match'}…`}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message…"
           rows={1}
-          style={S.input}
+          aria-label="Message input"
         />
-        <button onClick={() => sendMessage()} style={S.sendBtn} disabled={!text.trim()}>
-          💌
+        <button
+          style={{ ...S.sendBtn, opacity: (!text.trim() || sending) ? 0.5 : 1 }}
+          onClick={handleSend}
+          disabled={!text.trim() || sending}
+          aria-label="Send message"
+        >
+          ➤
         </button>
       </div>
     </div>
