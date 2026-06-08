@@ -211,14 +211,9 @@ export default function FollowersPage() {
                 {/* Follow button (hidden for self) */}
                 {!isMe && (
                   <button
+                    className={isFollowed ? 'btn-following' : 'btn-follow'}
                     onClick={() => toggleFollow(u.uid)}
-                    style={{
-                      padding: '8px 16px', borderRadius: 22, fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-                      background: isFollowed ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg,#6366f1,#ec4899)',
-                      border: isFollowed ? '1px solid rgba(255,255,255,0.15)' : 'none',
-                      color: isFollowed ? '#94a3b8' : 'white',
-                      transition: 'all 0.15s',
-                    }}>
+                    aria-label={isFollowed ? `Unfollow ${name}` : `Follow ${name}`}>
                     {isFollowed ? 'Following' : 'Follow'}
                   </button>
                 )}

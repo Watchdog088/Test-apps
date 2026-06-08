@@ -635,3 +635,144 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* ================================================================
+   WIREFRAME / OUTLINE BUTTON SYSTEM  (added Jun 2026)
+   ================================================================ */
+
+/* Base outline — indigo brand */
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(99,102,241,0.55);
+  border-radius: 12px;
+  color: #818cf8;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+}
+.btn-outline:hover  { background: rgba(99,102,241,0.09); border-color: rgba(99,102,241,0.8); color: #a5b4fc; }
+.btn-outline:active { transform: scale(0.98); }
+.btn-outline:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Danger outline */
+.btn-outline-danger {
+  background: transparent;
+  border: 1.5px solid rgba(239,68,68,0.4);
+  border-radius: 12px;
+  color: #f87171;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  width: 100%;
+}
+.btn-outline-danger:hover  { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.7); }
+.btn-outline-danger:active { transform: scale(0.98); }
+
+/* Neutral outline — Share, Save, Go Back */
+.btn-outline-neutral {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  color: #94a3b8;
+  padding: 11px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+}
+.btn-outline-neutral:hover  { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.32); color: #cbd5e1; }
+.btn-outline-neutral:active { transform: scale(0.98); }
+
+/* Pill outline — inactive filter chips */
+.btn-outline-pill {
+  background: transparent;
+  border: 1.5px solid rgba(99,102,241,0.38);
+  border-radius: 9999px;
+  color: #94a3b8;
+  padding: 6px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-outline-pill:hover { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.65); color: #818cf8; }
+
+/* Outline back-arrow square */
+.btn-outline-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  color: #94a3b8;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-outline-back:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.32); color: #cbd5e1; }
+
+/* Follow — primary gradient (not yet following) */
+.btn-follow {
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  border: none;
+  color: #fff;
+  transition: all 0.18s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn-follow:hover  { opacity: 0.88; transform: scale(1.03); }
+.btn-follow:active { transform: scale(0.97); }
+
+/* Following — outline ghost, turns red on hover */
+.btn-following {
+  background: transparent;
+  border: 1.5px solid rgba(99,102,241,0.5);
+  border-radius: 9999px;
+  color: #818cf8;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-following:hover  { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.5); color: #f87171; }
+.btn-following:active { transform: scale(0.96); }

@@ -20,7 +20,7 @@ const REASONS = [
 const S = {
   page: { minHeight: '100vh', background: '#0a0818', color: '#f1f5f9', paddingBottom: 40 },
   header: { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' },
-  back: { width: 38, height: 38, borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: 'none', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
+  back: { width: 38, height: 38, borderRadius: 12, background: 'transparent', border: '1.5px solid rgba(255,255,255,0.18)', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 },
   title: { fontWeight: 800, fontSize: 19, color: '#f1f5f9' },
   section: { padding: '16px 16px 8px', fontSize: 12, fontWeight: 700, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' },
   reasonBtn: (selected) => ({
@@ -94,12 +94,7 @@ export default function ReportPage() {
           <div style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>
             Thanks for keeping LynkApp safe. Our moderation team will review your report within 24 hours.
           </div>
-          <button
-            onClick={() => navigate(-2)}
-            style={{ padding: '11px 28px', borderRadius: 14, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#f1f5f9', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
-          >
-            Go Back
-          </button>
+          <button className="btn-outline-neutral" onClick={() => navigate(-2)}>Go Back</button>
         </div>
       ) : (
         <>

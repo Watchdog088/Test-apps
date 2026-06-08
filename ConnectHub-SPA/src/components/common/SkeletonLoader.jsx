@@ -136,4 +136,120 @@ export function TabSkeleton({ rows = 3 }) {
   );
 }
 
+/** Friend / user list row skeleton */
+export function FriendSkeleton({ rows = 4 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', ...skeletonBg, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ width: '45%', height: 14, ...skeletonBg, marginBottom: 6 }} />
+            <div style={{ width: '30%', height: 11, ...skeletonBg }} />
+          </div>
+          <div style={{ width: 68, height: 32, borderRadius: 20, ...skeletonBg }} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Event card skeleton */
+export function EventSkeleton({ rows = 3 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ margin: '0 16px 14px', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ height: 130, ...skeletonBg, borderRadius: 0 }} />
+          <div style={{ padding: '12px 14px' }}>
+            <div style={{ width: '60%', height: 16, ...skeletonBg, marginBottom: 8 }} />
+            <div style={{ width: '40%', height: 12, ...skeletonBg, marginBottom: 6 }} />
+            <div style={{ width: '30%', height: 11, ...skeletonBg }} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Notification row skeleton */
+export function NotificationSkeleton({ rows = 5 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', ...skeletonBg, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ width: '75%', height: 13, ...skeletonBg, marginBottom: 6 }} />
+            <div style={{ width: '50%', height: 11, ...skeletonBg, marginBottom: 8 }} />
+            <div style={{ width: '20%', height: 10, ...skeletonBg }} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Marketplace product grid skeleton */
+export function MarketplaceSkeleton({ cols = 2, rows = 3 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 12, padding: 16 }}>
+        {Array.from({ length: cols * rows }).map((_, i) => (
+          <div key={i} style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ aspectRatio: '1', ...skeletonBg, borderRadius: 0 }} />
+            <div style={{ padding: '10px 12px' }}>
+              <div style={{ width: '70%', height: 13, ...skeletonBg, marginBottom: 6 }} />
+              <div style={{ width: '40%', height: 16, ...skeletonBg }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Group list row skeleton */
+export function GroupSkeleton({ rows = 4 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div style={{ width: 50, height: 50, borderRadius: 14, ...skeletonBg, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ width: '50%', height: 14, ...skeletonBg, marginBottom: 6 }} />
+            <div style={{ width: '35%', height: 11, ...skeletonBg }} />
+          </div>
+          <div style={{ width: 56, height: 30, borderRadius: 10, ...skeletonBg }} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Generic list of text rows (for search results, saved, etc.) */
+export function ListSkeleton({ rows = 5 }) {
+  return (
+    <>
+      <style>{shimmer}</style>
+      <div style={{ padding: '8px 0' }}>
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px' }}>
+            <div style={{ width: 42, height: 42, borderRadius: '50%', ...skeletonBg, flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ width: `${45 + (i * 13) % 35}%`, height: 13, ...skeletonBg, marginBottom: 5 }} />
+              <div style={{ width: `${25 + (i * 9) % 25}%`, height: 11, ...skeletonBg }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default SkeletonBlock;
