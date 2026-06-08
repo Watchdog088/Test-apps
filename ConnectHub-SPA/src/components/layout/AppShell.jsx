@@ -15,7 +15,8 @@ import AdUnit          from '@components/ads/AdUnit';
 import adService       from '@services/ad-service';
 import useAppStore     from '@store/useAppStore';
 import { useAuth }     from '@hooks/useAuth';
-import BetaFeedbackModal from '@components/common/BetaFeedbackModal';
+import BetaFeedbackModal    from '@components/common/BetaFeedbackModal';
+import BetaWelcomeTooltip   from '@components/common/BetaWelcomeTooltip';
 import PageErrorBoundary from '@components/common/PageErrorBoundary';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '@/firebase/config';
@@ -645,6 +646,9 @@ export default function AppShell() {
       {showBetaFeedback && (
         <BetaFeedbackModal onClose={() => setShowBetaFeedback(false)} />
       )}
+
+      {/* ── Beta Welcome Tooltip — shown once to every new beta tester ── */}
+      <BetaWelcomeTooltip />
 
       {/* ── Feature #8: PWA Install Banner — shown after 3+ visits ── */}
       {showPwaBanner && (
