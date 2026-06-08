@@ -42,7 +42,8 @@ const FollowingPage                 = lazy(() => import('./pages/profile/Followi
 const MeetingDashboardPage          = lazy(() => import('./pages/meetings/MeetingDashboardPage'));
 const MeetingWaitingRoomPage        = lazy(() => import('./pages/meetings/MeetingWaitingRoomPage'));
 const MeetingRoomPage               = lazy(() => import('./pages/meetings/MeetingRoomPage'));
-const WalletPage                    = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.WalletPage })));
+// GAP-05 FIX (Jun 2026): WalletPage now has full implementation — dedicated file
+const WalletPage                    = lazy(() => import('./pages/wallet/WalletPage'));
 const NotifPreferencesPage          = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.NotificationPreferencesPage })));
 const BlockedAccountsPage           = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.BlockedUsersPage })));
 const OrderDetailPage               = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.OrderDetailPage })));
