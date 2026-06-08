@@ -31,6 +31,10 @@ import AccountRecoveryPage from './pages/auth/AccountRecoveryPage';
 const ConversationPage              = lazy(() => import('./pages/messages/ConversationPage'));
 const VideoCallRoomPage             = lazy(() => import('./pages/videocalls/VideoCallRoomPage'));
 const FollowingPage                 = lazy(() => import('./pages/profile/FollowingPage'));
+// ── Meeting Rooms ──────────────────────────────────────────
+const MeetingDashboardPage          = lazy(() => import('./pages/meetings/MeetingDashboardPage'));
+const MeetingWaitingRoomPage        = lazy(() => import('./pages/meetings/MeetingWaitingRoomPage'));
+const MeetingRoomPage               = lazy(() => import('./pages/meetings/MeetingRoomPage'));
 const WalletPage                    = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.WalletPage })));
 const NotifPreferencesPage          = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.NotificationPreferencesPage })));
 const BlockedAccountsPage           = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.BlockedUsersPage })));
@@ -565,6 +569,10 @@ export default function App() {
             {/* ── BETA CRITICAL: 10 Missing Routes (Jun 2026) ── */}
             <Route path="messages/conversation/:id"   element={<ConversationPage />} />
             <Route path="video-call/:roomId"           element={<VideoCallRoomPage />} />
+            {/* ── Meeting Rooms ── */}
+            <Route path="meetings"                     element={<MeetingDashboardPage />} />
+            <Route path="meeting/:roomId/waiting"      element={<MeetingWaitingRoomPage />} />
+            <Route path="meeting/:roomId/room"         element={<MeetingRoomPage />} />
             <Route path="wallet"                       element={<WalletPage />} />
             <Route path="notifications/preferences"   element={<NotifPreferencesPage />} />
             <Route path="settings/blocked-users"      element={<BlockedAccountsPage />} />
