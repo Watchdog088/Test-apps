@@ -51,6 +51,16 @@ const CreatorAnalyticsDashboard     = lazy(() => import('./pages/missing/Missing
 const AccountStatusPage             = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.AccountStatusPage })));
 const DataPrivacyPage               = lazy(() => import('./pages/missing/MissingDashboards').then(m => ({ default: m.DataPrivacyPage })));
 
+// ── NEW DASHBOARDS (Jun 2026): 7 gap-fill pages ──────────────────────────
+const SignupPage                    = lazy(() => import('./pages/auth/SignupPage'));
+const StoryViewerPage               = lazy(() => import('./pages/stories/StoryViewerPage'));
+const FeedbackPage                  = lazy(() => import('./pages/misc/FeedbackPage'));
+const ChangePasswordPage            = lazy(() => import('./pages/settings/AccountSecurityPages').then(m => ({ default: m.ChangePasswordPage })));
+const ChangeEmailPage               = lazy(() => import('./pages/settings/AccountSecurityPages').then(m => ({ default: m.ChangeEmailPage })));
+const HelpFAQPage                   = lazy(() => import('./pages/help/HelpSubPages').then(m => ({ default: m.HelpFAQPage })));
+const DatingMatchCelebrationPage    = lazy(() => import('./pages/dating/DatingMatchCelebrationPage'));
+const PremiumFeaturesPage           = lazy(() => import('./pages/premium/PremiumFeaturesPage'));
+
 // ── SECTION-6: Messages new pages (May 2026)
 const MessageRequestsPage      = lazy(() => import('./pages/messages/MessageRequestsPage'));
 const ArchivedConversationsPage = lazy(() => import('./pages/messages/ArchivedConversationsPage'));
@@ -652,7 +662,20 @@ export default function App() {
             <Route path="creator/analytics-overview"  element={<CreatorAnalyticsDashboard />} />
             <Route path="settings/account-status"     element={<AccountStatusPage />} />
             <Route path="settings/data-privacy"       element={<DataPrivacyPage />} />
+
+            {/* ── NEW Jun-2026 GAP-FILL: 8 additional routes ── */}
+            {/* Signup (public — auth page) moved to PrivateRoute shell too for in-app link */}
+            <Route path="stories/view/:id"             element={<StoryViewerPage />} />
+            <Route path="feedback"                     element={<FeedbackPage />} />
+            <Route path="settings/change-password"     element={<ChangePasswordPage />} />
+            <Route path="settings/change-email"        element={<ChangeEmailPage />} />
+            <Route path="help/faq"                     element={<HelpFAQPage />} />
+            <Route path="dating/match/:matchId"        element={<DatingMatchCelebrationPage />} />
+            <Route path="premium/features"             element={<PremiumFeaturesPage />} />
           </Route>
+
+          {/* Signup also accessible outside app shell */}
+          <Route path="/signup" element={<SignupPage />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
