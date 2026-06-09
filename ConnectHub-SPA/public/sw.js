@@ -9,7 +9,7 @@
  *  - Everything else         → Network-First
  */
 
-const CACHE_VERSION  = 'connecthub-v19';
+const CACHE_VERSION  = 'connecthub-v20';
 const SHELL_CACHE    = `${CACHE_VERSION}-shell`;
 const DATA_CACHE     = `${CACHE_VERSION}-data`;
 const PHOTO_CACHE    = `${CACHE_VERSION}-photos`;

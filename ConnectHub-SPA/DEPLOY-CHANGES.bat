@@ -15,7 +15,7 @@ REM  This serves as your running change-log / history.
 REM ============================================================
 
 set CHANGE_DATE=2026-06-09
-set CHANGE_DESC=Updated deployment script with change log
+set CHANGE_DESC=Bumped service worker cache to v20 - forces cache refresh for all users
 set CHANGE_BY=Jnewball
 
 REM  ---- RECENT CHANGES (update this section each deploy) ----
