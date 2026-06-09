@@ -188,7 +188,12 @@ if /i "%DEPLOY_STORAGE%"=="YES" (
 REM ---- STEP F: Build + Deploy Hosting ----
 if /i "%DEPLOY_HOSTING%"=="YES" (
   echo ============================================================
-  echo  [BUILD] Compiling React app for production...
+  echo  [BUILD] Installing dependencies (if needed)...
+  echo ============================================================
+  call npm install --silent
+  echo.
+  echo ============================================================
+  echo  [BUILD] Compiling React app for production (Vite)...
   echo  This takes 2-5 minutes — please wait.
   echo ============================================================
   echo.
