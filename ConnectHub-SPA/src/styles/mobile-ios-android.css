@@ -1,0 +1,186 @@
+/**
+ * LynkApp — iOS & Android Cross-Platform CSS
+ * Covers: safe-area-insets, touch targets, tap highlights,
+ * notch/Dynamic Island, keyboard avoidance, overscroll,
+ * and Android status bar spacing.
+ *
+ * Imported once in global.css (or main.jsx).
+ */
+
+/* ─── CSS Custom Properties (populated by mobile-platform-service.js) ──── */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --keyboard-height: 0px;
+  --bottom-nav-height: 64px;
+}
+
+/* ─── Prevent overscroll bounce (iOS rubber-band effect) ─────────────────── */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Remove default tap highlight on iOS ───────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Re-enable text selection on inputs / textareas */
+input,
+textarea,
+[contenteditable] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ─── Minimum 44×44 px touch targets (Apple HIG / Android guidelines) ───── */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ─── Safe-area aware navigation / toolbars ─────────────────────────────── */
+.top-nav,
+header[role="banner"],
+.app-header {
+  padding-top: calc(var(--sat) + 0.5rem);
+}
+
+.bottom-nav,
+.mobile-bottom-nav,
+footer[role="contentinfo"],
+.app-footer {
+  padding-bottom: calc(var(--sab) + 0.25rem);
+  height: calc(var(--bottom-nav-height) + var(--sab));
+}
+
+/* ─── Main content scroll area avoids bottom nav ─────────────────────────── */
+.main-content,
+.page-content,
+main {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--sab) + 1rem);
+}
+
+/* ─── iOS notch / Dynamic Island safe side padding ──────────────────────── */
+.safe-sides {
+  padding-left: max(var(--sal), 1rem);
+  padding-right: max(var(--sar), 1rem);
+}
+
+/* ─── Keyboard avoidance — push content up when virtual keyboard is open ── */
+.keyboard-open .bottom-nav,
+.keyboard-open .mobile-bottom-nav {
+  transform: translateY(calc(var(--keyboard-height) * -1));
+  transition: transform 0.2s ease;
+}
+
+.keyboard-open main,
+.keyboard-open .main-content {
+  padding-bottom: calc(var(--keyboard-height) + 1rem);
+}
+
+/* ─── Smooth momentum scroll on iOS for scrollable containers ───────────── */
+.scroll-container,
+.feed-list,
+.messages-list,
+.chat-messages,
+[data-scroll="momentum"] {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ─── Prevent text size adjustment on orientation change ─────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ─── Fix iOS input zoom (prevent auto-zoom on focus for small fonts) ────── */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ─── Android status bar spacing (Capacitor overlay mode) ───────────────── */
+.capacitor-android .app-header,
+.capacitor-android .top-nav {
+  padding-top: calc(var(--sat) + 0.5rem);
+}
+
+/* ─── iOS Home Indicator area (bottom pill) ─────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .fixed-bottom,
+  .sticky-bottom,
+  .fab-container {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ─── Pull-to-refresh indicator (Capacitor + PWA) ────────────────────────── */
+.ptr-element {
+  background: var(--color-surface, #1a1a2e);
+  color: var(--color-primary, #6366f1);
+}
+
+/* ─── Haptic feedback visual cue (subtle scale on press) ─────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  [role="button"]:active,
+  .tap-feedback:active {
+    transform: scale(0.97);
+    transition: transform 0.08s ease;
+  }
+}
+
+/* ─── Landscape mode — compact header / nav ──────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .top-nav,
+  .app-header {
+    height: 44px;
+    padding-top: var(--sat);
+  }
+
+  .bottom-nav,
+  .mobile-bottom-nav {
+    height: calc(52px + var(--sab));
+  }
+}
+
+/* ─── PWA standalone mode — hide browser UI remnants ─────────────────────── */
+@media (display-mode: standalone) {
+  .browser-only {
+    display: none !important;
+  }
+
+  .pwa-only {
+    display: flex !important;
+  }
+}
+
+/* ─── Capacitor-specific overrides ───────────────────────────────────────── */
+.capacitor-ios body {
+  padding-top: var(--sat);
+}
+
+.capacitor-android body {
+  padding-top: var(--sat);
+}
