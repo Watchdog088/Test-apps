@@ -207,6 +207,7 @@ const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards
 
 // ── NEW Jun 2026: 4 missing beta-readiness dashboards ──────────────────────
 const BetaDashboardPage    = lazy(() => import('./pages/beta/BetaDashboardPage'));
+const BetaWelcomePage      = lazy(() => import('./pages/beta/BetaWelcomePage'));
 const WhatsNewPage         = lazy(() => import('./pages/misc/WhatsNewPage'));
 const ProfileSetupPage     = lazy(() => import('./pages/profile/ProfileSetupPage'));
 const PushNotificationsPage = lazy(() => import('./pages/settings/PushNotificationsPage'));
@@ -387,6 +388,7 @@ export default function App() {
 
           {/* ── NEW Jun 2026: Missing dashboards added for beta readiness ── */}
           <Route path="/beta"                        element={<BetaDashboardPage />} />
+          <Route path="/beta/welcome"                element={<BetaWelcomePage />} />
           <Route path="/whats-new"                   element={<WhatsNewPage />} />
           <Route path="/profile/setup"               element={<ProfileSetupPage />} />
           <Route path="/settings/push-notifications" element={<PushNotificationsPage />} />

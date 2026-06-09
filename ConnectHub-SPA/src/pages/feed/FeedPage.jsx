@@ -13,8 +13,10 @@
 //   ROUTE-01 /ads/info page now registered
 //   RULES-01 Firestore security rules for reports collection (see firestore.rules)
 
+// GAP #3 + #4 (Jun 2026): StoriesStrip injected at top of feed; Create Post FAB added
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import StoriesStrip from '@components/common/StoriesStrip';
 import {
   collection, query, orderBy, limit, onSnapshot,
   addDoc, serverTimestamp, doc, setDoc, getDoc, updateDoc,
