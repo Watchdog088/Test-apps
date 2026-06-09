@@ -205,6 +205,12 @@ const ReturnsPage          = lazy(() => import('./pages/marketplace/ReturnsPage'
 // ── Friends extras (May 2026)
 const ContactImportPage    = lazy(() => import('./pages/misc/RemainingDashboards').then(m => ({ default: m.ContactImportPage })));
 
+// ── NEW Jun 2026: 4 missing beta-readiness dashboards ──────────────────────
+const BetaDashboardPage    = lazy(() => import('./pages/beta/BetaDashboardPage'));
+const WhatsNewPage         = lazy(() => import('./pages/misc/WhatsNewPage'));
+const ProfileSetupPage     = lazy(() => import('./pages/profile/ProfileSetupPage'));
+const PushNotificationsPage = lazy(() => import('./pages/settings/PushNotificationsPage'));
+
 // ── BETA CRITICAL: 4 New Dashboards (Jun 2026)
 const DatingChatPage       = lazy(() => import('./pages/dating/DatingChatPage'));
 const DeleteAccountPage    = lazy(() => import('./pages/settings/DeleteAccountPage'));
@@ -378,6 +384,12 @@ export default function App() {
           {/* BETA FIX (Jun 2026): About, Contact, Cookie Policy — required for beta trust + GDPR */}
           <Route path="/about"         element={<AboutPage />} />
           <Route path="/contact"       element={<ContactPage />} />
+
+          {/* ── NEW Jun 2026: Missing dashboards added for beta readiness ── */}
+          <Route path="/beta"                        element={<BetaDashboardPage />} />
+          <Route path="/whats-new"                   element={<WhatsNewPage />} />
+          <Route path="/profile/setup"               element={<ProfileSetupPage />} />
+          <Route path="/settings/push-notifications" element={<PushNotificationsPage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
 
           {/* Protected app shell — pathless layout so sub-routes stay at /feed, /messages, etc. */}
