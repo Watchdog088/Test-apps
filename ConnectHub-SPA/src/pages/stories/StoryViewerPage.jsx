@@ -1,4 +1,5 @@
 // src/pages/stories/StoryViewerPage.jsx — Full-screen story viewer
+// ITEM-10 FIX (Jun 2026): Added touch swipe gestures (left/right) for mobile navigation
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -30,7 +31,10 @@ export default function StoryViewerPage() {
   const [idx, setIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef(null);
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
   const DURATION = 5000;
+  const SWIPE_THRESHOLD = 50; // px — minimum horizontal swipe distance
 
   const story = DEMO[idx] || DEMO[0];
 
@@ -52,8 +56,50 @@ export default function StoryViewerPage() {
   };
   const back = () => { if (idx > 0) setIdx(i => i - 1); };
 
+  // ── ITEM-10 FIX: Touch swipe handlers ──────────────────────────────────────
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    // Pause timer while touching
+    clearInterval(intervalRef.current);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Only treat as horizontal swipe if horizontal movement dominates
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX < 0) {
+        // Swipe left → advance to next story
+        advance();
+      } else {
+        // Swipe right → go back to previous story
+        back();
+      }
+    } else {
+      // Tap — split screen in half: left half = back, right half = advance
+      const screenMid = window.innerWidth / 2;
+      if (touchStartX.current < screenMid) back();
+      else advance();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  const handleTouchMove = (e) => {
+    // Prevent page scroll while swiping stories
+    e.preventDefault();
+  };
+
   return (
-    <div style={{ ...S.wrap, background: story.bg }}>
+    <div
+      style={{ ...S.wrap, background: story.bg }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+    >
       <div style={S.bar}>
         {DEMO.map((s, i) => (
           <div key={s.id} style={S.seg}>
@@ -69,6 +115,7 @@ export default function StoryViewerPage() {
       </div>
       <div style={S.body}>
         <div style={S.content}>{story.text}</div>
+        {/* Click zones remain for desktop/mouse users */}
         <div style={S.navL} onClick={back} />
         <div style={S.navR} onClick={advance} />
       </div>

@@ -492,6 +492,18 @@ export default function AppShell() {
     }
   }, [pathname, hideChrome]);
 
+  // ── ITEM-7 FIX (Jun 2026): 3-minute session timer → auto-show BetaFeedbackModal ──
+  useEffect(() => {
+    if (hideChrome) return; // Don't show on login/onboarding pages
+    // Only show once per session (not every page visit)
+    if (sessionStorage.getItem('lynk_beta_feedback_shown')) return;
+    const timer = setTimeout(() => {
+      sessionStorage.setItem('lynk_beta_feedback_shown', '1');
+      setShowBetaFeedback(true);
+    }, 3 * 60 * 1000); // 3 minutes = 180,000ms
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Feature #6: Shake detection → open BetaFeedbackModal ──────────────────
   useEffect(() => {
     if (!window.DeviceMotionEvent) return;
