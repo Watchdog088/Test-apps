@@ -136,7 +136,7 @@ const DRAWER_SECTIONS = [
     label: 'DISCOVER',
     items: [
       { icon:'🔍', label:'Search & Explore', path:'/search' },
-      { icon:'📈', label:'Trending',          path:'/search', state:{ tab:'trending' } },
+      { icon:'📈', label:'Trending',          path:'/trending' },
       { icon:'📅', label:'Events',            path:'/events' },
       { icon:'👥', label:'Groups',            path:'/groups' },
     ],
