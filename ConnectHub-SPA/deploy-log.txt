@@ -1,0 +1,3 @@
+[STEP: Checking Firebase login...] 
+[STEP: Firebase login OK] 
+[STEP: Git add+commit+push] 
