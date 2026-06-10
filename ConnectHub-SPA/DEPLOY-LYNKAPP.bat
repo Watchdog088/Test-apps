@@ -102,6 +102,7 @@ if %errorlevel% neq 0 (
 
 REM ── Check Firebase login status ──────────────────────────────
 echo  Checking Firebase login...
+echo [STEP: Checking Firebase login...] > "%~dp0deploy-log.txt"
 call %FIREBASE% projects:list >nul 2>&1
 if %errorlevel% neq 0 (
   echo.
@@ -112,14 +113,17 @@ if %errorlevel% neq 0 (
   echo   account that owns lynkapp-c7db1, then come back here.
   echo  ============================================================
   echo.
+  echo [STEP: Running firebase login...] >> "%~dp0deploy-log.txt"
   call %FIREBASE% login
   if %errorlevel% neq 0 (
+    echo [FAILED: firebase login returned error] >> "%~dp0deploy-log.txt"
     echo  Login failed. Please try again.
     pause
     exit /b 1
   )
 )
 echo  Firebase: Logged in OK.
+echo [STEP: Firebase login OK] >> "%~dp0deploy-log.txt"
 echo.
 
 REM ── STEP A: Save to Git ──────────────────────────────────────
@@ -127,6 +131,7 @@ if /i "%SAVE_TO_GIT%"=="YES" (
   echo  ============================================================
   echo   [GIT] Saving changes to GitHub...
   echo  ============================================================
+  echo [STEP: Git add+commit+push] >> "%~dp0deploy-log.txt"
   cd /d "%~dp0.."
   git add -A
   git commit -m "deploy: %CHANGE_DESC% [%CHANGE_DATE%]"
@@ -137,8 +142,10 @@ if /i "%SAVE_TO_GIT%"=="YES" (
   if %errorlevel% neq 0 (
     echo   WARNING: Git push failed. Continuing with deploy anyway.
     echo   (OK if no GitHub remote is set up.)
+    echo [WARN: git push failed - continuing] >> "%~dp0deploy-log.txt"
   ) else (
     echo   Git: Pushed to GitHub OK.
+    echo [STEP: Git push OK] >> "%~dp0deploy-log.txt"
   )
   cd /d "%~dp0"
   echo.
@@ -217,23 +224,28 @@ if /i "%DEPLOY_HOSTING%"=="YES" (
   echo  ============================================================
   echo   [NPM INSTALL] Checking/updating dependencies...
   echo  ============================================================
+  echo [STEP: npm install] >> "%~dp0deploy-log.txt"
   call npm install
   if %errorlevel% neq 0 (
+    echo [FAILED: npm install] >> "%~dp0deploy-log.txt"
     echo   ERROR: npm install failed.
     echo   Try deleting node_modules and running again.
     pause
     exit /b 1
   )
   echo   Dependencies OK.
+  echo [STEP: npm install OK] >> "%~dp0deploy-log.txt"
   echo.
 
   echo  ============================================================
   echo   [BUILD] Compiling React app with Vite (1-5 min)...
   echo  ============================================================
   echo.
+  echo [STEP: npm run build starting...] >> "%~dp0deploy-log.txt"
   set NODE_OPTIONS=--max-old-space-size=4096
   call npm run build
   if %errorlevel% neq 0 (
+    echo [FAILED: npm run build] >> "%~dp0deploy-log.txt"
     echo.
     echo  ============================================================
     echo   BUILD FAILED!
@@ -249,13 +261,16 @@ if /i "%DEPLOY_HOSTING%"=="YES" (
   )
   echo.
   echo   Build complete! Output in: dist/
+  echo [STEP: Build OK] >> "%~dp0deploy-log.txt"
   echo.
 
   echo  ============================================================
   echo   [HOSTING] Uploading to Firebase Hosting (lynkapp.net)...
   echo  ============================================================
+  echo [STEP: firebase deploy --only hosting] >> "%~dp0deploy-log.txt"
   call %FIREBASE% deploy --only hosting
   if %errorlevel% neq 0 (
+    echo [FAILED: firebase deploy --only hosting] >> "%~dp0deploy-log.txt"
     echo.
     echo  ============================================================
     echo   HOSTING DEPLOY FAILED!
@@ -265,6 +280,7 @@ if /i "%DEPLOY_HOSTING%"=="YES" (
     pause
     exit /b 1
   )
+  echo [STEP: Hosting deploy OK] >> "%~dp0deploy-log.txt"
   echo.
 )
 
