@@ -109,17 +109,8 @@ export default function LoginPage() {
 
       if (mode === 'login') {
         const cred = await signInWithEmailAndPassword(auth, email, password);
-        /* ── Check if admin → redirect to /admin, else /feed ── */
-        try {
-          const snap = await getDoc(doc(db, 'users', cred.user.uid));
-          if (snap.exists() && snap.data().isAdmin === true) {
-            navigate('/admin', { replace: true });
-          } else {
-            navigate('/feed', { replace: true });
-          }
-        } catch {
-          navigate('/feed', { replace: true });
-        }
+        /* ── Always go to /feed — admin users get an Admin button in the nav ── */
+        navigate('/feed', { replace: true });
       } else {
         /* ── Signup ── */
         const cred = await createUserWithEmailAndPassword(auth, email, password);

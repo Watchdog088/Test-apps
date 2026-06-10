@@ -69,8 +69,9 @@ export default function TopNav() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { user }  = useAuth();
-  const { unreadNotifications, setCreatePostOpen } = useAppStore();
+  const { unreadNotifications, setCreatePostOpen, userProfile } = useAppStore();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const isAdmin = userProfile?.isAdmin === true;
 
   const path = location.pathname;
   const isFeed    = path === '/feed' || path === '/';
@@ -198,6 +199,25 @@ export default function TopNav() {
           <Suspense fallback={null}>
             <BetaFeedbackModal onClose={() => setFeedbackOpen(false)} />
           </Suspense>
+        )}
+
+        {/* 🛡️ Admin Panel — only visible to CEO/admin account (isAdmin === true) */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/admin')}
+            aria-label="Admin Panel"
+            title="Switch to Admin Panel"
+            style={{
+              minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
+              background: location.pathname.startsWith('/admin')
+                ? 'rgba(239,68,68,0.25)'
+                : 'rgba(239,68,68,0.12)',
+              border: '1px solid rgba(239,68,68,0.35)',
+              color:'#f87171', fontSize:14, fontWeight:700,
+              display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+            }}>
+            🛡️
+          </button>
         )}
 
         {/* Avatar — POLISH-11 FIX: 44×44px */}

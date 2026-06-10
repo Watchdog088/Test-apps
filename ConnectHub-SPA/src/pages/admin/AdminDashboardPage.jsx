@@ -152,7 +152,19 @@ export default function AdminDashboardPage() {
       <div style={S.hdr}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 22, cursor: 'pointer', padding: '4px 8px' }}>←</button>
         <span style={{ fontWeight: 700, fontSize: 17 }}>⚙️ Admin Dashboard</span>
-        <div style={{ marginLeft: 'auto', ...S.badge('rgba(239,68,68,0.15)', '#ef4444') }}>🔴 ADMIN ACCESS</div>
+        {/* ← User View button — lets CEO@lynkapp.net switch back to the app */}
+        <button
+          onClick={() => navigate('/feed')}
+          style={{
+            marginLeft: 'auto', padding: '6px 14px', borderRadius: 10,
+            background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.35)',
+            color: '#a5b4fc', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          ← User View
+        </button>
+        <div style={{ ...S.badge('rgba(239,68,68,0.15)', '#ef4444') }}>🔴 ADMIN ACCESS</div>
       </div>
 
       {/* Tabs */}

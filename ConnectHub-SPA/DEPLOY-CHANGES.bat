@@ -7,25 +7,46 @@ echo  ============================================================
 echo   LYNKAPP — DEPLOY CHANGES  (lynkapp-c7db1 / lynkapp.net)
 echo  ============================================================
 echo.
+echo  HOW TO USE THIS FILE:
+echo  ─────────────────────
+echo  1. Open this file in Notepad (right-click → Edit)
+echo  2. In SECTION 1 below, update:
+echo       CHANGE_DATE  = today's date (YYYY-MM-DD)
+echo       CHANGE_DESC  = one-line summary of what you changed
+echo       CHANGE_BY    = your name
+echo  3. Also copy that line into the RECENT CHANGES log below it
+echo  4. In SECTION 2, set YES/NO for what to deploy (usually
+echo     only DEPLOY_HOSTING=YES is needed for code changes)
+echo  5. Save the file, then DOUBLE-CLICK it to run
+echo  ─────────────────────────────────────────────────────────
+echo  The bat will automatically:
+echo    a) npm install  (install/update dependencies)
+echo    b) npm run build (compile React app to dist/)
+echo    c) git add + commit + push (save to GitHub)
+echo    d) firebase deploy --only hosting (go live at lynkapp.net)
+echo  ─────────────────────────────────────────────────────────
+echo.
 
 REM ============================================================
 REM  SECTION 1 — LOG YOUR CHANGES HERE BEFORE RUNNING
-REM  Update this section every time you make changes.
-REM  This serves as your running change-log / history.
+REM  Update CHANGE_DATE, CHANGE_DESC, CHANGE_BY each deploy.
+REM  Then copy the line into the RECENT CHANGES log below.
 REM ============================================================
 
 set CHANGE_DATE=2026-06-09
-set CHANGE_DESC=Bumped service worker cache to v20 - forces cache refresh for all users
+set CHANGE_DESC=DEPLOY-CHANGES.bat updated with clear workflow instructions
 set CHANGE_BY=Jnewball
 
-REM  ---- RECENT CHANGES (update this section each deploy) ----
+REM  ──────────────────────────────────────────────────────────
+REM  RECENT CHANGES — add a new line here every deploy
+REM  Copy this template:
+REM    YYYY-MM-DD  [name] — What you changed / fixed
+REM  ──────────────────────────────────────────────────────────
 REM
-REM  2026-06-09  Initial DEPLOY-CHANGES.bat created
+REM  2026-06-09  Jnewball — DEPLOY-CHANGES.bat updated with clear workflow instructions
+REM  2026-06-09  Jnewball — Initial DEPLOY-CHANGES.bat created
 REM
-REM  TEMPLATE — copy/paste this line and fill it in each time:
-REM  YYYY-MM-DD  [your name] — What you changed / fixed
-REM
-REM -----------------------------------------------------------
+REM  ──────────────────────────────────────────────────────────
 
 echo  Change:  %CHANGE_DESC%
 echo  Date:    %CHANGE_DATE%
@@ -35,9 +56,12 @@ echo.
 REM ============================================================
 REM  SECTION 2 — CHOOSE WHAT TO DEPLOY
 REM
-REM  Set to "YES" or "NO" for each item below.
-REM  Most everyday code changes only need DEPLOY_HOSTING=YES.
-REM  Only turn on the others when you changed those files.
+REM  Set YES or NO for each item.
+REM  ➤  For everyday code changes:   only DEPLOY_HOSTING=YES
+REM  ➤  Edited firestore.rules:      also set DEPLOY_RULES=YES
+REM  ➤  Added a Firestore index:     also set DEPLOY_INDEXES=YES
+REM  ➤  Edited functions/index.js:   also set DEPLOY_FUNCTIONS=YES
+REM  ➤  Edited storage.rules:        also set DEPLOY_STORAGE=YES
 REM ============================================================
 
 set DEPLOY_HOSTING=YES
@@ -47,57 +71,66 @@ set DEPLOY_FUNCTIONS=NO
 set DEPLOY_STORAGE=NO
 set SAVE_TO_GIT=YES
 
-REM  ---- WHAT EACH SWITCH DOES ----
+REM  ── WHAT EACH SWITCH DOES ──────────────────────────────────
 REM
-REM  DEPLOY_HOSTING   = Build React app + push to lynkapp.net
-REM                     USE: Every time you change any .jsx/.js/.css
+REM  DEPLOY_HOSTING   = npm install + npm run build + firebase deploy --only hosting
+REM                     Pushes built app to https://lynkapp.net
+REM                     ✅ USE: Any time you change .jsx / .js / .css files
 REM
-REM  DEPLOY_RULES     = Push firestore.rules to Firebase
-REM                     USE: When you edit ConnectHub-SPA\firestore.rules
+REM  DEPLOY_RULES     = firebase deploy --only firestore:rules
+REM                     ✅ USE: When you edit  ConnectHub-SPA\firestore.rules
 REM
-REM  DEPLOY_INDEXES   = Push firestore.indexes.json
-REM                     USE: When you add/change Firestore indexes
+REM  DEPLOY_INDEXES   = firebase deploy --only firestore:indexes
+REM                     ✅ USE: When you edit  ConnectHub-SPA\firestore.indexes.json
 REM
-REM  DEPLOY_FUNCTIONS = Install deps + push Cloud Functions
-REM                     USE: When you edit ConnectHub-SPA\functions\index.js
+REM  DEPLOY_FUNCTIONS = npm install in functions/ + firebase deploy --only functions
+REM                     ✅ USE: When you edit  ConnectHub-SPA\functions\index.js
 REM
-REM  DEPLOY_STORAGE   = Push storage.rules
-REM                     USE: When you edit ConnectHub-SPA\storage.rules
+REM  DEPLOY_STORAGE   = firebase deploy --only storage
+REM                     ✅ USE: When you edit  ConnectHub-SPA\storage.rules
 REM
-REM  SAVE_TO_GIT      = git add + commit + push before deploying
-REM                     USE: YES to keep GitHub in sync (recommended)
+REM  SAVE_TO_GIT      = git add -A + git commit + git push
+REM                     ✅ Keeps GitHub in sync (recommended — leave YES)
 REM
-REM ---------------------------------------------------------------
+REM  ──────────────────────────────────────────────────────────
 
 echo  Deploy settings:
-echo    Hosting (build + upload) . . . %DEPLOY_HOSTING%
-echo    Firestore security rules  . . . %DEPLOY_RULES%
-echo    Firestore indexes . . . . . . . %DEPLOY_INDEXES%
-echo    Cloud Functions . . . . . . . . %DEPLOY_FUNCTIONS%
-echo    Storage rules . . . . . . . . . %DEPLOY_STORAGE%
-echo    Save to GitHub  . . . . . . . . %SAVE_TO_GIT%
+echo    Hosting (build + upload)  . . .  %DEPLOY_HOSTING%
+echo    Firestore security rules  . . .  %DEPLOY_RULES%
+echo    Firestore indexes . . . . . . .  %DEPLOY_INDEXES%
+echo    Cloud Functions . . . . . . . .  %DEPLOY_FUNCTIONS%
+echo    Storage rules . . . . . . . . .  %DEPLOY_STORAGE%
+echo    Save to GitHub  . . . . . . . .  %SAVE_TO_GIT%
 echo.
 echo  Press ENTER to start deploying, or close this window to cancel.
 pause
 echo.
 
 REM ============================================================
-REM  SECTION 3 — AUTO-STEPS (no editing needed below this line)
+REM  AUTO-STEPS — no editing needed below this line
 REM ============================================================
 
 cd /d "%~dp0"
 
-REM -- Locate firebase CLI --
-set FIREBASE="C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd"
-if not exist %FIREBASE% (
-  echo  ERROR: Firebase CLI not found at %FIREBASE%
-  echo  Run:  npm install -g firebase-tools
-  echo  Then: Run 1-firebase-login.bat to sign in.
-  pause
-  exit /b 1
+REM -- Locate Firebase CLI --
+set FIREBASE=firebase
+where firebase >nul 2>&1
+if %errorlevel% neq 0 (
+  set FIREBASE="C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd"
+)
+if not exist "%~dp0..\node_modules\.bin\firebase" (
+  where firebase >nul 2>&1
+  if %errorlevel% neq 0 (
+    echo  ERROR: Firebase CLI not found.
+    echo  Fix: Run this command once:
+    echo    npm install -g firebase-tools
+    echo  Then run 1-firebase-login.bat to sign in.
+    pause
+    exit /b 1
+  )
 )
 
-REM ---- STEP A: Save to Git ----
+REM ─── STEP A: Save to Git ────────────────────────────────────
 if /i "%SAVE_TO_GIT%"=="YES" (
   echo ============================================================
   echo  [GIT] Saving changes to GitHub...
@@ -105,18 +138,21 @@ if /i "%SAVE_TO_GIT%"=="YES" (
   cd /d "%~dp0.."
   git add -A
   git commit -m "deploy: %CHANGE_DESC% [%CHANGE_DATE%]"
+  if %errorlevel% neq 0 (
+    echo  (Nothing new to commit or commit failed — continuing...)
+  )
   git push
   if %errorlevel% neq 0 (
-    echo  WARNING: Git push failed. Continuing with deploy anyway...
-    echo  (This is OK if nothing changed or you have no remote set up.)
+    echo  WARNING: Git push failed. Continuing with deploy anyway.
+    echo  (OK if you have no remote, or nothing changed in git.)
   ) else (
-    echo  Git: Changes saved and pushed to GitHub OK.
+    echo  Git: Pushed to GitHub OK.
   )
   cd /d "%~dp0"
   echo.
 )
 
-REM ---- STEP B: Deploy Firestore Rules ----
+REM ─── STEP B: Deploy Firestore Rules ─────────────────────────
 if /i "%DEPLOY_RULES%"=="YES" (
   echo ============================================================
   echo  [RULES] Deploying Firestore security rules...
@@ -132,7 +168,7 @@ if /i "%DEPLOY_RULES%"=="YES" (
   echo.
 )
 
-REM ---- STEP C: Deploy Firestore Indexes ----
+REM ─── STEP C: Deploy Firestore Indexes ───────────────────────
 if /i "%DEPLOY_INDEXES%"=="YES" (
   echo ============================================================
   echo  [INDEXES] Deploying Firestore indexes...
@@ -147,13 +183,13 @@ if /i "%DEPLOY_INDEXES%"=="YES" (
   echo.
 )
 
-REM ---- STEP D: Deploy Cloud Functions ----
+REM ─── STEP D: Deploy Cloud Functions ─────────────────────────
 if /i "%DEPLOY_FUNCTIONS%"=="YES" (
   echo ============================================================
   echo  [FUNCTIONS] Installing function dependencies...
   echo ============================================================
   cd "%~dp0functions"
-  call npm install --silent
+  call npm install
   if %errorlevel% neq 0 (
     echo  ERROR installing function npm packages.
     pause
@@ -171,7 +207,7 @@ if /i "%DEPLOY_FUNCTIONS%"=="YES" (
   echo.
 )
 
-REM ---- STEP E: Deploy Storage Rules ----
+REM ─── STEP E: Deploy Storage Rules ───────────────────────────
 if /i "%DEPLOY_STORAGE%"=="YES" (
   echo ============================================================
   echo  [STORAGE] Deploying storage rules...
@@ -185,16 +221,24 @@ if /i "%DEPLOY_STORAGE%"=="YES" (
   echo.
 )
 
-REM ---- STEP F: Build + Deploy Hosting ----
+REM ─── STEP F: Build + Deploy Hosting ─────────────────────────
 if /i "%DEPLOY_HOSTING%"=="YES" (
   echo ============================================================
-  echo  [BUILD] Installing dependencies (if needed)...
+  echo  [NPM] Installing / updating dependencies...
+  echo  (Fast if already installed, slow only first time.)
   echo ============================================================
-  call npm install --silent
+  call npm install
+  if %errorlevel% neq 0 (
+    echo  ERROR: npm install failed.
+    echo  Try deleting node_modules folder and running again.
+    pause
+    exit /b 1
+  )
+  echo  Dependencies OK.
   echo.
   echo ============================================================
   echo  [BUILD] Compiling React app for production (Vite)...
-  echo  This takes 2-5 minutes — please wait.
+  echo  This takes 1-5 minutes — please wait.
   echo ============================================================
   echo.
   set NODE_OPTIONS=--max-old-space-size=4096
@@ -203,24 +247,30 @@ if /i "%DEPLOY_HOSTING%"=="YES" (
     echo.
     echo  ============================================================
     echo   BUILD FAILED!
-    echo   Read the red error above to find what file is broken.
-    echo   Common fixes:
-    echo     - Syntax error: fix the file shown in the error
-    echo     - Missing import: check the import path
-    echo     - Out of memory: already handled (4096MB set)
+    echo   Read the RED error above to find what file is broken.
+    echo.
+    echo   Common causes:
+    echo     Syntax error     — fix the file listed in the error
+    echo     Missing import   — check the import path in that file
+    echo     Missing package  — run:  npm install package-name
+    echo     Out of memory    — already handled (4096MB set above)
     echo  ============================================================
     pause
     exit /b 1
   )
   echo.
-  echo  Build complete. Uploading to Firebase Hosting...
+  echo  Build complete!  Output in:  dist/
+  echo.
+  echo ============================================================
+  echo  [DEPLOY] Uploading to Firebase Hosting (lynkapp.net)...
+  echo ============================================================
   %FIREBASE% deploy --only hosting
   if %errorlevel% neq 0 (
     echo.
     echo  ============================================================
     echo   HOSTING DEPLOY FAILED!
-    echo   Most likely cause: not logged in to Firebase.
-    echo   Fix: Run 1-firebase-login.bat then try again.
+    echo   Most likely: not logged in to Firebase.
+    echo   Fix: Run  1-firebase-login.bat  then try again.
     echo  ============================================================
     pause
     exit /b 1
@@ -228,7 +278,7 @@ if /i "%DEPLOY_HOSTING%"=="YES" (
   echo.
 )
 
-REM ---- SUCCESS ----
+REM ─── SUCCESS ─────────────────────────────────────────────────
 echo.
 echo  ============================================================
 echo.
@@ -236,15 +286,17 @@ echo    ALL DONE!  LynkApp is live at:
 echo.
 echo      https://lynkapp.net
 echo.
-echo    What was deployed:
-if /i "%DEPLOY_RULES%"=="YES"     echo      - Firestore security rules
-if /i "%DEPLOY_INDEXES%"=="YES"   echo      - Firestore indexes
-if /i "%DEPLOY_FUNCTIONS%"=="YES" echo      - Cloud Functions
-if /i "%DEPLOY_STORAGE%"=="YES"   echo      - Storage rules
-if /i "%DEPLOY_HOSTING%"=="YES"   echo      - React app (hosting)
-if /i "%SAVE_TO_GIT%"=="YES"      echo      - Saved to GitHub
+echo    Deployed:
+if /i "%DEPLOY_RULES%"=="YES"     echo      ✓ Firestore security rules
+if /i "%DEPLOY_INDEXES%"=="YES"   echo      ✓ Firestore indexes
+if /i "%DEPLOY_FUNCTIONS%"=="YES" echo      ✓ Cloud Functions
+if /i "%DEPLOY_STORAGE%"=="YES"   echo      ✓ Storage rules
+if /i "%DEPLOY_HOSTING%"=="YES"   echo      ✓ React app (hosting)
+if /i "%SAVE_TO_GIT%"=="YES"      echo      ✓ Saved to GitHub
 echo.
-echo    Change logged: %CHANGE_DESC% (%CHANGE_DATE%)
+echo    Change logged: %CHANGE_DESC%
+echo    Date:          %CHANGE_DATE%
+echo    By:            %CHANGE_BY%
 echo.
 echo  ============================================================
 pause
