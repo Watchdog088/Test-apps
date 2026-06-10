@@ -1,3 +1,5 @@
 [STEP: Checking Firebase login...] 
 [STEP: Firebase login OK] 
 [STEP: Git add+commit+push] 
+[WARN: git push failed - continuing] 
+[STEP: Git push OK] 

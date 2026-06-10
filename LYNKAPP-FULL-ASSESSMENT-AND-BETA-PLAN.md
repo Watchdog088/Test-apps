@@ -1,741 +1,427 @@
-# 🔍 LynkApp — Full UX/UI Assessment & Beta-Readiness Plan
-**Assessment Date:** June 10, 2026  
-**Role:** UX/UI Developer  
-**Scope:** ConnectHub-SPA (React 18 + Vite + Firebase) — Web, iOS, Android  
-**Prepared by:** AI UX/UI Engineer — Full Codebase Audit
+# LynkApp — Full UX/UI Assessment & Beta-Ready Plan
+**Platform Coverage: Web · Android · iOS**
+**Date: June 10, 2026**
+**Status: Metered TURN credentials updated (Jun-02-2026) · All 3 service keys LIVE**
 
 ---
 
-## 📊 EXECUTIVE SUMMARY
+## EXECUTIVE SUMMARY
 
-LynkApp is a feature-complete, full-stack social platform built on React 18 + Vite, Firebase (Auth/Firestore/Storage/Hosting), and Zustand. The SPA has **160+ routes**, **178 screens**, **12 major feature sections**, and is deployed to Firebase Hosting. A Capacitor 5 configuration exists for native iOS/Android packaging.
+LynkApp is a React/Vite SPA (ConnectHub-SPA) deployed on Firebase Hosting at **https://lynkapp.net**. It is backed by Firebase Auth + Firestore + Storage and uses Capacitor to wrap the same codebase into native Android/iOS shells. The app is feature-complete at the UI layer across 12 major sections. The primary remaining work before handing to beta testers falls into three buckets:
 
-**After full assessment: The app is functionally complete at ~97% and is ready for live beta testers via PWA.** The remaining 3% consists of external service key wiring, native app store submissions, and real-device UX polish — none of which require new feature development.
-
-| Platform | Readiness | Gap |
-|---|---|---|
-| **Web PWA** | ✅ 97% — Deploy ready | Latest build must be pushed |
-| **iOS Native** | ⚠️ 60% — Code-complete, needs Xcode | Apple Dev account + App Store submission |
-| **Android Native** | ⚠️ 60% — Code-complete, needs Android Studio | Google Play account + signed build |
+1. **Service key wiring** — Sentry ✅, OneSignal ✅, Metered TURN ✅ (just updated), Stripe backend secret ❌, Mailgun ❌  
+2. **Capacitor mobile packaging** — Android APK and iOS IPA builds not yet generated  
+3. **UX polish gaps** — ~8 medium-priority items identified across platforms  
 
 ---
 
-## 🏗️ TECH STACK AUDIT
+## SECTION 1 — CURRENT STATE AUDIT
 
+### 1.1 Tech Stack
 | Layer | Technology | Status |
-|---|---|---|
-| Frontend Framework | React 18.3 + Vite 5 | ✅ Current & stable |
-| Routing | React Router v6 | ✅ 160+ routes, lazy-loaded |
-| State Management | Zustand 4.5 | ✅ Full app store wired |
-| Backend (BaaS) | Firebase v10 (Auth + Firestore + Storage) | ✅ All services live |
-| Hosting | Firebase Hosting | ✅ Deployed |
-| Native Wrapper | Capacitor 5 (iOS/Android) | ⚠️ Config done, packages not installed |
-| PWA | Service Worker + manifest.json | ✅ Enhanced, installable |
-| Error Monitoring | Sentry (code ready) | ⚠️ DSN key missing |
-| Payments | Stripe (TEST mode) | ⚠️ Needs live keys before launch |
-| Push Notifications | OneSignal (code ready) | ⚠️ ONESIGNAL_APP_ID needed |
-| Email | Mailgun (planned) | ⚠️ DNS not configured |
-| Video Calls (WebRTC) | STUN only | 🔴 TURN server missing — calls fail on mobile data |
-| Media Storage | Firebase Storage | ✅ Live |
-| Maps | Leaflet.js | ✅ Integrated |
-| Ad Platform | AdSense slots | ⚠️ Placeholder — needs AdSense approval |
+|-------|-----------|--------|
+| Frontend Framework | React 18 + Vite | ✅ Production build working |
+| Routing | React Router v6 | ✅ All 12 sections routed |
+| State Management | Zustand (useAppStore) | ✅ Wired |
+| Backend | Firebase Auth + Firestore + Storage | ✅ Live project: lynkapp-c7db1 |
+| Mobile Wrapper | Capacitor v5 | ⚠️ Config present, builds not generated |
+| Error Monitoring | Sentry | ✅ DSN confirmed in .env |
+| Push Notifications | OneSignal | ✅ App ID confirmed in .env |
+| Video Calls (WebRTC) | Metered TURN | ✅ **Updated Jun-10-2026 with Jun-02-2026 credentials** |
+| Payments | Stripe (test mode) | ⚠️ Frontend key live, backend secret missing |
+| Email | Mailgun | ❌ Keys not yet added to backend .env |
+| Media CDN | Cloudinary | ✅ Upload preset configured |
+| AR Filters | DeepAR | ✅ License key in .env |
+
+### 1.2 Sections Complete (UI + Firestore wired)
+1. ✅ Auth & Onboarding (Login, Signup, Forgot Password, Email Verify, Account Recovery, Onboarding wizard)
+2. ✅ Feed / Home (Posts, Stories Strip, Feed filters, Create Post)
+3. ✅ Stories (Create, View, Highlights, Archive, Analytics)
+4. ✅ Live Streaming (Go Live, Watch, VOD, Clips, Schedule, Analytics, Monetization, Moderation, Q&A, Gifts, Co-host)
+5. ✅ Dating (Swipe, Matches, Chat, Profile Edit, Preferences, Speed Dating, Safety Center, Match Celebration)
+6. ✅ Messages (Conversations, Group Chat, New Message, Requests, Archived, Real-time via Firestore)
+7. ✅ Notifications (Activity feed, Quiet Hours, Summary)
+8. ✅ Profile (View, Edit, Followers, Following, Insights, Verification Request)
+9. ✅ Friends (Find, Nearby, Birthdays, Suggestions)
+10. ✅ Groups (Browse, Detail, Create, Members, Events sub-tab)
+11. ✅ Events (Browse, Detail, Create, Attendees, Calendar)
+12. ✅ Marketplace (Browse, Product Detail, Create Listing Wizard, Checkout, Orders, Seller Dashboard, KYC, Reviews, Returns)
+
+### 1.3 Additional Sections Present
+- Music / Podcasts
+- Gaming Hub
+- Media Hub
+- Trending
+- Search
+- Wallet
+- Creator Tools
+- Business Profile
+- Premium / Subscriptions
+- Video Calls (P2P WebRTC via Metered)
+- Meetings
+- Settings (20 sub-pages)
+- Help & Support
+- Admin Dashboard
+- Legal Pages (Terms, Privacy, Cookies, About, Contact)
+- Beta Dashboard & Welcome Page
 
 ---
 
-## ✅ WHAT IS COMPLETE (No Action Needed)
+## SECTION 2 — PLATFORM GAP ANALYSIS
 
-### Section-by-Section Completion
+### 2.1 WEB (Chrome / Safari / Firefox on Desktop + Mobile Browser)
+**Current Status: ~90% ready**
 
-| Section | Pages | Firebase | Score |
-|---|---|---|---|
-| 1. Auth & Onboarding | Login, Signup, Verify Email, Forgot PW, Recovery, Onboarding (6 pages) | ✅ Live | 98% |
-| 2. Feed & Posts | Feed, Create Post, Post Detail, Comments, Edit, Repost, Share, Hashtag | ✅ Live | 100% |
-| 3. Stories | Stories, Create, Viewer, Analytics, Highlights, Archive (6 pages) | ✅ Live | 100% |
-| 4. Live Streaming | Live, Setup, Watch, Monetization, Moderation, Schedule, Analytics, Cohost, Clips, VOD, Q&A, Gifts | ✅ Live | 80% (needs TURN) |
-| 5. Dating | Swipe, Matches, Chat, Match Celebration, Profile Edit/View, Safety, Speed Dating, Preferences | ✅ Live | 100% |
-| 6. Messages | Inbox, Conversation, New Message, Requests, Archived, Group Create | ✅ Live | 100% |
-| 7. Notifications | Notifications, Activity Summary, Quiet Hours, Preferences | ✅ Live | 100% |
-| 8. Profile | Profile, Edit, Followers, Following, Insights, Verify Request, Setup | ✅ Live | 100% |
-| 9. Friends | Friends, Find, Nearby, Birthdays, Contact Import | ✅ Live | 100% |
-| 10. Groups | Groups, Detail, Create, Members, Settings, Media, Rules, Polls, Join | ✅ Live | 100% |
-| 11. Events | Events, Detail, Create, Attendees, Tickets, Check-in, Recap | ✅ Live | 100% |
-| 12. Marketplace | Browse, Product Detail, Checkout, My Orders, Seller Dashboard, KYC, Reviews, Returns | ✅ Live | 95% (Stripe test only) |
-| Admin | Dashboard, Users, Reports, KYC, Verification, Analytics, Beta Feedback, Content | ✅ Live | 100% |
-| Settings | 15 sub-pages: Privacy, Security, Notifications, Delete Account, Change PW/Email, etc. | ✅ Live | 100% |
-| Premium | Premium Page, Features Comparison, Checkout, Manage Subscription | ✅ Live | 100% |
-| Legal | Terms, Privacy, About, Contact, Cookie Policy | ✅ Live | 100% |
-| Gaming | Gaming hub, Library, Leaderboard, Game Detail, Tournament | ✅ Live | 100% |
-| Media Hub | Photos, Video Player, Upload, Library | ✅ Live | 100% |
-| Music & Podcasts | Music Player, Podcasts, Podcast Studio | ✅ Live | 95% (free streams only) |
-| AR/VR | AR Filter Preview, VR Viewer | ✅ Live | 80% (DeepAR key needed for real filters) |
-| Wallet | Full wallet dashboard + withdrawal flow | ✅ Live | 90% (Stripe Connect needed for real payouts) |
-| Creator Tools | Creator Hub, Analytics, Monetization, Earnings, Content | ✅ Live | 100% |
-| Business Profile | Business analytics, tools | ✅ Live | 100% |
-| Search | Search bar, results, trending search | ✅ Live | 100% |
-| Saved | Collections, Bookmarks | ✅ Live | 100% |
+| # | Issue | Priority | Fix |
+|---|-------|----------|-----|
+| W1 | `VITE_API_BASE_URL` points to `api.connecthub.com` — not a real domain | 🔴 HIGH | Change to Firebase Functions URL or leave as Firestore-direct (no REST backend needed for beta) |
+| W2 | Stripe secret key missing from `ConnectHub-Backend/.env` → checkout will fail at real payment confirmation | 🔴 HIGH | Add `STRIPE_SECRET_KEY=sk_test_...` to backend env |
+| W3 | Mailgun not configured → password-reset & welcome emails silently fail | 🟡 MEDIUM | Add Mailgun keys to backend .env OR use Firebase Auth's built-in email templates as fallback |
+| W4 | Service Worker (`public/sw.js`) needs cache-busting headers configured in `firebase.json` | 🟡 MEDIUM | Add Cache-Control headers for SW file in firebase.json |
+| W5 | Cookie Consent banner shows on every hard-reload (localStorage not persisted across deploys) | 🟢 LOW | Verify localStorage key matches across builds |
+| W6 | `VITE_ADSENSE_PUBLISHER_ID` placeholder — ad slots show fallback gradients | 🟢 LOW | Apply for AdSense OR keep fallbacks for beta |
 
-### Cross-Platform Foundation (Already Done)
-- ✅ `capacitor.config.json` — Full Capacitor 5 config (App ID: `com.lynkapp.app`)
-- ✅ `public/manifest.json` — Enhanced PWA manifest (icons 72–512, shortcuts, share_target)
-- ✅ `src/services/mobile-platform-service.js` — Platform detection, safe area, haptics, deep links
-- ✅ `src/styles/mobile-ios-android.css` — iOS/Android CSS (44px touch targets, safe area, keyboard avoidance)
-- ✅ `src/services/seed-data-service.js` — Prevents empty feeds for new users
-- ✅ `ErrorBoundary` in App.jsx — Catches all React errors gracefully
-- ✅ `OfflineOverlay` — Shows when network drops
-- ✅ `BetaFeedbackModal` — Beta tester feedback collection wired
-- ✅ `CookieConsentBanner` — GDPR/CCPA compliant
-- ✅ `SkeletonLoader` and `EmptyState` components — No blank screens
+### 2.2 ANDROID (Capacitor APK → Google Play Internal Track)
+**Current Status: ~60% ready**
 
----
+| # | Issue | Priority | Fix |
+|---|-------|----------|-----|
+| A1 | No Android build generated yet — `capacitor.config.json` exists but `npx cap add android` not run | 🔴 CRITICAL | Run `npx cap add android && npx cap sync` (see Week 2 bat) |
+| A2 | Android `webDir` must point to `dist/` — confirm `capacitor.config.json` has `"webDir": "dist"` | 🔴 HIGH | Already set — verify after `cap sync` |
+| A3 | Push notifications: OneSignal Android SDK not added to native project | 🔴 HIGH | Add OneSignal Capacitor plugin after `cap add android` |
+| A4 | Camera / microphone permissions not declared in `AndroidManifest.xml` | 🔴 HIGH | Add `CAMERA`, `RECORD_AUDIO`, `READ_EXTERNAL_STORAGE` permissions |
+| A5 | Back-button hardware handling — Capacitor default may cause app exit instead of going back | 🟡 MEDIUM | Add `App.addListener('backButton', ...)` handler in `mobile-platform-service.js` |
+| A6 | Status bar color should match app's purple gradient (#6C3AE8) | 🟡 MEDIUM | Add `StatusBar.setBackgroundColorByHexString('#6C3AE8')` on app init |
+| A7 | Splash screen duration: currently `auto` — should show until Firebase Auth resolves | 🟡 MEDIUM | Call `SplashScreen.hide()` in `useAuth.js` after auth state confirmed |
+| A8 | Keyboard pushes content (especially dating swipe cards) off-screen on Android | 🟡 MEDIUM | Set `android:windowSoftInputMode="adjustResize"` in AndroidManifest |
+| A9 | Deep links (e.g., `lynkapp://profile/123` from share invites) not configured | 🟢 LOW | Add intent filters for `https://lynkapp.net` scheme |
+| A10 | `capacitor.config.json` `appId` is `com.lynkapp.app` — verify package name matches Play Console registration | 🟢 LOW | Confirm before first upload |
 
-## 🔴 CRITICAL BLOCKERS (Must Fix Before Beta)
+### 2.3 iOS (Capacitor IPA → TestFlight)
+**Current Status: ~55% ready** *(requires macOS + Xcode)*
 
-### 1. TURN Server — Video Calls BROKEN on Mobile Data
-**Impact:** ~40% of video call attempts will fail on AT&T, Verizon, T-Mobile (mobile carrier NAT blocks STUN-only WebRTC)  
-**Effort:** 15 minutes  
-**Files:** `ConnectHub-SPA/src/services/livestream-webrtc.js` + `webrtc-service.js`
-
-**Fix:**
-1. Create free account at https://dashboard.metered.ca
-2. Create app "LynkApp" → get TURN username + credential
-3. Update both webrtc files — replace:
-```js
-iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-```
-With:
-```js
-iceServers: [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'turn:relay.metered.ca:80', username: 'YOUR_USER', credential: 'YOUR_CRED' },
-  { urls: 'turn:relay.metered.ca:443', username: 'YOUR_USER', credential: 'YOUR_CRED' },
-  { urls: 'turn:relay.metered.ca:443?transport=tcp', username: 'YOUR_USER', credential: 'YOUR_CRED' }
-]
-```
+| # | Issue | Priority | Fix |
+|---|-------|----------|-----|
+| I1 | No iOS build generated — `npx cap add ios` not run | 🔴 CRITICAL | Run on macOS: `npx cap add ios && npx cap sync` |
+| I2 | Apple Developer account required ($99/yr) for TestFlight distribution | 🔴 CRITICAL | Must be enrolled before any iOS beta testing |
+| I3 | Camera / Microphone / Photo Library usage descriptions missing from `Info.plist` | 🔴 HIGH | Add `NSCameraUsageDescription`, `NSMicrophoneUsageDescription`, `NSPhotoLibraryUsageDescription` |
+| I4 | OneSignal iOS SDK and push notification entitlements not added | 🔴 HIGH | Add via Xcode Signing & Capabilities → Push Notifications |
+| I5 | iOS Safari: `position: fixed` bottom nav flickers when keyboard opens | 🔴 HIGH | Apply `-webkit-fill-available` height fix in `mobile-ios-android.css` (partial fix exists — verify) |
+| I6 | iOS safe area insets (notch/Dynamic Island/home indicator) — bottom nav may be clipped | 🟡 MEDIUM | Confirm `env(safe-area-inset-bottom)` applied to `.bottom-nav` |
+| I7 | WebRTC on iOS requires `webkit` prefix for some APIs | 🟡 MEDIUM | `livestream-webrtc.js` should use adapter.js polyfill |
+| I8 | iOS WKWebView blocks `getUserMedia` by default — requires HTTPS and explicit permission | 🟡 MEDIUM | Ensure video call page requests permission on user gesture |
+| I9 | Apple App Store review: Dating features require age verification flow | 🟡 MEDIUM | Confirm age gate is shown at Dating onboarding (SafetyCenter page exists ✅) |
+| I10 | Codemagic CI/CD config (`codemagic.yaml`) exists — wire Apple credentials | 🟢 LOW | Add Apple signing certificate + provisioning profile to Codemagic |
 
 ---
 
-### 2. Build & Deploy Latest Code
-**Impact:** All new routes and fixes from June sessions are in source but NOT yet live  
-**Effort:** 5 minutes
+## SECTION 3 — UX/UI GAPS (All Platforms)
+
+| # | Section | Issue | Priority |
+|---|---------|-------|----------|
+| U1 | Feed | Empty state when Firestore has 0 posts — shows spinner forever | 🔴 HIGH |
+| U2 | Dating | Match animation (DatingMatchCelebrationPage) sometimes shows blank if photo not loaded | 🟡 MEDIUM |
+| U3 | Messages | New message from a non-friend shows no "Message Request" badge on Messages tab icon | 🟡 MEDIUM |
+| U4 | Video Calls | Call UI does not handle "callee declined" state — just hangs | 🟡 MEDIUM |
+| U5 | Live | "Go Live" button available to all users — should check if user has creator tier | 🟡 MEDIUM |
+| U6 | Marketplace | Checkout page shows real Stripe form in TEST mode without a "TEST MODE" banner | 🟡 MEDIUM |
+| U7 | Search | No debounce on search input — fires API on every keystroke | 🟢 LOW |
+| U8 | Settings | "Delete Account" button does not trigger a confirmation dialog on mobile (dialog hidden off-screen) | 🟡 MEDIUM |
+| U9 | Notifications | Quiet Hours timezone not displayed — confusing for international beta testers | 🟢 LOW |
+| U10 | Profile | Profile photo upload fails silently if Cloudinary unsigned preset not enabled | 🔴 HIGH |
+
+---
+
+## SECTION 4 — DETAILED BETA-READY PLAN
+
+### PHASE 0 — IMMEDIATE (Today, June 10)
+**Goal: Ensure the web app works end-to-end for beta testers**
+
+- [x] Update Metered TURN credentials in `.env` and `.env.production` ✅ DONE
+- [ ] Fix `VITE_API_BASE_URL` — for pure Firestore beta, set to `""` (empty) so API calls fall back to Firestore service layer
+- [ ] Verify Cloudinary unsigned upload preset `marketplace_unsigned` is active in Cloudinary dashboard
+- [ ] Test profile photo upload on live site
+- [ ] Fix Feed empty-state: add `<EmptyState>` component when posts array is empty after 3s
+- [ ] Add "TEST MODE" banner to Checkout page header for beta period
+
+**Estimated time: 2-3 hours**
+
+---
+
+### PHASE 1 — WEB BETA LAUNCH (Week of June 10-14)
+**Goal: Ship web beta to first 20-50 testers via https://lynkapp.net/invite**
+
+**Steps:**
+1. Run `0-critical-fixes.bat` — builds and deploys latest to Firebase Hosting
+2. Run `seed-demo-content.cjs` — populates demo posts, profiles, stories so app doesn't appear empty
+3. Share beta link: `https://lynkapp.net/beta` → lands on `BetaWelcomePage`
+4. Collect feedback via `BetaFeedbackModal` (already wired ✅)
+5. Monitor errors in Sentry dashboard: https://sentry.io/organizations/lynkapp/
+
+**Beta Tester Instructions to provide:**
+- Use Chrome or Safari
+- Sign up with a real email (Firebase Auth sends verification)
+- Test on both desktop and mobile browser
+- Report bugs via the floating feedback button (bottom right)
+
+---
+
+### PHASE 2 — ANDROID APK (Week of June 14-21)
+**Goal: Distribute Android APK via Google Play Internal Testing Track**
+
+**Steps (run in ConnectHub-SPA directory):**
 
 ```bash
-cd ConnectHub-SPA
-npm run build
-firebase deploy --only hosting
-```
-
----
-
-### 3. Seed Demo Content
-**Impact:** Empty feeds are the #1 beta tester drop-off cause  
-**Effort:** 10 minutes
-
-```bash
-cd ConnectHub-SPA
-node seed-ceo-admin.cjs        # Creates admin account
-node seed-demo-content.cjs     # Adds demo posts, users, stories
-```
-
----
-
-### 4. Sentry Error Monitoring Key
-**Impact:** Cannot see production crashes — flying blind  
-**Effort:** 10 minutes
-
-1. Sign up at https://sentry.io (free)
-2. Create React project → copy DSN
-3. Add to `ConnectHub-SPA/.env`:
-```
-VITE_SENTRY_DSN=https://YOUR_KEY@oXXXXXX.ingest.sentry.io/XXXXXXX
-```
-4. Rebuild and deploy
-
----
-
-## 🟡 IMPORTANT — DO WITHIN FIRST WEEK OF BETA
-
-### 5. OneSignal Push Notifications
-**Impact:** Testers won't stay engaged without real push notifications  
-**Effort:** 20 minutes
-
-1. Create account at https://onesignal.com
-2. Create app → get App ID
-3. Add to `ConnectHub-SPA/.env`:
-```
-VITE_ONESIGNAL_APP_ID=YOUR_APP_ID
-```
-4. Test on real Android device (web push) + iOS (requires native)
-
----
-
-### 6. Stripe Live Keys (Before Real Payments)
-**Impact:** Marketplace checkout currently only works with Stripe test cards  
-**Effort:** 20 minutes  
-**Note:** Keep in TEST mode during beta — switch to live only before full launch
-
-```env
-# ConnectHub-SPA/.env
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_KEY
-
-# ConnectHub-Backend/.env
-STRIPE_SECRET_KEY=sk_live_YOUR_KEY
-STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
-```
-
----
-
-### 7. Mailgun Email Setup
-**Impact:** Firebase limits password resets to 100/day — unusable at scale  
-**Effort:** 30 minutes + up to 24h DNS propagation
-
-1. Sign up at https://mailgun.com (free 1k emails/month)
-2. Add domain `mail.lynkapp.net`
-3. Add DNS records as instructed
-4. Add to `ConnectHub-Backend/.env`:
-```
-MAILGUN_API_KEY=key-YOUR_KEY
-MAILGUN_DOMAIN=mail.lynkapp.net
-```
-
----
-
-### 8. Verify Auth Email Flow on Real Devices
-Test the complete loop on real phone:
-- [ ] Signup → Verification email arrives → Click link → Redirected to Onboarding
-- [ ] Onboarding completes → `onboardingComplete: true` saved to Firestore → Feed loads
-- [ ] Forgot password → Email arrives → Reset works
-
----
-
-## 📱 WEB (PWA) — FULL PLATFORM ASSESSMENT
-
-### Current Status: ✅ READY TO DEPLOY
-
-| Feature | Status | Notes |
-|---|---|---|
-| Firebase Hosting | ✅ Live | Build & redeploy needed for latest code |
-| HTTPS | ✅ Active | Firebase auto-manages SSL |
-| Service Worker | ✅ `public/sw.js` | Offline mode, cache-first assets |
-| PWA Manifest | ✅ Enhanced | Icons, shortcuts, share_target, screenshots |
-| Install Prompt | ✅ Works | "Add to Home Screen" on Chrome/Edge/Safari |
-| Code Splitting | ✅ All pages lazy-loaded | Fast initial load |
-| Error Boundaries | ✅ App.jsx + PageErrorBoundary | No blank crashes |
-| Responsive Design | ✅ CSS Grid + Flexbox | Tested 320px–1440px |
-| Safe Area CSS | ✅ `mobile-ios-android.css` | Handles iOS notch/Android status bar |
-| AdSense slots | ⚠️ Placeholder ads | Need Google AdSense approval (1-3 days) |
-| SEO/Meta | ✅ `index.html` has meta tags | Landing page visible to search |
-| Analytics | ⚠️ Firebase Analytics disabled | Enable lazily to avoid Vite conflicts |
-
-### Web UX Issues to Fix Before Beta
-
-| Issue | Priority | Fix |
-|---|---|---|
-| Empty feed for new users | 🔴 Critical | Run `seed-demo-content.cjs` |
-| Ad slots show placeholder gradient | 🟡 Medium | Apply for Google AdSense account |
-| Firebase Analytics inactive | 🟡 Medium | Lazy-initialize `getAnalytics()` in config.js |
-| Story viewer swipe gestures | 🟡 Medium | Test touch events on mobile browser |
-| Music player — no licensed tracks | 🟢 Low | Free radio streams work; FeedFM optional |
-
-### Web Deployment Checklist
-
-```bash
-# Step 1: Build
-cd ConnectHub-SPA
-npm install          # ensure all deps present
-npm run build        # generates /dist
-
-# Step 2: Deploy everything
-firebase deploy      # hosting + functions + firestore rules + storage rules
-
-# Step 3: Verify live at https://lynkapp.com
-# Check: / → LandingPage for guests, /feed for logged-in users
-```
-
----
-
-## 🍎 iOS — FULL PLATFORM ASSESSMENT
-
-### Current Status: ⚠️ CODE COMPLETE — NEEDS XCODE BUILD
-
-**What's done in code:**
-- ✅ `capacitor.config.json` — App ID `com.lynkapp.app`, all plugins configured
-- ✅ `public/manifest.json` — `related_applications` includes App Store URL
-- ✅ `mobile-platform-service.js` — `isNativeIOS()`, StatusBar, Keyboard, Haptics
-- ✅ `mobile-ios-android.css` — Safe area, `env(safe-area-inset-*)`, iOS input zoom fix
-- ✅ Deep link handler for `web+lynkapp://` scheme
-- ✅ Push notification registration (APNs) on device
-- ✅ iOS Keyboard resize: "body" mode prevents content being hidden
-
-**What requires owner action:**
-
-#### Phase 1: Apple Developer Account ($99/year)
-1. Enroll at https://developer.apple.com/programs/enroll
-2. Wait 1-2 business days for activation
-3. Go to **Certificates, Identifiers & Profiles**:
-   - Create App ID: `com.lynkapp.app`
-   - Enable capabilities: **Sign In with Apple**, **Push Notifications**, **In-App Purchase**
-
-#### Phase 2: Apple Sign-In Activation
-1. Create Service ID: `com.lynkapp.web`
-2. Configure: domain = `lynkapp.com`, return URL = `https://lynkapp.com/auth/apple/callback`
-3. In Firebase Console → Authentication → Sign-in method → Apple → Enable
-4. Download Apple verification file → place at:
-   `ConnectHub-SPA/public/.well-known/apple-developer-domain-association.txt`
-
-#### Phase 3: Install Capacitor Packages
-```bash
-cd ConnectHub-SPA
-npm install @capacitor/core @capacitor/cli
-npm install @capacitor/ios @capacitor/android
-npm install @capacitor/app @capacitor/haptics @capacitor/keyboard
-npm install @capacitor/push-notifications @capacitor/status-bar @capacitor/splash-screen
-```
-
-#### Phase 4: Initialize iOS Project
-```bash
-cd ConnectHub-SPA
-npm run build              # Build React app first
-npx cap add ios            # Creates ios/ directory
-npx cap sync ios           # Copies dist/ to iOS project
-npx cap open ios           # Opens Xcode
-```
-
-#### Phase 5: Xcode Configuration
-1. Select your **Development Team** (your Apple Developer account)
-2. Set **Bundle Identifier**: `com.lynkapp.app`
-3. Set **Version**: 1.0.0, **Build**: 1
-4. Add deep link URL scheme: Open `Info.plist` → URL Types → Add `web+lynkapp`
-5. Enable **Push Notifications** capability
-6. Enable **Sign In with Apple** capability
-7. Add `NSCameraUsageDescription`: "LynkApp uses your camera for photos and video calls"
-8. Add `NSPhotoLibraryUsageDescription`: "LynkApp accesses your photos to create posts and stories"
-9. Add `NSMicrophoneUsageDescription`: "LynkApp uses your microphone for video calls and live streaming"
-10. Add `NSLocationWhenInUseUsageDescription`: "LynkApp uses your location to show nearby friends and events"
-
-#### Phase 6: App Store Submission
-1. In Xcode: **Product** → **Archive**
-2. Click **Distribute App** → **App Store Connect**
-3. In App Store Connect (https://appstoreconnect.apple.com):
-   - Create new app record: `com.lynkapp.app`
-   - Add screenshots (required sizes: 6.7" iPhone + 5.5" iPhone + iPad Pro 12.9")
-   - Fill app description, keywords, support URL
-   - Set content rating (likely 17+ for dating features)
-   - Submit for review (1-3 business days)
-
-**App Store Review Checklist:**
-- [ ] Privacy policy URL (`https://lynkapp.com/privacy`) added to App Store listing
-- [ ] Dating content age gate (17+) configured
-- [ ] In-App Purchase (if using IAP for Premium subscription) configured via StoreKit
-- [ ] Crash-free rate maintained (Sentry monitoring active)
-
-**iOS-Specific UX Issues to Fix:**
-
-| Issue | Priority | Fix |
-|---|---|---|
-| Apple Sign-In must be offered if Google Sign-In is available (App Store rule) | 🔴 Critical | Enable Apple Sign-In before App Store submission |
-| IAP for subscriptions must use StoreKit, not Stripe, on iOS | 🔴 Critical | Use Stripe on web; add StoreKit option for iOS or remove subscription paywall on iOS |
-| Splash screen icon must not use actual Apple logos | 🟡 Medium | Verify splash screen assets at `LynkApp` directory |
-| Keyboard pushes content behind bottom nav | 🟡 Medium | `mobile-ios-android.css` has `.keyboard-open` fix — test on real device |
-| iOS rubber-band scroll should be disabled | 🟡 Medium | `overscroll-behavior: none` in CSS — verify in Capacitor WKWebView |
-| Video autoplay blocked on iOS Safari | 🟡 Medium | Add `muted` + `playsinline` to all `<video>` tags |
-
----
-
-## 🤖 ANDROID — FULL PLATFORM ASSESSMENT
-
-### Current Status: ⚠️ CODE COMPLETE — NEEDS ANDROID STUDIO BUILD
-
-**What's done in code:**
-- ✅ `capacitor.config.json` — `allowMixedContent: false`, `captureInput: true`, `useLegacyBridge: false`
-- ✅ Android back button handler via Capacitor `App` plugin
-- ✅ `mobile-ios-android.css` — Android status bar overlay, touch ripple effect
-- ✅ FCM push notification token saved to Firestore
-- ✅ `webContentsDebuggingEnabled: false` (production security)
-
-**What requires owner action:**
-
-#### Phase 1: Google Play Developer Account ($25 one-time)
-1. Go to https://play.google.com/console/about
-2. Pay $25 registration fee
-3. Complete developer profile (name, address, D-U-N-S number for organizations)
-
-#### Phase 2: Install Capacitor Android
-```bash
-cd ConnectHub-SPA
-npm run build
+# Step 1: Add Android platform
 npx cap add android
+
+# Step 2: Sync web build to native
+npm run build
 npx cap sync android
-npx cap open android    # Opens Android Studio
+
+# Step 3: Open in Android Studio
+npx cap open android
+
+# Step 4: In Android Studio:
+#   - Set applicationId = "com.lynkapp.app"
+#   - Set versionCode = 1, versionName = "1.0.0-beta.1"
+#   - Add permissions to AndroidManifest.xml (Camera, Mic, Storage)
+#   - Build → Generate Signed Bundle/APK → Android App Bundle (.aab)
+#   - Upload to Google Play Console → Internal Testing → Create Release
 ```
 
-#### Phase 3: Android Studio Configuration
-1. Update `android/app/build.gradle`:
-```groovy
-android {
-    defaultConfig {
-        applicationId "com.lynkapp.app"
-        minSdkVersion 24        // Android 7.0+
-        targetSdkVersion 34     // Android 14
-        versionCode 1
-        versionName "1.0.0"
-    }
-}
-```
-
-2. Add deep link intent filter to `AndroidManifest.xml`:
-```xml
-<intent-filter android:autoVerify="true">
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="web+lynkapp" />
-    <data android:scheme="https" android:host="lynkapp.com" />
-</intent-filter>
-```
-
-3. Add required permissions to `AndroidManifest.xml`:
+**Android-specific fixes to make before build:**
+1. Add to `AndroidManifest.xml`:
 ```xml
 <uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<uses-permission android:name="android.permission.VIBRATE" />
-<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
-4. Configure Firebase for Android:
-   - Download `google-services.json` from Firebase Console → Project Settings → Android app
-   - Place at `android/app/google-services.json`
+2. Fix keyboard overlap in `AndroidManifest.xml` activity:
+```xml
+android:windowSoftInputMode="adjustResize"
+```
 
-#### Phase 4: Generate Signed APK/AAB
-1. In Android Studio: **Build** → **Generate Signed Bundle/APK**
-2. Select **Android App Bundle (.aab)** (required for Play Store)
-3. Create a keystore:
+3. Add OneSignal to Android project:
+```bash
+npm install @capacitor/push-notifications
+npx cap sync android
+```
+
+4. Add to `src/main.jsx` for Android:
+```javascript
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+// Call after Firebase auth resolves:
+SplashScreen.hide();
+StatusBar.setStyle({ style: Style.Dark });
+StatusBar.setBackgroundColorByHexString('#6C3AE8');
+```
+
+---
+
+### PHASE 3 — iOS IPA / TESTFLIGHT (Week of June 21-28)
+**Goal: Distribute iOS beta via TestFlight to 50-100 testers**
+
+**Prerequisites:**
+- macOS machine with Xcode 15+
+- Apple Developer Program enrollment ($99/yr) — must be done FIRST
+- Valid Bundle ID registered: `com.lynkapp.app`
+
+**Steps:**
+```bash
+# On macOS:
+npx cap add ios
+npm run build
+npx cap sync ios
+npx cap open ios
+```
+
+**In Xcode:**
+1. Set Bundle Identifier: `com.lynkapp.app`
+2. Set Version: `1.0` Build: `1`
+3. Signing & Capabilities → Add Push Notifications capability
+4. Add to `Info.plist`:
+   - `NSCameraUsageDescription` → "LynkApp needs camera for video calls and stories"
+   - `NSMicrophoneUsageDescription` → "LynkApp needs microphone for live streaming and video calls"  
+   - `NSPhotoLibraryUsageDescription` → "LynkApp needs photo access to share images"
+   - `NSLocationWhenInUseUsageDescription` → "LynkApp uses location to find friends nearby"
+5. Product → Archive → Distribute App → TestFlight
+
+**iOS-specific CSS already in place:**
+- `src/styles/mobile-ios-android.css` ✅ 
+- Safe area insets applied ✅
+- Verify `-webkit-fill-available` on `.app-shell` height
+
+---
+
+### PHASE 4 — BACKEND SERVICES (Parallel with Phases 1-3)
+**Goal: Complete the 2 remaining missing backend keys**
+
+#### 4.1 Stripe Secret Key (Backend)
+1. Go to: https://dashboard.stripe.com/test/apikeys
+2. Copy the **Secret key** (starts with `sk_test_`)
+3. Add to `ConnectHub-Backend/.env`:
    ```
-   Key alias: lynkapp-key
-   Validity: 25 years
-   Certificate: Fill in your company info
+   STRIPE_SECRET_KEY=sk_test_YOUR_REAL_KEY
+   STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
    ```
-   **⚠️ CRITICAL: Back up this keystore file securely. If lost, you cannot update the app.**
-4. Choose `release` build variant
-5. App bundle (.aab) is generated
+4. Set up Stripe webhook:
+   - Stripe Dashboard → Webhooks → Add endpoint
+   - URL: `https://api.lynkapp.net/api/webhooks/stripe` (or Firebase Function URL)
+   - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `checkout.session.completed`
 
-#### Phase 5: Play Store Submission
-1. In Google Play Console: **Create app**
-2. Fill in: App name "LynkApp", category "Social", free/paid
-3. Complete **Store listing**: description, screenshots, feature graphic
-4. Required screenshots: Phone (at least 2), Tablet (optional but recommended)
-5. Complete **App content** section:
-   - Privacy Policy URL: `https://lynkapp.com/privacy`
-   - Content rating: complete questionnaire (dating content → likely 17+/Mature)
-   - Data safety form: declare what data you collect
-6. Upload .aab to **Production** or **Closed testing** track
-7. Review time: usually 1-3 days for first submission, faster after
+#### 4.2 Mailgun Email (Backend)
+**Option A: Use Mailgun** (recommended for beta)
+1. Sign up at https://mailgun.com (free: 1,000 emails/month)
+2. Add domain `mail.lynkapp.net` and verify DNS
+3. Add to `ConnectHub-Backend/.env`:
+   ```
+   MAILGUN_API_KEY=key-YOUR_REAL_KEY
+   MAILGUN_DOMAIN=mail.lynkapp.net
+   MAILGUN_FROM=noreply@lynkapp.net
+   ```
 
-**Play Store Review Checklist:**
-- [ ] Data safety form completed (collect: name, email, location, photos, messages)
-- [ ] Privacy policy URL added
-- [ ] Dating content declared (may require age verification)
-- [ ] Payments: if using Stripe in-app, ensure compliance with Play Store billing policy for digital goods
+**Option B: Firebase Auth built-in emails** (zero setup, good enough for beta)
+- Firebase Console → Authentication → Templates
+- Customize verification email, password reset, etc.
+- No code changes needed — Firebase handles it automatically
 
-**Android-Specific UX Issues to Fix:**
-
-| Issue | Priority | Fix |
-|---|---|---|
-| Edge-to-edge display cutout (punch-hole camera) | 🟡 Medium | Already handled by `mobile-ios-android.css` — verify |
-| Android back gesture should close modals before navigation | 🟡 Medium | Capacitor `backButton` handler exists — test with modal open |
-| Text scaling with system font size | 🟡 Medium | Use `em/rem` units — verify no broken layouts at 150% font scale |
-| Dark mode system preference sync | 🟡 Medium | App already uses dark theme — ensure it respects `prefers-color-scheme` |
-| Target SDK 34 requirement (Aug 2024+) | 🔴 Required | Set in `build.gradle` — must use `targetSdkVersion 34` |
-| Google Play Billing for digital goods | 🟡 Medium | Premium subscription via Stripe OK for web; may need Google Play Billing for native Android |
+**Recommendation: Use Option B for Phase 1 beta, set up Mailgun before public launch**
 
 ---
 
-## 🎯 BETA TESTER UX — KNOWN GAPS & FIXES
+### PHASE 5 — BETA MONITORING & FEEDBACK LOOP
+**Goal: Collect and act on real user feedback**
 
-### Priority 1 — Fix Before First Testers Arrive
+**Tools already in place:**
+- ✅ `BetaFeedbackModal.jsx` — floating feedback button on all pages
+- ✅ `BetaDashboardPage.jsx` — admin view of beta feedback
+- ✅ `BetaWelcomePage.jsx` — onboarding for beta testers
+- ✅ `BetaWelcomeTooltip.jsx` — contextual hints for new features
+- ✅ Sentry error tracking — auto-captures crashes
 
-| Gap | Where | Fix Needed |
-|---|---|---|
-| Empty feed on first login | `/feed` | Seed 5-10 demo posts via `seed-demo-content.cjs` |
-| Onboarding doesn't mark `onboardingComplete: true` | `OnboardingPage.jsx` | Verify Firestore write on step 4 completion |
-| Story viewer — swipe left/right on mobile | `/stories/view/:id` | Test `touchstart`/`touchend` in StoryViewerPage.jsx |
-| Match celebration confetti on load | `/dating/match/:matchId` | Verify CSS animation fires on component mount |
-| Dating Safety Center has no real content | `/dating/safety` | Add actual tips, emergency contacts, block/report info |
-| `settings/change-password` re-auth flow | `AccountSecurityPages.jsx` | Firebase requires reauthenticate() before updatePassword() |
-| Video autoplay on mobile | Feed, Stories, Media | Add `muted` + `playsinline` to all `<video>` elements |
-
-### Priority 2 — Fix Within First Week of Beta
-
-| Gap | Where | Fix Needed |
-|---|---|---|
-| BetaFeedbackModal surfaces at 3-minute mark | `AppShell.jsx` | Verify timer logic & link to `/feedback` route |
-| Push notification prompt on mobile browsers | `mobile-platform-service.js` | Test OneSignal prompt timing (too early = dismissed) |
-| Creator analytics shows mock data | `CreatorAnalyticsPage` | Wire to real Firestore aggregations |
-| AR filters show "coming soon" | `/arvr/filter/:id` | Add DeepAR key to .env to enable real filters |
-| Music player — licensed tracks missing | `/music` | Free radio streams work for beta; FeedFM optional |
-
-### Priority 3 — Polish (Nice to Have)
-
-| Gap | Priority | Notes |
-|---|---|---|
-| AdSense placeholder gradient in feed | 🟢 Low | Apply for AdSense approval, 1-3 days |
-| Profile verification badge (gold/blue) | 🟢 Low | Admin can manually grant — `set-ceo-gold-badge.cjs` |
-| Dark/light mode toggle | 🟢 Low | App is dark-only; light mode can be V1.1 |
-| Accessibility: screen reader labels | 🟢 Low | Basic ARIA already in place |
+**Feedback collection schedule:**
+- Week 1 (web beta): Collect 20+ feedback submissions
+- Week 2 (Android beta): Focus on mobile-specific UX issues
+- Week 3 (iOS beta): Focus on iOS-specific issues (safe area, keyboard, permissions)
+- Week 4: Bug fix sprint based on top issues
 
 ---
 
-## 🗓️ COMPLETE BETA LAUNCH TIMELINE
+## SECTION 5 — PRIORITY ACTION LIST (Ordered by Impact)
 
-### Day 0 — Pre-Launch Prep (Today, ~2 hours)
+### 🔴 CRITICAL — Do Before Any Beta Launch
+1. Verify Cloudinary upload preset is UNSIGNED and active
+2. Fix Feed empty-state infinite spinner
+3. Add TEST MODE banner to Stripe checkout
+4. Confirm Firebase Auth email templates are customized with LynkApp branding
+5. Run `seed-demo-content.cjs` so beta testers don't see empty feeds
 
-| Task | Who | Time | Status |
-|---|---|---|---|
-| Fix TURN server in webrtc files | Dev | 15 min | 🔴 Must do |
-| `npm run build` in ConnectHub-SPA | Dev | 5 min | 🔴 Must do |
-| `firebase deploy --only hosting` | Dev | 5 min | 🔴 Must do |
-| Set up Sentry account + add DSN key | Owner | 10 min | 🔴 Must do |
-| Run `seed-ceo-admin.cjs` | Owner | 5 min | 🔴 Must do |
-| Run `seed-demo-content.cjs` | Owner | 5 min | 🔴 Must do |
-| Manual smoke test on iPhone + Android | Both | 60 min | 🔴 Must do |
+### 🔴 CRITICAL — Do Before Android Beta
+6. `npx cap add android && npx cap sync`
+7. Add Android permissions to AndroidManifest.xml
+8. Configure OneSignal Capacitor plugin for Android
+9. Set app version to `1.0.0-beta.1`
 
-### Week 1 — Service Keys & Monitoring (~4 hours total)
+### 🔴 CRITICAL — Do Before iOS Beta
+10. Apple Developer enrollment
+11. `npx cap add ios && npx cap sync` (on macOS)
+12. Add Info.plist usage descriptions
+13. Add Push Notification capability in Xcode
 
-| Task | Who | Time | Priority |
-|---|---|---|---|
-| Set up OneSignal app + add App ID | Owner | 20 min | 🟡 High |
-| Set up Mailgun email domain | Owner | 30 min + DNS | 🟡 High |
-| Stripe webhook testing (test mode OK) | Dev | 20 min | 🟡 High |
-| Invite first 5-10 beta testers | Owner | 30 min | 🟡 High |
-| Monitor `/admin/analytics` daily | Owner | 15 min/day | 🟡 High |
-| Monitor `/admin/beta-feedback` | Owner | 15 min/day | 🟡 High |
-
-### Week 2 — Mobile Native Builds (~1-2 days)
-
-| Task | Who | Time | Priority |
-|---|---|---|---|
-| Install Capacitor packages | Dev | 15 min | 🟡 High |
-| `npx cap add ios` + sync | Dev | 30 min | 🟡 High |
-| Xcode config + TestFlight build | Dev (Mac required) | 2-4 hrs | 🟡 High |
-| Google Play: Create developer account | Owner | 10 min | 🟡 High |
-| `npx cap add android` + sync | Dev | 30 min | 🟡 High |
-| Android Studio signed AAB | Dev | 1-2 hrs | 🟡 High |
-| TestFlight invite (iOS internal testers) | Owner | 30 min | 🟡 High |
-| Play Store internal testing track upload | Owner | 30 min | 🟡 High |
-
-### Week 3 — App Store / Play Store Review (~3-7 days wait)
-
-| Task | Who | Time | Priority |
-|---|---|---|---|
-| Enroll Apple Developer Program ($99/yr) | Owner | 10 min + 2 day wait | 🟡 High |
-| Enable Apple Sign-In in Firebase | Dev | 30 min | 🔴 Required for iOS |
-| Create App Store listing with screenshots | Owner | 2-4 hrs | 🟡 High |
-| Submit to App Store review | Owner | 30 min | 🟡 High |
-| Create Play Store listing + data safety form | Owner | 2-4 hrs | 🟡 High |
-| Submit to Play Store review | Owner | 30 min | 🟡 High |
-| **APP STORE REVIEW PERIOD** | — | 1-3 business days | — |
-| **PLAY STORE REVIEW PERIOD** | — | 1-3 business days | — |
-
-### Week 4 — Public Beta Launch
-
-| Task | Who | Time |
-|---|---|---|
-| Switch Stripe to live keys (if charging real $) | Dev | 20 min |
-| Expand beta to 50-100 testers | Owner | Ongoing |
-| Google AdSense account + await approval | Owner | 1 hr + 3 day wait |
-| Respond to beta feedback within 24h | Owner | Daily |
-| Hot-fix any critical bugs from feedback | Dev | As needed |
+### 🟡 MEDIUM — Do During Beta Sprint
+14. Add Stripe secret key to backend for real payment processing
+15. Fix "callee declined" state in Video Calls UI
+16. Add "Message Request" badge to Messages tab for non-friend messages
+17. Fix Delete Account dialog visibility on mobile
+18. Add hardware back button handler for Android
+19. Verify iOS safe area insets on devices with Dynamic Island
 
 ---
 
-## 🧪 SMOKE TEST CHECKLIST — Run Before Sending Invite Links
+## SECTION 6 — BUILD & DEPLOY COMMANDS REFERENCE
 
-Run every test on **Chrome (desktop)**, **iPhone Safari**, and **Android Chrome**.
+### Web Deploy
+```bat
+cd ConnectHub-SPA
+0-critical-fixes.bat   ← builds + deploys + seeds (run this!)
+```
 
-### Authentication
-- [ ] Sign up with new email → verification email arrives → click link → account created → onboarding loads
-- [ ] Onboarding completes → onboardingComplete = true in Firestore → feed loads
-- [ ] Sign in with email/password → lands on feed
-- [ ] Sign in with Google → popup → account created → lands on feed
-- [ ] Forgot password → receive reset email → new password works
-- [ ] Sign out → redirected to login
-- [ ] Try `/feed` when logged out → redirected to `/login`
+### Android Build
+```bash
+cd ConnectHub-SPA
+npm run build
+npx cap sync android
+npx cap open android
+# Then build release APK in Android Studio
+```
 
-### Core Features
-- [ ] Feed loads with demo posts (not blank)
-- [ ] Create text post → appears in feed immediately
-- [ ] Add photo to post → uploads to Firebase Storage → appears with image
-- [ ] Like a post → counter increments → notification fires
-- [ ] Comment on a post → appears in thread
-- [ ] Stories strip shows demo stories → tap to view → auto-advance
-- [ ] Create a story → appears at top of stories strip
+### iOS Build (macOS only)
+```bash
+cd ConnectHub-SPA
+npm run build
+npx cap sync ios
+npx cap open ios
+# Then archive & upload to TestFlight in Xcode
+```
 
-### Dating
-- [ ] Swipe right → card disappears
-- [ ] Swipe left → card disappears in opposite direction
-- [ ] Mutual swipe right → Match screen appears with confetti
-- [ ] "Message Now" on match screen → opens dating chat
-- [ ] Safety Center page loads at `/dating/safety`
+### Deploy Firestore Rules
+```bat
+cd ConnectHub-SPA
+deploy-firestore-rules.bat
+```
 
-### Messages
-- [ ] Open a conversation → messages load
-- [ ] Send a message → appears in real-time (< 1 second)
-- [ ] Compose new message → search for user → start conversation
-- [ ] Group chat create flow works
-
-### Marketplace
-- [ ] Browse products → click product → detail page loads
-- [ ] Add to cart → checkout page loads
-- [ ] Stripe test checkout: card `4242 4242 4242 4242` → payment processed
-
-### Video Calls (CRITICAL — Test on mobile data, NOT WiFi)
-- [ ] Start video call on WiFi → both parties connected
-- [ ] Start video call on mobile data → both parties connected (requires TURN server)
-- [ ] Call ends correctly when "End Call" tapped
-
-### Legal & Compliance
-- [ ] Cookie consent banner appears on first visit
-- [ ] `/terms` loads without errors
-- [ ] `/privacy` loads without errors
-- [ ] `/settings/delete-account` delete flow works (or shows confirmation)
-
-### Admin
-- [ ] Admin account can access `/admin`
-- [ ] `/admin/analytics` shows DAU/MAU data
-- [ ] `/admin/beta-feedback` shows submitted feedback
-
-### Mobile-Specific UX
-- [ ] Bottom navigation stays fixed on scroll (doesn't disappear)
-- [ ] All buttons have visible tap feedback
-- [ ] Keyboard opens → content not hidden behind it
-- [ ] Portrait AND landscape orientations work
-- [ ] No horizontal scroll on any page
-- [ ] Offline overlay appears when airplane mode is on
-- [ ] PWA "Add to Home Screen" prompt works on Chrome Android
-- [ ] App icon appears correctly after adding to home screen
+### Deploy Firebase Functions
+```bat
+cd ConnectHub-SPA
+7-deploy-functions-only.bat
+```
 
 ---
 
-## 💰 EXTERNAL ACCOUNTS & COSTS SUMMARY
+## SECTION 7 — REMAINING MISSING API KEYS (Non-Blocking for Beta)
 
-| Service | URL | What For | Cost | When Needed |
-|---|---|---|---|---|
-| **Metered.ca** | dashboard.metered.ca | TURN server (video calls on mobile) | Free (500GB/mo) | **Day 0 — CRITICAL** |
-| **Sentry** | sentry.io | Error monitoring | Free (5k errors/mo) | **Day 0** |
-| **OneSignal** | onesignal.com | Push notifications | Free (10k subscribers) | Week 1 |
-| **Mailgun** | mailgun.com | Production emails | Free (1k/mo) | Week 1 |
-| **Apple Developer** | developer.apple.com | iOS app store access + Apple Sign-In | $99/year | Week 2-3 |
-| **Google Play Console** | play.google.com/console | Android app store | $25 one-time | Week 2 |
-| **Stripe Live Keys** | dashboard.stripe.com | Real payment processing | 2.9% + 30¢/txn | Before charging real $ |
-| **Google AdSense** | adsense.google.com | Ad revenue | Free (% share) | Week 3-4 |
-| **FeedFM** | feed.fm | Licensed background music | Contact for pricing | Optional V1.1 |
-| **DeepAR** | deepar.ai | Real AR filters | $0 free tier | Optional V1.1 |
+These are nice-to-have but the app runs fine without them:
 
-**Minimum cost to launch beta: $0 (free tiers cover everything)**  
-**Cost for native app stores: $124 ($99 Apple + $25 Google)**
+| Service | Purpose | Where to Get | Blocking? |
+|---------|---------|-------------|----------|
+| Google AdSense | Banner ads | https://adsense.google.com | No — shows house ads |
+| Twitter/X Bearer Token | Trending posts | https://developer.twitter.com | No — shows news fallback |
+| Reddit Client ID | Community feed | https://reddit.com/prefs/apps | No — feature hidden |
+| FeedFM Token | Licensed music | https://feed.fm | No — uses Deezer/Radio |
+| AppLovin SDK Key | Mobile ads | https://dash.applovin.com | No — shows house ads |
 
 ---
 
-## 📋 MASTER BETA LAUNCH CHECKLIST
+## SECTION 8 — BETA LAUNCH READINESS SCORECARD
 
-### 🔴 CRITICAL (Do Today)
-- [ ] Fix TURN server in `livestream-webrtc.js` + `webrtc-service.js`
-- [ ] `cd ConnectHub-SPA && npm run build && firebase deploy`
-- [ ] Create Sentry account → add `VITE_SENTRY_DSN` to `.env` → rebuild
-- [ ] Run `node seed-ceo-admin.cjs` → creates admin account
-- [ ] Run `node seed-demo-content.cjs` → populates demo feed
-- [ ] Manual smoke test: login → feed → create post → like → message → dating swipe
+| Platform | UI Complete | Backend Wired | Service Keys | Native Build | Score |
+|----------|------------|--------------|-------------|-------------|-------|
+| **Web** | ✅ 100% | ✅ 95% | ✅ 90% | N/A | **🟢 94%** |
+| **Android** | ✅ 100% | ✅ 95% | ✅ 90% | ❌ 0% | **🟡 65%** |
+| **iOS** | ✅ 100% | ✅ 95% | ✅ 90% | ❌ 0% | **🟡 60%** |
 
-### 🟡 IMPORTANT (Week 1)
-- [ ] Set up OneSignal → add `VITE_ONESIGNAL_APP_ID` → rebuild
-- [ ] Set up Mailgun email domain (DNS takes 24h)
-- [ ] Verify Stripe webhook is configured for test mode
-- [ ] Invite first 5 beta testers via `/invite` page
-
-### 🟡 MOBILE NATIVE (Week 2)
-- [ ] `npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android ...`
-- [ ] `npm run build && npx cap add ios && npx cap sync ios && npx cap open ios`
-- [ ] Xcode: set bundle ID, team, add permissions in Info.plist
-- [ ] Build for TestFlight → invite iOS testers
-- [ ] `npx cap add android && npx cap sync android && npx cap open android`
-- [ ] Generate signed .aab → upload to Play Store internal testing
-
-### 🍎 APP STORE (Week 3)
-- [ ] Enroll Apple Developer Program ($99)
-- [ ] Enable Apple Sign-In in Firebase (required for App Store)
-- [ ] Create App Store Connect listing
-- [ ] Add screenshots (6.7" + 5.5" iPhone required)
-- [ ] Submit for App Store review
-
-### 🤖 PLAY STORE (Week 3)
-- [ ] Register Google Play developer ($25)
-- [ ] Complete data safety form
-- [ ] Create Play Store listing
-- [ ] Add screenshots + feature graphic
-- [ ] Submit for Play Store review
-
-### 🟢 POST-LAUNCH POLISH (Week 4+)
-- [ ] Switch Stripe to live keys (only when ready for real payments)
-- [ ] Apply for Google AdSense
-- [ ] Replace placeholder ad gradients with real AdSense units
-- [ ] Enable Firebase Analytics (lazy initialization)
-- [ ] A/B test dating swipe algorithm
-- [ ] Add real safety content to Dating Safety Center
-- [ ] Wire creator analytics to real Firestore data
+**Web beta can launch this week.** Android and iOS need 1-2 weeks of build/config work.
 
 ---
 
-## 📊 FINAL READINESS SCORES
+## SECTION 9 — ESTIMATED TIMELINE TO BETA TESTERS
 
-| Platform | Feature Completeness | UX Polish | Backend | Deployment | OVERALL |
-|---|---|---|---|---|---|
-| **Web PWA** | 100% | 95% | 97% | 95% | **97%** ✅ |
-| **iOS Native** | 100% | 90% | 97% | 60% | **87%** ⚠️ |
-| **Android Native** | 100% | 90% | 97% | 60% | **87%** ⚠️ |
-
-### What "60% deployment" means for iOS/Android:
-All the **code** is done. The 40% gap is entirely outside the codebase:
-- Apple/Google developer accounts (need owner signup)
-- Xcode/Android Studio machine build (need Mac for iOS)
-- App store submission & review (1-3 day wait)
-- Store listing creation (screenshots, descriptions)
-
-**No new features need to be built. The app is code-complete.**
+| Milestone | Target Date | Effort |
+|-----------|------------|--------|
+| Web beta live (lynkapp.net) | June 11-12, 2026 | 3-4 hours |
+| Android APK on Play Internal Track | June 18-21, 2026 | 2-3 days |
+| iOS on TestFlight | June 25-28, 2026 | 3-5 days (needs macOS + Apple Dev account) |
+| First 50 beta testers onboarded | July 1, 2026 | Depends on outreach |
+| Bug fix sprint #1 | July 1-7, 2026 | 1 week |
+| Open beta (100+ testers) | July 14, 2026 | — |
 
 ---
 
-## 🚀 FASTEST PATH TO BETA TESTERS
-
-**If you want testers TODAY:**
-1. Fix TURN server (15 min)
-2. `npm run build && firebase deploy` (5 min)
-3. Add Sentry key → rebuild (10 min)
-4. Run seed scripts (10 min)
-5. Share `https://lynkapp.com` with testers → they install as PWA from Chrome
-6. **Total time: ~40 minutes**
-
-**If you want testers on TestFlight (iOS) this week:**
-1. Complete all "today" steps above
-2. Buy Apple Developer account ($99) → wait 1-2 days for activation
-3. Install Capacitor → `npm run build && npx cap sync ios && npx cap open ios`
-4. Archive in Xcode → upload to TestFlight
-5. Invite up to 10,000 internal testers immediately (no Apple review needed for TestFlight)
-6. **Total time: 2-4 days**
-
-**If you want testers on Google Play this week:**
-1. Complete all "today" steps above
-2. Register Google Play developer ($25)
-3. Install Capacitor → build signed .aab in Android Studio
-4. Upload to "Internal testing" track → invite testers immediately
-5. **Total time: 1-2 days (no Play review for internal track)**
-
----
-
-*Full Assessment by AI UX/UI Engineer — June 10, 2026*  
-*Codebase: ConnectHub-SPA (React 18 + Vite + Firebase) — 160+ routes, 178 screens*  
-*Status: CODE COMPLETE — External service configuration and app store submissions are the only remaining work*
+*Report generated by UX/UI Developer assessment — June 10, 2026*
+*Next update: After Android APK first build*
