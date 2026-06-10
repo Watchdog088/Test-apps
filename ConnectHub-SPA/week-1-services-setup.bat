@@ -2,19 +2,39 @@
 REM ============================================================
 REM LynkApp — WEEK 1 SERVICE KEYS SETUP
 REM Beta Launch Checklist — Phase 2: Week 1
-REM Services: OneSignal, Stripe, Mailgun, Stripe Webhook
+REM Services: Sentry, OneSignal, Metered, Stripe, Mailgun
 REM Updated: June 10, 2026
+REM ============================================================
+REM KEY STATUS AS OF JUN-10-2026:
+REM   [DONE] Sentry DSN          — db9d71e2... confirmed in .env
+REM   [DONE] OneSignal App ID    — 00c74474... confirmed in .env
+REM   [DONE] Metered TURN Server — 83d69637... Jun-02-2026 creds in .env
+REM   [TODO] Stripe Secret Key   — add sk_test_... to Backend/.env
+REM   [TODO] Mailgun             — add keys to Backend/.env
 REM ============================================================
 echo.
 echo ============================================================
 echo  LynkApp WEEK 1 SERVICES SETUP
-echo  OneSignal + Stripe + Mailgun
+echo  Sentry + OneSignal + Metered + Stripe + Mailgun
 echo ============================================================
 echo.
 
 cd /d "%~dp0"
 
 echo Checking service configurations...
+echo.
+
+REM --- Sentry (Error Monitoring) ---
+echo [Sentry Error Monitoring]
+findstr /C:"VITE_SENTRY_DSN=https://" "%~dp0.env" >nul 2>&1
+if not errorlevel 1 (
+    echo STATUS: CONFIGURED OK  ^(DSN: db9d71e2...^)
+    echo  Dashboard: https://sentry.io/organizations/lynkapp/
+) else (
+    echo STATUS: NOT CONFIGURED
+    echo  Get free DSN at: https://sentry.io/signup/
+    echo  Add to .env: VITE_SENTRY_DSN=https://YOUR_KEY@oXXXX.ingest.sentry.io/XXXXX
+)
 echo.
 
 REM --- OneSignal ---

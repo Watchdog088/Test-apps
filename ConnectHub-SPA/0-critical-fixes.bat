@@ -2,12 +2,16 @@
 REM ============================================================
 REM LynkApp — CRITICAL FIXES (Run This First!)
 REM Beta Launch Checklist — Phase 1: Do Today
-REM Updated: June 10, 2026
+REM Updated: June 10, 2026 — All 3 service keys CONFIRMED
+REM   Sentry DSN:      CONFIRMED (db9d71e2...)
+REM   Metered TURN:    CONFIRMED (83d69637... — Jun-02-2026 creds)
+REM   OneSignal AppID: CONFIRMED (00c74474...)
 REM ============================================================
 echo.
 echo ============================================================
 echo  LynkApp CRITICAL PRE-BETA FIXES
 echo  Phase 1: Build + Deploy + Seed
+echo  Keys Status: Sentry=LIVE  Metered=LIVE  OneSignal=LIVE
 echo ============================================================
 echo.
 
