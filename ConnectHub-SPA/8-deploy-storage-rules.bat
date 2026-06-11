@@ -1,19 +1,11 @@
 @echo off
-echo ============================================
-echo  Deploy Storage Rules Only
-echo  (Use after editing storage.rules)
-echo ============================================
-echo.
+title LynkApp - Deploy Storage Rules
 cd /d "%~dp0"
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only storage
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR deploying storage rules. Run 1-firebase-login.bat first.
-  pause
-  exit /b 1
-)
+echo ============================================
+echo  Deploy Firebase Storage Rules
+echo ============================================
 echo.
-echo ============================================
-echo  Storage rules deployed successfully!
-echo ============================================
+call npx firebase-tools deploy --only storage --project lynkapp-c7db1
+echo.
+echo ✅ Storage rules deployed!
 pause

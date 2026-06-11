@@ -1,32 +1,35 @@
 @echo off
+title LynkApp - Fix Node/NPM PATH
 echo ============================================
-echo  Fix Firebase PATH Permanently
-echo  (So you can type "firebase" in any terminal)
+echo  Fix Node.js / npm PATH permanently
 echo ============================================
 echo.
-echo Adding npm global folder to your User PATH...
-echo.
 
-powershell -Command "[System.Environment]::SetEnvironmentVariable('Path', [System.Environment]::GetEnvironmentVariable('Path','User') + ';C:\Users\Jnewball\AppData\Roaming\npm', 'User')"
+echo Checking Node.js installation...
+where node 2>nul
+if %ERRORLEVEL% NEQ 0 (
+  echo Node.js not found on PATH.
+  echo Please install Node.js from: https://nodejs.org
+  echo Choose LTS version (18 or 20).
+  pause & exit /b 1
+)
 
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR: Could not update PATH.
-  echo Try running this window as Administrator.
-  pause
-  exit /b 1
+echo Checking npm...
+where npm 2>nul
+if %ERRORLEVEL% NEQ 0 (
+  echo npm not found. Reinstall Node.js.
+  pause & exit /b 1
 )
 
 echo.
-echo ============================================
-echo  PATH updated successfully!
+echo ✅ Node.js and npm are on PATH.
+node --version
+npm --version
+
 echo.
-echo  IMPORTANT: You must restart VS Code and
-echo  any open terminals for this to take effect.
+echo Installing firebase-tools globally (if not installed)...
+call npm install -g firebase-tools
+
 echo.
-echo  After restarting, you can type just:
-echo    firebase login
-echo    firebase deploy
-echo  (no more full path needed)
-echo ============================================
+echo ✅ PATH is working correctly!
 pause

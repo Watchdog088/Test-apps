@@ -1,32 +1,27 @@
 @echo off
-echo ============================================
-echo  STEP 3 — Build Production Bundle
-echo ============================================
-echo.
-echo Compiling React app for production...
-echo This takes 2-5 minutes. Please wait.
-echo.
+title LynkApp - Production Build
 cd /d "%~dp0"
-set NODE_OPTIONS=--max-old-space-size=4096
+echo ============================================
+echo  STEP 3 - Build Production Bundle
+echo ============================================
+echo.
+
+echo Installing dependencies...
+call npm install --silent
+echo ✅ Dependencies installed
+
+echo.
+echo Building production bundle (this takes 1-2 minutes)...
 call npm run build
-if %errorlevel% neq 0 (
-  echo.
-  echo ============================================
-  echo  BUILD FAILED!
-  echo  Read the red error above.
-  echo  Common fixes:
-  echo    - Missing import: check the file named in the error
-  echo    - Out of memory: already handled (4096MB allocated)
-  echo    - Syntax error: fix the file shown in the error
-  echo ============================================
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ BUILD FAILED! Check errors above.
   pause
   exit /b 1
 )
+
 echo.
-echo ============================================
-echo  BUILD SUCCESSFUL!
-echo  Output is in:  ConnectHub-SPA/dist/
+echo ✅ Production build complete!
+echo    Output: ConnectHub-SPA\dist\
 echo.
-echo  Next step: Run 4-deploy-hosting.bat
-echo ============================================
+dir dist /b
 pause

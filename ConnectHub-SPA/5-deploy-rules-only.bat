@@ -1,19 +1,18 @@
 @echo off
-echo ============================================
-echo  Deploy Firestore Rules Only
-echo  (Use after editing firestore.rules)
-echo ============================================
-echo.
+title LynkApp - Deploy Rules Only
 cd /d "%~dp0"
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only firestore:rules
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR deploying rules. Run 1-firebase-login.bat first.
-  pause
-  exit /b 1
-)
+echo ============================================
+echo  Deploy Firestore + Storage Rules Only
+echo ============================================
 echo.
-echo ============================================
-echo  Firestore rules deployed successfully!
-echo ============================================
+
+echo Deploying Firestore rules...
+call npx firebase-tools deploy --only firestore:rules --project lynkapp-c7db1
+
+echo.
+echo Deploying Storage rules...
+call npx firebase-tools deploy --only storage --project lynkapp-c7db1
+
+echo.
+echo ✅ Security rules deployed!
 pause

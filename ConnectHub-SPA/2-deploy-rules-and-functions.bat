@@ -1,53 +1,34 @@
 @echo off
-echo ============================================
-echo  STEP 2 — Deploy Firestore Rules + Functions
-echo ============================================
-echo.
-echo Installing Cloud Function dependencies...
-echo.
-cd /d "%~dp0functions"
-call npm install
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR: npm install failed in functions folder.
-  echo Make sure Node.js is installed and try again.
-  pause
-  exit /b 1
-)
-
+title LynkApp - Deploy Rules & Functions
 cd /d "%~dp0"
+echo ============================================
+echo  STEP 2 - Deploy Firestore Rules + Functions
+echo ============================================
+echo.
+
+echo [1/3] Installing Functions dependencies...
+cd functions
+call npm install --silent
+cd ..
+echo ✅ Functions deps installed
 
 echo.
-echo Deploying Firestore security rules...
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only firestore:rules
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR deploying rules. Did you run 1-firebase-login.bat first?
-  pause
-  exit /b 1
-)
+echo [2/3] Deploying Firestore security rules...
+call npx firebase-tools deploy --only firestore:rules --project lynkapp-c7db1
+echo ✅ Firestore rules deployed
 
 echo.
-echo Deploying Cloud Functions (setAdminRole, etc.)...
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only functions
-if %errorlevel% neq 0 (
-  echo.
-  echo ERROR deploying functions.
-  echo Check the error message above.
-  pause
-  exit /b 1
-)
+echo [3/3] Deploying Storage rules...
+call npx firebase-tools deploy --only storage --project lynkapp-c7db1
+echo ✅ Storage rules deployed
+
+echo.
+echo [4/4] Deploying Cloud Functions...
+call npx firebase-tools deploy --only functions --project lynkapp-c7db1
+echo ✅ Functions deployed
 
 echo.
 echo ============================================
-echo  SUCCESS!
-echo  Rules + Functions deployed to Firebase.
-echo.
-echo  NEXT: 
-echo   1. Download serviceAccountKey.json from
-echo      Firebase Console > Project Settings >
-echo      Service Accounts > Generate new key
-echo   2. Put it in this folder (ConnectHub-SPA/)
-echo   3. Double-click run-ceo-admin.bat
+echo  ✅ Rules + Functions deploy COMPLETE!
 echo ============================================
 pause

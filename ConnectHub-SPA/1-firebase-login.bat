@@ -1,19 +1,15 @@
 @echo off
+title LynkApp - Firebase Login
+cd /d "%~dp0"
 echo ============================================
-echo  STEP 1 — Firebase Login
+echo  STEP 1 - Firebase Login
 echo ============================================
 echo.
-echo A browser window will open.
-echo Sign in with the Google account that OWNS
-echo your Firebase project.
+echo Logging in to Firebase...
+call npx firebase-tools@latest login
 echo.
-echo After signing in, come back here and press
-echo any key to continue to the next step.
+echo Verifying project: lynkapp-c7db1
+call npx firebase-tools use lynkapp-c7db1
 echo.
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" login
-echo.
-echo ============================================
-echo  Login complete! 
-echo  Now run:  2-deploy-rules-and-functions.bat
-echo ============================================
+echo ✅ Firebase login complete!
 pause

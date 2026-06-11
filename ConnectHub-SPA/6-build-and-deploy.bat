@@ -1,43 +1,32 @@
 @echo off
+title LynkApp - Build + Deploy (Full)
+cd /d "%~dp0"
 echo ============================================
-echo  BUILD + DEPLOY  (Use after ANY code change)
-echo  Builds the app then pushes to lynkapp.net
+echo  Build + Deploy to Firebase Hosting
 echo ============================================
 echo.
-
-cd /d "%~dp0"
 
 echo [1/2] Building production bundle...
-echo.
-set NODE_OPTIONS=--max-old-space-size=4096
+call npm install --silent
 call npm run build
-if %errorlevel% neq 0 (
-  echo.
-  echo ============================================
-  echo  BUILD FAILED — Deploy cancelled.
-  echo  Fix the error shown above, then try again.
-  echo ============================================
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ Build failed!
   pause
   exit /b 1
 )
+echo ✅ Build complete
 
 echo.
 echo [2/2] Deploying to Firebase Hosting...
-echo.
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only hosting
-if %errorlevel% neq 0 (
-  echo.
-  echo ============================================
-  echo  DEPLOY FAILED!
-  echo  Make sure you ran 1-firebase-login.bat first.
-  echo ============================================
+call npx firebase-tools deploy --only hosting --project lynkapp-c7db1
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ Deploy failed!
   pause
   exit /b 1
 )
 
 echo.
 echo ============================================
-echo  ALL DONE!
-echo  App is live at:  https://lynkapp.net
+echo  ✅ LIVE at https://lynkapp-c7db1.web.app
 echo ============================================
 pause

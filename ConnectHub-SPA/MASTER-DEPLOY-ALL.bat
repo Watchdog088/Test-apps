@@ -1,118 +1,47 @@
 @echo off
-echo.
-echo  ██╗  ██╗   ██╗███╗   ██╗██╗  ██╗ █████╗ ██████╗ ██████╗
-echo  ██║  ╚██╗ ██╔╝████╗  ██║██║ ██╔╝██╔══██╗██╔══██╗██╔══██╗
-echo  ██║   ╚████╔╝ ██╔██╗ ██║█████╔╝ ███████║██████╔╝██████╔╝
-echo  ██║    ╚██╔╝  ██║╚██╗██║██╔═██╗ ██╔══██║██╔═══╝ ██╔═══╝
-echo  ███████╗██║   ██║ ╚████║██║  ██╗██║  ██║██║     ██║
-echo  ╚══════╝╚═╝   ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝
-echo.
-echo  MASTER DEPLOY — Deploys EVERYTHING to Firebase
-echo  Rules + Indexes + Functions + Build + Hosting
-echo ============================================================
-echo.
-echo  WARNING: This will deploy your ENTIRE app to production.
-echo  Make sure you have run 1-firebase-login.bat first!
-echo.
-echo  Press ENTER to continue or close this window to cancel.
-pause
-
+title LynkApp - MASTER DEPLOY ALL
 cd /d "%~dp0"
-
+echo ============================================
+echo  MASTER DEPLOY - Full LynkApp Deployment
+echo  Builds + Deploys Everything to Firebase
+echo ============================================
 echo.
-echo ============================================================
-echo  [1/5] Deploying Firestore Security Rules...
-echo ============================================================
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only firestore:rules
-if %errorlevel% neq 0 (
-  echo ERROR on rules. Are you logged in? Run 1-firebase-login.bat
-  pause
-  exit /b 1
-)
-echo  Rules deployed OK
 
-echo.
-echo ============================================================
-echo  [2/5] Deploying Firestore Indexes...
-echo ============================================================
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only firestore:indexes
-if %errorlevel% neq 0 (
-  echo ERROR on indexes.
-  pause
-  exit /b 1
-)
-echo  Indexes deployed OK
-
-echo.
-echo ============================================================
-echo  [3/5] Installing + Deploying Cloud Functions...
-echo ============================================================
-cd "%~dp0functions"
+echo [1/5] Installing dependencies...
 call npm install --silent
-if %errorlevel% neq 0 (
-  echo ERROR installing function dependencies.
-  pause
-  exit /b 1
-)
-cd "%~dp0"
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only functions
-if %errorlevel% neq 0 (
-  echo ERROR on functions.
-  pause
-  exit /b 1
-)
-echo  Functions deployed OK
+cd functions && call npm install --silent && cd ..
+echo ✅ Dependencies ready
 
 echo.
-echo ============================================================
-echo  [4/5] Deploying Storage Rules...
-echo ============================================================
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only storage
-if %errorlevel% neq 0 (
-  echo WARNING: Storage rules failed. Continuing anyway...
-)
-echo  Storage rules deployed OK
-
-echo.
-echo ============================================================
-echo  [5/5] Building Production Bundle + Deploying Hosting...
-echo ============================================================
-echo.
-echo  Compiling React app (takes 2-5 min)...
-set NODE_OPTIONS=--max-old-space-size=4096
+echo [2/5] Building production bundle...
 call npm run build
-if %errorlevel% neq 0 (
-  echo.
-  echo BUILD FAILED! Fix the error above then re-run.
-  pause
-  exit /b 1
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ Build failed! Fix errors then re-run.
+  pause & exit /b 1
 )
-echo  Build complete. Uploading to Firebase Hosting...
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only hosting
-if %errorlevel% neq 0 (
-  echo ERROR on hosting deploy.
-  pause
-  exit /b 1
+echo ✅ Build complete
+
+echo.
+echo [3/5] Deploying Firestore rules + indexes...
+call npx firebase-tools deploy --only firestore --project lynkapp-c7db1
+echo ✅ Firestore rules + indexes deployed
+
+echo.
+echo [4/5] Deploying Storage rules + Functions...
+call npx firebase-tools deploy --only storage,functions --project lynkapp-c7db1
+echo ✅ Storage + Functions deployed
+
+echo.
+echo [5/5] Deploying to Firebase Hosting...
+call npx firebase-tools deploy --only hosting --project lynkapp-c7db1
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ Hosting deploy failed!
+  pause & exit /b 1
 )
 
 echo.
-echo ============================================================
-echo.
-echo   ██████╗  ██████╗ ███╗   ██╗███████╗██╗
-echo   ██╔══██╗██╔═══██╗████╗  ██║██╔════╝██║
-echo   ██║  ██║██║   ██║██╔██╗ ██║█████╗  ██║
-echo   ██║  ██║██║   ██║██║╚██╗██║██╔══╝  ╚═╝
-echo   ██████╔╝╚██████╔╝██║ ╚████║███████╗██╗
-echo   ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝
-echo.
-echo   LynkApp is LIVE at:  https://lynkapp.net
-echo.
-echo   What was deployed:
-echo     Firestore security rules
-echo     Firestore indexes
-echo     Cloud Functions (Admin role management)
-echo     Storage rules
-echo     Full React app to Firebase Hosting
-echo.
-echo ============================================================
+echo ============================================
+echo  ✅ ALL DEPLOYED SUCCESSFULLY!
+echo  🌐 https://lynkapp-c7db1.web.app
+echo ============================================
 pause

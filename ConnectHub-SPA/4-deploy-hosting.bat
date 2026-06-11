@@ -1,28 +1,27 @@
 @echo off
-echo ============================================
-echo  STEP 4 — Deploy to Firebase Hosting
-echo  (Pushes to https://lynkapp.net)
-echo ============================================
-echo.
-echo Deploying dist/ folder to Firebase Hosting...
-echo.
+title LynkApp - Deploy to Firebase Hosting
 cd /d "%~dp0"
-"C:\Users\Jnewball\AppData\Roaming\npm\firebase.cmd" deploy --only hosting
-if %errorlevel% neq 0 (
-  echo.
-  echo ============================================
-  echo  DEPLOY FAILED!
-  echo  Most common cause: not logged in.
-  echo  Fix: Double-click 1-firebase-login.bat first.
-  echo ============================================
+echo ============================================
+echo  STEP 4 - Deploy to Firebase Hosting
+echo ============================================
+echo.
+
+if not exist "dist\index.html" (
+  echo ❌ dist\ folder not found. Run 3-build-production.bat first!
   pause
   exit /b 1
 )
+
+echo Deploying to Firebase Hosting...
+call npx firebase-tools deploy --only hosting --project lynkapp-c7db1
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ Deploy failed!
+  pause
+  exit /b 1
+)
+
 echo.
 echo ============================================
-echo  DEPLOYED SUCCESSFULLY!
-echo  Your app is live at:  https://lynkapp.net
-echo.
-echo  Open your browser and check it now.
+echo  ✅ LIVE at https://lynkapp-c7db1.web.app
 echo ============================================
 pause

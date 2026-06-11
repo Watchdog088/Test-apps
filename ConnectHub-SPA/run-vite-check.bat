@@ -1,5 +1,16 @@
 @echo off
-cd /d c:\Users\Jnewball\Test-apps\Test-apps\ConnectHub-SPA
-echo Starting Vite... > C:\Users\Jnewball\AppData\Local\Temp\vite-output.log
-node node_modules/vite/bin/vite.js --port 5173 >> C:\Users\Jnewball\AppData\Local\Temp\vite-output.log 2>&1
-echo Vite exited with code %errorlevel% >> C:\Users\Jnewball\AppData\Local\Temp\vite-output.log
+title LynkApp - Vite Build Check
+cd /d "%~dp0"
+echo ============================================
+echo  Vite Build Check (No Deploy)
+echo ============================================
+echo.
+call npm run build 2>&1
+if %ERRORLEVEL% EQU 0 (
+  echo.
+  echo ✅ Build PASSED - No errors!
+) else (
+  echo.
+  echo ❌ Build FAILED - Fix errors above before deploying.
+)
+pause

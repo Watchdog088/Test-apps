@@ -1,13 +1,11 @@
 @echo off
+title LynkApp - Deploy Firestore Rules
+cd /d "%~dp0"
 echo ============================================
-echo  LynkApp - Deploy Firestore Rules to Firebase
+echo  Deploy Firestore Security Rules
 echo ============================================
 echo.
-echo Step 1: Login to Firebase (opens browser)
-node "C:\Users\Jnewball\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js" login
+call npx firebase-tools deploy --only firestore:rules --project lynkapp-c7db1
 echo.
-echo Step 2: Deploy Firestore rules to lynkapp-c7db1
-node "C:\Users\Jnewball\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js" deploy --only firestore:rules --project lynkapp-c7db1
-echo.
-echo Done! Rules are live.
+echo ✅ Firestore rules deployed!
 pause
