@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "258552263213",
+    "firebase_url": "https://lynkapp-c7db1-default-rtdb.firebaseio.com",
+    "project_id": "lynkapp-c7db1",
+    "storage_bucket": "lynkapp-c7db1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:258552263213:android:6657aafa7b82849684bea4",
+        "android_client_info": {
+          "package_name": "com.lynkapp.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "258552263213-gg2v15dfu0vu0i7gkulch435rt6h9cst.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq1XaR7e05Y7iqgkKYDJG0T5sxYG4gJno"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "258552263213-gg2v15dfu0vu0i7gkulch435rt6h9cst.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

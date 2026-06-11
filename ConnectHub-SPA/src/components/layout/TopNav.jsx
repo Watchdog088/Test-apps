@@ -183,7 +183,7 @@ export default function TopNav() {
           )}
         </button>
 
-        {/* 🧪 Beta Feedback — BETA-FEEDBACK (May 28 2026) */}
+        {/* 🧪 Beta Feedback — desktop only (< 640px uses floating FAB in AppShell to avoid cluttered top bar) */}
         <button
           onClick={() => setFeedbackOpen(true)}
           aria-label="Send beta feedback"
@@ -192,7 +192,10 @@ export default function TopNav() {
             background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)',
             color:'#10b981', fontSize:14, fontWeight:700,
             display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          }}>
+            // MOBILE-FIX: hide on phones — AppShell has a floating FAB for this
+            // Use CSS media query via inline — hide below 640px
+          }}
+          className="feedback-btn-desktop">
           🧪 Feedback
         </button>
         {feedbackOpen && (

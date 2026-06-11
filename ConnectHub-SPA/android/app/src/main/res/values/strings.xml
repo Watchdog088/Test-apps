@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LynkApp</string>
+    <string name="title_activity_main">LynkApp</string>
+    <string name="package_name">com.lynkapp.app</string>
+    <string name="custom_url_scheme">com.lynkapp.app</string>
+</resources>

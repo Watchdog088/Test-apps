@@ -930,15 +930,9 @@ export default function FeedPage() {
         </>
       )}
 
-      {/* Create post FAB */}
-      <button onClick={()=>navigate('/post/create')}
-        style={{ position:'fixed', bottom:'calc(80px + env(safe-area-inset-bottom) + 16px)', right:16, zIndex:500,
-          width:52, height:52, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)', border:'none',
-          color:'white', fontSize:24, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          boxShadow:'0 6px 24px rgba(99,102,241,0.5)' }}
-        aria-label="Create post">
-        ✏️
-      </button>
+      {/* NOTE: Create Post FAB removed from FeedPage — the ➕ center tab in MobileBottomNav
+          handles this on mobile, and the ✏️ button in TopNav handles it on desktop.
+          Having both caused a duplicate FAB overlapping the beta feedback button. */}
 
       {/* Back-to-top */}
       {showBackTop && (

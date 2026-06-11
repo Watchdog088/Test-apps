@@ -1,7 +1,12 @@
 // src/components/layout/MobileBottomNav.jsx
 // CRITICAL-FIX Jun-2026: Mobile-first bottom tab bar (Instagram/TikTok pattern)
-// Only renders on viewports < 640px. Tabs: Home | Dating | ➕ Create | Messages | Profile
-// Includes unread badge on Messages and Notifications dot on Profile
+// Only renders on viewports < 640px.
+// Tabs: Home | Search | ➕ Create | Messages | ··· More
+// ··· More opens the MoreDrawer which gives access to ALL dashboards
+// (Dating, Live, Groups, Events, Friends, Music, Gaming, Media Hub,
+//  Video Calls, AR/VR, Marketplace, Creator Studio, Business Tools,
+//  Trending, Saved, Premium, Settings, Help)
+// CROSS-PLATFORM FIX: Matches web sidebar navigation — same sections available everywhere
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,13 +16,14 @@ const MOBILE_NAV_H = 64; // px — exported so AppShell can use it for padding
 
 export { MOBILE_NAV_H };
 
-// 5 primary tabs optimised for thumb reach
+// 5 primary tabs — "More" replaces "Profile" so ALL web sections are reachable
+// Profile is still accessible from TopNav avatar AND from the More drawer
 const TABS = [
-  { path: '/feed',         icon: '🏠', label: 'Home' },
-  { path: '/search',       icon: '🔍', label: 'Search' },
-  { path: '__create__',    icon: '➕', label: 'Create',  create: true },
-  { path: '/messages',     icon: '💬', label: 'Messages', badge: 'unreadMessages' },
-  { path: '/profile',      icon: '👤', label: 'Profile' },
+  { path: '/feed',      icon: '🏠', label: 'Home' },
+  { path: '/search',    icon: '🔍', label: 'Search' },
+  { path: '__create__', icon: '➕', label: 'Create', create: true },
+  { path: '/messages',  icon: '💬', label: 'Messages', badge: 'unreadMessages' },
+  { path: '__more__',   icon: '⋯',  label: 'More',    more: true },
 ];
 
 export default function MobileBottomNav({ onCreatePost }) {
@@ -33,6 +39,10 @@ export default function MobileBottomNav({ onCreatePost }) {
     if (tab.create) {
       if (onCreatePost) onCreatePost();
       else navigate('/post/create');
+      return;
+    }
+    if (tab.more) {
+      setMoreDrawerOpen(true);
       return;
     }
     navigate(tab.path);
@@ -60,9 +70,10 @@ export default function MobileBottomNav({ onCreatePost }) {
       }}
     >
       {TABS.map((tab) => {
-        const active  = !tab.create && pathname.startsWith(tab.path);
-        const count   = tab.badge ? counts[tab.badge] : 0;
+        const active   = !tab.create && !tab.more && pathname.startsWith(tab.path);
+        const count    = tab.badge ? counts[tab.badge] : 0;
         const isCreate = tab.create;
+        const isMore   = tab.more;
 
         return (
           <button
@@ -87,7 +98,7 @@ export default function MobileBottomNav({ onCreatePost }) {
               WebkitTapHighlightColor: 'transparent',
             }}
           >
-            {/* Icon — ➕ gets a pill background */}
+            {/* Icon — ➕ gets a pill background; ⋯ More uses 3-dot style */}
             {isCreate ? (
               <div style={{
                 width: 44,
@@ -101,6 +112,23 @@ export default function MobileBottomNav({ onCreatePost }) {
                 boxShadow: '0 2px 12px rgba(99,102,241,0.5)',
               }}>
                 {tab.icon}
+              </div>
+            ) : isMore ? (
+              <div style={{
+                display: 'flex',
+                gap: 3,
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 24,
+              }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: '50%',
+                    background: '#94a3b8',
+                  }} />
+                ))}
               </div>
             ) : (
               <span style={{
@@ -124,6 +152,29 @@ export default function MobileBottomNav({ onCreatePost }) {
                 lineHeight: 1,
               }}>
                 {tab.label}
+              </span>
+            )}
+
+            {/* More tab notification dot — shows if there are unread notifications */}
+            {isMore && unreadNotifications > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: 6,
+                right: 'calc(50% - 18px)',
+                background: '#ef4444',
+                color: 'white',
+                borderRadius: '50%',
+                fontSize: 9,
+                fontWeight: 800,
+                minWidth: 16,
+                height: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1.5px solid rgba(10,8,30,0.9)',
+                padding: '0 3px',
+              }}>
+                {unreadNotifications > 9 ? '9+' : unreadNotifications}
               </span>
             )}
 
