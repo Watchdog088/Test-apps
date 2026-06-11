@@ -4,14 +4,20 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://lynkapp.com",
+    "androidScheme": "https",
     "cleartext": false,
     "allowNavigation": [
+      "lynkapp-c7db1.web.app",
+      "lynkapp-c7db1.firebaseapp.com",
       "*.lynkapp.com",
       "*.firebase.google.com",
       "*.googleapis.com",
+      "*.firebaseio.com",
       "*.stripe.com",
-      "*.onesignal.com"
+      "*.onesignal.com",
+      "*.giphy.com",
+      "*.unsplash.com",
+      "*.pexels.com"
     ]
   },
   "ios": {
