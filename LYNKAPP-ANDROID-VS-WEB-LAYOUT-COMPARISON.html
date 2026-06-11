@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LynkApp — Android vs Web PWA Layout Comparison</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0818;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    background: linear-gradient(135deg, #1a1040 0%, #0f0c29 100%);
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-header p { font-size: 13px; color: #64748b; margin-top: 4px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #818cf8;
+  }
+
+  /* ── Column Layout ── */
+  .comparison-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    gap: 32px;
+  }
+  @media (max-width: 900px) {
+    .comparison-wrapper { grid-template-columns: 1fr; }
+  }
+
+  .platform-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Platform Label ── */
+  .platform-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .platform-label.android { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
+  .platform-label.web     { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+  .platform-label .icon { font-size: 24px; }
+  .platform-label .meta { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 2px; }
+
+  /* ── Phone Frame ── */
+  .phone-frame-wrapper {
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+
+  .phone-frame {
+    width: 320px;
+    background: #111827;
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1f2937,
+      0 0 0 5px #111827,
+      0 40px 80px rgba(0,0,0,0.7),
+      0 0 60px rgba(99,102,241,0.08);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-frame.android-frame {
+    border-radius: 32px;
+    box-shadow:
+      0 0 0 2px #1f2937,
+      0 0 0 5px #111827,
+      0 40px 80px rgba(0,0,0,0.7),
+      0 0 60px rgba(52,211,153,0.06);
+  }
+
+  /* Android-specific: camera punch-hole top-center */
+  .android-notch {
+    width: 12px;
+    height: 12px;
+    background: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    box-shadow: 0 0 0 2px #1f2937;
+  }
+
+  /* iOS Dynamic Island */
+  .ios-island {
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 620px;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    background: #0f0c29;
+  }
+  .android-frame .phone-screen { border-radius: 22px; }
+
+  /* ── App Shell inside phone ── */
+  .app-shell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #0f0c29;
+    font-size: 11px;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 28px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    color: #e2e8f0;
+    flex-shrink: 0;
+  }
+  .status-bar.android-status { background: #0a0818; padding-top: 4px; }
+  .status-bar.ios-status     { background: #0a0818; }
+  .status-icons { display: flex; gap: 5px; font-size: 9px; }
+
+  /* Android gesture bar (bottom) */
+  .android-gesture-bar {
+    height: 20px;
+    background: #0a0818;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .gesture-pill {
+    width: 48px;
+    height: 4px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 2px;
+  }
+
+  /* iOS Home Indicator */
+  .ios-home-indicator {
+    height: 20px;
+    background: #0a0818;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .home-pill {
+    width: 100px;
+    height: 4px;
+    background: rgba(255,255,255,0.45);
+    border-radius: 2px;
+  }
+
+  /* Top Nav */
+  .top-nav {
+    height: 48px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,8,24,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+  .nav-logo {
+    font-size: 15px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-icons { display: flex; gap: 8px; align-items: center; }
+  .nav-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .nav-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+  }
+  .notif-badge {
+    position: relative;
+  }
+  .notif-badge::after {
+    content: '3';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    font-size: 7px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Page Content */
+  .page-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Stories Strip */
+  .stories-strip {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .story-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .story-ring {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(#0f0c29, #0f0c29) padding-box,
+                linear-gradient(135deg, #6366f1, #ec4899) border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .story-ring.add {
+    background: rgba(255,255,255,0.06);
+    border: 2px dashed rgba(99,102,241,0.5);
+    font-size: 18px;
+    color: #6366f1;
+  }
+  .story-label {
+    font-size: 8px;
+    color: #64748b;
+    max-width: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Filter Pills */
+  .filter-strip {
+    display: flex;
+    gap: 6px;
+    padding: 0 12px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .filter-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .filter-pill.active { background: linear-gradient(135deg, #6366f1, #ec4899); color: white; }
+  .filter-pill.inactive { background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+
+  /* Feed Posts */
+  .feed-posts {
+    flex: 1;
+    padding: 0 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .post-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 6px;
+  }
+  .post-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .post-meta { flex: 1; }
+  .post-name { font-size: 10px; font-weight: 700; color: #e2e8f0; }
+  .post-time { font-size: 8px; color: #64748b; }
+  .post-options { font-size: 12px; color: #64748b; }
+
+  .post-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+  .post-image-1 { background: linear-gradient(135deg, #1e1b4b, #312e81); }
+  .post-image-2 { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+
+  .post-actions {
+    display: flex;
+    gap: 14px;
+    padding: 6px 10px 8px;
+  }
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    color: #94a3b8;
+    cursor: pointer;
+  }
+  .action-btn .ico { font-size: 12px; }
+  .action-btn.liked .ico { color: #ef4444; }
+
+  /* Bottom Nav Shared */
+  .bottom-nav {
+    height: 56px;
+    background: rgba(10,8,24,0.98);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+  }
+  .nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  .nav-tab .tab-icon { font-size: 18px; color: #64748b; }
+  .nav-tab .tab-label { font-size: 8px; color: #64748b; font-weight: 600; }
+  .nav-tab.active .tab-icon { color: #818cf8; }
+  .nav-tab.active .tab-label { color: #818cf8; }
+  .nav-tab.create .tab-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.5);
+  }
+  .msg-dot {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 1.5px solid #0a0818;
+  }
+
+  /* Android 3-button nav */
+  .android-3btn {
+    height: 44px;
+    background: #0a0818;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  .nav-btn { font-size: 16px; color: rgba(255,255,255,0.5); }
+
+  /* ── Section Cards (below phones) ── */
+  .section-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 0 4px;
+    margin-top: 8px;
+  }
+  .info-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .info-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .info-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .info-card li {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.4;
+  }
+  .info-card li::before { content: '•'; color: #6366f1; flex-shrink: 0; margin-top: 1px; }
+  .info-card li.gap::before { color: #f59e0b; }
+  .info-card li.ok::before  { content: '✓'; color: #10b981; }
+  .info-card li.crit::before { content: '✗'; color: #ef4444; }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-row .label { font-size: 11px; color: #94a3b8; }
+  .status-chip {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .chip-ok    { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+  .chip-warn  { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .chip-crit  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ── More Drawer Preview ── */
+  .more-drawer {
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    background: rgba(15,12,41,0.98);
+    backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 20px 0 0;
+    padding: 10px 10px 6px;
+    z-index: 100;
+  }
+  .drawer-handle {
+    width: 36px;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+  .drawer-title { font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 8px; padding: 0 4px; }
+  .drawer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .drawer-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+  }
+  .drawer-item:hover { background: rgba(99,102,241,0.1); }
+  .drawer-item .d-icon { font-size: 16px; }
+  .drawer-item .d-label { font-size: 7px; color: #94a3b8; text-align: center; font-weight: 600; }
+
+  /* ── Web Sidebar Preview ── */
+  .web-sidebar {
+    width: 56px;
+    background: rgba(10,8,24,0.98);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .sidebar-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: #64748b;
+  }
+  .sidebar-item.active {
+    background: rgba(99,102,241,0.15);
+    color: #818cf8;
+  }
+  .sidebar-logo {
+    font-size: 18px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+  }
+
+  /* Web layout has sidebar + content side by side */
+  .web-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Diff Table ── */
+  .diff-table-wrapper {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+  .diff-table-wrapper h2 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #e2e8f0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .diff-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .diff-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: #94a3b8;
+    vertical-align: top;
+  }
+  .diff-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .diff-table td:first-child { color: #e2e8f0; font-weight: 600; }
+  .diff-table .green  { color: #10b981; font-weight: 700; }
+  .diff-table .yellow { color: #f59e0b; font-weight: 700; }
+  .diff-table .red    { color: #ef4444; font-weight: 700; }
+  .diff-table .blue   { color: #818cf8; font-weight: 700; }
+  .diff-table tr.section-row td {
+    background: rgba(99,102,241,0.07);
+    color: #818cf8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+  }
+
+  /* ── Live indicator ── */
+  .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: lp 1.4s infinite;
+    margin-right: 4px;
+  }
+  @keyframes lp {
+    0%,100% { opacity:1; transform:scale(1); box-shadow:0 0 0 0 rgba(239,68,68,0.7); }
+    70% { opacity:.8; transform:scale(1.3); box-shadow:0 0 0 5px rgba(239,68,68,0); }
+  }
+
+  /* Scrollbar hide */
+  ::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+</style>
+</head>
+<body>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1>⚡ LynkApp — Android vs Web PWA Layout</h1>
+    <p>Side-by-side UX/UI architecture comparison · June 2026 · Assessment by Cline (UX/UI Engineer)</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <span class="badge">🤖 Android (Capacitor 5)</span>
+    <span class="badge">🌐 Web PWA (Firebase)</span>
+    <span class="badge" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#34d399">✅ Pushed to GitHub</span>
+  </div>
+</div>
+
+<!-- Main Comparison -->
+<div class="comparison-wrapper">
+
+  <!-- ══════════════════════ ANDROID COLUMN ══════════════════════ -->
+  <div class="platform-col">
+    <div class="platform-label android">
+      <span class="icon">🤖</span>
+      <div>
+        <div>Android (Capacitor 5)</div>
+        <div class="meta">React SPA → WebView → APK/AAB · com.lynkapp.app · min SDK 24</div>
+      </div>
+    </div>
+
+    <!-- Phone Frame -->
+    <div class="phone-frame-wrapper">
+      <div class="phone-frame android-frame">
+        <div class="android-notch"></div>
+        <div class="phone-screen">
+          <div class="app-shell">
+
+            <!-- Android Status Bar -->
+            <div class="status-bar android-status">
+              <span>9:41</span>
+              <div class="status-icons">
+                <span>📶</span><span>📡</span><span>🔋</span>
+              </div>
+            </div>
+
+            <!-- Top Nav -->
+            <div class="top-nav">
+              <div class="nav-logo">⚡ LynkApp</div>
+              <div class="nav-icons">
+                <div class="nav-icon notif-badge">🔔</div>
+                <div class="nav-icon">🔍</div>
+                <div class="nav-avatar">JN</div>
+              </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content" id="android-content">
+
+              <!-- Stories -->
+              <div class="stories-strip">
+                <div class="story-item">
+                  <div class="story-ring add">＋</div>
+                  <span class="story-label">Your Story</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🙂</div>
+                  <span class="story-label">Alex</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🎵</div>
+                  <span class="story-label">Sam</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🌟</div>
+                  <span class="story-label">Jordan</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🎮</div>
+                  <span class="story-label">Riley</span>
+                </div>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="filter-strip">
+                <span class="filter-pill active">For You</span>
+                <span class="filter-pill inactive">Following</span>
+                <span class="filter-pill inactive">🔴 Live</span>
+                <span class="filter-pill inactive">Trending</span>
+                <span class="filter-pill inactive">Friends</span>
+              </div>
+
+              <!-- Feed -->
+              <div class="feed-posts">
+                <div class="post-card">
+                  <div class="post-header">
+                    <div class="post-avatar">AK</div>
+                    <div class="post-meta">
+                      <div class="post-name">Alex Kim <span style="color:#818cf8;font-size:8px">✓</span></div>
+                      <div class="post-time">2 min ago · 🌍</div>
+                    </div>
+                    <div class="post-options">⋯</div>
+                  </div>
+                  <div class="post-image post-image-1">🌃</div>
+                  <div class="post-actions">
+                    <div class="action-btn liked"><span class="ico">❤️</span> 847</div>
+                    <div class="action-btn"><span class="ico">💬</span> 43</div>
+                    <div class="action-btn"><span class="ico">↗️</span> Share</div>
+                    <div class="action-btn" style="margin-left:auto"><span class="ico">🔖</span></div>
+                  </div>
+                </div>
+
+                <!-- Live Post -->
+                <div class="post-card" style="border-color:rgba(239,68,68,0.3)">
+                  <div class="post-header">
+                    <div class="post-avatar" style="background:linear-gradient(135deg,#ef4444,#f97316)">SR</div>
+                    <div class="post-meta">
+                      <div class="post-name">Sam Rivera <span style="background:#ef4444;color:white;padding:1px 5px;border-radius:4px;font-size:7px"><span class="live-dot"></span>LIVE</span></div>
+                      <div class="post-time">🎮 Gaming · 1.2K watching</div>
+                    </div>
+                    <div class="post-options">⋯</div>
+                  </div>
+                  <div class="post-image post-image-2">🎮</div>
+                </div>
+              </div>
+
+              <!-- More Drawer (shown partially) -->
+              <div class="more-drawer">
+                <div class="drawer-handle"></div>
+                <div class="drawer-title">MORE SECTIONS</div>
+                <div class="drawer-grid">
+                  <div class="drawer-item"><span class="d-icon">💕</span><span class="d-label">Dating</span></div>
+                  <div class="drawer-item"><span class="d-icon">🔴</span><span class="d-label">Live</span></div>
+                  <div class="drawer-item"><span class="d-icon">📖</span><span class="d-label">Stories</span></div>
+                  <div class="drawer-item"><span class="d-icon">👥</span><span class="d-label">Groups</span></div>
+                  <div class="drawer-item"><span class="d-icon">🎮</span><span class="d-label">Gaming</span></div>
+                  <div class="drawer-item"><span class="d-icon">🎵</span><span class="d-label">Music</span></div>
+                  <div class="drawer-item"><span class="d-icon">🛒</span><span class="d-label">Market</span></div>
+                  <div class="drawer-item"><span class="d-icon">⋯</span><span class="d-label">More…</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Nav (Mobile 5-tab) -->
+            <div class="bottom-nav">
+              <div class="nav-tab active">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Home</span>
+              </div>
+              <div class="nav-tab">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">Search</span>
+              </div>
+              <div class="nav-tab create">
+                <span class="tab-icon" style="display:flex">➕</span>
+              </div>
+              <div class="nav-tab" style="position:relative">
+                <span class="tab-icon">💬</span>
+                <span class="tab-label">Messages</span>
+                <div class="msg-dot"></div>
+              </div>
+              <div class="nav-tab">
+                <span class="tab-icon">⋯</span>
+                <span class="tab-label">More</span>
+              </div>
+            </div>
+
+            <!-- Android gesture bar -->
+            <div class="android-gesture-bar">
+              <div class="gesture-pill"></div>
+            </div>
+
+          </div><!-- /app-shell -->
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-frame -->
+    </div><!-- /phone-frame-wrapper -->
+
+    <!-- Android Info Cards -->
+    <div class="section-cards">
+      <div class="section-title">Android Architecture</div>
+
+      <div class="info-card">
+        <h3>⚙️ Native Layer (Capacitor 5)</h3>
+        <ul>
+          <li class="ok">Capacitor WebView wraps the React SPA</li>
+          <li class="ok">MainActivity.java already scaffolded</li>
+          <li class="ok">google-services.json copied to android/app/</li>
+          <li class="ok">AndroidManifest.xml — all permissions added</li>
+          <li class="gap">@capacitor/camera, status-bar, splash-screen — need npm install</li>
+          <li class="crit">Back button hardware exits app (no listener yet)</li>
+          <li class="crit">targetSdkVersion must be 34 for Play Store</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>📱 Layout Behavior on Android</h3>
+        <div class="status-row"><span class="label">Status Bar</span><span class="status-chip chip-warn">Overlaps TopNav</span></div>
+        <div class="status-row"><span class="label">Safe Area Bottom</span><span class="status-chip chip-warn">Needs adjustResize</span></div>
+        <div class="status-row"><span class="label">Keyboard Push</span><span class="status-chip chip-crit">Behind keyboard</span></div>
+        <div class="status-row"><span class="label">Back Button</span><span class="status-chip chip-crit">Exits app</span></div>
+        <div class="status-row"><span class="label">Touch Targets (44px)</span><span class="status-chip chip-ok">✓ Set in CSS</span></div>
+        <div class="status-row"><span class="label">Scrollbars Hidden</span><span class="status-chip chip-ok">✓ global.css</span></div>
+        <div class="status-row"><span class="label">Gesture Navigation</span><span class="status-chip chip-ok">✓ Pill shown</span></div>
+        <div class="status-row"><span class="label">Font Scaling</span><span class="status-chip chip-ok">✓ text-size-adjust</span></div>
+      </div>
+
+      <div class="info-card">
+        <h3>🔧 Android-Specific Fixes Needed</h3>
+        <ul>
+          <li class="crit">Install: npm i @capacitor/camera @capacitor/push-notifications @capacitor/status-bar @capacitor/splash-screen @capacitor/keyboard</li>
+          <li class="crit">Run: npx cap sync android</li>
+          <li class="crit">Add App.addListener('backButton', handler) in main.jsx</li>
+          <li class="gap">StatusBar.setBackgroundColor('#0a0818') on app init</li>
+          <li class="gap">Add windowSoftInputMode="adjustResize" to AndroidManifest</li>
+          <li class="ok">App icon placeholder — replace mipmap-*/ic_launcher.png</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>🚀 Build Commands</h3>
+        <ul>
+          <li class="ok">Debug APK: cd android && ./gradlew assembleDebug</li>
+          <li class="ok">Release AAB: ./gradlew bundleRelease</li>
+          <li class="ok">Quick build: run android-build.bat</li>
+          <li class="ok">Play Store: Upload AAB to Internal Testing track</li>
+        </ul>
+      </div>
+    </div>
+  </div><!-- /android col -->
+
+  <!-- ══════════════════════ WEB PWA COLUMN ══════════════════════ -->
+  <div class="platform-col">
+    <div class="platform-label web">
+      <span class="icon">🌐</span>
+      <div>
+        <div>Web PWA (Firebase Hosting)</div>
+        <div class="meta">React SPA · Chrome/Safari/Firefox · lynkapp-c7db1.web.app · installable PWA</div>
+      </div>
+    </div>
+
+    <!-- Phone Frame (Web mobile view) -->
+    <div class="phone-frame-wrapper">
+      <div class="phone-frame">
+        <!-- iOS Dynamic Island -->
+        <div class="ios-island"></div>
+        <div class="phone-screen">
+          <div class="app-shell">
+
+            <!-- iOS Status Bar -->
+            <div class="status-bar ios-status" style="padding-top:10px">
+              <span>9:41</span>
+              <div style="display:flex;gap:5px;font-size:9px">
+                <span>●●●●</span><span>WiFi</span><span>🔋</span>
+              </div>
+            </div>
+
+            <!-- Top Nav -->
+            <div class="top-nav">
+              <div class="nav-logo">⚡ LynkApp</div>
+              <div class="nav-icons">
+                <div class="nav-icon notif-badge">🔔</div>
+                <div class="nav-icon">🔍</div>
+                <!-- Feedback button HIDDEN on mobile via .feedback-btn-desktop -->
+                <!-- <div class="nav-icon feedback-btn-desktop">🧪</div> -->
+                <div class="nav-avatar">JN</div>
+              </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+
+              <!-- Stories -->
+              <div class="stories-strip">
+                <div class="story-item">
+                  <div class="story-ring add">＋</div>
+                  <span class="story-label">Your Story</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🙂</div>
+                  <span class="story-label">Alex</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🎵</div>
+                  <span class="story-label">Sam</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🌟</div>
+                  <span class="story-label">Jordan</span>
+                </div>
+                <div class="story-item">
+                  <div class="story-ring">🎮</div>
+                  <span class="story-label">Riley</span>
+                </div>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="filter-strip">
+                <span class="filter-pill active">For You</span>
+                <span class="filter-pill inactive">Following</span>
+                <span class="filter-pill inactive">🔴 Live</span>
+                <span class="filter-pill inactive">Trending</span>
+                <span class="filter-pill inactive">Friends</span>
+              </div>
+
+              <!-- Feed -->
+              <div class="feed-posts">
+                <div class="post-card">
+                  <div class="post-header">
+                    <div class="post-avatar" style="background:linear-gradient(135deg,#ec4899,#f97316)">JM</div>
+                    <div class="post-meta">
+                      <div class="post-name">Jordan M. <span style="color:#818cf8;font-size:8px">✓</span></div>
+                      <div class="post-time">5 min ago · 👥 Friends</div>
+                    </div>
+                    <div class="post-options">⋯</div>
+                  </div>
+                  <div class="post-image post-image-1">🎨</div>
+                  <div class="post-actions">
+                    <div class="action-btn"><span class="ico">🤍</span> 214</div>
+                    <div class="action-btn"><span class="ico">💬</span> 19</div>
+                    <div class="action-btn"><span class="ico">↗️</span> Share</div>
+                    <div class="action-btn" style="margin-left:auto"><span class="ico">🔖</span></div>
+                  </div>
+                </div>
+
+                <div class="post-card">
+                  <div class="post-header">
+                    <div class="post-avatar" style="background:linear-gradient(135deg,#0891b2,#6366f1)">TK</div>
+                    <div class="post-meta">
+                      <div class="post-name">Taylor K.</div>
+                      <div class="post-time">12 min ago · 🌍</div>
+                    </div>
+                    <div class="post-options">⋯</div>
+                  </div>
+                  <div class="post-image post-image-2">🌊</div>
+                  <div class="post-actions">
+                    <div class="action-btn liked"><span class="ico">❤️</span> 1.2K</div>
+                    <div class="action-btn"><span class="ico">💬</span> 87</div>
+                    <div class="action-btn"><span class="ico">↗️</span> Share</div>
+                    <div class="action-btn" style="margin-left:auto"><span class="ico">🔖</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating Beta Feedback FAB (mobile PWA) -->
+              <div style="position:absolute;bottom:72px;right:14px;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 14px rgba(99,102,241,0.5);cursor:pointer;z-index:200">
+                🧪
+              </div>
+
+            </div>
+
+            <!-- Bottom Nav (same 5-tab) -->
+            <div class="bottom-nav">
+              <div class="nav-tab active">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Home</span>
+              </div>
+              <div class="nav-tab">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">Search</span>
+              </div>
+              <div class="nav-tab create">
+                <span class="tab-icon" style="display:flex">➕</span>
+              </div>
+              <div class="nav-tab" style="position:relative">
+                <span class="tab-icon">💬</span>
+                <span class="tab-label">Messages</span>
+                <div class="msg-dot"></div>
+              </div>
+              <div class="nav-tab">
+                <span class="tab-icon">⋯</span>
+                <span class="tab-label">More</span>
+              </div>
+            </div>
+
+            <!-- iOS Home Indicator -->
+            <div class="ios-home-indicator">
+              <div class="home-pill"></div>
+            </div>
+
+          </div><!-- /app-shell -->
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-frame -->
+    </div>
+
+    <!-- Web Info Cards -->
+    <div class="section-cards">
+      <div class="section-title">Web PWA Architecture</div>
+
+      <div class="info-card">
+        <h3>⚙️ Web Layer (Firebase Hosting)</h3>
+        <ul>
+          <li class="ok">Deployed: lynkapp-c7db1.web.app</li>
+          <li class="ok">Service Worker (sw.js) — offline caching</li>
+          <li class="ok">PWA manifest.json — installable on home screen</li>
+          <li class="ok">CookieConsentBanner — GDPR compliant</li>
+          <li class="ok">BetaFeedbackModal + floating 🧪 FAB on mobile</li>
+          <li class="gap">TopNav Feedback button hidden on mobile via CSS ✅ FIXED</li>
+          <li class="gap">Duplicate ✏️ FAB on FeedPage removed ✅ FIXED</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>📱 Layout Behavior on Web</h3>
+        <div class="status-row"><span class="label">Safe Area Insets</span><span class="status-chip chip-ok">✓ env() CSS</span></div>
+        <div class="status-row"><span class="label">Scrollbars</span><span class="status-chip chip-ok">✓ Hidden globally</span></div>
+        <div class="status-row"><span class="label">Touch Targets (44px)</span><span class="status-chip chip-ok">✓ .btn-icon</span></div>
+        <div class="status-row"><span class="label">Keyboard Handling</span><span class="status-chip chip-ok">✓ Browser native</span></div>
+        <div class="status-row"><span class="label">Back Navigation</span><span class="status-chip chip-ok">✓ Browser history</span></div>
+        <div class="status-row"><span class="label">Status Bar</span><span class="status-chip chip-ok">✓ Not applicable</span></div>
+        <div class="status-row"><span class="label">Offline Support</span><span class="status-chip chip-ok">✓ sw.js cached</span></div>
+        <div class="status-row"><span class="label">Install Prompt</span><span class="status-chip chip-ok">✓ manifest.json</span></div>
+      </div>
+
+      <div class="info-card">
+        <h3>🖥️ Desktop View (≥1024px)</h3>
+        <ul>
+          <li class="ok">Left sidebar (65px) replaces bottom nav</li>
+          <li class="ok">Sidebar icons: Home, Search, Create, Messages, Dating, Live, More</li>
+          <li class="ok">TopNav shows Feedback button (desktop-only)</li>
+          <li class="ok">Marketplace overlays start at left:65px</li>
+          <li class="ok">Content area fills remaining width</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>🚀 Deploy Commands</h3>
+        <ul>
+          <li class="ok">Build: cd ConnectHub-SPA && npm run build</li>
+          <li class="ok">Deploy: firebase deploy --only hosting</li>
+          <li class="ok">Full deploy: run MASTER-DEPLOY-ALL.bat</li>
+          <li class="ok">Quick: run DEPLOY-CHANGES.bat</li>
+        </ul>
+      </div>
+    </div>
+  </div><!-- /web col -->
+
+  <!-- ══════════════════════ DIFF TABLE ══════════════════════ -->
+  <div class="diff-table-wrapper">
+    <h2>⚡ Android vs Web PWA — Feature Comparison Matrix</h2>
+    <table class="diff-table">
+      <thead>
+        <tr>
+          <th style="width:22%">Feature / Component</th>
+          <th style="width:26%">🤖 Android (Capacitor)</th>
+          <th style="width:26%">🌐 Web PWA (Browser)</th>
+          <th style="width:26%">🔧 Action Required</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-row"><td colspan="4">── NAVIGATION & LAYOUT ──</td></tr>
+        <tr><td>TopNav (56px)</td><td class="green">✓ Identical</td><td class="green">✓ Identical</td><td>None</td></tr>
+        <tr><td>Bottom Nav (5 tabs)</td><td class="green">✓ MobileBottomNav</td><td class="green">✓ MobileBottomNav</td><td>None (just fixed ✅)</td></tr>
+        <tr><td>Desktop Sidebar</td><td class="yellow">N/A (portrait only)</td><td class="green">✓ BottomNav/SideNav</td><td>None</td></tr>
+        <tr><td>More Drawer (20+ sections)</td><td class="green">✓ Slide-up sheet</td><td class="green">✓ Slide-up sheet</td><td>Wire setMoreDrawerOpen in store</td></tr>
+        <tr><td>Back Navigation</td><td class="red">✗ Exits app!</td><td class="green">✓ Browser history</td><td>Add App.addListener('backButton')</td></tr>
+        <tr><td>Safe Area (bottom)</td><td class="yellow">⚠ Needs adjustResize</td><td class="green">✓ env() CSS</td><td>AndroidManifest fix</td></tr>
+        <tr><td>Status Bar</td><td class="yellow">⚠ Overlaps TopNav</td><td class="green">✓ N/A</td><td>StatusBar plugin + color</td></tr>
+        <tr><td>Keyboard Push</td><td class="red">✗ Hides inputs</td><td class="green">✓ Browser handles</td><td>Keyboard plugin + scroll</td></tr>
+
+        <tr class="section-row"><td colspan="4">── CORE FEATURES ──</td></tr>
+        <tr><td>Auth (Email/Google)</td><td class="green">✓ Firebase SDK</td><td class="green">✓ Firebase SDK</td><td>None</td></tr>
+        <tr><td>Feed + Posts</td><td class="green">✓ Firestore wired</td><td class="green">✓ Firestore wired</td><td>CreatePostPage needs Firestore write</td></tr>
+        <tr><td>Stories (create)</td><td class="yellow">⚠ Camera stub</td><td class="yellow">⚠ FileReader stub</td><td>Wire media upload in both</td></tr>
+        <tr><td>Real-time Messages</td><td class="yellow">⚠ Render only</td><td class="yellow">⚠ Render only</td><td>Wire sendMessage() to Firestore</td></tr>
+        <tr><td>Dating Swipe</td><td class="yellow">⚠ UI only</td><td class="yellow">⚠ UI only</td><td>Persist swipes to Firestore matches</td></tr>
+        <tr><td>Push Notifications</td><td class="yellow">⚠ FCM setup needed</td><td class="yellow">⚠ Env var missing</td><td>OneSignal App ID in .env</td></tr>
+        <tr><td>Live Streaming</td><td class="yellow">⚠ WebRTC stub</td><td class="yellow">⚠ WebRTC stub</td><td>Connect broadcaster → viewer</td></tr>
+        <tr><td>Video Calls (P2P)</td><td class="yellow">⚠ WebRTC stub</td><td class="yellow">⚠ WebRTC stub</td><td>TURN server + ICE negotiation</td></tr>
+
+        <tr class="section-row"><td colspan="4">── MEDIA & HARDWARE ──</td></tr>
+        <tr><td>Camera / Photo Upload</td><td class="yellow">⚠ &lt;input file&gt; only</td><td class="green">✓ FileReader works</td><td>Android: @capacitor/camera plugin</td></tr>
+        <tr><td>Haptic Feedback</td><td class="yellow">⚠ navigator.vibrate()</td><td class="green">✓ vibrate API</td><td>Android: @capacitor/haptics plugin</td></tr>
+        <tr><td>Geolocation (Nearby)</td><td class="yellow">⚠ HTML5 geolocation</td><td class="green">✓ HTML5 geolocation</td><td>Android 12+: @capacitor/geolocation</td></tr>
+        <tr><td>Biometrics</td><td class="red">✗ Not installed</td><td class="red">✗ Not planned beta</td><td>Sprint 3: @capacitor/biometric-auth</td></tr>
+        <tr><td>Background Audio</td><td class="red">✗ Stops on background</td><td class="yellow">⚠ Tab-dependent</td><td>Android: AudioFocus handling</td></tr>
+        <tr><td>Offline Support</td><td class="yellow">⚠ Partial (WebView)</td><td class="green">✓ sw.js caching</td><td>Android: test offline behaviour</td></tr>
+
+        <tr class="section-row"><td colspan="4">── APP IDENTITY ──</td></tr>
+        <tr><td>App Icon</td><td class="yellow">⚠ Default Capacitor</td><td class="green">✓ manifest.json</td><td>Android: Replace mipmap-* icons</td></tr>
+        <tr><td>Splash Screen</td><td class="yellow">⚠ Capacitor default</td><td class="yellow">⚠ CSS transition</td><td>Both: LynkApp branded splash</td></tr>
+        <tr><td>App Name</td><td class="green">✓ LynkApp (strings.xml)</td><td class="green">✓ manifest.json</td><td>None</td></tr>
+        <tr><td>Bundle/App ID</td><td class="green">✓ com.lynkapp.app</td><td class="green">✓ lynkapp-c7db1.web.app</td><td>None</td></tr>
+        <tr><td>Deep Links</td><td class="yellow">⚠ Not configured</td><td class="yellow">⚠ Not configured</td><td>Firebase Dynamic Links (Sprint 3)</td></tr>
+
+        <tr class="section-row"><td colspan="4">── DISTRIBUTION ──</td></tr>
+        <tr><td>Current State</td><td class="yellow">⚠ Debug build ready</td><td class="green">✓ Live on Firebase</td><td>Android: sync + build APK</td></tr>
+        <tr><td>Beta Distribution</td><td class="yellow">⚠ Play Internal Testing</td><td class="green">✓ Share URL now</td><td>Upload APK/AAB to Play Console</td></tr>
+        <tr><td>Production Store</td><td class="yellow">⚠ Not submitted</td><td class="green">✓ PWA installable</td><td>Submit AAB after Sprint 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════ SPRINT QUICK REF ══════════════════════ -->
+  <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px">
+
+    <div class="info-card" style="border-color:rgba(239,68,68,0.25)">
+      <h3 style="color:#ef4444">🔴 Sprint 1 — Critical (Week 1)</h3>
+      <ul>
+        <li class="crit">useAppStore: add moreDrawerOpen + setMoreDrawerOpen</li>
+        <li class="crit">CreatePostPage — Firestore write + media upload</li>
+        <li class="crit">ConversationPage — wire sendMessage()</li>
+        <li class="crit">DatingPage — persist swipe to Firestore</li>
+        <li class="crit">Set VITE_ONESIGNAL_APP_ID in .env</li>
+        <li class="crit">Android: npx cap sync + permissions + back button</li>
+      </ul>
+    </div>
+
+    <div class="info-card" style="border-color:rgba(245,158,11,0.25)">
+      <h3 style="color:#f59e0b">🟠 Sprint 2 — High (Week 2)</h3>
+      <ul>
+        <li class="gap">Groups/Events Firestore wiring</li>
+        <li class="gap">Notifications mark-all-read</li>
+        <li class="gap">Android StatusBar + SplashScreen plugins</li>
+        <li class="gap">Push notifications — FCM + OneSignal</li>
+        <li class="gap">iOS: npx cap add ios → Xcode setup</li>
+        <li class="gap">ProfileEditPage avatar upload</li>
+      </ul>
+    </div>
+
+    <div class="info-card" style="border-color:rgba(16,185,129,0.25)">
+      <h3 style="color:#10b981">🟢 Sprint 3 — Polish (Week 3)</h3>
+      <ul>
+        <li class="ok">Lighthouse audit → score &gt;80</li>
+        <li class="ok">Android release AAB + Play Store upload</li>
+        <li class="ok">iOS TestFlight + biometrics + deep links</li>
+        <li class="ok">LynkApp branded icons + splash screens</li>
+        <li class="ok">Beta testers invited (10-20 per platform)</li>
+        <li class="ok">Monitor feedback in AdminDashboard</li>
+      </ul>
+    </div>
+
+  </div>
+
+</div><!-- /comparison-wrapper -->
+
+<!-- Footer -->
+<div style="text-align:center;padding:24px;font-size:11px;color:#64748b;border-top:1px solid rgba(255,255,255,0.06)">
+  ⚡ LynkApp UX/UI Assessment · Generated June 2026 · Committed to GitHub: <code style="color:#818cf8">Watchdog088/Test-apps</code> · commit <code style="color:#818cf8">a49a848</code>
+</div>
+
+</body>
+</html>
