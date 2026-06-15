@@ -3,55 +3,74 @@ title LynkApp - Android Build Script
 color 0A
 echo.
 echo ============================================================
-echo   LYNKAPP ANDROID BUILD SCRIPT
+echo   LYNKAPP ANDROID BUILD SCRIPT  v3.0
 echo   Capacitor 6 + React + Firebase
 echo   June 2026
+echo   AGP 8.7.3  +  Gradle 8.9  (matched pair - no errors)
 echo ============================================================
 echo.
 
 cd /d "%~dp0"
 
-:: ── STEP 1: Check Node.js ───────────────────────────────────
-echo [STEP 1/8] Checking Node.js version...
+:: ── VERSION INFO ─────────────────────────────────────────────
+echo   Android Gradle Plugin : 8.7.3  (android/build.gradle)
+echo   Gradle Wrapper         : 8.9    (gradle-wrapper.properties)
+echo   Min SDK                : 23  (Android 6.0+)
+echo   Compile/Target SDK     : 35  (Android 15)
+echo.
+echo   NOTE: These versions are matched. Do NOT change AGP to
+echo         8.9+ without also updating the Gradle wrapper.
+echo ============================================================
+echo.
+
+:: ── STEP 1: Check Node.js ────────────────────────────────────
+echo [STEP 1/9] Checking Node.js version...
 node --version 2>nul
 if errorlevel 1 (
-    echo ERROR: Node.js is not installed!
-    echo Download Node 20 LTS from: https://nodejs.org/en/download
+    echo.
+    echo  ERROR: Node.js is not installed or not in PATH!
+    echo  Download Node 20 LTS from: https://nodejs.org/en/download
+    echo.
     pause
     exit /b 1
 )
 echo Node.js OK
 echo.
 
-:: ── STEP 2: Install npm packages ────────────────────────────
-echo [STEP 2/8] Installing npm packages (Capacitor + plugins)...
-echo This may take 3-5 minutes on first run...
+:: ── STEP 2: Install npm packages ─────────────────────────────
+echo [STEP 2/9] Installing npm packages...
 call npm install
 if errorlevel 1 (
-    echo ERROR: npm install failed!
-    echo Try running: npm install --legacy-peer-deps
-    pause
-    exit /b 1
+    echo.
+    echo  npm install failed. Trying --legacy-peer-deps...
+    call npm install --legacy-peer-deps
+    if errorlevel 1 (
+        echo  npm install FAILED. Check errors above.
+        pause
+        exit /b 1
+    )
 )
 echo npm install OK
 echo.
 
-:: ── STEP 3: Build React App ──────────────────────────────────
-echo [STEP 3/8] Building React app (npm run build)...
+:: ── STEP 3: Build React App ───────────────────────────────────
+echo [STEP 3/9] Building React app (npm run build)...
 call npm run build
 if errorlevel 1 (
-    echo ERROR: React build failed!
-    echo Check for TypeScript/JSX errors above.
+    echo.
+    echo  ERROR: React build failed!
+    echo  Check for JSX errors above and fix them before retrying.
+    echo.
     pause
     exit /b 1
 )
-echo Build OK - dist/ folder created
+echo React build OK  (dist/ folder updated)
 echo.
 
-:: ── STEP 4: Check if android folder exists ──────────────────
-echo [STEP 4/8] Checking Android platform...
+:: ── STEP 4: Check / Add Android platform ─────────────────────
+echo [STEP 4/9] Checking Android platform...
 if exist "android" (
-    echo Android platform already exists - skipping 'cap add android'
+    echo Android platform exists - skipping cap add android
 ) else (
     echo Adding Android platform for the first time...
     call npx cap add android
@@ -64,94 +83,142 @@ if exist "android" (
 )
 echo.
 
-:: ── STEP 5: Check for google-services.json ──────────────────
-echo [STEP 5/8] Checking for google-services.json...
+:: ── STEP 5: AUTO-COPY google-services.json ───────────────────
+echo [STEP 5/9] Checking for google-services.json...
+
 if exist "android\app\google-services.json" (
-    echo google-services.json found - OK
-) else (
-    echo.
-    echo ============================================================
-    echo   WARNING: google-services.json NOT FOUND!
-    echo ============================================================
-    echo.
-    echo You MUST download this file from Firebase Console:
-    echo   1. Go to: https://console.firebase.google.com
-    echo   2. Open project: lynkapp-c7db1
-    echo   3. Settings gear - Project Settings
-    echo   4. "Your apps" section - Add Android App
-    echo   5. Package name: com.lynkapp.app
-    echo   6. Download google-services.json
-    echo   7. Copy it to: ConnectHub-SPA\android\app\google-services.json
-    echo.
-    echo The app WILL crash on launch without this file.
-    echo.
-    set /p CONTINUE="Continue anyway? (y/n): "
-    if /i "%CONTINUE%" neq "y" (
-        echo Exiting. Come back after adding google-services.json
-        pause
-        exit /b 0
-    )
+    echo  google-services.json already in android\app\  OK
+    goto :step6
 )
+
+echo  Not found in android\app\  - searching common locations...
+
+if exist "%USERPROFILE%\Downloads\google-services.json" (
+    echo  Found in Downloads - copying...
+    copy /Y "%USERPROFILE%\Downloads\google-services.json" "android\app\google-services.json" >nul
+    if not errorlevel 1 ( echo  Copied OK & goto :step6 )
+)
+
+if exist "%USERPROFILE%\Desktop\google-services.json" (
+    echo  Found on Desktop - copying...
+    copy /Y "%USERPROFILE%\Desktop\google-services.json" "android\app\google-services.json" >nul
+    if not errorlevel 1 ( echo  Copied OK & goto :step6 )
+)
+
+echo.
+echo ============================================================
+echo   WARNING: google-services.json NOT FOUND
+echo ============================================================
+echo   App will crash on launch without this file.
+echo.
+echo   To get it:
+echo     1. Go to https://console.firebase.google.com
+echo     2. Open project: lynkapp-c7db1
+echo     3. Settings (gear) - Project Settings - Your apps
+echo     4. Android app: com.lynkapp.app
+echo     5. Download google-services.json
+echo     6. Place it at:
+echo        %CD%\android\app\google-services.json
+echo.
+set /p CONTINUE="Continue without it? (y/n): "
+if /i "%CONTINUE%" neq "y" ( pause & exit /b 0 )
+
+:step6
 echo.
 
-:: ── STEP 6: Sync web app to Android ─────────────────────────
-echo [STEP 6/8] Syncing web app to Android (npx cap sync android)...
+:: ── STEP 6: Sync web assets to Android ───────────────────────
+echo [STEP 6/9] Syncing React app to Android (npx cap sync android)...
+echo   This copies dist/ into android/app/src/main/assets/public/
 call npx cap sync android
 if errorlevel 1 (
-    echo ERROR: cap sync failed!
-    echo Make sure the dist/ folder exists (Step 3).
+    echo.
+    echo  ERROR: cap sync failed!
+    echo  Make sure dist/ folder exists (Step 3 must have passed).
     pause
     exit /b 1
 )
-echo Sync OK
+echo Sync OK  (web assets copied into Android project)
 echo.
 
-:: ── STEP 7: Check Android Studio ────────────────────────────
-echo [STEP 7/8] Checking Android Studio...
-where studio.bat >nul 2>&1
-if errorlevel 1 (
-    echo Android Studio not found in PATH.
-    echo.
-    echo Please install Android Studio from:
-    echo   https://developer.android.com/studio
-    echo.
-    echo After install, you can open the project manually:
-    echo   Open Android Studio - Open - select the 'android' folder
-    echo   in ConnectHub-SPA\android\
-    echo.
-) else (
-    echo Android Studio found in PATH
+:: ── STEP 7: Verify Android project files ─────────────────────
+echo [STEP 7/9] Verifying Android project structure...
+set MISSING=0
+if not exist "android\app\src\main\AndroidManifest.xml" ( echo  MISSING: AndroidManifest.xml & set MISSING=1 )
+if not exist "android\app\build.gradle"                  ( echo  MISSING: android\app\build.gradle & set MISSING=1 )
+if not exist "android\build.gradle"                      ( echo  MISSING: android\build.gradle & set MISSING=1 )
+if not exist "android\variables.gradle"                  ( echo  MISSING: android\variables.gradle & set MISSING=1 )
+if "%MISSING%"=="0" ( echo  All required files present  OK )
+echo.
+
+:: ── STEP 8: Check Android Studio ─────────────────────────────
+echo [STEP 8/9] Checking Android Studio...
+set STUDIO_EXE=
+if exist "C:\Program Files\Android\Android Studio\bin\studio64.exe" (
+    set "STUDIO_EXE=C:\Program Files\Android\Android Studio\bin\studio64.exe"
+    echo  Found: %STUDIO_EXE%
+    goto :step9
 )
+if exist "C:\Program Files\Android\Android Studio\bin\studio.exe" (
+    set "STUDIO_EXE=C:\Program Files\Android\Android Studio\bin\studio.exe"
+    echo  Found: %STUDIO_EXE%
+    goto :step9
+)
+where studio.bat >nul 2>&1
+if not errorlevel 1 ( echo  Android Studio found in PATH & goto :step9 )
+echo  Android Studio not found in default path.
+echo  Install from: https://developer.android.com/studio
 echo.
 
-:: ── STEP 8: Open Android Studio ─────────────────────────────
-echo [STEP 8/8] Opening project in Android Studio...
+:step9
+echo.
+
+:: ── STEP 9: Open in Android Studio ───────────────────────────
+echo [STEP 9/9] Opening project in Android Studio...
 echo.
 echo ============================================================
-echo   NEXT STEPS IN ANDROID STUDIO:
+echo   AFTER ANDROID STUDIO OPENS - DO THIS:
 echo ============================================================
-echo   1. Wait for Gradle sync to complete (3-10 minutes)
-echo   2. Menu: Build - Build Bundle(s)/APK(s) - Build APK(s)
-echo   3. APK location:
-echo      android\app\build\outputs\apk\debug\app-debug.apk
 echo.
-echo   FOR TESTERS:
-echo   - Share the APK file directly (testers must allow
-echo     "Install from Unknown Sources" on their Android)
-echo   - OR use Firebase App Distribution (free, recommended)
+echo   FIRST TIME or after Gradle config changes:
+echo     File - Invalidate Caches - Invalidate and Restart
+echo     (wait for Android Studio to restart ~30 seconds)
+echo.
+echo   EVERY TIME after this script runs:
+echo     1. If yellow banner appears:  click "Sync Now"
+echo     2. Wait for "Gradle sync finished" at the bottom
+echo     3. Build - Build Bundle(s)/APK(s) - Build APK(s)
+echo     4. Wait for "BUILD SUCCESSFUL"
+echo     5. Click "locate" - APK is at:
+echo        android\app\build\outputs\apk\debug\app-debug.apk
+echo.
+echo   FOR BETA TESTERS (recommended):
+echo     Firebase Console - App Distribution - Upload APK
+echo     Testers get email download link (no Play Store needed)
+echo.
+echo   CURRENT GRADLE VERSIONS (DO NOT CHANGE WITHOUT MATCHING):
+echo     AGP:    8.7.3  (android/build.gradle)
+echo     Gradle: 8.9    (gradle-wrapper.properties)
+echo     Kotlin: 1.9.25
 echo ============================================================
 echo.
 
 call npx cap open android
 if errorlevel 1 (
-    echo Could not auto-open Android Studio.
-    echo Manually open: ConnectHub-SPA\android\ in Android Studio
+    echo  Could not auto-open via npx cap open android.
+    if not "%STUDIO_EXE%"=="" (
+        echo  Launching Android Studio directly...
+        start "" "%STUDIO_EXE%" "%CD%\android"
+    ) else (
+        echo  Please open Android Studio manually:
+        echo    File - Open - select: %CD%\android
+    )
 )
 
 echo.
 echo ============================================================
-echo   BUILD SCRIPT COMPLETE!
-echo   Android project is ready in: ConnectHub-SPA\android\
+echo   BUILD SCRIPT COMPLETE
+echo   Project: %CD%\android
+echo   Next: Sync Now in Android Studio, then Build APK(s)
 echo ============================================================
 echo.
 pause
