@@ -1,0 +1,18 @@
+// ============================================================
+//  ConnectHub-Mobile  –  React Native 0.72.6  settings.gradle
+//  ⚠️  NOTE: This is the OLD React Native skeleton project.
+//  ✅  For the REAL LynkApp (Capacitor), open:
+//       ConnectHub-SPA\android\  in Android Studio
+//       and run ConnectHub-SPA\android-build.bat
+// ============================================================
+
+rootProject.name = 'lynk-mobile'
+
+// React Native Gradle plugin (required for RN 0.72+)
+includeBuild('../node_modules/@react-native/gradle-plugin')
+
+// Auto-link native modules
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesSettingsGradle(settings)
+
+include ':app'
