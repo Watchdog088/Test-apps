@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
+
     repositories {
         google()
         mavenCentral()
@@ -24,6 +24,10 @@ allprojects {
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+// tasks.register is the modern API.
+// The old 'task clean(type: Delete)' syntax and rootProject.buildDir
+// were removed/deprecated in Gradle 8.x and cause CONFIGURE FAILED on
+// Gradle 8.14.4 which ships with Android Studio Ladybug and newer.
+tasks.register('clean', Delete) {
+    delete layout.buildDirectory
 }
