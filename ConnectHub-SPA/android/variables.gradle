@@ -4,18 +4,18 @@
 
 ext {
     // ── Android SDK ──────────────────────────────────────────────────────────
-    minSdkVersion                       = 23      // Android 6.0 — covers 99%+ of active devices
-    compileSdkVersion                   = 35      // Android 15 — latest stable
-    targetSdkVersion                    = 35      // Must match compileSdk for Play Store
-
+    minSdkVersion     = 23      // Android 6.0 — covers 99%+ of active devices
+    compileSdkVersion = 35      // Android 15 — latest stable
+    targetSdkVersion  = 35      // Must match compileSdk for Play Store
+    
     // ── App version ──────────────────────────────────────────────────────────
-    versionCode                         = 1       // Increment each Play Store upload
-    versionName                         = "1.0.0" // Semantic version shown in app stores
-
+    versionCode       = 1       // Increment each Play Store upload
+    versionName       = "1.0.0" // Semantic version shown in app stores
+    
     // ── Java / Kotlin ─────────────────────────────────────────────────────────
-    javaVersion                         = JavaVersion.VERSION_17
-    kotlinVersion                       = "1.9.25"
-
+    javaVersion       = JavaVersion.VERSION_17
+    kotlinVersion     = "1.9.25"
+    
     // ── Core AndroidX dependencies ────────────────────────────────────────────
     androidxAppCompatVersion            = "1.7.0"
     androidxActivityVersion             = "1.9.3"
@@ -23,9 +23,6 @@ ext {
     androidxCoreKTXVersion              = "1.13.1"
     androidxFragmentKTXVersion          = "1.8.4"
     androidxWebkitVersion               = "1.12.1"
-
-    // ── Splash screen ─────────────────────────────────────────────────────────
-    // Required by app/build.gradle: implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     coreSplashScreenVersion             = "1.0.1"
 
     // ── Capacitor ─────────────────────────────────────────────────────────────
