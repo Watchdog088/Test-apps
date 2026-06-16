@@ -10,14 +10,41 @@
       "lynkapp-c7db1.web.app",
       "lynkapp-c7db1.firebaseapp.com",
       "*.lynkapp.com",
+      "lynkapp.com",
       "*.firebase.google.com",
       "*.googleapis.com",
       "*.firebaseio.com",
+      "*.firebasestorage.googleapis.com",
       "*.stripe.com",
       "*.onesignal.com",
       "*.giphy.com",
       "*.unsplash.com",
-      "*.pexels.com"
+      "*.pexels.com",
+      "itunes.apple.com",
+      "*.itunes.apple.com",
+      "podcasts.apple.com",
+      "*.deezer.com",
+      "api.deezer.com",
+      "*.youtube.com",
+      "*.googleapis.com",
+      "*.ytimg.com",
+      "api.rawg.io",
+      "*.rawg.io",
+      "api.openweathermap.org",
+      "api.open-meteo.com",
+      "api.ipapi.com",
+      "ipapi.co",
+      "api.coingecko.com",
+      "api.the-guardian.com",
+      "hacker-news.firebaseio.com",
+      "api.unsplash.com",
+      "api.pexels.com",
+      "api.dicebear.com",
+      "tile.openstreetmap.org",
+      "unpkg.com",
+      "cdnjs.cloudflare.com",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
     ]
   },
   "ios": {
@@ -26,7 +53,7 @@
     "allowsLinkPreview": false,
     "scrollEnabled": true,
     "backgroundColor": "#0a0a18",
-    "limitsNavigationsToAppBoundDomains": true,
+    "limitsNavigationsToAppBoundDomains": false,
     "preferredContentMode": "mobile"
   },
   "android": {
@@ -34,23 +61,33 @@
     "backgroundColor": "#0a0a18",
     "captureInput": true,
     "webContentsDebuggingEnabled": false,
-    "useLegacyBridge": false
+    "useLegacyBridge": false,
+    "minWebViewVersion": 80,
+    "loggingBehavior": "none"
   },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 2500,
       "launchAutoHide": true,
+      "launchFadeOutDuration": 400,
       "backgroundColor": "#0a0a18",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false,
       "splashFullScreen": true,
-      "splashImmersive": true
+      "splashImmersive": true,
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#6366f1"
     },
     "StatusBar": {
       "style": "DARK",
       "backgroundColor": "#0a0a18",
-      "overlaysWebView": true
+      "overlaysWebView": true,
+      "androidOverlaysWebView": true
+    },
+    "NavigationBar": {
+      "backgroundColor": "#0a0a18",
+      "visible": false
     },
     "Keyboard": {
       "resize": "body",
@@ -71,6 +108,16 @@
     "Filesystem": {
       "permissions": ["publicStorage"]
     },
-    "Haptics": {}
+    "Geolocation": {
+      "permissions": ["location"]
+    },
+    "Haptics": {},
+    "Share": {},
+    "Browser": {
+      "androidShowTitle": true
+    },
+    "App": {
+      "launchAutoHide": false
+    }
   }
 }
