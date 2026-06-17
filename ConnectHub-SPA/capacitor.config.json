@@ -1,7 +1,7 @@
 {
   "appId": "com.lynkapp.app",
   "appName": "LynkApp",
-  "webDir": "../ConnectHub-Frontend/dist",
+  "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https",

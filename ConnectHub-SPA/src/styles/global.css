@@ -85,6 +85,7 @@ ul, ol { list-style: none; }
 .text-badge    { font-size:  9px; font-weight: 800; line-height: 1; letter-spacing: 0.03em; }
 
 /* -- Rec #33 Touch Targets — min 44x44px -------------------------- */
+/* ── Icon button (touch target, hollow on hover) ── */
 .btn-icon {
   min-width:  44px;
   min-height: 44px;
@@ -92,9 +93,16 @@ ul, ol { list-style: none; }
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  transition: background 0.15s;
+  background: transparent;
+  border: 1.5px solid transparent;
+  color: var(--text-secondary);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.btn-icon:hover { background: rgba(255,255,255,0.08); }
+.btn-icon:hover {
+  background: transparent;
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text-primary);
+}
 
 /* -- Legacy Typography -------------------------------------------- */
 h1 { font-size: 1.5rem; font-weight: 700; }
@@ -121,30 +129,55 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+/* ── Primary button — hollow gradient border, gradient text ── */
 .btn-primary {
-  background: var(--accent-grad);
-  color: white;
-  border: none;
+  background: linear-gradient(var(--bg-primary, #0f0c29), var(--bg-primary, #0f0c29)) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  border: 2px solid transparent;
   border-radius: var(--radius-full);
   padding: 12px 24px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 15px;
   width: 100%;
-  transition: opacity 0.2s, transform 0.1s;
+  color: #a5b4fc;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  letter-spacing: 0.01em;
 }
-.btn-primary:hover  { opacity: 0.9; }
-.btn-primary:active { transform: scale(0.98); }
+.btn-primary:hover {
+  background: linear-gradient(rgba(99,102,241,0.12), rgba(236,72,153,0.08)) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  color: #c4b5fd;
+  box-shadow: 0 0 18px rgba(99,102,241,0.25);
+}
+.btn-primary:active  { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Secondary button — subtle white outline ── */
 .btn-secondary {
-  background: var(--glass);
-  color: var(--text-primary);
-  border: 1px solid var(--glass-border);
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.18);
   border-radius: var(--radius-full);
   padding: 10px 20px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
-  transition: background 0.2s;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
 }
-.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-secondary:hover  { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.32); color: var(--text-primary); }
+.btn-secondary:active { transform: scale(0.98); }
+.btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* -- Scrollbars --------------------------------------------------- */
 ::-webkit-scrollbar { width: 0px; }
@@ -449,6 +482,9 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 .btn-following:hover::after { content: ' ✕'; }
 .btn-following:active { transform: scale(0.96); }
 
+/* ── Feed pill — active state keeps gradient fill for selection clarity ── */
+.feed-pill-active   { background: var(--accent-grad); color: #fff; border-color: transparent; }
+
 /* ── MOBILE-FIX: Hide Feedback button from TopNav on phones ── */
 /* On < 640px the floating beta-feedback FAB in AppShell is used instead */
 @media (max-width: 639px) {
@@ -457,7 +493,7 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   }
 }
 
-/* -- Floating Action Button (FAB) --------------------------------- */
+/* -- Floating Action Button (FAB) — hollow gradient ring --------- */
 .fab {
   position: fixed;
   bottom: 88px;
@@ -465,19 +501,21 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: var(--accent-grad);
-  color: white;
+  background: linear-gradient(#0f0c29, #0f0c29) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  border: 2px solid transparent;
+  color: #a5b4fc;
   font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(99,102,241,0.55);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.3);
   cursor: pointer;
-  border: none;
   z-index: 200;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, color 0.15s;
 }
-.fab:active { transform: scale(0.92); box-shadow: 0 3px 12px rgba(99,102,241,0.4); }
+.fab:hover  { color: #c4b5fd; box-shadow: 0 6px 24px rgba(99,102,241,0.45); }
+.fab:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(99,102,241,0.25); }
 
 /* -- Mini Music Player -------------------------------------------- */
 .mini-player {
@@ -586,39 +624,56 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* Primary gradient button (Sign In / Create Account) */
+/* Primary gradient-border button (Sign In / Create Account) */
 .btn-primary {
   width: 100%;
   padding: 13px 20px;
-  background: linear-gradient(135deg, #6366f1, #ec4899);
-  border: none;
+  background: linear-gradient(#0f0c29, #0f0c29) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  border: 2px solid transparent;
   border-radius: 12px;
-  color: #fff;
+  color: #a5b4fc;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  letter-spacing: 0.01em;
 }
-.btn-primary:hover  { opacity: 0.9; }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:hover {
+  background: linear-gradient(rgba(99,102,241,0.12), rgba(236,72,153,0.08)) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  color: #c4b5fd;
+  box-shadow: 0 0 18px rgba(99,102,241,0.22);
+}
+.btn-primary:active  { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* Secondary outline button (Continue with Google) */
+/* Secondary outline button (Continue with Google / OAuth) */
 .btn-secondary {
   width: 100%;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
-  color: #e2e8f0;
+  color: #94a3b8;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
 }
-.btn-secondary:hover  { background: rgba(255, 255, 255, 0.10); border-color: rgba(255,255,255,0.25); }
+.btn-secondary:hover  { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.32); color: #e2e8f0; }
 .btn-secondary:active { transform: scale(0.98); }
-.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ================================================================
    MARKETPLACE OVERLAY FIXES
@@ -749,7 +804,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .btn-outline-back:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.32); color: #cbd5e1; }
 
-/* Follow — primary gradient (not yet following) */
+/* Follow — hollow gradient-border pill */
 .btn-follow {
   padding: 8px 18px;
   border-radius: 9999px;
@@ -757,14 +812,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #6366f1, #ec4899);
-  border: none;
-  color: #fff;
-  transition: all 0.18s;
+  background: linear-gradient(#0f0c29, #0f0c29) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  border: 1.5px solid transparent;
+  color: #a5b4fc;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.1s;
   font-family: inherit;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.btn-follow:hover  { opacity: 0.88; transform: scale(1.03); }
+.btn-follow:hover {
+  background: linear-gradient(rgba(99,102,241,0.12), rgba(236,72,153,0.06)) padding-box,
+              linear-gradient(135deg, #6366f1, #ec4899) border-box;
+  color: #c4b5fd;
+  box-shadow: 0 0 10px rgba(99,102,241,0.2);
+}
 .btn-follow:active { transform: scale(0.97); }
 
 /* Following — outline ghost, turns red on hover */
