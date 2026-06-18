@@ -398,13 +398,10 @@ export default function AppShell() {
   const { pathname }    = useLocation();
   const navigate        = useNavigate();
 
-  // VERIFY-FIX: Gate — unverified email users must verify before accessing the app
-  // isAnonymous guard prevents guest/social sign-ins from being blocked
+  // VERIFY-FIX: Must call useAuth FIRST (before any useState), then check below after all hooks
   const { user: firebaseUser } = useAuth();
-  if (firebaseUser && !firebaseUser.emailVerified && !firebaseUser.isAnonymous) {
-    return <Navigate to="/verify-email" replace />;
-  }
 
+  // ALL useState hooks must come before any conditional return (Rules of Hooks)
   const [showMiniPlayer,   setShowMiniPlayer]   = useState(true);
   const [showFullPlayer,   setShowFullPlayer]   = useState(false);
   const [showInterstitial, setShowInterstitial] = useState(false);
@@ -551,6 +548,13 @@ export default function AppShell() {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  // VERIFY-FIX: Gate — unverified email users must verify before accessing the app
+  // isAnonymous guard prevents guest/social sign-ins from being blocked
+  // NOTE: This MUST come after ALL hooks (useState + useEffect) to comply with React Rules of Hooks
+  if (firebaseUser && !firebaseUser.emailVerified && !firebaseUser.isAnonymous) {
+    return <Navigate to="/verify-email" replace />;
+  }
 
   const handleInstallPWA = async () => {
     if (!pwaPrompt) return;

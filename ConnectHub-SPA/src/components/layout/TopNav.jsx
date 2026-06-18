@@ -1,4 +1,6 @@
 // src/components/layout/TopNav.jsx
+// DESIGN-UPDATE Jun-2026: Minimalist outline/hollow button style for all header buttons
+// DATING-RENAME Jun-2026: Dating section now called "LynkApp Dating"
 // POLISH-14 FIX: Brand name is "LynkApp" on Feed page
 // POLISH-19 FIX: LynkApp logo shown in top-left on Feed; page title elsewhere
 // POLISH-17 FIX: Search icon active state (accent color when on /search)
@@ -38,7 +40,7 @@ const PAGE_TITLES = {
   '/notifications': '🔔 Notifications',
   '/profile':       '👤 Profile',
   '/friends':       '👫 Friends',
-  '/dating':        '💕 Dating',
+  '/dating':        '❤️ LynkApp Dating',  // DATING-RENAME: updated to "LynkApp Dating"
   '/events':        '📅 Events',
   '/gaming':        '🎮 Gaming',
   '/marketplace':   '🛍 Marketplace',
@@ -65,6 +67,44 @@ const TOP_LEVEL_ROUTES = new Set([
   '/business','/creator','/help','/menu','/premium','/trending',
 ]);
 
+// ── Reusable hollow/outline icon button ───────────────────────────────────────
+// DESIGN: Transparent background, outline border, fills on hover/active
+function IconBtn({ onClick, label, children, active = false, style = {} }) {
+  const [hovered, setHovered] = useState(false);
+
+  const base = {
+    minWidth: 40,
+    minHeight: 40,
+    borderRadius: 10,
+    padding: '0 8px',
+    background: hovered || active ? 'rgba(99,102,241,0.12)' : 'transparent',
+    border: hovered || active
+      ? '1px solid rgba(99,102,241,0.40)'
+      : '1px solid rgba(255,255,255,0.08)',
+    color: hovered || active ? '#818cf8' : '#94a3b8',
+    fontSize: 20,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.18s ease',
+    flexShrink: 0,
+    ...style,
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      style={base}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function TopNav() {
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -78,8 +118,7 @@ export default function TopNav() {
   const isSearch  = path.startsWith('/search');
 
   // BACK-BTN FIX: Show back button on any route deeper than 1 segment
-  // e.g. /settings/privacy, /live/setup, /groups/abc123, /post/123/comments
-  const segments = path.split('/').filter(Boolean); // ['settings','privacy']
+  const segments = path.split('/').filter(Boolean);
   const isNested = segments.length > 1 && !TOP_LEVEL_ROUTES.has(path);
 
   async function handleSignOut() {
@@ -92,26 +131,24 @@ export default function TopNav() {
     <header style={{
       position:'fixed', top:0, left:0, right:0, zIndex:200,
       height:'var(--top-nav-h, 56px)',
-      background:'rgba(10,10,24,0.92)', backdropFilter:'blur(20px)',
-      borderBottom:'1px solid rgba(255,255,255,0.07)',
+      // DESIGN: Deeper, cleaner dark glass effect
+      background:'rgba(8,6,24,0.94)', backdropFilter:'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderBottom:'1px solid rgba(99,102,241,0.12)',
       display:'flex', alignItems:'center', justifyContent:'space-between',
-      padding:'0 16px',
+      padding:'0 14px',
     }}>
       {/* Left: Back button on nested pages, Logo on Feed, title elsewhere */}
-      <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
-        {/* BACK-BTN FIX: ← back button on sub-pages */}
+      <div style={{ display:'flex', alignItems:'center', gap:6, minWidth:0 }}>
+        {/* BACK-BTN FIX: ← back button on sub-pages — outline style */}
         {isNested && (
-          <button
+          <IconBtn
             onClick={() => navigate(-1)}
-            aria-label="Go back"
-            style={{
-              minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-              background:'transparent', border:'none',
-              color:'#94a3b8', fontSize:22, fontWeight:700,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              cursor:'pointer', flexShrink:0, marginLeft:-8,
-            }}
-          >←</button>
+            label="Go back"
+            style={{ fontSize:20, fontWeight:700, marginLeft:-4 }}
+          >
+            ←
+          </IconBtn>
         )}
         {isFeed ? (
           <div style={{ display:'flex', flexDirection:'column', gap:1 }}>
@@ -132,70 +169,70 @@ export default function TopNav() {
         )}
       </div>
 
-      {/* Right icons */}
-      <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-        {/* ✏️ Create Post — BUG-07 FIX */}
-        <button
+      {/* Right icons — all outline/hollow style */}
+      <div style={{ display:'flex', alignItems:'center', gap:3 }}>
+
+        {/* ✏️ Create Post — outline icon btn */}
+        <IconBtn
           onClick={() => setCreatePostOpen(true)}
-          aria-label="Create post"
-          style={{
-            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-            background:'transparent', border:'none', color:'#94a3b8', fontSize:20,
-            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          }}>
+          label="Create post"
+        >
           ✏️
-        </button>
+        </IconBtn>
 
         {/* 🔍 Search — POLISH-17 FIX: active state */}
-        <button
+        <IconBtn
           onClick={() => navigate('/search')}
-          aria-label="Search"
-          style={{
-            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-            background: isSearch ? 'rgba(99,102,241,0.18)' : 'transparent',
-            border:'none',
-            color: isSearch ? '#818cf8' : '#94a3b8',
-            fontSize:20,
-            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          }}>
+          label="Search"
+          active={isSearch}
+        >
           🔍
-        </button>
+        </IconBtn>
 
-        {/* 🔔 Notifications badge */}
-        <button
-          onClick={() => navigate('/notifications')}
-          aria-label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
-          style={{
-            position:'relative', minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-            background:'transparent', border:'none', color:'#94a3b8', fontSize:20,
-            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          }}>
-          🔔
+        {/* 🔔 Notifications badge — outline icon btn */}
+        <div style={{ position:'relative' }}>
+          <IconBtn
+            onClick={() => navigate('/notifications')}
+            label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
+          >
+            🔔
+          </IconBtn>
           {unreadNotifications > 0 && (
             <span style={{
-              position:'absolute', top:6, right:4, minWidth:17, height:17, borderRadius:'50%',
-              background:'linear-gradient(135deg,#ef4444,#dc2626)', border:'2px solid #0a0a18',
+              position:'absolute', top:4, right:2,
+              minWidth:17, height:17, borderRadius:'50%',
+              background:'#ef4444', border:'2px solid #08061a',
               color:'white', fontSize:9, fontWeight:800,
               display:'flex', alignItems:'center', justifyContent:'center',
+              pointerEvents:'none',
             }}>
               {unreadNotifications > 9 ? '9+' : unreadNotifications}
             </span>
           )}
-        </button>
+        </div>
 
-        {/* 🧪 Beta Feedback — desktop only (< 640px uses floating FAB in AppShell to avoid cluttered top bar) */}
+        {/* 🧪 Beta Feedback — outline style, desktop only */}
         <button
           onClick={() => setFeedbackOpen(true)}
           aria-label="Send beta feedback"
+          className="feedback-btn-desktop"
           style={{
-            minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-            background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)',
-            color:'#10b981', fontSize:14, fontWeight:700,
-            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-            // MOBILE-FIX: hide on phones — AppShell has a floating FAB for this
-            // Use CSS media query via inline — hide below 640px
+            minWidth: 40, minHeight: 40, borderRadius: 10, padding: '0 10px',
+            background: 'transparent',
+            border: '1px solid rgba(16,185,129,0.35)',
+            color: '#10b981', fontSize: 13, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', gap: 4, transition: 'all 0.18s ease',
           }}
-          className="feedback-btn-desktop">
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(16,185,129,0.10)';
+            e.currentTarget.style.borderColor = 'rgba(16,185,129,0.55)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)';
+          }}
+        >
           🧪 Feedback
         </button>
         {feedbackOpen && (
@@ -204,37 +241,43 @@ export default function TopNav() {
           </Suspense>
         )}
 
-        {/* 🛡️ Admin Panel — only visible to CEO/admin account (isAdmin === true) */}
+        {/* 🛡️ Admin Panel — outline style, admin only */}
         {isAdmin && (
-          <button
+          <IconBtn
             onClick={() => navigate('/admin')}
-            aria-label="Admin Panel"
-            title="Switch to Admin Panel"
+            label="Admin Panel"
+            active={location.pathname.startsWith('/admin')}
             style={{
-              minWidth:44, minHeight:44, borderRadius:12, padding:'0 8px',
-              background: location.pathname.startsWith('/admin')
-                ? 'rgba(239,68,68,0.25)'
-                : 'rgba(239,68,68,0.12)',
               border: '1px solid rgba(239,68,68,0.35)',
-              color:'#f87171', fontSize:14, fontWeight:700,
-              display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-            }}>
+              color: '#f87171',
+            }}
+          >
             🛡️
-          </button>
+          </IconBtn>
         )}
 
-        {/* Avatar — POLISH-11 FIX: 44×44px */}
+        {/* Avatar — POLISH-11 FIX: 44×44px — outline ring style */}
         <button
           onClick={() => navigate('/profile')}
           aria-label="Profile"
           style={{
-            width:44, height:44, borderRadius:'50%', overflow:'hidden',
-            background:'linear-gradient(135deg,#6366f1,#ec4899)',
-            border:'2px solid rgba(99,102,241,0.4)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:16, fontWeight:800, color:'white', cursor:'pointer',
-            flexShrink:0,
-          }}>
+            width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
+            background: 'rgba(99,102,241,0.15)',
+            // DESIGN: Hollow outline ring — no solid fill
+            border: '1.5px solid rgba(99,102,241,0.50)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 15, fontWeight: 800, color: '#818cf8', cursor: 'pointer',
+            flexShrink: 0, transition: 'border-color 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.85)';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.15)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.50)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
           {user?.photoURL
             ? <img src={user.photoURL} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             : (user?.displayName?.[0]?.toUpperCase() || '?')}

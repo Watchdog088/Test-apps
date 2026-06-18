@@ -1,12 +1,8 @@
 // src/components/layout/MobileBottomNav.jsx
+// DESIGN-UPDATE Jun-2026: Minimalist outline/hollow button style for mobile tabs
 // CRITICAL-FIX Jun-2026: Mobile-first bottom tab bar (Instagram/TikTok pattern)
 // Only renders on viewports < 640px.
 // Tabs: Home | Search | ➕ Create | Messages | ··· More
-// ··· More opens the MoreDrawer which gives access to ALL dashboards
-// (Dating, Live, Groups, Events, Friends, Music, Gaming, Media Hub,
-//  Video Calls, AR/VR, Marketplace, Creator Studio, Business Tools,
-//  Trending, Saved, Premium, Settings, Help)
-// CROSS-PLATFORM FIX: Matches web sidebar navigation — same sections available everywhere
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -16,8 +12,6 @@ const MOBILE_NAV_H = 64; // px — exported so AppShell can use it for padding
 
 export { MOBILE_NAV_H };
 
-// 5 primary tabs — "More" replaces "Profile" so ALL web sections are reachable
-// Profile is still accessible from TopNav avatar AND from the More drawer
 const TABS = [
   { path: '/feed',      icon: '🏠', label: 'Home' },
   { path: '/search',    icon: '🔍', label: 'Search' },
@@ -57,16 +51,17 @@ export default function MobileBottomNav({ onCreatePost }) {
         left: 0,
         right: 0,
         height: MOBILE_NAV_H,
-        background: 'rgba(10, 8, 30, 0.97)',
+        // DESIGN: Deeper dark glass, clean outline top border
+        background: 'rgba(8, 6, 24, 0.97)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(99,102,241,0.18)',
+        borderTop: '1px solid rgba(99,102,241,0.15)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
         zIndex: 280,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
+        boxShadow: '0 -2px 20px rgba(0,0,0,0.35)',
       }}
     >
       {TABS.map((tab) => {
@@ -94,73 +89,114 @@ export default function MobileBottomNav({ onCreatePost }) {
               background: 'transparent',
               cursor: 'pointer',
               padding: '6px 4px',
-              // Tap highlight
               WebkitTapHighlightColor: 'transparent',
             }}
           >
-            {/* Icon — ➕ gets a pill background; ⋯ More uses 3-dot style */}
+            {/* Create button — DESIGN: Outline pill (not solid fill) */}
             {isCreate ? (
               <div style={{
                 width: 44,
-                height: 30,
-                borderRadius: 10,
-                background: 'linear-gradient(135deg,#6366f1,#ec4899)',
+                height: 28,
+                borderRadius: 9,
+                // DESIGN: Outline style — transparent with gradient border
+                background: 'transparent',
+                border: '1.5px solid rgba(99,102,241,0.60)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 20,
-                boxShadow: '0 2px 12px rgba(99,102,241,0.5)',
+                fontSize: 18,
+                // Subtle inner glow on create
+                boxShadow: '0 0 10px rgba(99,102,241,0.20), inset 0 0 8px rgba(99,102,241,0.05)',
               }}>
                 {tab.icon}
               </div>
             ) : isMore ? (
+              /* More dots — DESIGN: outline capsule */
               <div style={{
                 display: 'flex',
                 gap: 3,
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: 24,
+                padding: '4px 8px',
+                borderRadius: 8,
+                border: `1px solid ${unreadNotifications > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.10)'}`,
+                background: 'transparent',
               }}>
                 {[0,1,2].map(i => (
                   <div key={i} style={{
-                    width: 5,
-                    height: 5,
+                    width: 4,
+                    height: 4,
                     borderRadius: '50%',
-                    background: '#94a3b8',
+                    background: unreadNotifications > 0 ? '#f87171' : '#64748b',
                   }} />
                 ))}
               </div>
             ) : (
-              <span style={{
-                fontSize: 22,
-                lineHeight: 1,
-                filter: active ? 'none' : 'grayscale(0.3)',
-                transition: 'transform 0.15s',
-                transform: active ? 'scale(1.12)' : 'scale(1)',
+              /* Standard tab icon — DESIGN: outline wrapper when active */
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 28,
+                borderRadius: 8,
+                // Hollow outline only when active
+                border: active
+                  ? '1px solid rgba(129,140,248,0.45)'
+                  : '1px solid transparent',
+                background: active
+                  ? 'rgba(99,102,241,0.10)'
+                  : 'transparent',
+                transition: 'all 0.18s ease',
               }}>
-                {tab.icon}
-              </span>
+                <span style={{
+                  fontSize: 20,
+                  lineHeight: 1,
+                  filter: active ? 'drop-shadow(0 0 5px rgba(129,140,248,0.5))' : 'none',
+                  transition: 'filter 0.2s, transform 0.15s',
+                  transform: active ? 'scale(1.10)' : 'scale(1)',
+                  display: 'block',
+                }}>
+                  {tab.icon}
+                </span>
+              </div>
             )}
 
             {/* Label */}
             {!isCreate && (
               <span style={{
                 fontSize: 10,
-                fontWeight: active ? 700 : 500,
-                color: active ? '#818cf8' : '#64748b',
+                fontWeight: active ? 700 : 400,
+                color: active ? '#818cf8' : '#475569',
                 letterSpacing: '0.01em',
                 lineHeight: 1,
+                transition: 'color 0.18s',
               }}>
                 {tab.label}
               </span>
             )}
 
-            {/* More tab notification dot — shows if there are unread notifications */}
+            {/* Active indicator — slim bottom line */}
+            {active && (
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 24,
+                height: 2,
+                borderRadius: '2px 2px 0 0',
+                background: 'linear-gradient(90deg, #6366f1, #ec4899)',
+              }} />
+            )}
+
+            {/* More tab notification dot */}
             {isMore && unreadNotifications > 0 && (
               <span style={{
                 position: 'absolute',
                 top: 6,
-                right: 'calc(50% - 18px)',
+                right: 'calc(50% - 20px)',
                 background: '#ef4444',
                 color: 'white',
                 borderRadius: '50%',
@@ -171,7 +207,7 @@ export default function MobileBottomNav({ onCreatePost }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1.5px solid rgba(10,8,30,0.9)',
+                border: '1.5px solid rgba(8,6,24,0.95)',
                 padding: '0 3px',
               }}>
                 {unreadNotifications > 9 ? '9+' : unreadNotifications}
@@ -183,7 +219,7 @@ export default function MobileBottomNav({ onCreatePost }) {
               <span style={{
                 position: 'absolute',
                 top: 6,
-                right: 'calc(50% - 18px)',
+                right: 'calc(50% - 20px)',
                 background: '#ef4444',
                 color: 'white',
                 borderRadius: '50%',
@@ -194,25 +230,11 @@ export default function MobileBottomNav({ onCreatePost }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1.5px solid rgba(10,8,30,0.9)',
+                border: '1.5px solid rgba(8,6,24,0.95)',
                 padding: '0 3px',
               }}>
                 {count > 99 ? '99+' : count > 9 ? '9+' : count}
               </span>
-            )}
-
-            {/* Active indicator dot */}
-            {active && (
-              <div style={{
-                position: 'absolute',
-                bottom: 4,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                background: '#818cf8',
-              }} />
             )}
           </button>
         );

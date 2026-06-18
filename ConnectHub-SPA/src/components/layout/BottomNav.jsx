@@ -1,8 +1,7 @@
 // src/components/layout/BottomNav.jsx
-// Left-side vertical sidebar — Home | Live | Dating | Messages | Marketplace | Search | Notifications | Profile
-// UX-01 FIX: Sidebar defaults to collapsed (false) on mobile viewports < 640px
-// BUG-06 FIX: Removed fake timer for live badge; only shows when real data says so
-// CRITICAL-FIX Jun-2026: Added Search, Notifications (with unread badge), and Profile tabs
+// DESIGN-UPDATE Jun-2026: Minimalist outline/hollow button style for sidebar tabs
+// SIDEBAR-UPDATE Jun-2026: Removed Alerts (notifications) + Live; Added Media Hub
+// Sidebar tabs: Home | Dating | Messages | Shop | Media Hub | Search | Profile | More
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -10,47 +9,31 @@ import useAppStore from '@store/useAppStore';
 
 const NAV_WIDTH = 72; // px
 
-// ── Sidebar tabs — Home | Live | Dating | Messages | Shop | Search | Alerts | Profile | More
+// ── Sidebar tabs — Home | Dating | Messages | Shop | Media Hub | Search | Profile | More
+// CHANGED: Removed Live & Alerts; Added Media Hub
 const TABS = [
-  { path: '/feed',          icon: '🏠', label: 'Home' },
-  { path: '/live',          icon: '🔴', label: 'Live',     live: true },
-  { path: '/dating',        icon: '❤️', label: 'Dating' },
-  { path: '/messages',      icon: '💬', label: 'Messages', badge: 'unreadMessages' },
-  { path: '/marketplace',   icon: '🛒', label: 'Shop' },
-  { path: '/search',        icon: '🔍', label: 'Search' },
-  { path: '/notifications', icon: '🔔', label: 'Alerts',   badge: 'unreadNotifications' },
-  { path: '/profile',       icon: '👤', label: 'Profile' },
-  { path: '/menu',          icon: '☰',  label: 'More' },
+  { path: '/feed',        icon: '🏠', label: 'Home' },
+  { path: '/dating',      icon: '❤️', label: 'Dating' },
+  { path: '/messages',    icon: '💬', label: 'Messages', badge: 'unreadMessages' },
+  { path: '/marketplace', icon: '🛒', label: 'Shop' },
+  { path: '/media',       icon: '🎬', label: 'Media Hub' },
+  { path: '/search',      icon: '🔍', label: 'Search' },
+  { path: '/profile',     icon: '👤', label: 'Profile' },
+  { path: '/menu',        icon: '☰',  label: 'More' },
 ];
 
-const PRIMARY_PATHS = ['/feed', '/live', '/dating', '/messages', '/marketplace', '/search', '/notifications', '/profile'];
+const PRIMARY_PATHS = ['/feed', '/dating', '/messages', '/marketplace', '/media', '/search', '/profile'];
 
 export default function SideNav() {
   const navigate          = useNavigate();
   const { pathname }      = useLocation();
-
-  // UX-01 FIX: Default to collapsed on mobile (< 640px), expanded on desktop
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
   const [expanded, setExpanded] = useState(!isMobile);
-
-  // BUG-06 FIX: friendsLive defaults false; would be set by a real Firestore query
-  // For now we leave it false — no fake timer, no misleading badge
-  const [friendsLive, setFriendsLive] = useState(false);
 
   const unreadMessages       = useAppStore((s) => s.unreadMessages);
   const unreadNotifications  = useAppStore((s) => s.unreadNotifications ?? 0);
   const setMoreDrawerOpen    = useAppStore((s) => s.setMoreDrawerOpen);
   const counts = { unreadMessages, unreadNotifications };
-
-  // BUG-06 FIX: In production, replace this with a real Firestore listener:
-  // e.g. query(collection(db,'streams'), where('isLive','==',true), where('userId','in', followingIds))
-  // For now we leave friendsLive=false to avoid fake "live" badges
-  useEffect(() => {
-    // Real implementation would be something like:
-    // const q = query(collection(db,'streams'), where('isLive','==',true));
-    // const unsub = onSnapshot(q, snap => setFriendsLive(snap.size > 0));
-    // return unsub;
-  }, []);
 
   const transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -72,22 +55,30 @@ export default function SideNav() {
           gap: '4px',
           padding: '14px 6px',
           width: `${NAV_WIDTH}px`,
-          background: 'rgba(15, 12, 41, 0.42)',
-          backdropFilter: 'blur(22px)',
-          WebkitBackdropFilter: 'blur(22px)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'rgba(10, 8, 30, 0.75)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(99,102,241,0.18)',
           borderLeft: 'none',
           borderRadius: '0 20px 20px 0',
-          boxShadow: '4px 0 24px rgba(0,0,0,0.35)',
+          boxShadow: '4px 0 32px rgba(0,0,0,0.4)',
         }}
       >
-        {TABS.map(({ path, icon, label, badge, live }) => {
+        {TABS.map(({ path, icon, label, badge }) => {
           const isMore  = path === '/menu';
           const active  = isMore
             ? pathname.startsWith('/menu') || !PRIMARY_PATHS.some(p => pathname.startsWith(p))
             : pathname.startsWith(path);
           const count   = badge ? counts[badge] : 0;
-          const showLiveBadge = live && friendsLive;
+
+          // DESIGN: Outline/hollow button — transparent bg with colored border when active
+          const activeColor = '#818cf8'; // indigo accent
+          const borderStyle = active
+            ? `1px solid ${activeColor}`
+            : '1px solid rgba(255,255,255,0.10)';
+          const bgStyle = active
+            ? 'rgba(99,102,241,0.12)'
+            : 'transparent';
 
           return (
             <button
@@ -101,31 +92,40 @@ export default function SideNav() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '3px',
-                // Touch target: minimum 44px height
                 minHeight: '44px',
                 padding: '10px 4px',
-                borderRadius: '14px',
-                background: active
-                  ? live
-                    ? 'rgba(239,68,68,0.20)'
-                    : 'rgba(99,102,241,0.22)'
-                  : 'transparent',
-                border: active
-                  ? live
-                    ? '1px solid rgba(239,68,68,0.40)'
-                    : '1px solid rgba(99,102,241,0.35)'
-                  : '1px solid transparent',
-                opacity: active ? 1 : 0.55,
-                transform: active ? 'scale(1.05)' : 'scale(1)',
-                transition: 'all 0.2s',
+                borderRadius: '12px',
+                background: bgStyle,
+                border: borderStyle,
+                opacity: active ? 1 : 0.65,
+                transform: active ? 'scale(1.04)' : 'scale(1)',
+                transition: 'all 0.2s ease',
                 cursor: 'pointer',
+                // Hollow/outline look — no fill, just border + icon
+              }}
+              onMouseEnter={e => {
+                if (!active) {
+                  e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
+                  e.currentTarget.style.border = '1px solid rgba(99,102,241,0.30)';
+                  e.currentTarget.style.opacity = '1';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!active) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.border = '1px solid rgba(255,255,255,0.10)';
+                  e.currentTarget.style.opacity = '0.65';
+                }
               }}
             >
               {/* Icon */}
               <span style={{
-                fontSize: isMore ? '17px' : '20px',
+                fontSize: isMore ? '16px' : '19px',
                 lineHeight: 1,
                 fontWeight: isMore ? 800 : 400,
+                // Active icons get a subtle glow via drop-shadow
+                filter: active ? 'drop-shadow(0 0 6px rgba(129,140,248,0.6))' : 'none',
+                transition: 'filter 0.2s',
               }}>
                 {icon}
               </span>
@@ -134,16 +134,28 @@ export default function SideNav() {
               <span style={{
                 fontSize: '9px',
                 fontWeight: active ? 700 : 500,
-                color: active
-                  ? live ? '#f87171' : '#818cf8'
-                  : '#94a3b8',
+                color: active ? activeColor : '#64748b',
                 letterSpacing: '0.02em',
                 whiteSpace: 'nowrap',
               }}>
                 {label}
               </span>
 
-              {/* Unread messages badge */}
+              {/* Active indicator — slim left-side accent bar */}
+              {active && (
+                <span style={{
+                  position: 'absolute',
+                  left: -6,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 3,
+                  height: 24,
+                  borderRadius: '0 3px 3px 0',
+                  background: 'linear-gradient(180deg, #6366f1, #ec4899)',
+                }} />
+              )}
+
+              {/* Unread badge */}
               {count > 0 && (
                 <span style={{
                   position: 'absolute',
@@ -158,24 +170,10 @@ export default function SideNav() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1.5px solid rgba(15,12,41,0.7)',
+                  border: '1.5px solid rgba(10,8,30,0.8)',
                 }}>
                   {count > 9 ? '9+' : count}
                 </span>
-              )}
-
-              {/* 🔴 Live pulsing badge — only shows when real streams exist */}
-              {showLiveBadge && (
-                <span style={{
-                  position: 'absolute',
-                  top: 4, right: 4,
-                  background: '#ef4444',
-                  borderRadius: '50%',
-                  width: '8px',
-                  height: '8px',
-                  border: '1.5px solid rgba(15,12,41,0.7)',
-                  animation: 'livePulse 1.4s ease-in-out infinite',
-                }} />
               )}
             </button>
           );
@@ -193,21 +191,30 @@ export default function SideNav() {
           transform: `translateY(-50%) translateX(${expanded ? `${NAV_WIDTH}px` : '0'})`,
           transition,
           zIndex: 301,
-          background: 'rgba(99,102,241,0.70)',
+          // DESIGN: Outline hollow toggle tab
+          background: 'rgba(10,8,30,0.85)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(99,102,241,0.55)',
+          border: '1px solid rgba(99,102,241,0.40)',
           borderLeft: 'none',
           borderRadius: '0 10px 10px 0',
-          boxShadow: '3px 0 12px rgba(99,102,241,0.4)',
-          color: 'white',
-          fontSize: '16px',
+          boxShadow: '3px 0 12px rgba(99,102,241,0.2)',
+          color: '#818cf8',
+          fontSize: '15px',
           fontWeight: 900,
           lineHeight: 1,
           padding: '12px 5px',
           cursor: 'pointer',
           userSelect: 'none',
           letterSpacing: '-1px',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(99,102,241,0.15)';
+          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(10,8,30,0.85)';
+          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.40)';
         }}
       >
         {expanded ? '‹' : '›'}

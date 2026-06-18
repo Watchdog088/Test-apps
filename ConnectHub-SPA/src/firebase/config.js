@@ -1,9 +1,9 @@
 // src/firebase/config.js
-// Firebase v10 Modular SDK — tree-shakeable, only imports what you use
-// UPDATED Jun 10 2026: Firebase Analytics added with lazy initialization
-// to avoid Vite/CJS compatibility issues on first load.
+// Firebase v10 Modular SDK — with graceful fallback if env vars are missing
+// CRASH-FIX Jun 2026: Wrapped initializeApp in try/catch to prevent black screen
+// when VITE_FIREBASE_* env vars are missing or invalid.
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -18,30 +18,55 @@ const firebaseConfig = {
   measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Check if we have the minimum required config
+const hasValidConfig = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId
+);
 
-// Export individual services
-export const auth    = getAuth(app);
-export const db      = getFirestore(app);
-export const storage = getStorage(app);
+if (!hasValidConfig) {
+  console.warn(
+    '[Firebase] Missing VITE_FIREBASE_* environment variables.\n' +
+    'Copy ConnectHub-SPA/.env.example to ConnectHub-SPA/.env and fill in your Firebase project credentials.\n' +
+    'App will run in DEMO MODE (no real authentication).'
+  );
+}
+
+// Initialize Firebase safely — never crash if config is invalid
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+try {
+  // Avoid duplicate app registration during Vite HMR
+  app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+  auth    = getAuth(app);
+  db      = getFirestore(app);
+  storage = getStorage(app);
+} catch (err) {
+  console.error('[Firebase] Initialization failed:', err.message);
+  console.warn('[Firebase] Running without Firebase — check your .env file.');
+  // auth/db/storage remain null — useAuth handles null gracefully
+}
+
+export { auth, db, storage };
+export default app;
 
 // ── Firebase Analytics — lazy init to avoid Vite/CJS issues ──────────────────
-// Analytics is initialized once after the page loads, not at module parse time.
-// This prevents "Cannot use import statement outside a module" errors with Vite.
 let _analytics = null;
 
 export const getAnalyticsInstance = async () => {
   if (_analytics) return _analytics;
-  // Only initialize in production and when measurementId is configured
   if (!import.meta.env.PROD) return null;
   if (!import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) return null;
+  if (!app) return null;
   try {
     const { getAnalytics, isSupported } = await import('firebase/analytics');
     const supported = await isSupported();
     if (supported) {
       _analytics = getAnalytics(app);
-      console.log('[Firebase] Analytics initialized');
     }
   } catch (e) {
     console.warn('[Firebase] Analytics init failed (non-fatal):', e.message);
@@ -49,15 +74,12 @@ export const getAnalyticsInstance = async () => {
   return _analytics;
 };
 
-// Auto-initialize analytics after page load (non-blocking)
 if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
-    // Delay by 2s to ensure main app hydration is not blocked
     setTimeout(() => getAnalyticsInstance(), 2000);
   });
 }
 
-// ── Log a custom analytics event (safe no-op if analytics not ready) ─────────
 export const logEvent = async (eventName, params = {}) => {
   try {
     const analytics = await getAnalyticsInstance();
@@ -65,11 +87,9 @@ export const logEvent = async (eventName, params = {}) => {
     const { logEvent: firebaseLogEvent } = await import('firebase/analytics');
     firebaseLogEvent(analytics, eventName, params);
   } catch (e) {
-    // Non-fatal — analytics failures should never break the app
+    // Non-fatal
   }
 };
 
-// analytics export kept for backwards compatibility (null until lazy-init completes)
 export const analytics = null;
-
-export default app;
+export const firebaseAvailable = hasValidConfig && app !== null;
