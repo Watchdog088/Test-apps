@@ -27,8 +27,12 @@ function BannerAd({ placement, userProfile, style: extraStyle }) {
   const [houseAd]     = useState(() => adService.nextHouseAd('banner'));
   const [adsenseLoaded, setAdsenseLoaded] = useState(false);
 
+  const adsensePublisherId = import.meta.env.VITE_ADSENSE_PUBLISHER_ID || '';
+  const adsenseValid = adsensePublisherId && !adsensePublisherId.includes('MISSING') && adsensePublisherId.startsWith('ca-pub-');
+
   useEffect(() => {
-    // Try to push AdSense unit
+    // Try to push AdSense unit — only if we have a real publisher ID
+    if (!adsenseValid) return;
     try {
       if (window.adsbygoogle && adRef.current) {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -36,7 +40,7 @@ function BannerAd({ placement, userProfile, style: extraStyle }) {
       }
     } catch (_) {}
     adService.recordBannerImpression();
-  }, []);
+  }, [adsenseValid]);
 
   if (adService.shouldShowAds(userProfile) === false) return null;
 

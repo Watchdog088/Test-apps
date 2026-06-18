@@ -1,28 +1,52 @@
+// SplashScreen.jsx — LynkApp animated splash shown during auth loading
 import React from 'react';
+
 export default function SplashScreen() {
   return (
     <div style={{
-      position:'fixed',inset:0,display:'flex',flexDirection:'column',
-      alignItems:'center',justifyContent:'center',gap:'16px',
-      background:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',
-      zIndex:9999,
+      position: 'fixed', inset: 0,
+      background: '#0a0a18',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      zIndex: 9999
     }}>
+      {/* Logo */}
       <div style={{
-        width:'64px',height:'64px',borderRadius:'16px',
-        background:'linear-gradient(135deg,#6366f1,#ec4899)',
-        display:'flex',alignItems:'center',justifyContent:'center',
-        fontSize:'28px', boxShadow:'0 0 40px rgba(99,102,241,0.5)',
-      }}>⚡</div>
-      <span style={{
-        fontSize:'24px',fontWeight:800,
-        background:'linear-gradient(135deg,#6366f1,#ec4899)',
-        WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',
-      }}>ConnectHub</span>
+        width: 88, height: 88,
+        borderRadius: 24,
+        background: 'linear-gradient(135deg, #6366f1, #ec4899)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 42, marginBottom: 20,
+        boxShadow: '0 0 48px rgba(99,102,241,0.45), 0 0 80px rgba(236,72,153,0.2)'
+      }}>
+        🔗
+      </div>
+
+      {/* App name */}
+      <h1 style={{
+        color: '#f1f5f9', fontSize: 30, fontWeight: 800,
+        margin: 0, letterSpacing: '-0.5px'
+      }}>
+        LynkApp
+      </h1>
+      <p style={{ color: '#64748b', fontSize: 13, marginTop: 6, marginBottom: 0 }}>
+        Connecting your world
+      </p>
+
+      {/* Spinner */}
       <div style={{
-        width:'40px',height:'40px',borderRadius:'50%',
-        border:'3px solid rgba(255,255,255,0.1)',borderTopColor:'#6366f1',
-        animation:'spin 0.8s linear infinite',marginTop:'16px',
-      }}/>
+        marginTop: 44, width: 36, height: 36,
+        borderRadius: '50%',
+        border: '3px solid rgba(255,255,255,0.08)',
+        borderTopColor: '#6366f1',
+        animation: 'lynk-spin 0.75s linear infinite'
+      }} />
+
+      <style>{`
+        @keyframes lynk-spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

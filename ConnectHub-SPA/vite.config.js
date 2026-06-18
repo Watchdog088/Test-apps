@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
+  root: __dirname,  // explicitly set root so vite always finds index.html regardless of CWD
   appType: 'spa',  // ensures all unknown routes fall back to index.html (SPA routing)
   plugins: [react()],
   resolve: {
