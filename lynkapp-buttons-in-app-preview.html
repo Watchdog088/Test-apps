@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LynkApp — Wireframe Buttons In-App Preview</title>
+<style>
+  /* ─── Base Reset ─────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: #0a081e;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  /* ─── App Shell ─────────────────────────────────────────────── */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ─── Top Nav ────────────────────────────────────────────────── */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(10,8,30,0.85);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(99,102,241,0.18);
+    z-index: 400;
+  }
+  .top-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-nav-logo {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 16px; color: #fff;
+  }
+  .top-nav-title {
+    font-size: 18px;
+    font-weight: 700;
+    background: linear-gradient(90deg,#818cf8,#c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.4px;
+  }
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ─── Sidebar ────────────────────────────────────────────────── */
+  .side-nav {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 6px;
+    width: 72px;
+    background: rgba(10,8,30,0.80);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(99,102,241,0.18);
+    border-left: none;
+    border-radius: 0 20px 20px 0;
+    box-shadow: 4px 0 32px rgba(0,0,0,0.4);
+  }
+
+  /* ─── Page Content ───────────────────────────────────────────── */
+  .page-content {
+    margin-top: 56px;
+    margin-left: 72px;
+    padding: 24px;
+    flex: 1;
+  }
+
+  /* ─── Unix Icon Button ───────────────────────────────────────── */
+  .unix-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+    user-select: none;
+    text-decoration: none;
+    background: transparent;
+  }
+  /* sizes */
+  .unix-btn.sm  { width: 34px; height: 34px; border-radius: 9px; }
+  .unix-btn.md  { width: 40px; height: 40px; }
+  .unix-btn.lg  { width: 48px; height: 48px; border-radius: 14px; }
+  .unix-btn.xl  { width: 56px; height: 56px; border-radius: 16px; }
+
+  /* states */
+  .unix-btn svg { transition: stroke 0.15s, fill 0.15s; }
+  .unix-btn .btn-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: color 0.15s;
+    white-space: nowrap;
+  }
+
+  /* default */
+  .unix-btn svg       { stroke: #7c8fa3; }
+  .unix-btn .btn-label { color: #7c8fa3; }
+
+  /* hover */
+  .unix-btn:hover {
+    background: rgba(129,140,248,0.10);
+  }
+  .unix-btn:hover svg        { stroke: #818cf8; }
+  .unix-btn:hover .btn-label { color: #818cf8; }
+
+  /* active (current page) */
+  .unix-btn.active {
+    background: rgba(99,102,241,0.15);
+    box-shadow: inset 0 0 0 1px rgba(99,102,241,0.40);
+  }
+  .unix-btn.active svg        { stroke: #fff; }
+  .unix-btn.active .btn-label { color: #a5b4fc; }
+
+  /* sidebar variant — left bar indicator instead of border ring */
+  .unix-btn.sidebar.active {
+    background: rgba(99,102,241,0.12);
+    box-shadow: none;
+  }
+  .unix-btn.sidebar.active::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: #6366f1;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* badge */
+  .unix-btn .badge {
+    position: absolute;
+    top: 2px; right: 2px;
+    min-width: 16px; height: 16px;
+    background: #ef4444;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 1.5px solid #0a081e;
+    pointer-events: none;
+  }
+
+  /* topnav variant — no label, compact */
+  .unix-btn.topnav { border-radius: 10px; }
+  .unix-btn.topnav .btn-label { display: none; }
+
+  /* ─── Demo sections ──────────────────────────────────────────── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #4b5563;
+    margin: 28px 0 12px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .demo-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .demo-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #818cf8;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-card h3::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(99,102,241,0.15);
+  }
+
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-group .state-label {
+    font-size: 10px;
+    color: #4b5563;
+    font-weight: 500;
+  }
+
+  /* mock feed post card */
+  .mock-post {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(99,102,241,0.10);
+    border-radius: 14px;
+    padding: 16px;
+    max-width: 480px;
+    margin-bottom: 12px;
+  }
+  .mock-post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mock-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+  }
+  .mock-post-meta { flex: 1; }
+  .mock-post-name { font-size: 13px; font-weight: 600; }
+  .mock-post-time { font-size: 11px; color: #6b7280; }
+  .mock-post-text { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 14px; }
+  .mock-post-actions { display: flex; gap: 4px; }
+
+  /* mock message bubble */
+  .mock-chat { max-width: 360px; }
+  .msg-bubble {
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.20);
+    border-radius: 14px 14px 14px 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+    max-width: 80%;
+  }
+  .msg-bubble.sent {
+    margin-left: auto;
+    background: rgba(139,92,246,0.18);
+    border-color: rgba(139,92,246,0.30);
+    border-radius: 14px 14px 4px 14px;
+  }
+  .msg-actions { display: flex; justify-content: flex-end; gap: 4px; margin-top: 4px; }
+
+  /* sizing comparison */
+  .size-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .size-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .size-cell .dim {
+    font-size: 10px;
+    color: #4b5563;
+  }
+
+  /* banner */
+  .preview-banner {
+    background: linear-gradient(90deg, rgba(99,102,241,0.15), rgba(139,92,246,0.10));
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #a5b4fc;
+  }
+  .preview-banner strong { color: #e2e8f0; }
+
+  .tag {
+    display: inline-block;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.30);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #818cf8;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* pull tab */
+  .pull-tab {
+    position: fixed;
+    left: 72px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(10,8,30,0.85);
+    border: 1px solid rgba(99,102,241,0.40);
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+    color: #818cf8;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 12px 5px;
+    cursor: pointer;
+    z-index: 301;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     TOP NAV  
+════════════════════════════════════════════════════════════════ -->
+<header class="top-nav">
+  <div class="top-nav-brand">
+    <div class="top-nav-logo">L</div>
+    <span class="top-nav-title">LynkApp</span>
+  </div>
+
+  <div class="top-nav-actions">
+    <!-- Compose -->
+    <button class="unix-btn md topnav" title="New Post">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </button>
+    <!-- Search -->
+    <button class="unix-btn md topnav" title="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </button>
+    <!-- Notifications -->
+    <button class="unix-btn md topnav active" title="Notifications" style="position:relative">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="badge">3</span>
+    </button>
+    <!-- Feedback -->
+    <button class="unix-btn md topnav" title="Feedback">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SIDE NAV  
+════════════════════════════════════════════════════════════════ -->
+<nav class="side-nav">
+  <!-- Home — active -->
+  <button class="unix-btn md sidebar active" title="Home">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span class="btn-label">Home</span>
+  </button>
+  <!-- Dating -->
+  <button class="unix-btn md sidebar" title="Dating">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+    <span class="btn-label">Dating</span>
+  </button>
+  <!-- Messages — badge -->
+  <button class="unix-btn md sidebar" title="Messages" style="position:relative">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span class="btn-label">Messages</span>
+    <span class="badge">5</span>
+  </button>
+  <!-- Shop -->
+  <button class="unix-btn md sidebar" title="Shop">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+    <span class="btn-label">Shop</span>
+  </button>
+  <!-- Media Hub -->
+  <button class="unix-btn md sidebar" title="Media Hub">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+      <line x1="7" y1="2" x2="7" y2="22"/>
+      <line x1="17" y1="2" x2="17" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <line x1="2" y1="7" x2="7" y2="7"/>
+      <line x1="2" y1="17" x2="7" y2="17"/>
+      <line x1="17" y1="17" x2="22" y2="17"/>
+      <line x1="17" y1="7" x2="22" y2="7"/>
+    </svg>
+    <span class="btn-label">Media</span>
+  </button>
+  <!-- Search -->
+  <button class="unix-btn md sidebar" title="Search">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <span class="btn-label">Search</span>
+  </button>
+  <!-- Profile -->
+  <button class="unix-btn md sidebar" title="Profile">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    <span class="btn-label">Profile</span>
+  </button>
+  <!-- More -->
+  <button class="unix-btn md sidebar" title="More">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+    </svg>
+    <span class="btn-label">More</span>
+  </button>
+</nav>
+
+<!-- pull tab -->
+<div class="pull-tab">‹</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE CONTENT
+════════════════════════════════════════════════════════════════ -->
+<main class="page-content">
+
+  <div class="preview-banner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div>
+      <strong>LynkApp — Minimalist Wireframe Button Preview</strong>
+      &nbsp;· These are the actual SVG icon buttons now live in the app's TopNav &amp; SideNav.
+      <span class="tag">Committed b6d4d97</span>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: Button States ──────────────────────────────── -->
+  <p class="section-title">Button States — All 3 Interactive Modes</p>
+  <div class="demo-card">
+    <h3>Default → Hover → Active (click to toggle)</h3>
+    <div class="btn-row">
+      <div class="btn-group">
+        <button class="unix-btn lg" onclick="this.classList.toggle('active')" title="Home — default">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span class="btn-label">Home</span>
+        </button>
+        <span class="state-label">Default / Click = Active</span>
+      </div>
+      <div class="btn-group">
+        <button class="unix-btn lg active" onclick="this.classList.toggle('active')" title="Messages">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="btn-label">Messages</span>
+        </button>
+        <span class="state-label">Active State</span>
+      </div>
+      <div class="btn-group">
+        <button class="unix-btn lg" title="Notifications" style="position:relative" onclick="this.classList.toggle('active')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="btn-label">Alerts</span>
+          <span class="badge">9+</span>
+        </button>
+        <span class="state-label">With Badge</span>
+      </div>
+      <div class="btn-group">
+        <button class="unix-btn lg sidebar active" onclick="this.classList.toggle('active')" title="Profile">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span class="btn-label">Profile</span>
+        </button>
+        <span class="state-label">Sidebar Active (left bar)</span>
+      </div>
+      <div class="btn-group">
+        <button class="unix-btn lg topnav active" onclick="this.classList.toggle('active')" title="Search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+        <span class="state-label">TopNav (no label)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: Size Scale ──────────────────────────────────── -->
+  <p class="section-title">Size Scale — sm · md · lg · xl</p>
+  <div class="demo-card">
+    <h3>Consistent proportions across all 4 sizes</h3>
+    <div class="size-row">
+      <div class="size-cell">
+        <button class="unix-btn sm active" title="sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </button>
+        <span class="dim">sm · 34px</span>
+      </div>
+      <div class="size-cell">
+        <button class="unix-btn md active" title="md">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span class="btn-label">Home</span>
+        </button>
+        <span class="dim">md · 40px</span>
+      </div>
+      <div class="size-cell">
+        <button class="unix-btn lg active" title="lg">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span class="btn-label">Home</span>
+        </button>
+        <span class="dim">lg · 48px</span>
+      </div>
+      <div class="size-cell">
+        <button class="unix-btn xl active" title="xl">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span class="btn-label">Home</span>
+        </button>
+        <span class="dim">xl · 56px</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: All Section Icons ─────────────────────────── -->
+  <p class="section-title">All 28 SVG Icons — Every App Section</p>
+  <div class="demo-card">
+    <h3>Complete icon set (click any to toggle active)</h3>
+    <div class="btn-row" id="allIcons">
+      <!-- icons injected by script below -->
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: In Context — Feed Post ─────────────────────── -->
+  <p class="section-title">In Context — Feed Post Action Buttons</p>
+  <div class="demo-card">
+    <h3>Post interaction buttons (sm size)</h3>
+    <div class="mock-post">
+      <div class="mock-post-header">
+        <div class="mock-avatar">JN</div>
+        <div class="mock-post-meta">
+          <div class="mock-post-name">Jeremy Newball <span style="font-size:10px;color:#6366f1;">✓</span></div>
+          <div class="mock-post-time">2 min ago · Public</div>
+        </div>
+      </div>
+      <div class="mock-post-text">Just shipped the new unix-style icon buttons for LynkApp! Clean, minimal, and they look great in the dark theme 🚀</div>
+      <div class="mock-post-actions">
+        <!-- Like -->
+        <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Like">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+        <!-- Comment -->
+        <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Comment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+        <!-- Share -->
+        <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Share">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+        <!-- Save -->
+        <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Save">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+        <!-- More -->
+        <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="More">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: In Context — Chat Actions ──────────────────── -->
+  <p class="section-title">In Context — Chat Toolbar Buttons</p>
+  <div class="demo-card">
+    <h3>Message compose action buttons (sm size)</h3>
+    <div class="mock-chat">
+      <div class="msg-bubble">Hey! Did you see the new button update? 👀</div>
+      <div class="msg-bubble sent">Yes! Super clean minimal style 🔥</div>
+      <div class="msg-bubble">The unix outline icons really match the dark theme.</div>
+    </div>
+    <div class="msg-actions" style="margin-top:12px;">
+      <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Image">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </button>
+      <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="GIF">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+        </svg>
+      </button>
+      <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Emoji">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </button>
+      <button class="unix-btn sm" onclick="this.classList.toggle('active')" title="Location">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+      </button>
+      <button class="unix-btn sm active" style="margin-left:auto;" title="Send">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <p style="font-size:11px;color:#4b5563;margin-top:32px;margin-bottom:16px;text-align:center;">
+    LynkApp · Unix Icon Buttons · Committed b6d4d97 · Jun 2026
+  </p>
+
+</main>
+
+<script>
+// ── Inject all 28 icons
+const icons = [
+  ['home','Home','M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10'],
+  ['dating','Dating','M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'],
+  ['messages','Msgs','M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+  ['marketplace','Shop','M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M16 10a4 4 0 0 1-8 0'],
+  ['media','Media','M23 7l-7 5 7 5V7z M1 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2z'],
+  ['search','Search','M21 21l-4.35-4.35 M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z'],
+  ['profile','Profile','M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],
+  ['more','More',''],
+  ['live','Live','M5.26 5.26A9.97 9.97 0 0 0 2 12a9.97 9.97 0 0 0 3.26 6.74 M18.74 18.74A9.97 9.97 0 0 0 22 12a9.97 9.97 0 0 0-3.26-6.74 M10.74 9.26A3 3 0 0 0 9 12a3 3 0 0 0 1.74 2.74 M13.26 14.74A3 3 0 0 0 15 12a3 3 0 0 0-1.74-2.74 M12 12h.01'],
+  ['notifications','Alerts','M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0'],
+  ['events','Events','M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'],
+  ['groups','Groups','M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],
+  ['friends','Friends','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M20 21a8 8 0 1 0-16 0'],
+  ['gaming','Gaming','M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z M16 8L2 22 M17.5 15H9'],
+  ['music','Music','M9 18V5l12-2v13 M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
+  ['videocalls','Video','M23 7l-7 5 7 5V7z M1 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2z'],
+  ['arvr','AR/VR','M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5'],
+  ['creator','Creator','M12 20h9 M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'],
+  ['business','Biz','M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10'],
+  ['saved','Saved','M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'],
+  ['trending','Trend','M23 6l-9.5 9.5-5-5L1 18 M17 6h6v6'],
+  ['wallet','Wallet','M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M1 10h22'],
+  ['settings','Settings','M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'],
+  ['help','Help','M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01'],
+  ['premium','Premium','M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'],
+  ['admin','Admin','M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
+  ['feedback','Beta','M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+];
+
+const container = document.getElementById('allIcons');
+icons.forEach(([, label, d]) => {
+  const btn = document.createElement('button');
+  btn.className = 'unix-btn sm';
+  btn.title = label;
+  btn.onclick = () => btn.classList.toggle('active');
+  if (label === 'More') {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>`;
+  } else if (label === 'Search') {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+  } else {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d.split(' M').map((p,i)=>i===0?`<path d="${p}"/>`:`<path d="M${p}"/>`).join('')}</svg>`;
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'btn-group';
+  wrap.appendChild(btn);
+  const lbl = document.createElement('span');
+  lbl.className = 'state-label';
+  lbl.textContent = label;
+  wrap.appendChild(lbl);
+  container.appendChild(wrap);
+});
+</script>
+</body>
+</html>

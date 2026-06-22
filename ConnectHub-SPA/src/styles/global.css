@@ -1193,3 +1193,183 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   background: rgba(255,255,255,0.20);
   border-color: rgba(255,255,255,0.65);
 }
+
+/* ================================================================
+   IN-APP WIREFRAME BUTTON EXTENSIONS
+   Minimalist contextual buttons that match the dark purple design.
+   Used across Feed, Profile, Dating, and Sidebar.
+   ================================================================ */
+
+/* ── btn-follow ─ small purple gradient pill (feed row) ─────────── */
+/* Usage: <button className="btn-follow">+ Follow</button>           */
+.btn-follow {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-follow:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 14px rgba(99,102,241,0.40);
+  transform: translateY(-1px);
+}
+.btn-follow.following {
+  background: rgba(99,102,241,0.12);
+  border: 1px solid rgba(99,102,241,0.35);
+  color: #818cf8;
+}
+.btn-follow.following:hover {
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.40);
+  color: #f87171;
+}
+
+/* ── btn-post-action ─ ghost icon buttons in feed post footer ────── */
+/* Usage: <button className="btn-post-action liked">❤️ 142</button>  */
+.btn-post-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(226,232,240,0.55);
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn-post-action:hover {
+  background: rgba(99,102,241,0.10);
+  color: #a5b4fc;
+}
+.btn-post-action.liked {
+  color: #f43f5e;
+}
+.btn-post-action.liked:hover {
+  background: rgba(244,63,94,0.10);
+  color: #fb7185;
+}
+.btn-post-action.saved {
+  color: #a5b4fc;
+}
+
+/* ── btn-filter-chip ─ horizontal feed filter tabs ───────────────── */
+/* Usage: <button className="btn-filter-chip active">For You</button> */
+.btn-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: transparent;
+  color: rgba(226,232,240,0.45);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  flex-shrink: 0;
+}
+.btn-filter-chip:hover {
+  background: rgba(99,102,241,0.08);
+  border-color: rgba(99,102,241,0.30);
+  color: #c7d2fe;
+}
+.btn-filter-chip.active {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.50);
+  color: #e0e7ff;
+}
+
+/* ── btn-dating-pass ─ large red circle ✕ FAB ────────────────────── */
+/* Usage: <button className="btn-dating-fab btn-dating-pass">✕</button> */
+.btn-dating-fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 700;
+  transition: all 0.20s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  flex-shrink: 0;
+}
+.btn-dating-fab:hover { transform: scale(1.10); }
+.btn-dating-fab:active { transform: scale(0.95); }
+
+.btn-dating-pass {
+  background: rgba(239,68,68,0.15);
+  border: 2px solid rgba(239,68,68,0.55);
+  color: #f87171;
+}
+.btn-dating-pass:hover {
+  background: rgba(239,68,68,0.28);
+  box-shadow: 0 6px 24px rgba(239,68,68,0.35);
+}
+
+.btn-dating-like {
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  color: #fff;
+}
+.btn-dating-like:hover {
+  box-shadow: 0 6px 24px rgba(244,63,94,0.50);
+}
+
+.btn-dating-superlike {
+  background: rgba(99,102,241,0.15);
+  border: 2px solid rgba(99,102,241,0.50);
+  color: #818cf8;
+}
+.btn-dating-superlike:hover {
+  background: rgba(99,102,241,0.28);
+  box-shadow: 0 6px 24px rgba(99,102,241,0.35);
+}
+
+/* ── Profile page paired buttons ─────────────────────────────────── */
+/* Usage:                                                             */
+/*   <button className="btn btn-wf-primary btn-pill btn-sm">Follow</button> */
+/*   <button className="btn btn-wf-ghost   btn-pill btn-sm">Message</button> */
+/* These reuse the existing .btn system — no new CSS needed.          */
+
+/* ── Sidebar active indicator ─────────────────────────────────────── */
+/* UnixIconBtn already handles active state via its own styles;        */
+/* this utility class adds the left-edge accent bar if needed.         */
+.sidebar-active-bar {
+  position: relative;
+}
+.sidebar-active-bar::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6);
+}

@@ -427,18 +427,18 @@ function PostCard({ post, user, onComment, onOptions, onReport, showToast, navig
         <button onMouseDown={handleLikePressStart} onMouseUp={handleLikePressEnd}
           onTouchStart={handleLikePressStart} onTouchEnd={handleLikePressEnd}
           onClick={toggleLike}
-          style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 12px', borderRadius:10,
-            background:reaction?'rgba(236,72,153,0.15)':'transparent', border:'none',
-            color:reaction?'#ec4899':'#64748b', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+          className={`btn-post-action${reaction?' active':''}`}>
           {reaction||'🤍'} {formatCount(likes)}
         </button>
-        <button onClick={()=>onComment(post)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 12px', borderRadius:10, background:'transparent', border:'none', color:'#64748b', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+        <button onClick={()=>onComment(post)} className="btn-post-action">
           💬 {formatCount(post.comments)}
         </button>
-        <button onClick={handleShare} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 12px', borderRadius:10, background:'transparent', border:'none', color:'#64748b', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+        <button onClick={handleShare} className="btn-post-action">
           🔁 {formatCount(post.shares)}
         </button>
-        <button onClick={handleBookmark} style={{ marginLeft:'auto', padding:'7px 10px', borderRadius:10, background:'transparent', border:'none', color:saved?'#818cf8':'#64748b', fontSize:18, cursor:'pointer' }}>
+        <button onClick={handleBookmark}
+          className={`btn-post-action btn-post-bookmark${saved?' saved':''}`}
+          style={{ marginLeft:'auto' }}>
           🔖
         </button>
       </div>
@@ -852,7 +852,8 @@ export default function FeedPage() {
       {/* Filter tabs */}
       <div style={{ display:'flex', gap:8, overflowX:'auto', padding:'10px 16px', scrollbarWidth:'none', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
         {FILTERS.map(f => (
-          <button key={f} onClick={()=>setFilter(f)} style={{ flexShrink:0, padding:'7px 14px', borderRadius:24, fontSize:13, fontWeight:600, border:'none', cursor:'pointer', background:activeFilter===f?'linear-gradient(135deg,#6366f1,#ec4899)':'rgba(255,255,255,0.07)', color:activeFilter===f?'white':'#64748b' }}>
+          <button key={f} onClick={()=>setFilter(f)}
+            className={`btn-filter-chip${activeFilter===f?' active feed-active':''}`}>
             {f}
           </button>
         ))}

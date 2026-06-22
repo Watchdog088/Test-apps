@@ -1412,21 +1412,11 @@ function DatingPageInner({ navigate, showToast, userProfile, setDatingState, inc
           {FILTER_LABELS.map(f => (
             <button
               key={f}
-              role="button"
               aria-label={`Filter: ${f}`}
               aria-pressed={activeFilter === f}
               onClick={() => handleFilterChange(f)}
-              style={{
-                flexShrink:0, padding:'10px 14px', borderRadius:20, minHeight:44,
-                fontWeight:600, fontSize:13, cursor:'pointer', whiteSpace:'nowrap',
-                transition:'all 0.18s ease',
-                background: activeFilter === f
-                  ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
-                  : 'rgba(255,255,255,0.06)',
-                color: activeFilter === f ? 'white' : '#94a3b8',
-                border: activeFilter === f ? 'none' : '1px solid rgba(255,255,255,0.10)',
-                boxShadow: activeFilter === f ? '0 4px 12px rgba(99,102,241,0.4)' : 'none',
-              }}>
+              className={`btn-filter-chip${activeFilter === f ? ' active' : ''}`}
+            >
               {f}
             </button>
           ))}
@@ -1665,35 +1655,29 @@ function DatingPageInner({ navigate, showToast, userProfile, setDatingState, inc
       {current && !filterLoading && (
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16, padding:'0 16px', marginBottom:24 }}>
           {/* Pass */}
+          {/* ── Pass ── */}
           <div style={{ textAlign:'center' }}>
             <button onClick={handlePass} aria-label="Pass"
-              style={{ width:60, height:60, borderRadius:'50%', background:'transparent',
-                border:'2px solid #ef4444', color:'#ef4444', fontSize:22, cursor:'pointer',
-                display:'flex', alignItems:'center', justifyContent:'center', minHeight:44, minWidth:44 }}>
+              className="btn-dating-fab btn-dating-pass">
               ✕
             </button>
-            <div style={{ fontSize:10, color:'#ef4444', marginTop:4, fontWeight:600 }}>Pass</div>
+            <div style={{ fontSize:10, color:'#f87171', marginTop:4, fontWeight:600 }}>Pass</div>
           </div>
-          {/* Rewind */}
+          {/* ── Rewind ── */}
           <div style={{ textAlign:'center' }}>
             <button onClick={handleRewind} aria-label="Rewind"
-              style={{ width:44, height:44, borderRadius:'50%', background:'transparent',
-                border:'2px solid #f59e0b', color:'#f59e0b', fontSize:18, cursor:'pointer',
-                opacity: history.length===0 ? 0.35 : 1,
-                display:'flex', alignItems:'center', justifyContent:'center', minHeight:44, minWidth:44 }}>
+              className="btn-dating-fab btn-wf-warning"
+              style={{ opacity: history.length===0 ? 0.35 : 1 }}>
               ↩️
             </button>
-            <div style={{ fontSize:10, color:'#f59e0b', marginTop:4, fontWeight:600 }}>Rewind</div>
+            <div style={{ fontSize:10, color:'#fcd34d', marginTop:4, fontWeight:600 }}>Rewind</div>
           </div>
-          {/* Super Like */}
+          {/* ── Super Like ── */}
           <div style={{ textAlign:'center', position:'relative' }}>
             <button onClick={handleSuperLike} aria-label="Super Like"
-              style={{ width:52, height:52, borderRadius:'50%', background:'transparent',
-                border:'2px solid #6366f1', color:'#6366f1', fontSize:20, cursor:'pointer',
-                display:'flex', alignItems:'center', justifyContent:'center', minHeight:44, minWidth:44 }}>
+              className="btn-dating-fab btn-dating-superlike">
               ⭐
             </button>
-            {/* Super Like counter badge */}
             <div style={{
               position:'absolute', top:-4, right:-4, background:'#6366f1',
               borderRadius:'50%', width:18, height:18, display:'flex',
@@ -1701,16 +1685,13 @@ function DatingPageInner({ navigate, showToast, userProfile, setDatingState, inc
             }}>
               {supersLeft}
             </div>
-            <div style={{ fontSize:10, color:'#6366f1', marginTop:4, fontWeight:600 }}>Super</div>
+            <div style={{ fontSize:10, color:'#818cf8', marginTop:4, fontWeight:600 }}>Super</div>
           </div>
-          {/* Like */}
+          {/* ── Like ── */}
           <div style={{ textAlign:'center' }}>
             <button onClick={handleLike} aria-label="Like"
-              style={{ width:72, height:72, borderRadius:'50%',
-                background:'linear-gradient(135deg,#22c55e,#16a34a)',
-                border:'none', color:'white', fontSize:28, cursor:'pointer',
-                boxShadow:'0 8px 24px rgba(34,197,94,0.4)',
-                display:'flex', alignItems:'center', justifyContent:'center', minHeight:44, minWidth:44 }}>
+              className="btn-dating-fab btn-dating-like"
+              style={{ width:72, height:72 }}>
               💚
             </button>
             <div style={{ fontSize:11, color:'#22c55e', marginTop:4, fontWeight:700 }}>Like</div>

@@ -1,5 +1,5 @@
 // src/components/layout/MobileBottomNav.jsx
-// DESIGN-UPDATE Jun-2026: Minimalist outline/hollow button style for mobile tabs
+// WIREFRAME-BUTTONS Jun-2026: Replaced emoji tabs with new minimalist SVG UnixIconBtn buttons
 // CRITICAL-FIX Jun-2026: Mobile-first bottom tab bar (Instagram/TikTok pattern)
 // Only renders on viewports < 640px.
 // Tabs: Home | Search | ➕ Create | Messages | ··· More
@@ -7,17 +7,18 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAppStore from '@store/useAppStore';
+import UnixIconBtn from '@components/common/UnixIconBtn';
 
 const MOBILE_NAV_H = 64; // px — exported so AppShell can use it for padding
 
 export { MOBILE_NAV_H };
 
 const TABS = [
-  { path: '/feed',      icon: '🏠', label: 'Home' },
-  { path: '/search',    icon: '🔍', label: 'Search' },
-  { path: '__create__', icon: '➕', label: 'Create', create: true },
-  { path: '/messages',  icon: '💬', label: 'Messages', badge: 'unreadMessages' },
-  { path: '__more__',   icon: '⋯',  label: 'More',    more: true },
+  { path: '/feed',      icon: 'home',     label: 'Home' },
+  { path: '/search',    icon: 'search',   label: 'Search' },
+  { path: '__create__', icon: 'compose',  label: 'Create', create: true },
+  { path: '/messages',  icon: 'messages', label: 'Messages', badge: 'unreadMessages' },
+  { path: '__more__',   icon: 'more',     label: 'More',    more: true },
 ];
 
 export default function MobileBottomNav({ onCreatePost }) {
@@ -51,7 +52,6 @@ export default function MobileBottomNav({ onCreatePost }) {
         left: 0,
         right: 0,
         height: MOBILE_NAV_H,
-        // DESIGN: Deeper dark glass, clean outline top border
         background: 'rgba(8, 6, 24, 0.97)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
@@ -66,10 +66,129 @@ export default function MobileBottomNav({ onCreatePost }) {
     >
       {TABS.map((tab) => {
         const active   = !tab.create && !tab.more && pathname.startsWith(tab.path);
-        const count    = tab.badge ? counts[tab.badge] : 0;
-        const isCreate = tab.create;
-        const isMore   = tab.more;
+        const count    = tab.badge ? (counts[tab.badge] ?? 0) : 0;
 
+        // Create button — slightly larger, indigo outline pill style
+        if (tab.create) {
+          return (
+            <button
+              key={tab.path}
+              onClick={() => handleTab(tab)}
+              aria-label={tab.label}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 1,
+                height: '100%',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: '6px 4px',
+                WebkitTapHighlightColor: 'transparent',
+                gap: 3,
+              }}
+            >
+              {/* Compose SVG icon in an indigo outline pill */}
+              <div style={{
+                width: 44,
+                height: 30,
+                borderRadius: 10,
+                background: 'transparent',
+                border: '1.5px solid rgba(99,102,241,0.60)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 10px rgba(99,102,241,0.20), inset 0 0 8px rgba(99,102,241,0.05)',
+              }}>
+                {/* Inline compose SVG */}
+                <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                </svg>
+              </div>
+            </button>
+          );
+        }
+
+        // More tab
+        if (tab.more) {
+          return (
+            <button
+              key={tab.path}
+              onClick={() => handleTab(tab)}
+              aria-label={tab.label}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                flex: 1,
+                height: '100%',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: '6px 4px',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 28,
+                borderRadius: 8,
+                border: `1px solid ${unreadNotifications > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.10)'}`,
+                background: 'transparent',
+              }}>
+                {/* More / hamburger SVG */}
+                <svg viewBox="0 0 24 24" fill="none" stroke={unreadNotifications > 0 ? '#f87171' : '#7c8fa3'} strokeWidth="1.7" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              </div>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 400,
+                color: '#475569',
+                letterSpacing: '0.01em',
+                lineHeight: 1,
+              }}>
+                More
+              </span>
+              {/* Notification dot on More */}
+              {unreadNotifications > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 'calc(50% - 20px)',
+                  background: '#ef4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  fontSize: 9,
+                  fontWeight: 800,
+                  minWidth: 16,
+                  height: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1.5px solid rgba(8,6,24,0.95)',
+                  padding: '0 3px',
+                }}>
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
+            </button>
+          );
+        }
+
+        // Standard tab — use UnixIconBtn
         return (
           <button
             key={tab.path}
@@ -92,90 +211,29 @@ export default function MobileBottomNav({ onCreatePost }) {
               WebkitTapHighlightColor: 'transparent',
             }}
           >
-            {/* Create button — DESIGN: Outline pill (not solid fill) */}
-            {isCreate ? (
-              <div style={{
-                width: 44,
-                height: 28,
-                borderRadius: 9,
-                // DESIGN: Outline style — transparent with gradient border
-                background: 'transparent',
-                border: '1.5px solid rgba(99,102,241,0.60)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                // Subtle inner glow on create
-                boxShadow: '0 0 10px rgba(99,102,241,0.20), inset 0 0 8px rgba(99,102,241,0.05)',
-              }}>
-                {tab.icon}
-              </div>
-            ) : isMore ? (
-              /* More dots — DESIGN: outline capsule */
-              <div style={{
-                display: 'flex',
-                gap: 3,
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 24,
-                padding: '4px 8px',
-                borderRadius: 8,
-                border: `1px solid ${unreadNotifications > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.10)'}`,
-                background: 'transparent',
-              }}>
-                {[0,1,2].map(i => (
-                  <div key={i} style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    background: unreadNotifications > 0 ? '#f87171' : '#64748b',
-                  }} />
-                ))}
-              </div>
-            ) : (
-              /* Standard tab icon — DESIGN: outline wrapper when active */
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 40,
-                height: 28,
-                borderRadius: 8,
-                // Hollow outline only when active
-                border: active
-                  ? '1px solid rgba(129,140,248,0.45)'
-                  : '1px solid transparent',
-                background: active
-                  ? 'rgba(99,102,241,0.10)'
-                  : 'transparent',
-                transition: 'all 0.18s ease',
-              }}>
-                <span style={{
-                  fontSize: 20,
-                  lineHeight: 1,
-                  filter: active ? 'drop-shadow(0 0 5px rgba(129,140,248,0.5))' : 'none',
-                  transition: 'filter 0.2s, transform 0.15s',
-                  transform: active ? 'scale(1.10)' : 'scale(1)',
-                  display: 'block',
-                }}>
-                  {tab.icon}
-                </span>
-              </div>
-            )}
+            {/* UnixIconBtn wrapper div */}
+            <UnixIconBtn
+              icon={tab.icon}
+              label={tab.label}
+              active={active}
+              badge={count}
+              size="sm"
+              variant="header"
+              onClick={() => {}} /* click handled by parent button */
+              style={{ pointerEvents: 'none' }}
+            />
 
             {/* Label */}
-            {!isCreate && (
-              <span style={{
-                fontSize: 10,
-                fontWeight: active ? 700 : 400,
-                color: active ? '#818cf8' : '#475569',
-                letterSpacing: '0.01em',
-                lineHeight: 1,
-                transition: 'color 0.18s',
-              }}>
-                {tab.label}
-              </span>
-            )}
+            <span style={{
+              fontSize: 10,
+              fontWeight: active ? 700 : 400,
+              color: active ? '#818cf8' : '#475569',
+              letterSpacing: '0.01em',
+              lineHeight: 1,
+              transition: 'color 0.18s',
+            }}>
+              {tab.label}
+            </span>
 
             {/* Active indicator — slim bottom line */}
             {active && (
@@ -189,52 +247,6 @@ export default function MobileBottomNav({ onCreatePost }) {
                 borderRadius: '2px 2px 0 0',
                 background: 'linear-gradient(90deg, #6366f1, #ec4899)',
               }} />
-            )}
-
-            {/* More tab notification dot */}
-            {isMore && unreadNotifications > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: 6,
-                right: 'calc(50% - 20px)',
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '50%',
-                fontSize: 9,
-                fontWeight: 800,
-                minWidth: 16,
-                height: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1.5px solid rgba(8,6,24,0.95)',
-                padding: '0 3px',
-              }}>
-                {unreadNotifications > 9 ? '9+' : unreadNotifications}
-              </span>
-            )}
-
-            {/* Unread badge */}
-            {count > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: 6,
-                right: 'calc(50% - 20px)',
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '50%',
-                fontSize: 9,
-                fontWeight: 800,
-                minWidth: 16,
-                height: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1.5px solid rgba(8,6,24,0.95)',
-                padding: '0 3px',
-              }}>
-                {count > 99 ? '99+' : count > 9 ? '9+' : count}
-              </span>
             )}
           </button>
         );

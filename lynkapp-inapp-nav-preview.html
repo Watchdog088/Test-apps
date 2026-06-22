@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LynkApp — Buttons in Header & Navigation Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0814;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     PAGE TITLE BANNER
+  ============================================================ */
+  .page-banner {
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.08));
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+    padding: 20px 24px 16px;
+    text-align: center;
+  }
+  .page-banner h1 {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.3px;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .page-banner p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  /* ============================================================
+     SECTION HEADERS
+  ============================================================ */
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+    color: #6366f1; text-transform: uppercase;
+    padding: 16px 20px 8px;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+  }
+  .annotation {
+    font-size: 11px; color: #64748b; padding: 6px 20px 0;
+    font-style: italic; line-height: 1.5;
+  }
+
+  /* ============================================================
+     PHONE FRAME WRAPPER
+  ============================================================ */
+  .phone-frame {
+    width: 390px;
+    background: #080618;
+    border-radius: 44px;
+    border: 2px solid rgba(99,102,241,0.25);
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(99,102,241,0.12), 0 40px 80px rgba(0,0,0,0.6);
+    position: relative;
+    margin: 0 auto;
+  }
+
+  /* Notch */
+  .phone-notch {
+    width: 120px; height: 28px;
+    background: #080618;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+  }
+  .notch-camera { width: 10px; height: 10px; border-radius: 50%; background: #1e1b4b; }
+  .notch-speaker { width: 36px; height: 4px; border-radius: 2px; background: #1e1b4b; }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    font-size: 11px; font-weight: 600; color: #94a3b8;
+    height: 20px;
+  }
+
+  /* ============================================================
+     TOP NAV — exact replica of TopNav.jsx
+  ============================================================ */
+  .top-nav {
+    height: 56px;
+    background: rgba(8,6,24,0.94);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(99,102,241,0.12);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+    position: sticky; top: 0; z-index: 200;
+  }
+
+  .top-nav-left { display: flex; align-items: center; gap: 6px; }
+
+  .lynk-logo {
+    font-size: 20px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: flex; align-items: center; gap: 5px;
+    user-select: none;
+  }
+  .hi-text {
+    font-size: 11px; color: #64748b; font-weight: 500;
+    padding-left: 2px; margin-top: 1px;
+  }
+
+  .top-nav-right { display: flex; align-items: center; gap: 3px; }
+
+  /* Unix icon button — exact match of UnixIconBtn.jsx */
+  .unix-btn {
+    width: 38px; height: 38px;
+    background: rgba(99,102,241,0.06);
+    border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    color: rgba(241,245,249,0.70);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .unix-btn:hover {
+    background: rgba(99,102,241,0.14);
+    border-color: rgba(99,102,241,0.40);
+    transform: scale(1.04);
+  }
+  .unix-btn svg { width: 18px; height: 18px; }
+
+  .unix-btn.active {
+    background: rgba(99,102,241,0.18);
+    border-color: rgba(99,102,241,0.55);
+    color: #818cf8;
+  }
+  .unix-btn.feedback-btn {
+    border-color: rgba(16,185,129,0.30);
+    color: rgba(52,211,153,0.8);
+  }
+  .unix-btn.feedback-btn:hover { border-color: rgba(16,185,129,0.55); }
+
+  /* Badge on notifications */
+  .badge {
+    position: absolute; top: 4px; right: 4px;
+    background: #ec4899; color: white;
+    font-size: 9px; font-weight: 800;
+    min-width: 14px; height: 14px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 2px;
+    border: 1px solid rgba(8,6,24,0.9);
+  }
+
+  /* Avatar button */
+  .avatar-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(99,102,241,0.12);
+    border: 1.5px solid rgba(99,102,241,0.50);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: #818cf8;
+    cursor: pointer; margin-left: 2px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .avatar-btn:hover {
+    border-color: rgba(99,102,241,0.85);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+
+  /* Annotation tooltips on header buttons */
+  .btn-label-row {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 3px;
+    padding: 4px 14px 0;
+    font-size: 9px; color: #475569;
+  }
+  .btn-label-item {
+    width: 38px; text-align: center; line-height: 1.2;
+  }
+  .btn-label-item.avatar { width: 40px; margin-left: 2px; }
+
+  /* ============================================================
+     SCROLL CONTENT AREA
+  ============================================================ */
+  .scroll-area {
+    height: 480px; overflow-y: auto;
+    padding-bottom: 70px;
+    scrollbar-width: none;
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* Filter chips row */
+  .chips-row {
+    display: flex; gap: 8px; padding: 10px 14px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .chips-row::-webkit-scrollbar { display: none; }
+
+  .chip {
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    white-space: nowrap; cursor: pointer;
+    transition: all 0.15s; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: rgba(241,245,249,0.55);
+  }
+  .chip.active {
+    background: rgba(99,102,241,0.18);
+    border-color: rgba(99,102,241,0.45);
+    color: #818cf8;
+  }
+  .chip:hover { background: rgba(255,255,255,0.07); }
+
+  /* Stories strip */
+  .stories-strip {
+    display: flex; gap: 10px; padding: 0 14px 10px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .stories-strip::-webkit-scrollbar { display: none; }
+  .story-ring {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    flex-shrink: 0;
+  }
+  .story-avatar {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    padding: 2px;
+  }
+  .story-avatar-inner {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: #130f2e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .story-name { font-size: 10px; color: #64748b; }
+
+  /* Post cards */
+  .post-card {
+    margin: 0 0 1px;
+    background: rgba(15,12,36,0.7);
+    border-bottom: 1px solid rgba(99,102,241,0.07);
+    padding: 12px 14px;
+  }
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .post-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .post-meta { flex: 1; min-width: 0; }
+  .post-name { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+  .post-time { font-size: 11px; color: #64748b; }
+
+  /* Follow pill button in feed — small utility */
+  .btn-follow-sm {
+    padding: 5px 14px;
+    background: linear-gradient(135deg,#6366f1,#7c3aed);
+    border: none; border-radius: 100px;
+    font-size: 11px; font-weight: 700; color: white;
+    cursor: pointer; white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-follow-sm:hover { opacity: 0.88; transform: scale(1.03); }
+
+  .post-image {
+    width: 100%; height: 180px; border-radius: 12px;
+    background: linear-gradient(135deg,#1e1b4b,#2d1b69);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; margin-bottom: 10px;
+  }
+  .post-text {
+    font-size: 13px; color: #cbd5e1; line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  /* Post action buttons — icon row */
+  .post-actions { display: flex; align-items: center; gap: 18px; }
+  .post-action-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: none;
+    font-size: 12px; color: #64748b;
+    cursor: pointer; transition: color 0.15s;
+  }
+  .post-action-btn svg { width: 16px; height: 16px; }
+  .post-action-btn.liked { color: #ec4899; }
+  .post-action-btn:hover { color: #818cf8; }
+  .post-action-btn.liked:hover { color: #f472b6; }
+
+  /* ============================================================
+     BOTTOM NAV — exact replica of BottomNav
+  ============================================================ */
+  .bottom-nav {
+    position: sticky; bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: rgba(8,6,24,0.96);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(99,102,241,0.12);
+    display: flex; align-items: center;
+    z-index: 200;
+  }
+
+  .nav-tab {
+    flex: 1; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    color: rgba(241,245,249,0.30);
+    font-size: 9px; font-weight: 600;
+    transition: color 0.15s;
+    position: relative;
+    border: none; background: none;
+  }
+  .nav-tab svg { width: 22px; height: 22px; }
+  .nav-tab.active { color: #818cf8; }
+  .nav-tab.active::after {
+    content: '';
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 28px; height: 2px;
+    background: linear-gradient(90deg,#6366f1,#ec4899);
+    border-radius: 0 0 4px 4px;
+  }
+
+  /* Raised center FAB tab */
+  .nav-tab-fab {
+    flex: 1; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    position: relative;
+    border: none; background: none;
+  }
+  .fab-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+    margin-top: -16px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .fab-circle:hover {
+    transform: scale(1.08) rotate(90deg);
+    box-shadow: 0 6px 28px rgba(99,102,241,0.7);
+  }
+  .fab-circle svg { width: 22px; height: 22px; color: white; }
+  .fab-label { font-size: 9px; font-weight: 600; color: rgba(241,245,249,0.30); margin-top: 2px; }
+
+  /* Notification dot on nav tab */
+  .nav-dot {
+    position: absolute; top: 10px; right: calc(50% - 16px);
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ec4899;
+    border: 1.5px solid rgba(8,6,24,0.9);
+  }
+
+  /* Bottom nav label annotations */
+  .nav-annotations {
+    display: flex; gap: 0;
+  }
+  .nav-ann {
+    flex: 1; text-align: center;
+    font-size: 9px; color: #334155;
+    padding: 4px 2px;
+    line-height: 1.3;
+  }
+
+  /* ============================================================
+     LAYOUT: SIDE-BY-SIDE PHONE + ANNOTATION PANEL
+  ============================================================ */
+  .showcase-row {
+    display: flex; gap: 32px; align-items: flex-start;
+    padding: 24px 32px;
+    max-width: 900px; margin: 0 auto;
+  }
+
+  .annotation-panel {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 16px;
+    padding-top: 48px;
+  }
+
+  .ann-card {
+    background: rgba(15,12,36,0.8);
+    border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .ann-card h3 {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+    color: #818cf8; margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .ann-card ul {
+    list-style: none; display: flex; flex-direction: column; gap: 6px;
+  }
+  .ann-card li {
+    font-size: 12px; color: #94a3b8; display: flex; align-items: flex-start; gap: 8px;
+  }
+  .ann-card li .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .dot-purple { background: #6366f1; }
+  .dot-pink   { background: #ec4899; }
+  .dot-green  { background: #34d399; }
+  .dot-white  { background: rgba(241,245,249,0.4); }
+
+  .ann-card .swatch-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .swatch {
+    padding: 5px 10px; border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .sw-primary { background: linear-gradient(135deg,#6366f1,#7c3aed); color: white; }
+  .sw-ghost   { background: transparent; border: 1px solid rgba(99,102,241,0.4); color: #818cf8; }
+  .sw-danger  { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.30); color: #f87171; }
+  .sw-success { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.30); color: #34d399; }
+  .sw-pill    { background: rgba(99,102,241,0.18); border: 1px solid rgba(99,102,241,0.35); color: #818cf8; }
+
+  /* ============================================================
+     SECOND PHONE — Messages / Profile view
+  ============================================================ */
+  .two-phones {
+    display: flex; gap: 24px; justify-content: center;
+    padding: 0 24px 32px;
+    flex-wrap: wrap;
+  }
+
+  .phone-mini-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .phone-mini-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: #475569; text-transform: uppercase;
+  }
+
+  .phone-frame-sm {
+    width: 320px;
+    background: #080618;
+    border-radius: 36px;
+    border: 2px solid rgba(99,102,241,0.20);
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(99,102,241,0.08), 0 30px 60px rgba(0,0,0,0.5);
+  }
+
+  /* Profile page content */
+  .profile-cover {
+    height: 100px;
+    background: linear-gradient(135deg,#1e1b4b,#312e81,#4c1d95);
+    display: flex; align-items: flex-end; padding: 0 14px 8px;
+  }
+  .profile-page-nav {
+    height: 56px; background: rgba(8,6,24,0.94);
+    border-bottom: 1px solid rgba(99,102,241,0.12);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+  }
+  .profile-page-title { font-size: 17px; font-weight: 800; color: #f1f5f9; }
+
+  .profile-content { padding: 0 14px 14px; }
+  .profile-avatar-row {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-top: -28px; margin-bottom: 10px;
+  }
+  .profile-big-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#ec4899);
+    border: 3px solid #080618;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .profile-action-row { display: flex; gap: 8px; }
+  .btn-follow-md {
+    padding: 8px 20px; border-radius: 100px;
+    background: linear-gradient(135deg,#6366f1,#7c3aed);
+    border: none; font-size: 12px; font-weight: 700;
+    color: white; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-follow-md:hover { opacity: 0.88; }
+  .btn-msg-md {
+    padding: 8px 18px; border-radius: 100px;
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.35);
+    font-size: 12px; font-weight: 700;
+    color: #818cf8; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-msg-md:hover { background: rgba(99,102,241,0.18); }
+
+  .profile-name { font-size: 16px; font-weight: 800; color: #f1f5f9; }
+  .profile-handle { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+  .profile-bio { font-size: 12px; color: #94a3b8; line-height: 1.5; margin-bottom: 12px; }
+
+  .profile-stats { display: flex; gap: 0; margin-bottom: 14px; }
+  .stat-item { flex: 1; text-align: center; }
+  .stat-num { font-size: 16px; font-weight: 800; color: #f1f5f9; }
+  .stat-lbl { font-size: 10px; color: #64748b; }
+
+  .profile-tabs { display: flex; border-bottom: 1px solid rgba(99,102,241,0.1); margin-bottom: 12px; }
+  .profile-tab {
+    flex: 1; text-align: center; padding: 8px 0;
+    font-size: 12px; font-weight: 700; color: #64748b;
+    cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  .profile-tab.active {
+    color: #818cf8;
+    border-bottom-color: #6366f1;
+  }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+  .grid-cell {
+    aspect-ratio: 1; background: #1e1b4b;
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  /* Dating page */
+  .dating-nav {
+    height: 56px; background: rgba(8,6,24,0.94);
+    border-bottom: 1px solid rgba(236,72,153,0.15);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+  }
+  .dating-title { font-size: 17px; font-weight: 800; color: #f1f5f9; }
+
+  .swipe-card-area {
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .swipe-card {
+    border-radius: 20px;
+    background: linear-gradient(160deg,#1e1b4b,#2d1557);
+    height: 220px; overflow: hidden;
+    position: relative;
+    display: flex; align-items: flex-end;
+    padding: 14px;
+  }
+  .swipe-card-emoji {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-60%);
+    font-size: 56px;
+  }
+  .swipe-card-info { position: relative; z-index: 2; }
+  .swipe-card-name { font-size: 18px; font-weight: 800; color: white; }
+  .swipe-card-sub { font-size: 11px; color: rgba(255,255,255,0.65); }
+  .swipe-card-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 100px;
+    background: rgba(99,102,241,0.30);
+    border: 1px solid rgba(99,102,241,0.40);
+    font-size: 10px; color: #a5b4fc; margin-top: 4px;
+  }
+
+  .swipe-actions {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 6px 0;
+  }
+  .swipe-btn-pass {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(239,68,68,0.10);
+    border: 2px solid rgba(239,68,68,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .swipe-btn-pass:hover {
+    background: rgba(239,68,68,0.20);
+    transform: scale(1.08);
+  }
+  .swipe-btn-super {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(99,102,241,0.12);
+    border: 2px solid rgba(99,102,241,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .swipe-btn-super:hover { background: rgba(99,102,241,0.22); transform: scale(1.08); }
+  .swipe-btn-like {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(236,72,153,0.10);
+    border: 2px solid rgba(236,72,153,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .swipe-btn-like:hover { background: rgba(236,72,153,0.22); transform: scale(1.08); }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
+  @media (max-width: 740px) {
+    .showcase-row { flex-direction: column; align-items: center; padding: 20px 16px; }
+    .annotation-panel { padding-top: 0; width: 100%; }
+    .two-phones { gap: 16px; }
+    .phone-frame-sm { width: 100%; max-width: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE BANNER
+============================================================ -->
+<div class="page-banner">
+  <h1>⚡ LynkApp — Buttons in Header & Navigation</h1>
+  <p>Wireframe preview showing new buttons placed inside the real TopNav, BottomNav, and content areas — before implementing in code</p>
+</div>
+
+<!-- ============================================================
+     SECTION 1: MAIN FEED PHONE + ANNOTATIONS
+============================================================ -->
+<div class="section-label">SCREEN 1 · FEED HOME (TopNav + BottomNav + Content Buttons)</div>
+<p class="annotation">This is an exact wireframe replica of the real app shell. The TopNav already uses the unix-icon button style — here you can see all buttons in context with labels.</p>
+
+<div class="showcase-row">
+
+  <!-- PHONE -->
+  <div style="flex-shrink:0">
+    <div class="phone-frame">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● 5G ■■■■</span>
+      </div>
+
+      <!-- TOP NAV — exact replica of TopNav.jsx -->
+      <div class="top-nav">
+        <div class="top-nav-left">
+          <div>
+            <div class="lynk-logo">⚡ LynkApp</div>
+            <div class="hi-text">Hi, Jordan 👋</div>
+          </div>
+        </div>
+        <div class="top-nav-right">
+
+          <!-- Compose -->
+          <button class="unix-btn" title="Create post">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+
+          <!-- Search -->
+          <button class="unix-btn" title="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+
+          <!-- Notifications with badge -->
+          <button class="unix-btn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <div class="badge">3</div>
+          </button>
+
+          <!-- Feedback (desktop-only shown here for wireframe) -->
+          <button class="unix-btn feedback-btn" title="Beta feedback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+
+          <!-- Avatar -->
+          <button class="avatar-btn" title="Profile">J</button>
+        </div>
+      </div>
+
+      <!-- Button labels row -->
+      <div class="btn-label-row">
+        <div class="btn-label-item">Compose<br>✏️</div>
+        <div class="btn-label-item">Search<br>🔍</div>
+        <div class="btn-label-item">Alerts<br>🔔</div>
+        <div class="btn-label-item">Feedback<br>💬</div>
+        <div class="btn-label-item avatar">Avatar<br>👤</div>
+      </div>
+
+      <!-- Scroll content -->
+      <div class="scroll-area">
+
+        <!-- Filter chips -->
+        <div class="chips-row">
+          <button class="chip active">For You</button>
+          <button class="chip">Friends</button>
+          <button class="chip">Live 🔴</button>
+          <button class="chip">Trending 🔥</button>
+          <button class="chip">Music 🎵</button>
+          <button class="chip">Near Me 📍</button>
+        </div>
+
+        <!-- Stories strip -->
+        <div class="stories-strip">
+          <div class="story-ring">
+            <div class="story-avatar"><div class="story-avatar-inner">➕</div></div>
+            <span class="story-name">Add Story</span>
+          </div>
+          <div class="story-ring">
+            <div class="story-avatar"><div class="story-avatar-inner">🧑</div></div>
+            <span class="story-name">Alex</span>
+          </div>
+          <div class="story-ring">
+            <div class="story-avatar"><div class="story-avatar-inner">👩</div></div>
+            <span class="story-name">Maya</span>
+          </div>
+          <div class="story-ring">
+            <div class="story-avatar"><div class="story-avatar-inner">🧔</div></div>
+            <span class="story-name">Chris</span>
+          </div>
+        </div>
+
+        <!-- Post 1 -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-avatar">🧑</div>
+            <div class="post-meta">
+              <div class="post-name">Alex Kim ✓</div>
+              <div class="post-time">2 min ago · Public</div>
+            </div>
+            <!-- Small utility "Follow" button in feed -->
+            <button class="btn-follow-sm">+ Follow</button>
+          </div>
+          <div class="post-image">🌆</div>
+          <div class="post-text">Just hit 10k followers — this community is everything 🙌 Thank you all!</div>
+          <div class="post-actions">
+            <button class="post-action-btn liked">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              142
+            </button>
+            <button class="post-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              38
+            </button>
+            <button class="post-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              12
+            </button>
+            <button class="post-action-btn" style="margin-left:auto">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Post 2 -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-avatar">👩</div>
+            <div class="post-meta">
+              <div class="post-name">Sam Rivera</div>
+              <div class="post-time">Just now · Friends</div>
+            </div>
+            <button class="btn-follow-sm">+ Follow</button>
+          </div>
+          <div class="post-text">Anyone else been into sunset hiking lately? The views are absolutely insane this time of year 🌄🥾</div>
+          <div class="post-actions">
+            <button class="post-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              87
+            </button>
+            <button class="post-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              14
+            </button>
+            <button class="post-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              6
+            </button>
+            <button class="post-action-btn" style="margin-left:auto">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /scroll-area -->
+
+      <!-- BOTTOM NAV — exact replica -->
+      <div class="bottom-nav">
+        <button class="nav-tab active">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          Feed
+        </button>
+        <button class="nav-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Search
+        </button>
+        <!-- Raised FAB center tab -->
+        <div class="nav-tab-fab">
+          <div class="fab-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <span class="fab-label">Create</span>
+        </div>
+        <button class="nav-tab" style="position:relative">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="nav-dot"></div>
+          Alerts
+        </button>
+        <button class="nav-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Me
+        </button>
+      </div>
+
+    </div><!-- /phone-frame -->
+
+    <!-- Bottom nav labels -->
+    <div style="display:flex; width:390px; padding:6px 0 0">
+      <div class="nav-ann">Nav Tab<br>icon btn</div>
+      <div class="nav-ann">Nav Tab<br>inactive</div>
+      <div class="nav-ann">FAB<br>center ➕</div>
+      <div class="nav-ann">Badge<br>dot 🔴</div>
+      <div class="nav-ann">Nav Tab<br>default</div>
+    </div>
+  </div><!-- /phone wrapper -->
+
+  <!-- ANNOTATION PANEL -->
+  <div class="annotation-panel">
+
+    <div class="ann-card">
+      <h3>📌 Top Nav — Header Buttons</h3>
+      <ul>
+        <li><span class="dot dot-purple"></span><strong>Unix Icon Btns</strong> — 38×38px, rounded corners, translucent purple tint. Used for: Compose ✏️, Search 🔍, Notifications 🔔, Feedback 💬</li>
+        <li><span class="dot dot-green"></span><strong>Feedback btn</strong> — same unix-btn shape but green border tint to distinguish beta feature</li>
+        <li><span class="dot dot-pink"></span><strong>Avatar circle</strong> — 40×40px circle, purple ring, shows first initial or photo. Navigates to Profile</li>
+        <li><span class="dot dot-white"></span><strong>LynkApp Logo</strong> — gradient text wordmark (not a button, but the brand anchor)</li>
+      </ul>
+    </div>
+
+    <div class="ann-card">
+      <h3>📌 Bottom Nav — Navigation Tabs</h3>
+      <ul>
+        <li><span class="dot dot-purple"></span><strong>Active tab</strong> — purple text + top gradient underline bar (Feed, Search, Alerts, Me)</li>
+        <li><span class="dot dot-white"></span><strong>Inactive tab</strong> — 30% white opacity, dims when not selected</li>
+        <li><span class="dot dot-pink"></span><strong>Center FAB ➕</strong> — raised 48px gradient circle, lifts above nav, rotates 90° on hover → compose/post</li>
+        <li><span class="dot dot-pink"></span><strong>Notification dot</strong> — pink 7px circle on Alerts tab when unread</li>
+      </ul>
+    </div>
+
+    <div class="ann-card">
+      <h3>📌 In-Feed Buttons</h3>
+      <ul>
+        <li><span class="dot dot-purple"></span><strong>+ Follow pill</strong> — small 11px gradient purple pill, appears beside users you don't follow</li>
+        <li><span class="dot dot-white"></span><strong>Post actions row</strong> — ghost icon buttons (❤ 💬 ↗ 🔖) with hover purple tint, like turns pink</li>
+        <li><span class="dot dot-purple"></span><strong>Filter chips</strong> — pill tags: active = purple tint, inactive = faint white border</li>
+      </ul>
+    </div>
+
+    <div class="ann-card">
+      <h3>🎨 Button Token Swatches</h3>
+      <div class="swatch-row">
+        <span class="swatch sw-primary">Primary</span>
+        <span class="swatch sw-ghost">Ghost</span>
+        <span class="swatch sw-danger">Danger</span>
+        <span class="swatch sw-success">Success</span>
+        <span class="swatch sw-pill">Active Chip</span>
+      </div>
+    </div>
+
+  </div><!-- /annotation-panel -->
+</div><!-- /showcase-row -->
+
+<!-- ============================================================
+     SECTION 2: PROFILE + DATING PHONES
+============================================================ -->
+<div class="section-label">SCREEN 2 · PROFILE PAGE & DATING PAGE — More Button Types in Context</div>
+<p class="annotation">Shows Primary (Follow), Secondary (Message), Icon buttons in profile header, and swipe action FABs in dating.</p>
+
+<div class="two-phones">
+
+  <!-- PROFILE PHONE -->
+  <div class="phone-mini-wrap">
+    <div class="phone-mini-label">Profile Page</div>
+    <div class="phone-frame-sm">
+      <div class="status-bar" style="font-size:10px;padding:4px 16px">
+        <span>9:41</span><span>●●● ■■■■</span>
+      </div>
+      <!-- TopNav with back button on profile sub-page -->
+      <div class="profile-page-nav">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="unix-btn" style="width:32px;height:32px;border-radius:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="profile-page-title">👤 Profile</span>
+        </div>
+        <div style="display:flex;gap:3px">
+          <button class="unix-btn" style="width:32px;height:32px;border-radius:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="profile-cover"></div>
+      <div class="profile-content">
+        <div class="profile-avatar-row">
+          <div class="profile-big-avatar">🧑</div>
+          <!-- PRIMARY + SECONDARY buttons -->
+          <div class="profile-action-row">
+            <button class="btn-follow-md">+ Follow</button>
+            <button class="btn-msg-md">Message</button>
+          </div>
+        </div>
+        <div class="profile-name">Jordan Lee ✓</div>
+        <div class="profile-handle">@jordanlee · Creator</div>
+        <div class="profile-bio">Building the future one pixel at a time 🎨 Digital artist & coffee enthusiast.</div>
+        <div class="profile-stats">
+          <div class="stat-item"><div class="stat-num">1.2k</div><div class="stat-lbl">Posts</div></div>
+          <div class="stat-item"><div class="stat-num">48.3k</div><div class="stat-lbl">Followers</div></div>
+          <div class="stat-item"><div class="stat-num">312</div><div class="stat-lbl">Following</div></div>
+        </div>
+        <div class="profile-tabs">
+          <div class="profile-tab active">Posts</div>
+          <div class="profile-tab">Media</div>
+          <div class="profile-tab">Tagged</div>
+        </div>
+        <div class="grid-3">
+          <div class="grid-cell">🌆</div>
+          <div class="grid-cell">🎨</div>
+          <div class="grid-cell">🌊</div>
+          <div class="grid-cell">🌸</div>
+          <div class="grid-cell">🏙</div>
+          <div class="grid-cell">🎭</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#475569;text-align:center;margin-top:6px;line-height:1.6">
+      ← Back (unix icon btn)<br>
+      Follow = Primary pill<br>
+      Message = Secondary pill<br>
+      ⋯ = Unix icon btn (more options)
+    </div>
+  </div>
+
+  <!-- DATING PHONE -->
+  <div class="phone-mini-wrap">
+    <div class="phone-mini-label">Dating Page</div>
+    <div class="phone-frame-sm">
+      <div class="status-bar" style="font-size:10px;padding:4px 16px">
+        <span>9:41</span><span>●●● ■■■■</span>
+      </div>
+      <div class="dating-nav">
+        <div class="dating-title">❤️ LynkApp Dating</div>
+        <div style="display:flex;gap:3px">
+          <button class="unix-btn" style="width:32px;height:32px;border-radius:8px;border-color:rgba(236,72,153,0.3)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </button>
+          <button class="unix-btn" style="width:32px;height:32px;border-radius:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="swipe-card-area">
+        <!-- Swipe card -->
+        <div class="swipe-card">
+          <div class="swipe-card-emoji">👩</div>
+          <div class="swipe-card-info">
+            <div class="swipe-card-name">Maya, 26</div>
+            <div class="swipe-card-sub">San Francisco · 3 miles away</div>
+            <div class="swipe-card-badge">🎵 Music · 🎨 Art</div>
+          </div>
+        </div>
+
+        <!-- Filter chips row -->
+        <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
+          <button class="chip active" style="font-size:11px;padding:5px 12px">Nearby</button>
+          <button class="chip" style="font-size:11px;padding:5px 12px">Online</button>
+          <button class="chip" style="font-size:11px;padding:5px 12px">New</button>
+        </div>
+
+        <!-- Swipe action buttons -->
+        <div class="swipe-actions">
+          <!-- Pass (danger/red) -->
+          <button class="swipe-btn-pass" title="Pass">✕</button>
+          <!-- Super like (purple icon btn) -->
+          <button class="swipe-btn-super" title="Super Like">⭐</button>
+          <!-- Like (pink/heart) -->
+          <button class="swipe-btn-like" title="Like">❤️</button>
+        </div>
+
+        <!-- CTA action row -->
+        <div style="display:flex;gap:8px;padding:4px 0">
+          <button style="flex:1;padding:10px;border-radius:100px;background:linear-gradient(135deg,#ec4899,#be185d);border:none;font-size:12px;font-weight:700;color:white;cursor:pointer">
+            💌 Send Message
+          </button>
+          <button style="padding:10px 14px;border-radius:100px;background:rgba(99,102,241,0.10);border:1px solid rgba(99,102,241,0.35);font-size:12px;font-weight:700;color:#818cf8;cursor:pointer">
+            👤 View Profile
+          </button>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#475569;text-align:center;margin-top:6px;line-height:1.6">
+      ✕ Pass = Danger circle FAB<br>
+      ⭐ Super = Icon circle (purple)<br>
+      ❤️ Like = Primary circle FAB (pink)<br>
+      Send Msg = CTA full button<br>
+      View Profile = Secondary ghost pill
+    </div>
+  </div>
+
+</div><!-- /two-phones -->
+
+<!-- ============================================================
+     QUICK LEGEND
+============================================================ -->
+<div style="max-width:860px;margin:0 auto 40px;padding:0 24px">
+  <div style="background:rgba(15,12,36,0.8);border:1px solid rgba(99,102,241,0.12);border-radius:16px;padding:20px 24px">
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.2px;color:#6366f1;text-transform:uppercase;margin-bottom:14px">
+      ✅ WIREFRAME BUTTON PLACEMENT SUMMARY — Ready for Code Implementation
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">TopNav (header)</strong><br>
+        • Unix icon btns (compose, search, bell, feedback)<br>
+        • Admin shield btn (admins only)<br>
+        • Avatar circle btn → /profile
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">BottomNav</strong><br>
+        • 4 nav tabs (Feed, Search, Alerts, Me)<br>
+        • Raised FAB center → compose<br>
+        • Active state: purple + top bar
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">Feed Content</strong><br>
+        • + Follow pill (small utility)<br>
+        • Post actions (icon ghost row)<br>
+        • Filter chips (pill tags)
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">Profile Page</strong><br>
+        • Follow = primary gradient pill<br>
+        • Message = secondary ghost pill<br>
+        • ← Back = unix icon btn
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">Dating Page</strong><br>
+        • Pass ✕ = danger circle FAB<br>
+        • Like ❤️ = pink circle FAB<br>
+        • Super ⭐ = purple icon btn<br>
+        • Send Msg = full-width CTA
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        <strong style="color:#f1f5f9">NOTE: No sidebar!</strong><br>
+        LynkApp is mobile-first.<br>
+        Navigation = BottomNav tabs.<br>
+        Desktop gets left sidebar (future).
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
