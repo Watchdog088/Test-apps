@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LynkApp — Unix Icon Button Preview</title>
+<style>
+/* ─── Base ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#0f0f15;color:#cdd6f4;min-height:100vh;
+}
+
+/* ─── Page ──────────────────────────────────────────────── */
+.page{max-width:1000px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:1.35rem;font-weight:700;color:#cdd6f4;margin-bottom:4px}
+.sub{color:#6c7086;font-size:.85rem;margin-bottom:36px}
+.section{margin-bottom:48px}
+.section-title{
+  font-size:.72rem;font-weight:700;color:#6c7086;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;
+  border-bottom:1px solid #1e1e2e
+}
+
+/* ─── UNIX ICON BUTTON BASE ─────────────────────────────── */
+.ib{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border:none;border-radius:8px;
+  background:transparent;color:#6c7086;cursor:pointer;
+  transition:background .14s ease,color .14s ease,box-shadow .14s ease;
+  outline:none;flex-shrink:0;
+}
+.ib svg{width:20px;height:20px;stroke:currentColor;fill:none;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  pointer-events:none;transition:color .14s}
+
+/* Active / selected — left accent bar */
+.ib.active{color:#cdd6f4;background:rgba(205,214,244,.08)}
+.ib.active::before{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:2.5px;border-radius:0 2px 2px 0;background:#6366f1
+}
+
+/* Hover */
+.ib:hover{color:#cdd6f4;background:rgba(205,214,244,.07)}
+
+/* Tooltip */
+.ib[data-tip]{position:relative}
+.ib[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#1e1e2e;color:#cdd6f4;font-size:.75rem;font-weight:500;
+  padding:5px 10px;border-radius:6px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;
+  box-shadow:0 4px 16px rgba(0,0,0,.5)
+}
+.ib[data-tip]:hover::after{opacity:1}
+
+/* Badge */
+.ib .badge{
+  position:absolute;top:4px;right:4px;
+  min-width:16px;height:16px;border-radius:99px;
+  font-size:.6rem;font-weight:700;line-height:16px;text-align:center;
+  padding:0 4px;pointer-events:none;border:1.5px solid #0f0f15
+}
+.badge-blue{background:#6366f1;color:#fff}
+.badge-red{background:#ef4444;color:#fff}
+.badge-amber{background:#f59e0b;color:#000}
+.badge-dot{
+  position:absolute;top:8px;right:8px;
+  width:7px;height:7px;border-radius:50%;border:1.5px solid #0f0f15
+}
+.badge-dot-green{background:#22c55e}
+.badge-dot-red{background:#ef4444}
+
+/* ─── SIDEBAR PANEL ─────────────────────────────────────── */
+.sidebar-demo{
+  display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap
+}
+.sidebar{
+  width:52px;background:#13131f;border-radius:12px;
+  padding:10px 6px;display:flex;flex-direction:column;
+  gap:2px;align-items:center;
+  box-shadow:2px 0 16px rgba(0,0,0,.4);position:relative
+}
+.sidebar .divider{
+  width:28px;height:1px;background:#1e1e2e;margin:6px 0
+}
+/* sidebar top section */
+.sidebar .top{display:flex;flex-direction:column;gap:2px;flex:1}
+/* sidebar bottom section */
+.sidebar .bottom{display:flex;flex-direction:column;gap:2px}
+
+/* ─── HEADER PANEL ──────────────────────────────────────── */
+.header-demo{
+  background:#13131f;border-radius:12px;
+  padding:8px 12px;display:flex;align-items:center;gap:6px;
+  box-shadow:0 2px 16px rgba(0,0,0,.4)
+}
+.header-spacer{flex:1}
+.header-logo{
+  color:#a5b4fc;font-size:.88rem;font-weight:800;
+  letter-spacing:.04em;padding:0 8px;user-select:none
+}
+.header-divider{
+  width:1px;height:22px;background:#1e1e2e;margin:0 2px
+}
+
+/* Header icon smaller variant */
+.ib.sm{width:34px;height:34px;border-radius:6px}
+.ib.sm svg{width:17px;height:17px}
+
+/* ─── LABEL VARIANT (sidebar expanded) ─────────────────── */
+.sidebar-wide{
+  width:200px;background:#13131f;border-radius:12px;
+  padding:10px 8px;display:flex;flex-direction:column;
+  gap:2px;
+  box-shadow:2px 0 16px rgba(0,0,0,.4)
+}
+.ib-row{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:0 6px 0 4px;border-radius:8px;
+  height:38px;cursor:pointer;color:#6c7086;
+  transition:background .14s,color .14s;position:relative
+}
+.ib-row:hover{background:rgba(205,214,244,.07);color:#cdd6f4}
+.ib-row.active{background:rgba(99,102,241,.12);color:#a5b4fc}
+.ib-row.active::before{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:3px;border-radius:0 2px 2px 0;background:#6366f1
+}
+.ib-row svg{width:17px;height:17px;stroke:currentColor;fill:none;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ib-row .row-label{font-size:.82rem;font-weight:500;flex:1}
+.ib-row .row-badge{
+  min-width:18px;height:18px;border-radius:99px;
+  font-size:.62rem;font-weight:700;line-height:18px;text-align:center;
+  padding:0 5px
+}
+
+/* ─── STATES GRID ───────────────────────────────────────── */
+.states-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.state-label{font-size:.72rem;color:#6c7086;margin-top:6px;text-align:center}
+.state-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+
+/* ─── FULL APP MOCKUP ───────────────────────────────────── */
+.app-shell{
+  display:flex;border-radius:16px;overflow:hidden;
+  box-shadow:0 8px 48px rgba(0,0,0,.6);width:100%
+}
+.app-sidebar{
+  width:52px;background:#13131f;padding:10px 6px;
+  display:flex;flex-direction:column;gap:2px;align-items:center;
+  border-right:1px solid #1a1a2e;flex-shrink:0
+}
+.app-sidebar .divider{width:28px;height:1px;background:#1e1e2e;margin:6px 0}
+.app-sidebar .space{flex:1}
+.app-main{flex:1;background:#0f0f15;display:flex;flex-direction:column;min-width:0}
+.app-topbar{
+  background:#13131f;border-bottom:1px solid #1a1a2e;
+  height:46px;display:flex;align-items:center;
+  padding:0 12px;gap:6px
+}
+.app-topbar .title{
+  font-size:.85rem;font-weight:600;color:#cdd6f4;flex:1;
+  padding-left:6px
+}
+.app-content{
+  flex:1;padding:16px;display:flex;flex-direction:column;gap:10px
+}
+.content-card{
+  background:#13131f;border-radius:10px;padding:14px;
+  border:1px solid #1e1e2e
+}
+.content-card-title{font-size:.8rem;color:#6c7086;margin-bottom:6px}
+.content-card-body{font-size:.85rem;color:#cdd6f4}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>⚡ LynkApp — Unix Icon Button System</h1>
+  <p class="sub">VS Code–style icon-only buttons · Dark background · No color · White SVG outlines · Hover tooltips · Badge counters</p>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  1. ALL ICON BUTTONS                                -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">1 · Icon Button Library — Hover for tooltips</div>
+    <div class="states-row" style="flex-wrap:wrap;gap:4px">
+
+      <!-- Feed -->
+      <button class="ib active" data-tip="Feed">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </button>
+
+      <!-- Search -->
+      <button class="ib" data-tip="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+
+      <!-- Messages + badge -->
+      <button class="ib" data-tip="Messages">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="badge badge-blue">5</span>
+      </button>
+
+      <!-- Notifications + badge -->
+      <button class="ib" data-tip="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="badge badge-red">12</span>
+      </button>
+
+      <!-- Stories -->
+      <button class="ib" data-tip="Stories">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+      </button>
+
+      <!-- Live -->
+      <button class="ib" data-tip="Live">
+        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span class="badge-dot badge-dot-red"></span>
+      </button>
+
+      <!-- Dating -->
+      <button class="ib" data-tip="Dating">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </button>
+
+      <!-- Friends / People -->
+      <button class="ib" data-tip="Friends">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="badge badge-blue">3</span>
+      </button>
+
+      <!-- Groups -->
+      <button class="ib" data-tip="Groups">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      </button>
+
+      <!-- Events -->
+      <button class="ib" data-tip="Events">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </button>
+
+      <!-- Marketplace -->
+      <button class="ib" data-tip="Marketplace">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      </button>
+
+      <!-- Music -->
+      <button class="ib" data-tip="Music">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </button>
+
+      <!-- Gaming -->
+      <button class="ib" data-tip="Gaming">
+        <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r=".5" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r=".5" fill="currentColor" stroke="none"/></svg>
+      </button>
+
+      <!-- Media Hub -->
+      <button class="ib" data-tip="Media Hub">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+      </button>
+
+      <!-- AR/VR -->
+      <button class="ib" data-tip="AR / VR">
+        <svg viewBox="0 0 24 24"><path d="M2 12s2-7 10-7 10 7 10 7-2 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+
+      <!-- Video Calls -->
+      <button class="ib" data-tip="Video Calls">
+        <svg viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.889L15 14"/><rect x="3" y="6" width="12" height="13" rx="2"/></svg>
+      </button>
+
+      <!-- Saved -->
+      <button class="ib" data-tip="Saved">
+        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+      </button>
+
+      <!-- Trending -->
+      <button class="ib" data-tip="Trending">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </button>
+
+      <!-- Wallet -->
+      <button class="ib" data-tip="Wallet">
+        <svg viewBox="0 0 24 24"><path d="M21 4H3a1 1 0 00-1 1v14a1 1 0 001 1h18a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 10h22"/><circle cx="17" cy="15" r="1" fill="currentColor" stroke="none"/></svg>
+      </button>
+
+      <!-- Settings -->
+      <button class="ib" data-tip="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+
+      <!-- Profile / Account -->
+      <button class="ib" data-tip="Profile">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="badge-dot badge-dot-green"></span>
+      </button>
+
+      <!-- Help -->
+      <button class="ib" data-tip="Help">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
+
+      <!-- More / Ellipsis -->
+      <button class="ib" data-tip="More">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+      </button>
+
+    </div>
+    <p style="font-size:.72rem;color:#6c7086;margin-top:10px">Hover any icon to see tooltip · Active state has left indigo accent bar · Badges show count or live dot</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  2. BUTTON STATES                                   -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">2 · States</div>
+    <div class="states-row">
+      <div class="state-col">
+        <button class="ib">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <div class="state-label">Default</div>
+      </div>
+      <div class="state-col">
+        <button class="ib active">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <div class="state-label">Active</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="color:#cdd6f4;background:rgba(205,214,244,.07)">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <div class="state-label">Hover</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="opacity:.3;pointer-events:none">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <div class="state-label">Disabled</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="badge badge-blue">9</span>
+        </button>
+        <div class="state-label">+Badge</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="position:relative">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <span class="badge-dot badge-dot-red"></span>
+        </button>
+        <div class="state-label">Live dot</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="badge-dot badge-dot-green"></span>
+        </button>
+        <div class="state-label">Online dot</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="border-radius:50%">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        <div class="state-label">Circle</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="width:34px;height:34px;border-radius:6px">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="state-label">Small</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  3. ICON SIZES                                      -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">3 · Sizes</div>
+    <div class="states-row">
+      <div class="state-col">
+        <button class="ib" style="width:28px;height:28px">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="state-label">XS 28px</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="width:34px;height:34px">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="state-label">SM 34px</div>
+      </div>
+      <div class="state-col">
+        <button class="ib">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="state-label">MD 40px ✓</div>
+      </div>
+      <div class="state-col">
+        <button class="ib" style="width:48px;height:48px">
+          <svg viewBox="0 0 24 24" style="width:22px;height:22px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="state-label">LG 48px</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  4. FULL APP MOCKUP                                 -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">4 · How They Look in LynkApp — Full Shell Mockup</div>
+
+    <div class="app-shell">
+
+      <!-- ── Sidebar ─────────────────────────────── -->
+      <div class="app-sidebar">
+        <!-- Top: nav items -->
+        <button class="ib active" title="Feed">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <button class="ib" title="Search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="ib" title="Messages">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="badge badge-blue">5</span>
+        </button>
+        <button class="ib" title="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="badge badge-red">3</span>
+        </button>
+        <div class="divider"></div>
+        <button class="ib" title="Stories">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button class="ib" title="Live">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <span class="badge-dot badge-dot-red"></span>
+        </button>
+        <button class="ib" title="Dating">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </button>
+        <button class="ib" title="Groups">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </button>
+        <button class="ib" title="Marketplace">
+          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        </button>
+        <button class="ib" title="Gaming">
+          <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r=".5" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r=".5" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="ib" title="Music">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
+        <div class="divider"></div>
+        <!-- Bottom: account & settings -->
+        <div class="space"></div>
+        <button class="ib" title="Profile">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="badge-dot badge-dot-green"></span>
+        </button>
+        <button class="ib" title="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+
+      <!-- ── Main Area ──────────────────────────── -->
+      <div class="app-main">
+        <!-- Top bar -->
+        <div class="app-topbar">
+          <span style="color:#a5b4fc;font-size:.9rem;font-weight:800;letter-spacing:.04em">⚡ LynkApp</span>
+          <span class="title">Feed</span>
+          <!-- Right-side header icons -->
+          <button class="ib sm" title="Search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button class="ib sm" title="Compose">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="ib sm" title="Notifications" style="position:relative">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="badge badge-red" style="font-size:.55rem;min-width:14px;height:14px;line-height:14px;top:3px;right:3px">3</span>
+          </button>
+          <button class="ib sm" title="More">
+            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+          </button>
+        </div>
+        <!-- Content -->
+        <div class="app-content">
+          <div class="content-card">
+            <div class="content-card-title">Welcome back, Jay 👋</div>
+            <div class="content-card-body">Your feed has 12 new posts from people you follow.</div>
+          </div>
+          <div class="content-card">
+            <div class="content-card-title">Trending now</div>
+            <div class="content-card-body">#LynkApp is trending · 1.2k posts today</div>
+          </div>
+          <div class="content-card" style="opacity:.5">
+            <div class="content-card-title">Post card</div>
+            <div class="content-card-body">Content goes here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  5. SIDEBAR COLLAPSED vs EXPANDED                   -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">5 · Sidebar — Collapsed vs Expanded with Labels</div>
+    <div class="sidebar-demo">
+
+      <!-- Collapsed (icon only) -->
+      <div>
+        <p style="font-size:.72rem;color:#6c7086;margin-bottom:8px">Collapsed (52px)</p>
+        <div class="sidebar">
+          <button class="ib active" title="Feed">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </button>
+          <button class="ib" title="Messages">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span class="badge badge-blue">5</span>
+          </button>
+          <button class="ib" title="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="badge badge-red">3</span>
+          </button>
+          <div class="divider"></div>
+          <button class="ib" title="Dating">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </button>
+          <button class="ib" title="Live">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <span class="badge-dot badge-dot-red"></span>
+          </button>
+          <button class="ib" title="Marketplace">
+            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          </button>
+          <div class="divider"></div>
+          <div class="space" style="min-height:40px"></div>
+          <button class="ib" title="Profile">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="badge-dot badge-dot-green"></span>
+          </button>
+          <button class="ib" title="Settings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expanded (icon + label) -->
+      <div>
+        <p style="font-size:.72rem;color:#6c7086;margin-bottom:8px">Expanded (200px)</p>
+        <div class="sidebar-wide">
+          <div class="ib-row active">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="row-label">Feed</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span class="row-label">Messages</span>
+            <span class="row-badge badge-blue">5</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="row-label">Notifications</span>
+            <span class="row-badge badge-red">3</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span class="row-label">Dating</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <span class="row-label">Live</span>
+            <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0"></span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            <span class="row-label">Marketplace</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/></svg>
+            <span class="row-label">Gaming</span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <span class="row-label">Music</span>
+          </div>
+          <div style="height:1px;background:#1e1e2e;margin:4px 0"></div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="row-label">Profile</span>
+            <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0"></span>
+          </div>
+          <div class="ib-row">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <span class="row-label">Settings</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  6. HEADER STRIP                                    -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">6 · Header Strip — Compact icon row</div>
+    <div class="header-demo">
+      <span class="header-logo">⚡ LynkApp</span>
+      <div class="header-divider"></div>
+      <!-- left nav -->
+      <button class="ib sm active" title="Feed">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </button>
+      <button class="ib sm" title="Trending">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </button>
+      <button class="ib sm" title="Stories">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+      </button>
+      <button class="ib sm" title="Live">
+        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span class="badge-dot badge-dot-red" style="top:6px;right:6px"></span>
+      </button>
+      <div class="header-spacer"></div>
+      <!-- right actions -->
+      <button class="ib sm" title="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="ib sm" title="Messages" style="position:relative">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="badge badge-blue" style="font-size:.55rem;min-width:14px;height:14px;line-height:14px;top:3px;right:3px">5</span>
+      </button>
+      <button class="ib sm" title="Notifications" style="position:relative">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="badge badge-red" style="font-size:.55rem;min-width:14px;height:14px;line-height:14px;top:3px;right:3px">3</span>
+      </button>
+      <div class="header-divider"></div>
+      <button class="ib sm" title="Profile" style="position:relative;border-radius:50%">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="badge-dot badge-dot-green" style="top:6px;right:6px;width:6px;height:6px"></span>
+      </button>
+      <button class="ib sm" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <p style="text-align:center;color:#45475a;font-size:.75rem;margin-top:20px">
+    LynkApp Unix Icon Button System · VS Code–style · No color · 40px min touch target (WCAG 2.5.5) · SVG stroke icons
+  </p>
+
+</div>
+</body>
+</html>
