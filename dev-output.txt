@@ -2,4 +2,6 @@ npm error Missing script: "dev"
 npm error
 npm error To see a list of scripts, run:
 npm error   npm run
-npm error A complete log of this run can be found in: C:\Users\Jnewball\AppData\Local\npm-cache\_logs\2026-06-02T15_24_23_895Z-debug-0.log
+npm error A complete log of this run can be found in: C:\Users\Jnewball\AppData\Local\npm-cache\_logs\2026-06-22T14_23_29_184Z-debug-0.log
+
+c:\Users\Jnewball\Test-apps\Test-apps>

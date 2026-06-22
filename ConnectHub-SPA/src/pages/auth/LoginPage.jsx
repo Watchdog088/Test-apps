@@ -499,18 +499,25 @@ export default function LoginPage() {
             </div>
 
             {/* ── FIX-01: Google ── */}
-            <button onClick={handleGoogle} disabled={loading} style={s.socialBtn} aria-label="Continue with Google">
+            <button onClick={handleGoogle} disabled={loading}
+              className="btn btn-wf-ghost"
+              style={{ width: '100%', marginBottom: '8px' }}
+              aria-label="Continue with Google">
               <span>🌐</span> Continue with Google
             </button>
 
             {/* ── FIX-02: Apple ── */}
-            <button onClick={handleApple} disabled={loading} style={{ ...s.socialBtn, marginBottom: '8px' }} aria-label="Continue with Apple">
+            <button onClick={handleApple} disabled={loading}
+              className="btn btn-wf-ghost"
+              style={{ width: '100%', marginBottom: '8px' }}
+              aria-label="Continue with Apple">
               <span>🍎</span> Continue with Apple
             </button>
 
             {/* ── FIX-06: Biometric stub ── */}
             <button onClick={handleBiometric} disabled={loading}
-              style={{ ...s.socialBtn, marginBottom: '12px', border: '1px dashed rgba(255,255,255,0.15)', color: '#64748b' }}
+              className="btn btn-wf-dashed"
+              style={{ width: '100%', marginBottom: '12px' }}
               aria-label="Sign in with Face ID or Touch ID">
               <span>🔒</span> Face ID / Touch ID
             </button>

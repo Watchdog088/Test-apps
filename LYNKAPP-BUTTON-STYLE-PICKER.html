@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LynkApp — Pick Your Button Style</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .page-title h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1a1a2e;
+    }
+    .page-title p {
+      color: #555;
+      font-size: 15px;
+      margin-top: 6px;
+    }
+
+    .how-to {
+      background: #fff;
+      border: 2px solid #6366f1;
+      border-radius: 14px;
+      padding: 16px 22px;
+      max-width: 700px;
+      margin: 0 auto 36px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.7;
+    }
+    .how-to strong { color: #6366f1; }
+
+    /* ── Grid of style options ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .option-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 3px solid transparent;
+      position: relative;
+    }
+
+    .option-badge {
+      position: absolute;
+      top: -14px;
+      left: 24px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+      padding: 4px 16px;
+      border-radius: 99px;
+    }
+
+    .option-card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      margin-top: 6px;
+    }
+    .option-card .subtitle {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 22px;
+    }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+
+    /* ═══════════════════════════════
+       STYLE A — Current Dark Gradient
+       ═══════════════════════════════ */
+    .a-primary {
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      color: #fff; border: none;
+      padding: 11px 22px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .a-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .a-outline {
+      background: transparent; color: #6366f1;
+      border: 2px solid #6366f1;
+      padding: 10px 20px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .a-outline:hover { background: rgba(99,102,241,0.08); }
+
+    .a-pill {
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      color: #fff; border: none;
+      padding: 9px 20px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .a-pill:hover { opacity: 0.85; }
+
+    .a-ghost {
+      background: rgba(99,102,241,0.08); color: #6366f1;
+      border: 1px solid rgba(99,102,241,0.25);
+      padding: 10px 18px; border-radius: 12px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+
+    .a-icon {
+      background: rgba(99,102,241,0.1); color: #6366f1;
+      border: 1px solid rgba(99,102,241,0.2);
+      width: 42px; height: 42px; border-radius: 12px;
+      font-size: 17px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    /* ═══════════════════════════════
+       STYLE B — Clean Light & White
+       ═══════════════════════════════ */
+    .b-primary {
+      background: #4f46e5;
+      color: #fff; border: none;
+      padding: 11px 22px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+      transition: all 0.18s;
+    }
+    .b-primary:hover { background: #4338ca; transform: translateY(-1px); }
+
+    .b-outline {
+      background: #fff; color: #4f46e5;
+      border: 2px solid #4f46e5;
+      padding: 10px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .b-outline:hover { background: #eef2ff; }
+
+    .b-pill {
+      background: #4f46e5;
+      color: #fff; border: none;
+      padding: 9px 20px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(79,70,229,0.25);
+      transition: all 0.18s;
+    }
+    .b-pill:hover { background: #4338ca; }
+
+    .b-ghost {
+      background: #f5f5f5; color: #444;
+      border: 1px solid #e0e0e0;
+      padding: 10px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .b-ghost:hover { background: #ebebeb; }
+
+    .b-icon {
+      background: #f0f0f0; color: #555;
+      border: 1px solid #ddd;
+      width: 42px; height: 42px; border-radius: 10px;
+      font-size: 17px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .b-icon:hover { background: #e8e8e8; }
+
+    /* ═══════════════════════════════
+       STYLE C — Minimal Outline Only
+       ═══════════════════════════════ */
+    .c-primary {
+      background: #111;
+      color: #fff; border: none;
+      padding: 11px 22px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: all 0.18s;
+    }
+    .c-primary:hover { background: #333; }
+
+    .c-outline {
+      background: transparent; color: #111;
+      border: 1.5px solid #111;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .c-outline:hover { background: #f5f5f5; }
+
+    .c-pill {
+      background: transparent; color: #111;
+      border: 1.5px solid #bbb;
+      padding: 9px 20px; border-radius: 9999px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .c-pill:hover { border-color: #111; }
+
+    .c-ghost {
+      background: transparent; color: #666;
+      border: 1px solid #ddd;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .c-ghost:hover { background: #f5f5f5; }
+
+    .c-icon {
+      background: transparent; color: #444;
+      border: 1.5px solid #ccc;
+      width: 42px; height: 42px; border-radius: 8px;
+      font-size: 17px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .c-icon:hover { border-color: #444; }
+
+    /* ═══════════════════════════════
+       STYLE D — Soft Pastel / Rounded
+       ═══════════════════════════════ */
+    .d-primary {
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      color: #fff; border: none;
+      padding: 11px 22px; border-radius: 14px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+      transition: all 0.18s;
+    }
+    .d-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .d-outline {
+      background: #ede9fe; color: #7c3aed;
+      border: 1.5px solid #c4b5fd;
+      padding: 10px 20px; border-radius: 14px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .d-outline:hover { background: #ddd6fe; }
+
+    .d-pill {
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      color: #fff; border: none;
+      padding: 9px 20px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 3px 12px rgba(139,92,246,0.3);
+      transition: all 0.18s;
+    }
+    .d-pill:hover { opacity: 0.9; }
+
+    .d-ghost {
+      background: #f5f3ff; color: #7c3aed;
+      border: 1px solid #ddd6fe;
+      padding: 10px 18px; border-radius: 14px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .d-ghost:hover { background: #ede9fe; }
+
+    .d-icon {
+      background: #f5f3ff; color: #7c3aed;
+      border: 1px solid #ddd6fe;
+      width: 42px; height: 42px; border-radius: 14px;
+      font-size: 17px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .d-icon:hover { background: #ede9fe; }
+
+    /* ─── Phone mockup strip ─── */
+    .phone-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 18px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .mini-phone {
+      min-width: 130px;
+      background: #0f0c29;
+      border-radius: 18px;
+      border: 2px solid rgba(255,255,255,0.15);
+      padding: 24px 12px 12px;
+      text-align: center;
+    }
+    .mini-phone.light { background: #ffffff; border: 2px solid #e5e7eb; }
+    .mini-phone.minimal { background: #fafafa; border: 2px solid #e0e0e0; }
+    .mini-phone.pastel { background: #faf5ff; border: 2px solid #e9d5ff; }
+
+    .mp-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; font-weight: 700; }
+    .dark-label { color: rgba(255,255,255,0.5); }
+    .light-label { color: #aaa; }
+
+    .mp-screen-title { font-size: 10px; font-weight: 700; margin-bottom: 8px; }
+    .dark .mp-screen-title { color: #e2e8f0; }
+    .light-card .mp-screen-title, .minimal-card .mp-screen-title, .pastel-card .mp-screen-title { color: #333; }
+
+    .mp-input {
+      width: 100%; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px; padding: 5px 7px;
+      color: #94a3b8; font-size: 9px; margin-bottom: 6px;
+    }
+    .mp-input.light-inp { background: #f9f9f9; border: 1px solid #e0e0e0; color: #777; }
+    .mp-btn { width: 100%; padding: 6px; border: none; border-radius: 7px; font-size: 9px; font-weight: 700; cursor: pointer; margin-bottom: 4px; }
+
+    /* card borders for selected feel */
+    .selected-card { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.15), 0 4px 20px rgba(0,0,0,0.08); }
+    .option-note { font-size: 11px; color: #888; margin-top: 12px; font-style: italic; }
+
+    /* respond box */
+    .respond-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 28px;
+      max-width: 700px;
+      margin: 36px auto 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .respond-box h3 { font-size: 17px; font-weight: 800; color: #1a1a2e; margin-bottom: 10px; }
+    .respond-box p { font-size: 13px; color: #555; line-height: 1.7; margin-bottom: 8px; }
+    .respond-box .example { background: #f0f4ff; border-left: 3px solid #6366f1; padding: 10px 14px; border-radius: 6px; font-size: 13px; color: #333; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>🎨 Pick Your Button Style</h1>
+  <p>Four distinct styles below. Just tell me "I want Style A" (or B, C, or D) and I'll add those exact buttons to the app.</p>
+</div>
+
+<div class="how-to">
+  <strong>How to tell me which buttons to add:</strong><br>
+  Simply say <strong>"Add Style A buttons"</strong> or <strong>"Add Style B buttons"</strong> (or C or D).<br>
+  You can also mix: <em>"I want the Style B look but with Style A's pill buttons"</em> — whatever feels right.<br>
+  I will not change anything in the app until you give the go-ahead.
+</div>
+
+
+<div class="grid">
+
+  <!-- ── OPTION A: Dark Gradient (current showcase) ── -->
+  <div class="option-card">
+    <div class="option-badge" style="background: linear-gradient(135deg,#6366f1,#ec4899);">STYLE A</div>
+    <h2 style="color:#6366f1;">Dark Gradient</h2>
+    <p class="subtitle">Indigo → Pink gradient · Glassmorphism · Matches the app's dark theme exactly</p>
+
+    <div class="btn-group">
+      <button class="a-primary">🔗 Connect</button>
+      <button class="a-outline">+ Follow</button>
+    </div>
+    <div class="btn-group">
+      <button class="a-pill">❤ Like</button>
+      <button class="a-ghost">📋 Save</button>
+      <button class="a-icon">🔔</button>
+      <button class="a-icon">💬</button>
+    </div>
+
+    <!-- mini phone -->
+    <div class="phone-row">
+      <div class="mini-phone">
+        <div class="mp-label dark-label">Login</div>
+        <div style="font-size:10px;font-weight:700;color:#e2e8f0;margin-bottom:8px;">Welcome Back</div>
+        <input class="mp-input" placeholder="Email" readonly />
+        <button class="mp-btn" style="background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;">Sign In</button>
+      </div>
+      <div class="mini-phone">
+        <div class="mp-label dark-label">Profile</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);margin:0 auto 8px;"></div>
+        <div style="font-size:10px;color:#e2e8f0;font-weight:700;margin-bottom:8px;">Alex J.</div>
+        <button class="mp-btn" style="background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;">+ Follow</button>
+      </div>
+    </div>
+    <p class="option-note">✓ This is the version in the current showcase file</p>
+  </div>
+
+
+  <!-- ── OPTION B: Clean Light & White ── -->
+  <div class="option-card">
+    <div class="option-badge" style="background:#4f46e5;">STYLE B</div>
+    <h2 style="color:#4f46e5;">Clean & Light</h2>
+    <p class="subtitle">Solid indigo · White backgrounds · Softer shadows · Works great on light screens</p>
+
+    <div class="btn-group">
+      <button class="b-primary">🔗 Connect</button>
+      <button class="b-outline">+ Follow</button>
+    </div>
+    <div class="btn-group">
+      <button class="b-pill">❤ Like</button>
+      <button class="b-ghost">📋 Save</button>
+      <button class="b-icon">🔔</button>
+      <button class="b-icon">💬</button>
+    </div>
+
+    <!-- mini phone -->
+    <div class="phone-row">
+      <div class="mini-phone light">
+        <div class="mp-label light-label">Login</div>
+        <div style="font-size:10px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">Welcome Back</div>
+        <input class="mp-input light-inp" placeholder="Email" readonly />
+        <button class="mp-btn" style="background:#4f46e5;color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3);">Sign In</button>
+      </div>
+      <div class="mini-phone light">
+        <div class="mp-label light-label">Profile</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:#4f46e5;margin:0 auto 8px;"></div>
+        <div style="font-size:10px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">Alex J.</div>
+        <button class="mp-btn" style="background:#4f46e5;color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3);">+ Follow</button>
+      </div>
+    </div>
+    <p class="option-note">Lighter feel · Great for the public landing page</p>
+  </div>
+
+
+  <!-- ── OPTION C: Minimal / Outline Only ── -->
+  <div class="option-card">
+    <div class="option-badge" style="background:#111;">STYLE C</div>
+    <h2 style="color:#111;">Minimal</h2>
+    <p class="subtitle">Black & white only · Sharp corners · No shadows · Ultra-clean wireframe style</p>
+
+    <div class="btn-group">
+      <button class="c-primary">🔗 Connect</button>
+      <button class="c-outline">+ Follow</button>
+    </div>
+    <div class="btn-group">
+      <button class="c-pill">❤ Like</button>
+      <button class="c-ghost">📋 Save</button>
+      <button class="c-icon">🔔</button>
+      <button class="c-icon">💬</button>
+    </div>
+
+    <!-- mini phone -->
+    <div class="phone-row">
+      <div class="mini-phone minimal">
+        <div class="mp-label" style="color:#aaa;">Login</div>
+        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:8px;">Welcome Back</div>
+        <input class="mp-input light-inp" placeholder="Email" readonly />
+        <button class="mp-btn" style="background:#111;color:#fff;border-radius:6px;">Sign In</button>
+      </div>
+      <div class="mini-phone minimal">
+        <div class="mp-label" style="color:#aaa;">Profile</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:#111;margin:0 auto 8px;"></div>
+        <div style="font-size:10px;color:#111;font-weight:700;margin-bottom:8px;">Alex J.</div>
+        <button class="mp-btn" style="background:transparent;color:#111;border:1.5px solid #111;border-radius:6px;">+ Follow</button>
+      </div>
+    </div>
+    <p class="option-note">Most minimal · Best for a "wireframe" look</p>
+  </div>
+
+
+  <!-- ── OPTION D: Soft Pastel Rounded ── -->
+  <div class="option-card">
+    <div class="option-badge" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);">STYLE D</div>
+    <h2 style="color:#7c3aed;">Soft Pastel</h2>
+    <p class="subtitle">Purple → Blue gradient · Extra rounded corners · Soft shadow glow · Friendly feel</p>
+
+    <div class="btn-group">
+      <button class="d-primary">🔗 Connect</button>
+      <button class="d-outline">+ Follow</button>
+    </div>
+    <div class="btn-group">
+      <button class="d-pill">❤ Like</button>
+      <button class="d-ghost">📋 Save</button>
+      <button class="d-icon">🔔</button>
+      <button class="d-icon">💬</button>
+    </div>
+
+    <!-- mini phone -->
+    <div class="phone-row">
+      <div class="mini-phone pastel">
+        <div class="mp-label" style="color:#c4b5fd;">Login</div>
+        <div style="font-size:10px;font-weight:700;color:#5b21b6;margin-bottom:8px;">Welcome Back</div>
+        <input class="mp-input light-inp" style="border-color:#ddd6fe;" placeholder="Email" readonly />
+        <button class="mp-btn" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border-radius:9px;box-shadow:0 3px 10px rgba(139,92,246,0.3);">Sign In</button>
+      </div>
+      <div class="mini-phone pastel">
+        <div class="mp-label" style="color:#c4b5fd;">Profile</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#3b82f6);margin:0 auto 8px;"></div>
+        <div style="font-size:10px;color:#5b21b6;font-weight:700;margin-bottom:8px;">Alex J.</div>
+        <button class="mp-btn" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border-radius:9px;">+ Follow</button>
+      </div>
+    </div>
+    <p class="option-note">Rounded & friendly · Works on both light & dark</p>
+  </div>
+
+</div>
+
+
+<!-- ── HOW TO RESPOND ── -->
+<div class="respond-box">
+  <h3>✅ How to tell me which style you want added to the app</h3>
+  <p>Just reply with one of these — I'll handle everything else and won't touch the app until you approve:</p>
+  <div class="example">
+    "Add <strong>Style B</strong> to the app" → I'll update the Login, Profile, Feed, and other pages with Style B buttons<br><br>
+    "Add <strong>Style A</strong> but only on the Login page" → I'll only update that one page<br><br>
+    "I like <strong>Style D</strong>'s pill buttons but <strong>Style B</strong>'s regular buttons" → I'll mix them exactly like that<br><br>
+    "None of these — can you show me something else?" → I'll design a new option for you
+  </div>
+</div>
+
+</body>
+</html>

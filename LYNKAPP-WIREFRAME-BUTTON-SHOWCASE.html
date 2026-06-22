@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LynkApp — Minimalist Wireframe Button Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+       LYNKAPP BRAND TOKENS
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+      --brand-purple:   #6c63ff;
+      --brand-pink:     #f43f5e;
+      --brand-dark:     #1a1a2e;
+      --brand-mid:      #302b63;
+      --surface:        #ffffff;
+      --surface-2:      #f9fafb;
+      --border:         #e5e7eb;
+      --text-muted:     #6b7280;
+      --text-subtle:    #9ca3af;
+
+      /* Shared button tokens */
+      --btn-radius-pill: 999px;
+      --btn-radius-soft: 12px;
+      --btn-radius-sq:   6px;
+      --btn-transition:  all 0.18s cubic-bezier(.4,0,.2,1);
+      --btn-font:        'Inter', sans-serif;
+      --btn-shadow-sm:   0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --btn-shadow-md:   0 4px 16px rgba(108,99,255,.25);
+      --btn-shadow-glow: 0 0 0 3px rgba(108,99,255,.18);
+    }
+
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--btn-font);
+      background: var(--surface-2);
+      color: var(--brand-dark);
+      line-height: 1.6;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       WIREFRAME BUTTON SYSTEM — 8 classes
+       ══════════════════════════════════════════════════════════════ */
+
+    /* ── Base .btn ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: var(--btn-font);
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1;
+      white-space: nowrap;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: var(--btn-radius-pill);
+      transition: var(--btn-transition);
+      text-decoration: none;
+      user-select: none;
+      letter-spacing: 0.01em;
+    }
+    .btn:focus-visible { box-shadow: var(--btn-shadow-glow); }
+
+    /* ── Sizes ── */
+    .btn-xs  { font-size: 11px; padding: 5px  12px; }
+    .btn-sm  { font-size: 13px; padding: 8px  16px; }
+    .btn-md  { font-size: 14px; padding: 10px 20px; }
+    .btn-lg  { font-size: 16px; padding: 14px 28px; }
+    .btn-xl  { font-size: 18px; padding: 18px 40px; }
+
+    /* ── Shape variants ── */
+    .btn-pill { border-radius: var(--btn-radius-pill); }
+    .btn-soft { border-radius: var(--btn-radius-soft); }
+    .btn-sq   { border-radius: var(--btn-radius-sq);   }
+
+    /* ══════════════════════════════════════════════════════════════
+       STYLE VARIANTS
+       ══════════════════════════════════════════════════════════════ */
+
+    /* 1 · PRIMARY — Solid brand purple · Used for main actions in light areas */
+    .btn-wf-primary {
+      background: var(--brand-purple);
+      color: #fff;
+      box-shadow: var(--btn-shadow-sm);
+    }
+    .btn-wf-primary:hover {
+      background: #5a52e0;
+      box-shadow: var(--btn-shadow-md);
+      transform: translateY(-1px);
+    }
+    .btn-wf-primary:active { transform: translateY(0); box-shadow: var(--btn-shadow-sm); }
+
+    /* 2 · ACCENT — Purple→Pink gradient · Premium CTAs */
+    .btn-wf-accent {
+      background: linear-gradient(135deg, var(--brand-purple), var(--brand-pink));
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(108,99,255,.35);
+    }
+    .btn-wf-accent:hover {
+      opacity: .92;
+      box-shadow: 0 6px 24px rgba(108,99,255,.45);
+      transform: translateY(-1px);
+    }
+    .btn-wf-accent:active { transform: translateY(0); opacity: 1; }
+
+    /* 3 · OUTLINE — Purple border + text · Secondary / cancel */
+    .btn-wf-outline {
+      background: transparent;
+      color: var(--brand-purple);
+      border: 1.5px solid var(--brand-purple);
+    }
+    .btn-wf-outline:hover {
+      background: rgba(108,99,255,.07);
+      border-color: #5a52e0;
+      transform: translateY(-1px);
+    }
+    .btn-wf-outline:active { transform: translateY(0); }
+
+    /* 4 · GHOST — Transparent fill · Tertiary / subtle */
+    .btn-wf-ghost {
+      background: transparent;
+      color: var(--brand-purple);
+    }
+    .btn-wf-ghost:hover {
+      background: rgba(108,99,255,.08);
+      transform: translateY(-1px);
+    }
+    .btn-wf-ghost:active { transform: translateY(0); }
+
+    /* 5 · LANDING GHOST — White semi-transparent · On dark hero backgrounds */
+    .btn-wf-landing-ghost {
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,.30);
+      backdrop-filter: blur(8px);
+    }
+    .btn-wf-landing-ghost:hover {
+      background: rgba(255,255,255,.22);
+      border-color: rgba(255,255,255,.50);
+      transform: translateY(-1px);
+    }
+    .btn-wf-landing-ghost:active { transform: translateY(0); }
+
+    /* 6 · SURFACE — White card button · Used inside white cards on grey bg */
+    .btn-wf-surface {
+      background: #fff;
+      color: var(--brand-dark);
+      border: 1.5px solid var(--border);
+      box-shadow: var(--btn-shadow-sm);
+    }
+    .btn-wf-surface:hover {
+      border-color: var(--brand-purple);
+      color: var(--brand-purple);
+      box-shadow: var(--btn-shadow-md);
+      transform: translateY(-1px);
+    }
+    .btn-wf-surface:active { transform: translateY(0); }
+
+    /* 7 · DANGER — Red · Destructive actions */
+    .btn-wf-danger {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(239,68,68,.25);
+    }
+    .btn-wf-danger:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 16px rgba(239,68,68,.35);
+      transform: translateY(-1px);
+    }
+    .btn-wf-danger:active { transform: translateY(0); }
+
+    /* 8 · SUCCESS — Green · Confirm / save / follow */
+    .btn-wf-success {
+      background: #10b981;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16,185,129,.25);
+    }
+    .btn-wf-success:hover {
+      background: #059669;
+      box-shadow: 0 4px 16px rgba(16,185,129,.35);
+      transform: translateY(-1px);
+    }
+    .btn-wf-success:active { transform: translateY(0); }
+
+    /* ── Disabled state ── */
+    .btn:disabled, .btn[aria-disabled="true"] {
+      opacity: .45;
+      pointer-events: none;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Icon-only ── */
+    .btn-icon { padding: 10px; aspect-ratio: 1; }
+    .btn-icon.btn-sm  { padding: 8px;  }
+    .btn-icon.btn-lg  { padding: 14px; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PAGE LAYOUT
+       ══════════════════════════════════════════════════════════════ */
+
+    .page-header {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      padding: 60px 40px 48px;
+      text-align: center;
+    }
+    .page-header .logo {
+      font-size: 32px; font-weight: 900;
+      background: linear-gradient(90deg, #a78bfa, #f472b6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .page-header h1 { font-size: clamp(22px,4vw,36px); font-weight: 800; margin-bottom: 10px; }
+    .page-header p  { font-size: 16px; opacity: .80; max-width: 560px; margin: 0 auto; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Section blocks */
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--text-subtle);
+      margin-bottom: 6px;
+    }
+    .section-heading {
+      font-size: 22px; font-weight: 800;
+      color: var(--brand-dark); margin-bottom: 6px;
+    }
+    .section-sub {
+      font-size: 14px; color: var(--text-muted);
+      margin-bottom: 28px; max-width: 540px;
+    }
+
+    /* Chip for class name */
+    .chip {
+      display: inline-block;
+      font-family: 'Courier New', monospace;
+      font-size: 11px; font-weight: 700;
+      background: rgba(108,99,255,.1);
+      color: var(--brand-purple);
+      border: 1px solid rgba(108,99,255,.18);
+      padding: 3px 8px; border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    /* Row of buttons */
+    .btn-row {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      align-items: center; margin-bottom: 24px;
+    }
+    .btn-row.dark-bg {
+      background: linear-gradient(135deg, #0f0c29, #302b63);
+      padding: 24px 20px; border-radius: 16px;
+    }
+
+    /* Context preview cards */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--btn-shadow-sm);
+    }
+    .card-dark {
+      background: linear-gradient(135deg, #1a1a2e, #302b63);
+      border: 1px solid rgba(255,255,255,.08);
+      color: #fff;
+    }
+    .card .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-purple), var(--brand-pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 12px;
+    }
+    .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .card p  { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+    .card-dark p { color: rgba(255,255,255,.65); }
+
+    /* Feature card mini */
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex; flex-direction: column;
+      box-shadow: var(--btn-shadow-sm);
+      transition: transform .18s, box-shadow .18s;
+    }
+    .feature-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+    .feature-card .icon { font-size: 32px; margin-bottom: 10px; }
+    .feature-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p  { font-size: 13px; color: var(--text-muted); flex: 1; margin-bottom: 16px; }
+
+    /* Sizes table */
+    .size-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .size-label { font-size: 11px; font-weight: 700; color: var(--text-subtle); width: 36px; }
+
+    /* Nav bar mockup */
+    .nav-mockup {
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      box-shadow: var(--btn-shadow-sm);
+    }
+    .nav-logo {
+      font-size: 22px; font-weight: 900;
+      background: linear-gradient(135deg, var(--brand-purple), var(--brand-pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* Hero mockup */
+    .hero-mockup {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .hero-mockup h2 {
+      font-size: clamp(24px, 4vw, 40px);
+      font-weight: 900; margin-bottom: 12px;
+    }
+    .hero-mockup p { font-size: 16px; opacity: .80; margin-bottom: 28px; }
+
+    /* Dating card mockup */
+    .dating-mockup {
+      background: linear-gradient(160deg, #667eea, #764ba2);
+      border-radius: 20px;
+      padding: 28px;
+      color: #fff;
+      text-align: center;
+      max-width: 320px;
+      margin: 0 auto 20px;
+    }
+    .dating-mockup .user-photo {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(255,255,255,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; margin: 0 auto 12px;
+      border: 3px solid rgba(255,255,255,.4);
+    }
+    .dating-mockup h3 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .dating-mockup p { font-size: 13px; opacity: .80; margin-bottom: 20px; }
+    .dating-actions { display: flex; justify-content: center; gap: 16px; }
+
+    /* Profile mockup */
+    .profile-mockup {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .profile-cover {
+      height: 100px;
+      background: linear-gradient(135deg, var(--brand-purple), var(--brand-pink));
+    }
+    .profile-body { padding: 0 20px 20px; }
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: 4px solid #fff;
+      margin-top: -36px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 10px;
+    }
+    .profile-name { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+    .profile-handle { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    .profile-actions { display: flex; gap: 8px; }
+
+    /* Feed post mockup */
+    .post-mockup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .post-header { display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; }
+    .post-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-purple), var(--brand-pink));
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .post-meta .name { font-size: 14px; font-weight: 700; }
+    .post-meta .time { font-size: 12px; color: var(--text-muted); }
+    .post-body { padding: 0 16px 14px; font-size: 14px; color: #374151; }
+    .post-img {
+      height: 180px;
+      background: linear-gradient(135deg, #a78bfa22, #f472b622);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+    }
+    .post-actions {
+      display: flex; gap: 8px; padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Marketplace mockup */
+    .product-mockup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .product-img {
+      height: 160px;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px;
+    }
+    .product-body { padding: 16px; }
+    .product-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .product-price { font-size: 20px; font-weight: 800; color: var(--brand-purple); margin-bottom: 12px; }
+    .product-actions { display: flex; gap: 8px; }
+
+    /* Settings mockup */
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .settings-info .setting-title { font-size: 14px; font-weight: 600; }
+    .settings-info .setting-desc  { font-size: 12px; color: var(--text-muted); }
+
+    /* Live badge */
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #ef4444; color: #fff;
+      font-size: 11px; font-weight: 800; letter-spacing: .06em;
+      padding: 4px 10px; border-radius: 6px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .live-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #fff; animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
+
+    /* Footer */
+    .page-footer {
+      background: #111827; color: #9ca3af;
+      padding: 32px 24px; text-align: center;
+      font-size: 13px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .page-header { padding: 40px 20px; }
+      .container   { padding: 0 16px; }
+      .section     { padding: 32px 0; }
+      .hero-mockup { padding: 40px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════ HEADER ══════════════════════════ -->
+<header class="page-header">
+  <div class="logo">LynkApp</div>
+  <h1>Minimalist Wireframe Button System</h1>
+  <p>8 reusable button classes designed to match the app's purple→pink gradient brand identity — preview them in real app contexts below.</p>
+</header>
+
+<div class="container">
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1 — BUTTON CATALOGUE
+       ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">Design System · Buttons</div>
+    <div class="section-heading">Button Style Catalogue</div>
+    <div class="section-sub">All 8 wireframe styles. Each uses semantic class names prefixed with <code style="color:#6c63ff">btn-wf-</code> for easy identification in JSX.</div>
+
+    <!-- 1 Primary -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-primary</span>
+      <div class="section-sub" style="margin-bottom:12px">Solid brand purple · Main actions on light/white backgrounds</div>
+      <div class="size-row">
+        <span class="size-label">xs</span>
+        <button class="btn btn-xs btn-wf-primary btn-pill">Follow</button>
+        <button class="btn btn-xs btn-wf-primary btn-soft">Follow</button>
+      </div>
+      <div class="size-row">
+        <span class="size-label">sm</span>
+        <button class="btn btn-sm btn-wf-primary btn-pill">Explore Feed →</button>
+        <button class="btn btn-sm btn-wf-primary btn-soft">Explore Feed →</button>
+        <button class="btn btn-sm btn-wf-primary btn-sq">Explore Feed →</button>
+      </div>
+      <div class="size-row">
+        <span class="size-label">md</span>
+        <button class="btn btn-md btn-wf-primary btn-pill">Go Live →</button>
+        <button class="btn btn-md btn-wf-primary btn-soft">Go Live →</button>
+      </div>
+      <div class="size-row">
+        <span class="size-label">lg</span>
+        <button class="btn btn-lg btn-wf-primary btn-pill">Join Community</button>
+      </div>
+      <div class="size-row">
+        <span class="size-label">xl</span>
+        <button class="btn btn-xl btn-wf-primary btn-pill">Start Now →</button>
+      </div>
+    </div>
+
+    <!-- 2 Accent -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-accent</span>
+      <div class="section-sub" style="margin-bottom:12px">Purple→Pink gradient · Premium CTAs, hero calls-to-action</div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-wf-accent btn-pill">Get Started Free</button>
+        <button class="btn btn-md btn-wf-accent btn-pill">Join Free →</button>
+        <button class="btn btn-lg btn-wf-accent btn-pill">Create Account →</button>
+        <button class="btn btn-xl btn-wf-accent btn-pill">Start Creating →</button>
+      </div>
+    </div>
+
+    <!-- 3 Outline -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-outline</span>
+      <div class="section-sub" style="margin-bottom:12px">Transparent + purple border · Secondary, cancel, alternative actions</div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-wf-outline btn-pill">Sign In</button>
+        <button class="btn btn-md btn-wf-outline btn-pill">View Profile</button>
+        <button class="btn btn-lg btn-wf-outline btn-pill">Learn More</button>
+        <button class="btn btn-md btn-wf-outline btn-soft">Add to Wishlist</button>
+      </div>
+    </div>
+
+    <!-- 4 Ghost -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-ghost</span>
+      <div class="section-sub" style="margin-bottom:12px">No fill · Tertiary, subtle in-page actions</div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-wf-ghost btn-pill">← Back</button>
+        <button class="btn btn-md btn-wf-ghost btn-pill">See All</button>
+        <button class="btn btn-md btn-wf-ghost btn-soft">Skip for Now</button>
+        <button class="btn btn-lg btn-wf-ghost btn-pill">Cancel</button>
+      </div>
+    </div>
+
+    <!-- 5 Landing Ghost -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-landing-ghost</span>
+      <div class="section-sub" style="margin-bottom:12px">Semi-transparent white · Exclusively for dark hero/gradient backgrounds</div>
+      <div class="btn-row dark-bg">
+        <button class="btn btn-md btn-wf-landing-ghost btn-pill">See Features</button>
+        <button class="btn btn-lg btn-wf-landing-ghost btn-pill">Watch Demo</button>
+        <button class="btn btn-sm btn-wf-landing-ghost btn-soft">Learn More</button>
+      </div>
+    </div>
+
+    <!-- 6 Surface -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-surface</span>
+      <div class="section-sub" style="margin-bottom:12px">White with border · Inside cards on grey backgrounds</div>
+      <div class="btn-row" style="background:#f9fafb;padding:20px;border-radius:16px;border:1px solid #e5e7eb">
+        <button class="btn btn-sm btn-wf-surface btn-pill">Add Friend</button>
+        <button class="btn btn-md btn-wf-surface btn-pill">Message</button>
+        <button class="btn btn-md btn-wf-surface btn-soft">Share</button>
+        <button class="btn btn-lg btn-wf-surface btn-pill">View Listing</button>
+      </div>
+    </div>
+
+    <!-- 7 Danger -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-danger</span>
+      <div class="section-sub" style="margin-bottom:12px">Red · Destructive actions: delete, block, report</div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-wf-danger btn-pill">Delete Post</button>
+        <button class="btn btn-md btn-wf-danger btn-pill">Block User</button>
+        <button class="btn btn-md btn-wf-danger btn-soft">Remove</button>
+      </div>
+    </div>
+
+    <!-- 8 Success -->
+    <div style="margin-bottom:32px">
+      <span class="chip">.btn-wf-success</span>
+      <div class="section-sub" style="margin-bottom:12px">Green · Confirm, save, follow, purchase</div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-wf-success btn-pill">✓ Saved</button>
+        <button class="btn btn-md btn-wf-success btn-pill">Follow Back</button>
+        <button class="btn btn-lg btn-wf-success btn-pill">Buy Now · $24.99</button>
+        <button class="btn btn-md btn-wf-success btn-soft">Confirm Purchase</button>
+      </div>
+    </div>
+
+    <!-- Disabled state -->
+    <div>
+      <span class="chip">:disabled</span>
+      <div class="section-sub" style="margin-bottom:12px">Disabled state applies to all variants</div>
+      <div class="btn-row">
+        <button class="btn btn-md btn-wf-primary btn-pill" disabled>Disabled Primary</button>
+        <button class="btn btn-md btn-wf-accent  btn-pill" disabled>Disabled Accent</button>
+        <button class="btn btn-md btn-wf-outline btn-pill" disabled>Disabled Outline</button>
+        <button class="btn btn-md btn-wf-success btn-pill" disabled>Disabled Success</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2 — IN-APP CONTEXT PREVIEWS
+       ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">Context Previews</div>
+    <div class="section-heading">How They Look in the App</div>
+    <div class="section-sub">Real mockups showing the buttons exactly as they'll appear across key sections of LynkApp.</div>
+
+    <div class="preview-grid">
+
+      <!-- ── 1 Nav Bar ── -->
+      <div style="grid-column: 1/-1;">
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Sticky Navigation Bar</p>
+        <div class="nav-mockup">
+          <div class="nav-logo">LynkApp</div>
+          <div class="nav-actions">
+            <a href="#" class="btn btn-sm btn-wf-ghost btn-pill" style="color:#374151">About</a>
+            <a href="#" class="btn btn-sm btn-wf-ghost btn-pill" style="color:#374151">Privacy</a>
+            <a href="#" class="btn btn-sm btn-wf-outline btn-pill">Sign In</a>
+            <a href="#" class="btn btn-sm btn-wf-accent btn-pill">Get Started Free</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 2 Hero Section ── -->
+      <div style="grid-column: 1/-1;">
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Hero Section (Dark Background)</p>
+        <div class="hero-mockup">
+          <div class="live-badge">🚀 Now in Open Beta</div>
+          <h2>The Social Platform<br><span style="background:linear-gradient(90deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Built for You</span></h2>
+          <p>Connect, create, stream live, find your match — all in one place.</p>
+          <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+            <a href="#" class="btn btn-lg btn-wf-accent btn-pill">Join Free →</a>
+            <a href="#" class="btn btn-lg btn-wf-landing-ghost btn-pill">See Features</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3 Feature Cards ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Feature Card</p>
+        <div class="feature-card">
+          <div class="icon">🎥</div>
+          <h4>Live Streaming</h4>
+          <p>Go live in seconds. Broadcast to your audience, accept virtual gifts, and grow your community in real time.</p>
+          <a href="#" class="btn btn-sm btn-wf-primary btn-pill" style="align-self:flex-start;text-decoration:none">Go Live →</a>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Feature Card</p>
+        <div class="feature-card">
+          <div class="icon">🛒</div>
+          <h4>Marketplace</h4>
+          <p>Buy and sell items locally or nationwide. List products, manage orders, and grow your side hustle.</p>
+          <a href="#" class="btn btn-sm btn-wf-primary btn-pill" style="align-self:flex-start;text-decoration:none">Browse Items →</a>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Feature Card</p>
+        <div class="feature-card">
+          <div class="icon">🎮</div>
+          <h4>Gaming Hub</h4>
+          <p>Play casual games, join tournaments, track your leaderboard ranking, and challenge friends to matches.</p>
+          <a href="#" class="btn btn-sm btn-wf-primary btn-pill" style="align-self:flex-start;text-decoration:none">Play Now →</a>
+        </div>
+      </div>
+
+      <!-- ── 4 User Profile Card ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">User Profile Card</p>
+        <div class="profile-mockup">
+          <div class="profile-cover"></div>
+          <div class="profile-body">
+            <div class="profile-avatar">🧑‍🎨</div>
+            <div class="profile-name">Marcus T.</div>
+            <div class="profile-handle">@marcust · 12.4K followers</div>
+            <div class="profile-actions">
+              <button class="btn btn-sm btn-wf-accent btn-pill">Follow</button>
+              <button class="btn btn-sm btn-wf-outline btn-pill">Message</button>
+              <button class="btn btn-sm btn-wf-surface btn-soft">•••</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 5 Dating Card ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Dating Swipe Card</p>
+        <div class="dating-mockup">
+          <div class="user-photo">👩‍💼</div>
+          <h3>Priya S.</h3>
+          <p>Designer · 28 · 2 miles away</p>
+          <div class="dating-actions">
+            <button class="btn btn-md btn-wf-danger btn-pill">✕ Pass</button>
+            <button class="btn btn-md btn-wf-success btn-pill">♥ Like</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 6 Marketplace Product ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Marketplace Product</p>
+        <div class="product-mockup">
+          <div class="product-img">👟</div>
+          <div class="product-body">
+            <div class="product-title">Air Jordan 1 High OG</div>
+            <div class="product-price">$189.99</div>
+            <div class="product-actions">
+              <button class="btn btn-sm btn-wf-success btn-pill" style="flex:1">Buy Now</button>
+              <button class="btn btn-sm btn-wf-outline btn-pill">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 7 Social Feed Post ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Feed Post Actions</p>
+        <div class="post-mockup">
+          <div class="post-header">
+            <div class="post-avatar">🎨</div>
+            <div class="post-meta">
+              <div class="name">Jordan L.</div>
+              <div class="time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="post-img">🌄</div>
+          <div class="post-body" style="padding-top:12px">Just launched my new artwork series! Check it out 🎉</div>
+          <div class="post-actions">
+            <button class="btn btn-sm btn-wf-ghost btn-soft">❤️ 142</button>
+            <button class="btn btn-sm btn-wf-ghost btn-soft">💬 38</button>
+            <button class="btn btn-sm btn-wf-ghost btn-soft">↗️ Share</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 8 Settings Row ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Settings Rows</p>
+        <div>
+          <div class="settings-row">
+            <div class="settings-info">
+              <div class="setting-title">Two-Factor Auth</div>
+              <div class="setting-desc">Add an extra layer of security</div>
+            </div>
+            <button class="btn btn-xs btn-wf-primary btn-pill">Enable</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-info">
+              <div class="setting-title">Linked Accounts</div>
+              <div class="setting-desc">Google · Apple connected</div>
+            </div>
+            <button class="btn btn-xs btn-wf-outline btn-pill">Manage</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-info">
+              <div class="setting-title">Delete Account</div>
+              <div class="setting-desc">Permanently remove your data</div>
+            </div>
+            <button class="btn btn-xs btn-wf-danger btn-pill">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 9 Creator Dashboard Dark ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Creator Dashboard (Dark)</p>
+        <div class="card card-dark">
+          <div class="avatar">🎙️</div>
+          <h3>Creator Tools</h3>
+          <p>Manage your monetization, analytics, and subscriber perks.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-wf-accent btn-pill">Go Live Now</button>
+            <button class="btn btn-sm btn-wf-landing-ghost btn-pill">View Analytics</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 10 Auth / Onboarding ── -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Auth / Onboarding</p>
+        <div class="card" style="max-width:320px">
+          <h3 style="margin-bottom:6px">Welcome back 👋</h3>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Sign in to continue to LynkApp</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn btn-lg btn-wf-accent btn-pill" style="width:100%">Sign In with Email</button>
+            <button class="btn btn-lg btn-wf-surface btn-pill" style="width:100%">🍎  Continue with Apple</button>
+            <button class="btn btn-lg btn-wf-surface btn-pill" style="width:100%">🔵  Continue with Google</button>
+            <button class="btn btn-md btn-wf-ghost btn-pill" style="width:100%">Create Account →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3 — QUICK REFERENCE
+       ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">Quick Reference</div>
+    <div class="section-heading">When to Use Each Button</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#f3f4f6;border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:10px 14px;font-weight:700">Class</th>
+            <th style="text-align:left;padding:10px 14px;font-weight:700">Visual</th>
+            <th style="text-align:left;padding:10px 14px;font-weight:700">Use For</th>
+            <th style="text-align:left;padding:10px 14px;font-weight:700">Background</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-primary</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-primary btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Feature card CTAs, profile follow, main form submit</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">White / light grey</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-accent</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-accent btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Hero CTAs, nav "Get Started", signup, premium upsell</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Any</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-outline</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-outline btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Sign In nav button, secondary actions, "Message"</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">White / light grey</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-ghost</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-ghost btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Back, cancel, skip, feed reactions</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">White / light grey</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-landing-ghost</code></td>
+            <td style="padding:12px 14px;background:#302b63;border-radius:8px"><button class="btn btn-sm btn-wf-landing-ghost btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">"See Features" on hero, watch demo, video overlays</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Dark / gradient only</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-surface</code></td>
+            <td style="padding:12px 14px;background:#f9fafb;border-radius:8px"><button class="btn btn-sm btn-wf-surface btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Card buttons on grey bg, "Add Friend", "Share"</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Grey / surface-2</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-danger</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-danger btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Delete, block, report, unfollow, dating "Pass"</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Any</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 14px"><code style="color:#6c63ff;font-size:12px">.btn-wf-success</code></td>
+            <td style="padding:12px 14px"><button class="btn btn-sm btn-wf-success btn-pill">Action</button></td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Follow, save, confirm, buy now, dating "Like"</td>
+            <td style="padding:12px 14px;color:var(--text-muted)">Any</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ FOOTER ══════════════════════════ -->
+<footer class="page-footer">
+  <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:8px">LynkApp</div>
+  <div>Wireframe Button Showcase · Design System Preview · June 2026</div>
+  <div style="margin-top:8px;color:#4b5563;font-size:11px">
+    These buttons are already wired into <code>global.css</code> and <code>LandingPage.jsx</code> — 
+    ready to copy into any page with class names like <code>btn btn-lg btn-wf-accent btn-pill</code>
+  </div>
+</footer>
+
+</body>
+</html>
