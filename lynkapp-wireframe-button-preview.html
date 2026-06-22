@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LynkApp — Wireframe Button Preview</title>
+<style>
+/* ── App design tokens (mirrors global.css) ─────────────────────── */
+:root {
+  --bg:        #0a0a18;
+  --bg2:       #0f0c29;
+  --glass:     rgba(255,255,255,0.06);
+  --border:    rgba(255,255,255,0.10);
+  --accent:    #6366f1;
+  --pink:      #ec4899;
+  --success:   #10b981;
+  --danger:    #ef4444;
+  --warning:   #f59e0b;
+  --txt1:      #f1f5f9;
+  --txt2:      #94a3b8;
+  --txt3:      #64748b;
+  --nav-h:     64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt1);overflow:hidden}
+::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ── Shell ── */
+.shell{display:grid;grid-template-columns:68px 1fr;height:100dvh;max-width:900px;margin:0 auto;border:1px solid var(--border)}
+
+/* ── Left sidebar ── */
+.sidebar{background:rgba(15,12,41,.98);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px}
+.sidebar-logo{font-size:22px;font-weight:900;background:linear-gradient(135deg,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding:12px 0 20px}
+.nav-item{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content: center;font-size:20px;color:var(--txt3);transition:all .18s;cursor:pointer}
+.nav-item:hover{background:rgba(255,255,255,.06);color:var(--txt2)}
+.nav-item.active{background:rgba(99,102,241,.18);color:#a5b4fc}
+.nav-spacer{flex:1}
+.nav-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;margin-bottom:8px;cursor:pointer}
+
+/* ── Main scroll area ── */
+.main{overflow-y:auto;height:100dvh;padding-bottom:calc(var(--nav-h) + 40px)}
+
+/* ── Top bar ── */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,10,24,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;height:52px}
+.topbar-title{font-weight:800;font-size:16px;flex:1}
+.topbar-btn{width:36px;height:36px;border-radius:10px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--txt2);cursor:pointer;transition:all .15s}
+.topbar-btn:hover{border-color:rgba(255,255,255,.25);color:var(--txt1)}
+
+/* ── Section labels ── */
+.section{padding:24px 16px 8px}
+.section-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-subtitle{font-size:13px;color:var(--txt3);margin-bottom:14px}
+
+/* ── Button showcase rows ── */
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;padding:0 16px 6px;align-items:center}
+.btn-row-full{display:flex;flex-direction:column;gap:10px;padding:0 16px 6px}
+.btn-row-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 6px}
+
+/* ══════════════════════════════════════════════════════════════════
+   WIREFRAME BUTTON SYSTEM — approved variants
+   ══════════════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 22px;border-radius:24px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap;cursor:pointer;transition:background .18s,border-color .18s,color .18s,box-shadow .18s,transform .12s;user-select:none;-webkit-tap-highlight-color:transparent;min-height:44px;flex-shrink:0;font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.38;cursor:not-allowed;pointer-events:none}
+
+/* Primary — indigo outline */
+.btn-wf-primary{background:transparent;border:1.5px solid rgba(99,102,241,.55);color:#a5b4fc}
+.btn-wf-primary:hover{background:rgba(99,102,241,.10);border-color:#818cf8;color:#c7d2fe;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+
+/* Accent — pink/rose outline */
+.btn-wf-accent{background:transparent;border:1.5px solid rgba(236,72,153,.55);color:#f9a8d4}
+.btn-wf-accent:hover{background:rgba(236,72,153,.10);border-color:#f472b6;color:#fce7f3;box-shadow:0 0 0 3px rgba(236,72,153,.12)}
+
+/* Ghost — subtle white */
+.btn-wf-ghost{background:transparent;border:1px solid rgba(255,255,255,.14);color:#94a3b8}
+.btn-wf-ghost:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28);color:#e2e8f0}
+
+/* Success — green outline */
+.btn-wf-success{background:transparent;border:1.5px solid rgba(16,185,129,.50);color:#6ee7b7}
+.btn-wf-success:hover{background:rgba(16,185,129,.10);border-color:#34d399;color:#a7f3d0;box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+
+/* Danger — red outline */
+.btn-wf-danger{background:transparent;border:1.5px solid rgba(239,68,68,.50);color:#fca5a5}
+.btn-wf-danger:hover{background:rgba(239,68,68,.10);border-color:#f87171;color:#fee2e2;box-shadow:0 0 0 3px rgba(239,68,68,.12)}
+
+/* Warning — amber outline */
+.btn-wf-warning{background:transparent;border:1.5px solid rgba(245,158,11,.50);color:#fcd34d}
+.btn-wf-warning:hover{background:rgba(245,158,11,.10);border-color:#fbbf24;color:#fef3c7;box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+
+/* Dashed — secondary actions */
+.btn-wf-dashed{background:transparent;border:1.5px dashed rgba(99,102,241,.40);border-radius:10px;color:#818cf8}
+.btn-wf-dashed:hover{background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.65);color:#a5b4fc}
+
+/* Live — red pulse */
+.btn-wf-live{background:transparent;border:1.5px solid rgba(239,68,68,.55);color:#fca5a5;position:relative;overflow:hidden;padding-left:28px}
+.btn-wf-live::before{content:'';position:absolute;top:50%;left:12px;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:#ef4444;animation:livePulse 1.4s ease infinite}
+.btn-wf-live:hover{background:rgba(239,68,68,.10);border-color:#f87171;color:#fee2e2}
+@keyframes livePulse{0%,100%{opacity:1;transform:translateY(-50%) scale(1)}50%{opacity:.5;transform:translateY(-50%) scale(1.5)}}
+
+/* Size modifiers */
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px;gap:4px;min-height:34px}
+.btn-lg{padding:14px 32px;font-size:16px;border-radius:12px;gap:8px}
+.btn-pill{border-radius:9999px!important}
+.btn-icon{width:44px;height:44px;padding:0;border-radius:12px;font-size:18px}
+.btn-icon.btn-sm{width:34px;height:34px;font-size:15px;border-radius:9px}
+.btn-block{width:100%}
+
+/* Dating FABs */
+.btn-dating-fab{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%!important;padding:0;font-size:24px;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.35);cursor:pointer;min-height:unset}
+.btn-dating-fab:hover{transform:scale(1.10)}
+.btn-dating-fab:active{transform:scale(.95)}
+.btn-dating-pass{background:rgba(239,68,68,.15);border:2px solid rgba(239,68,68,.55);color:#f87171}
+.btn-dating-pass:hover{background:rgba(239,68,68,.28);box-shadow:0 6px 24px rgba(239,68,68,.35)}
+.btn-dating-like{background:linear-gradient(135deg,#f43f5e,#ec4899);border:none;color:#fff}
+.btn-dating-like:hover{box-shadow:0 6px 24px rgba(244,63,94,.50)}
+.btn-dating-super{background:rgba(99,102,241,.15);border:2px solid rgba(99,102,241,.50);color:#818cf8}
+.btn-dating-super:hover{background:rgba(99,102,241,.28);box-shadow:0 6px 24px rgba(99,102,241,.35)}
+
+/* Filter chip */
+.btn-chip{padding:6px 14px;border-radius:9999px;font-size:13px;font-weight:600;min-height:32px}
+.btn-chip.active{background:rgba(99,102,241,.18);border-color:#818cf8;color:#c7d2fe}
+
+/* Follow pill */
+.btn-follow{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;min-height:30px;transition:all .18s}
+.btn-follow:hover{background:linear-gradient(135deg,#4f46e5,#7c3aed);box-shadow:0 4px 14px rgba(99,102,241,.40);transform:translateY(-1px)}
+.btn-follow.following{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.35);color:#818cf8}
+.btn-follow.following:hover{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.40);color:#f87171}
+
+/* Post action ghost buttons */
+.btn-post-action{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:rgba(226,232,240,.55);background:transparent;border:none;padding:6px 10px;border-radius:8px;transition:all .16s;min-height:unset}
+.btn-post-action:hover{background:rgba(99,102,241,.10);color:#a5b4fc}
+.btn-post-action.liked{color:#f43f5e}
+.btn-post-action.liked:hover{background:rgba(244,63,94,.10);color:#fb7185}
+
+/* ── In-context mock screens ── */
+.mock-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;margin:0 16px 16px;overflow:hidden}
+.mock-card-header{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.mock-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.mock-name{font-size:14px;font-weight:700}
+.mock-sub{font-size:12px;color:var(--txt3)}
+.mock-img{width:100%;height:160px;background:linear-gradient(135deg,#1e293b,#0f172a);display:flex;align-items:center;justify-content:center;font-size:48px}
+.mock-body{padding:12px 16px}
+.mock-footer{padding:8px 16px 14px;display:flex;gap:4px;border-top:1px solid var(--border);margin-top:8px}
+
+/* Profile mock */
+.mock-profile{background:var(--glass);border:1px solid var(--border);border-radius:16px;margin:0 16px 16px;padding:20px 16px}
+.mock-cover{height:80px;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:12px;margin-bottom:-32px;position:relative}
+.mock-profile-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;border:3px solid var(--bg);margin-left:12px;position:relative;z-index:1}
+.mock-profile-info{padding:8px 4px 0}
+.mock-profile-name{font-weight:800;font-size:16px;margin-bottom:2px}
+.mock-profile-handle{font-size:12px;color:var(--accent);margin-bottom:8px}
+.mock-profile-bio{font-size:13px;color:var(--txt2);margin-bottom:12px;line-height:1.5}
+.mock-profile-actions{display:flex;gap:8px}
+
+/* Dating mock */
+.mock-swipe{background:var(--glass);border:1px solid var(--border);border-radius:16px;margin:0 16px 16px;overflow:hidden}
+.mock-swipe-card{height:180px;background:linear-gradient(135deg,#1e293b,#0f172a);display:flex;align-items:flex-end;justify-content:space-between;padding:16px}
+.mock-swipe-info{padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.mock-swipe-text .name{font-weight:800;font-size:16px}
+.mock-swipe-text .sub{font-size:12px;color:var(--txt3)}
+.mock-swipe-actions{display:flex;gap:12px;align-items:center}
+
+/* ── Bottom nav (mobile sim) ── */
+.bottom-nav{position:sticky;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,24,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:0;z-index:100}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;cursor:pointer;border-radius:12px;min-width:52px}
+.bottom-nav-item .icon{font-size:22px;color:var(--txt3);transition:all .18s}
+.bottom-nav-item .label{font-size:10px;font-weight:600;color:var(--txt3);transition:color .18s}
+.bottom-nav-item.active .icon{color:#a5b4fc}
+.bottom-nav-item.active .label{color:#a5b4fc}
+
+/* Color legend chips */
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 16px}
+.legend-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--txt3);background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:8px 16px}
+
+/* Hover tooltip (CSS only) */
+.btn[data-tip]{position:relative}
+.btn[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:rgba(30,41,59,.98);border:1px solid var(--border);color:var(--txt2);font-size:11px;font-weight:500;padding:5px 10px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.btn[data-tip]:hover::after{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ─── Left sidebar nav ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">L</div>
+    <div class="nav-item active" title="Feed">🏠</div>
+    <div class="nav-item" title="Explore">🔍</div>
+    <div class="nav-item" title="Messages">💬</div>
+    <div class="nav-item" title="Notifications">🔔</div>
+    <div class="nav-item" title="Dating">💞</div>
+    <div class="nav-item" title="Live">🔴</div>
+    <div class="nav-item" title="Marketplace">🛍️</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" title="Settings">⚙️</div>
+    <div class="nav-avatar" title="Profile">J</div>
+  </aside>
+
+  <!-- ─── Main content ─── -->
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <span class="topbar-title">🎨 Wireframe Button Preview</span>
+      <button class="topbar-btn" title="Search">🔍</button>
+      <button class="topbar-btn" title="Notifications">🔔</button>
+    </div>
+
+    <!-- ══ SECTION 1: Color System ══ -->
+    <div class="section">
+      <div class="section-title">Color system</div>
+      <div class="section-subtitle">5 semantic colors — each maps to a real user action</div>
+    </div>
+    <div class="legend">
+      <div class="legend-chip"><span class="legend-dot" style="background:#6366f1"></span>Primary — CTAs, links, navigation</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#ec4899"></span>Accent — Social, dating, love</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#10b981"></span>Success — Confirm, join, buy</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#ef4444"></span>Danger — Delete, block, report</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#f59e0b"></span>Warning — Save, star, caution</div>
+    </div>
+
+    <!-- ══ SECTION 2: Core Variants ══ -->
+    <div class="section">
+      <div class="section-title">Core wireframe variants</div>
+      <div class="section-subtitle">All use transparent backgrounds — borders carry the semantic colour</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-wf-primary" data-tip="Primary action">✦ Follow</button>
+      <button class="btn btn-wf-accent" data-tip="Social / love action">♥ Like</button>
+      <button class="btn btn-wf-success" data-tip="Confirm / join">✓ Join</button>
+      <button class="btn btn-wf-danger" data-tip="Destructive action">✕ Delete</button>
+      <button class="btn btn-wf-warning" data-tip="Save / star">★ Save</button>
+      <button class="btn btn-wf-ghost" data-tip="Neutral / secondary">⋯ More</button>
+    </div>
+
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-wf-live" data-tip="Live stream">LIVE</button>
+      <button class="btn btn-wf-dashed" data-tip="Upload / add new">＋ Add Media</button>
+      <button class="btn btn-wf-primary btn-pill" data-tip="Pill shape modifier">Pill Shape</button>
+      <button class="btn btn-wf-ghost btn-pill" data-tip="Ghost pill">Cancel</button>
+    </div>
+
+    <!-- ══ SECTION 3: Sizes ══ -->
+    <div class="section">
+      <div class="section-title">Size scale</div>
+    </div>
+    <div class="btn-row" style="align-items:center">
+      <button class="btn btn-sm btn-wf-primary btn-pill">XS / SM</button>
+      <button class="btn btn-wf-primary btn-pill">Default (MD)</button>
+      <button class="btn btn-lg btn-wf-primary">Large (LG)</button>
+    </div>
+
+    <!-- Icon buttons -->
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-icon btn-wf-primary" data-tip="Icon button">🔔</button>
+      <button class="btn btn-icon btn-wf-accent" data-tip="Icon — accent">♥</button>
+      <button class="btn btn-icon btn-wf-success" data-tip="Icon — success">✓</button>
+      <button class="btn btn-icon btn-wf-danger" data-tip="Icon — danger">🗑</button>
+      <button class="btn btn-icon btn-wf-ghost" data-tip="Back nav square">←</button>
+      <button class="btn btn-icon btn-sm btn-wf-ghost" data-tip="Small icon">⋯</button>
+    </div>
+
+    <!-- Disabled states -->
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-wf-primary btn-pill" disabled>Disabled Primary</button>
+      <button class="btn btn-wf-danger btn-pill" disabled>Disabled Danger</button>
+    </div>
+
+    <div class="divider" style="margin-top:12px"></div>
+
+    <!-- ══ SECTION 4: IN-APP — Feed Post Card ══ -->
+    <div class="section">
+      <div class="section-title">In-app preview — feed post</div>
+      <div class="section-subtitle">Post actions use ghost wireframe buttons (zero visual weight)</div>
+    </div>
+
+    <div class="mock-card">
+      <div class="mock-card-header">
+        <div class="mock-avatar">A</div>
+        <div style="flex:1">
+          <div class="mock-name">Alex Rivera</div>
+          <div class="mock-sub">@alexr · 2 min ago</div>
+        </div>
+        <!-- Follow pill on feed row -->
+        <button class="btn-follow" onclick="this.classList.toggle('following');this.textContent=this.classList.contains('following')?'✓ Following':'+ Follow'">+ Follow</button>
+        <button class="btn btn-icon btn-sm btn-wf-ghost" style="margin-left:4px">⋯</button>
+      </div>
+      <div class="mock-img">🌅</div>
+      <div class="mock-body">
+        <div style="font-size:14px;color:var(--txt2);margin-bottom:8px">Golden hour vibes from the rooftop session today 🔥</div>
+        <!-- Filter chips below post text -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="btn btn-chip btn-wf-primary active">#photography</button>
+          <button class="btn btn-chip btn-wf-ghost">#golden hour</button>
+          <button class="btn btn-chip btn-wf-ghost">#rooftop</button>
+        </div>
+      </div>
+      <!-- Post action ghost buttons -->
+      <div class="mock-footer">
+        <button class="btn-post-action liked" onclick="this.classList.toggle('liked')">❤️ 142</button>
+        <button class="btn-post-action">💬 38</button>
+        <button class="btn-post-action">🔁 12</button>
+        <button class="btn-post-action" style="margin-left:auto">🔖</button>
+        <button class="btn-post-action">↗️</button>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 5: IN-APP — Profile Buttons ══ -->
+    <div class="section">
+      <div class="section-title">In-app preview — profile header</div>
+      <div class="section-subtitle">Follow = primary wireframe pill · Message = ghost pill · More = icon ghost</div>
+    </div>
+
+    <div class="mock-profile">
+      <div class="mock-cover"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="mock-profile-av">J</div>
+        <div style="display:flex;gap:8px;padding-bottom:4px">
+          <!-- These 3 mirror exactly the buttons you'd see on a profile -->
+          <button class="btn btn-sm btn-wf-primary btn-pill" onclick="this.textContent=this.textContent==='+ Follow'?'✓ Following':'+ Follow'">+ Follow</button>
+          <button class="btn btn-sm btn-wf-ghost btn-pill">💬 Message</button>
+          <button class="btn btn-icon btn-sm btn-wf-ghost">⋯</button>
+        </div>
+      </div>
+      <div class="mock-profile-info">
+        <div class="mock-profile-name">Jordan Chen <span style="font-size:12px;background:linear-gradient(135deg,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">✦ PRO</span></div>
+        <div class="mock-profile-handle">@jordanc</div>
+        <div class="mock-profile-bio">Creative director & storyteller. Coffee first, design second. ☕ Based in NYC.</div>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 6: IN-APP — Dating Swipe ══ -->
+    <div class="section">
+      <div class="section-title">In-app preview — dating swipe</div>
+      <div class="section-subtitle">Pass = danger outline circle · Like = accent filled · Super = primary outline</div>
+    </div>
+
+    <div class="mock-swipe">
+      <div class="mock-swipe-card" style="font-size:64px;align-items:center;justify-content:center">🧑‍🎨</div>
+      <div class="mock-swipe-info">
+        <div class="mock-swipe-text">
+          <div class="name">Mia Torres, 26</div>
+          <div class="sub">🎨 Designer · 3.2 mi away</div>
+        </div>
+        <div class="mock-swipe-actions">
+          <button class="btn btn-dating-fab btn-dating-pass" onclick="this.style.transform='scale(1.2)';setTimeout(()=>this.style.transform='',200)">✕</button>
+          <button class="btn btn-dating-fab btn-dating-super" onclick="this.style.transform='scale(1.2)';setTimeout(()=>this.style.transform='',200)">⭐</button>
+          <button class="btn btn-dating-fab btn-dating-like" onclick="this.style.transform='scale(1.2)';setTimeout(()=>this.style.transform='',200)">♥</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 7: Full-width CTA blocks ══ -->
+    <div class="section">
+      <div class="section-title">Full-width CTA blocks</div>
+      <div class="section-subtitle">Used on checkout, onboarding, modals, and confirm dialogs</div>
+    </div>
+
+    <div class="btn-row-full">
+      <button class="btn btn-wf-primary btn-block btn-lg btn-pill">→ Continue to Checkout</button>
+      <button class="btn btn-wf-success btn-block btn-lg btn-pill">✓ Confirm Purchase</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn btn-wf-danger btn-block btn-pill">✕ Delete Account</button>
+        <button class="btn btn-wf-ghost btn-block btn-pill">← Go Back</button>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 8: Filter / tab chips ══ -->
+    <div class="section">
+      <div class="section-title">Filter &amp; tab chips</div>
+      <div class="section-subtitle">Horizontal scroll row — active = filled variant, inactive = outline chip</div>
+    </div>
+
+    <div style="overflow-x:auto;padding:0 16px 16px;display:flex;gap:8px;white-space:nowrap">
+      <button class="btn btn-chip btn-wf-primary active btn-pill">For You</button>
+      <button class="btn btn-chip btn-wf-ghost btn-pill" onclick="document.querySelectorAll('.filter-demo').forEach(b=>b.classList.remove('active','btn-wf-primary'));document.querySelectorAll('.filter-demo').forEach(b=>b.classList.add('btn-wf-ghost'));this.classList.remove('btn-wf-ghost');this.classList.add('active','btn-wf-primary')">Following</button>
+      <button class="btn btn-chip btn-wf-ghost btn-pill">Trending</button>
+      <button class="btn btn-chip btn-wf-ghost btn-pill">Live 🔴</button>
+      <button class="btn btn-chip btn-wf-ghost btn-pill">Gaming 🎮</button>
+      <button class="btn btn-chip btn-wf-ghost btn-pill">Music 🎵</button>
+    </div>
+
+    <!-- ══ SECTION 9: Live / Marketplace CTAs ══ -->
+    <div class="section">
+      <div class="section-title">Live stream &amp; marketplace</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-wf-live btn-pill">🔴 Go Live</button>
+      <button class="btn btn-wf-accent btn-pill">🛍️ Add to Cart</button>
+      <button class="btn btn-wf-warning btn-pill">★ Wishlist</button>
+      <button class="btn btn-wf-ghost btn-pill">↗️ Share</button>
+    </div>
+
+    <!-- spacer for bottom nav -->
+    <div style="height:32px"></div>
+
+    <!-- ── Bottom nav (mobile sim) ── -->
+    <div class="bottom-nav">
+      <div class="bottom-nav-item active"><span class="icon">🏠</span><span class="label">Feed</span></div>
+      <div class="bottom-nav-item"><span class="icon">🔍</span><span class="label">Search</span></div>
+      <div class="bottom-nav-item"><span class="icon">＋</span><span class="label">Create</span></div>
+      <div class="bottom-nav-item"><span class="icon">💬</span><span class="label">Messages</span></div>
+      <div class="bottom-nav-item"><span class="icon">👤</span><span class="label">Profile</span></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// Interactive follow toggle on feed card
+document.querySelectorAll('.btn-follow').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('following');
+    btn.textContent = btn.classList.contains('following') ? '✓ Following' : '+ Follow';
+  });
+});
+
+// Filter chip single-select
+const chips = document.querySelectorAll('.bottom-nav-item');
+chips.forEach(c => c.addEventListener('click', () => {
+  chips.forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+}));
+</script>
+</body>
+</html>

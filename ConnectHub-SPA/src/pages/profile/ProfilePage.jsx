@@ -384,20 +384,23 @@ export default function ProfilePage() {
   // Private account guard — if private, not own, and not following, hide content
   const isContentHidden = isPrivate && !isOwn && !isFollowing;
 
-  if (loading) return <div style={{ background: '#0a0a18', minHeight: '100vh' }}><ProfileSkeleton /></div>;
+  if (loading) return <div style={{ background: '#0a0a18', minHeight: '100vh', marginTop: 'calc(-1 * var(--top-nav-h, 56px))' }}><ProfileSkeleton /></div>;
 
   return (
-    <div style={{ background: pageBackground, minHeight: '100vh', paddingBottom: 80, transition: 'background 0.3s' }}>
+    // PROFILE-FIX: Negative marginTop pulls cover behind the fixed TopNav for a
+    // full-bleed Instagram-style header. Cover height increased by --top-nav-h so
+    // the visible area below the nav is still 140px.
+    <div style={{ background: pageBackground, minHeight: '100vh', paddingBottom: 80, transition: 'background 0.3s', marginTop: 'calc(-1 * var(--top-nav-h, 56px))' }}>
       {/* Overlays */}
       {photoViewerOpen && photoURL && <PhotoViewer src={photoURL} onClose={() => setPhotoViewerOpen(false)} />}
       {qrSheetOpen && <QRSheet handle={handle} uid={targetUid} onClose={() => setQrSheetOpen(false)} navigate={navigate} />}
 
-      {/* Cover */}
-      <div style={{ height: 140, background: 'linear-gradient(135deg,#0f0c29,#302b63,#24243e)', position: 'relative' }}>
+      {/* Cover — height = 140 visible + top-nav height so cover fills behind nav */}
+      <div style={{ height: 'calc(140px + var(--top-nav-h, 56px))', background: 'linear-gradient(135deg,#0f0c29,#302b63,#24243e)', position: 'relative' }}>
         {profile?.coverUrl && <img src={profile.coverUrl} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         {isOwn && (
           <button onClick={() => setQrSheetOpen(true)}
-            style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '6px 12px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ position: 'absolute', top: 'calc(var(--top-nav-h, 56px) + 12px)', right: 12, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '6px 12px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             📤 Share
           </button>
         )}
