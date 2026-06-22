@@ -1,4 +1,5 @@
 // src/components/layout/TopNav.jsx
+// UNIX-ICONS Jun-2026: Replaced emoji buttons with unix-style SVG icon buttons
 // DESIGN-UPDATE Jun-2026: Minimalist outline/hollow button style for all header buttons
 // DATING-RENAME Jun-2026: Dating section now called "LynkApp Dating"
 // POLISH-14 FIX: Brand name is "LynkApp" on Feed page
@@ -16,6 +17,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@fb/config';
 import { useAuth } from '@hooks/useAuth';
 import useAppStore from '@store/useAppStore';
+import UnixIconBtn from '@components/common/UnixIconBtn';
 
 // POLISH-19: LynkApp logo SVG component
 function LynkLogo() {
@@ -67,44 +69,6 @@ const TOP_LEVEL_ROUTES = new Set([
   '/business','/creator','/help','/menu','/premium','/trending',
 ]);
 
-// ── Reusable hollow/outline icon button ───────────────────────────────────────
-// DESIGN: Transparent background, outline border, fills on hover/active
-function IconBtn({ onClick, label, children, active = false, style = {} }) {
-  const [hovered, setHovered] = useState(false);
-
-  const base = {
-    minWidth: 40,
-    minHeight: 40,
-    borderRadius: 10,
-    padding: '0 8px',
-    background: hovered || active ? 'rgba(99,102,241,0.12)' : 'transparent',
-    border: hovered || active
-      ? '1px solid rgba(99,102,241,0.40)'
-      : '1px solid rgba(255,255,255,0.08)',
-    color: hovered || active ? '#818cf8' : '#94a3b8',
-    fontSize: 20,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.18s ease',
-    flexShrink: 0,
-    ...style,
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      style={base}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function TopNav() {
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -140,15 +104,14 @@ export default function TopNav() {
     }}>
       {/* Left: Back button on nested pages, Logo on Feed, title elsewhere */}
       <div style={{ display:'flex', alignItems:'center', gap:6, minWidth:0 }}>
-        {/* BACK-BTN FIX: ← back button on sub-pages — outline style */}
+        {/* BACK-BTN FIX: ← back button on sub-pages — unix icon style */}
         {isNested && (
-          <IconBtn
+          <UnixIconBtn
+            icon="back"
             onClick={() => navigate(-1)}
             label="Go back"
-            style={{ fontSize:20, fontWeight:700, marginLeft:-4 }}
-          >
-            ←
-          </IconBtn>
+            style={{ marginLeft: -4 }}
+          />
         )}
         {isFeed ? (
           <div style={{ display:'flex', flexDirection:'column', gap:1 }}>
@@ -169,105 +132,71 @@ export default function TopNav() {
         )}
       </div>
 
-      {/* Right icons — all outline/hollow style */}
+      {/* Right icons — unix SVG icon button style */}
       <div style={{ display:'flex', alignItems:'center', gap:3 }}>
 
-        {/* ✏️ Create Post — outline icon btn */}
-        <IconBtn
+        {/* Compose / Create Post — unix icon */}
+        <UnixIconBtn
+          icon="compose"
           onClick={() => setCreatePostOpen(true)}
           label="Create post"
-        >
-          ✏️
-        </IconBtn>
+        />
 
-        {/* 🔍 Search — POLISH-17 FIX: active state */}
-        <IconBtn
+        {/* Search — POLISH-17 FIX: active state */}
+        <UnixIconBtn
+          icon="search"
           onClick={() => navigate('/search')}
           label="Search"
           active={isSearch}
-        >
-          🔍
-        </IconBtn>
+        />
 
-        {/* 🔔 Notifications badge — outline icon btn */}
-        <div style={{ position:'relative' }}>
-          <IconBtn
-            onClick={() => navigate('/notifications')}
-            label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
-          >
-            🔔
-          </IconBtn>
-          {unreadNotifications > 0 && (
-            <span style={{
-              position:'absolute', top:4, right:2,
-              minWidth:17, height:17, borderRadius:'50%',
-              background:'#ef4444', border:'2px solid #08061a',
-              color:'white', fontSize:9, fontWeight:800,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              pointerEvents:'none',
-            }}>
-              {unreadNotifications > 9 ? '9+' : unreadNotifications}
-            </span>
-          )}
-        </div>
+        {/* Notifications — with badge count */}
+        <UnixIconBtn
+          icon="notifications"
+          onClick={() => navigate('/notifications')}
+          label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
+          badge={unreadNotifications}
+        />
 
-        {/* 🧪 Beta Feedback — outline style, desktop only */}
-        <button
+        {/* Beta Feedback — unix icon, desktop only */}
+        <UnixIconBtn
+          icon="feedback"
           onClick={() => setFeedbackOpen(true)}
-          aria-label="Send beta feedback"
-          className="feedback-btn-desktop"
+          label="Send beta feedback"
           style={{
-            minWidth: 40, minHeight: 40, borderRadius: 10, padding: '0 10px',
-            background: 'transparent',
-            border: '1px solid rgba(16,185,129,0.35)',
-            color: '#10b981', fontSize: 13, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', gap: 4, transition: 'all 0.18s ease',
+            border: '1px solid rgba(16,185,129,0.30)',
+            display: window.innerWidth < 640 ? 'none' : undefined,
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(16,185,129,0.10)';
-            e.currentTarget.style.borderColor = 'rgba(16,185,129,0.55)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)';
-          }}
-        >
-          🧪 Feedback
-        </button>
+        />
         {feedbackOpen && (
           <Suspense fallback={null}>
             <BetaFeedbackModal onClose={() => setFeedbackOpen(false)} />
           </Suspense>
         )}
 
-        {/* 🛡️ Admin Panel — outline style, admin only */}
+        {/* Admin Panel — unix shield icon, admin only */}
         {isAdmin && (
-          <IconBtn
+          <UnixIconBtn
+            icon="admin"
             onClick={() => navigate('/admin')}
             label="Admin Panel"
             active={location.pathname.startsWith('/admin')}
-            style={{
-              border: '1px solid rgba(239,68,68,0.35)',
-              color: '#f87171',
-            }}
-          >
-            🛡️
-          </IconBtn>
+            style={{ border: '1px solid rgba(239,68,68,0.30)', color: '#f87171' }}
+          />
         )}
 
-        {/* Avatar — POLISH-11 FIX: 44×44px — outline ring style */}
+        {/* Avatar — unix profile icon with ring, POLISH-11 FIX: 44×44px */}
         <button
           onClick={() => navigate('/profile')}
           aria-label="Profile"
           style={{
             width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
-            background: 'rgba(99,102,241,0.15)',
-            // DESIGN: Hollow outline ring — no solid fill
+            background: 'rgba(99,102,241,0.12)',
             border: '1.5px solid rgba(99,102,241,0.50)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 15, fontWeight: 800, color: '#818cf8', cursor: 'pointer',
             flexShrink: 0, transition: 'border-color 0.2s, box-shadow 0.2s',
+            marginLeft: 2,
           }}
           onMouseEnter={e => {
             e.currentTarget.style.borderColor = 'rgba(99,102,241,0.85)';
