@@ -4,67 +4,92 @@
 
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Button from '../../components/common/Button';
 
 const features = [
   {
     icon: '📱',
     title: 'Social Feed',
     desc: 'Share posts, photos, videos, and stories with your friends and followers. React, comment, and engage with content that matters to you.',
+    btnLabel: 'Explore Feed →',
+    route: '/feed',
   },
   {
     icon: '🎥',
     title: 'Live Streaming',
     desc: 'Go live in seconds. Broadcast to your audience, accept virtual gifts, run Q&A sessions, and grow your community in real time.',
+    btnLabel: 'Go Live →',
+    route: '/live',
   },
   {
     icon: '💬',
     title: 'Private Messaging',
     desc: 'Send text, voice notes, photos, and videos. Create group chats with up to 500 members, and enjoy end-to-end encrypted conversations.',
+    btnLabel: 'Start Chatting →',
+    route: '/messages',
   },
   {
     icon: '❤️',
     title: 'Dating',
     desc: 'Discover meaningful connections. Swipe, match, and chat with people who share your interests — safely and privately.',
+    btnLabel: 'Find Matches →',
+    route: '/dating',
   },
   {
     icon: '🛒',
     title: 'Marketplace',
     desc: 'Buy and sell items locally or nationwide. List products, manage orders, and grow your side hustle — all within the app.',
+    btnLabel: 'Browse Items →',
+    route: '/marketplace',
   },
   {
     icon: '🎮',
     title: 'Gaming Hub',
     desc: 'Play casual games, join tournaments, track your leaderboard ranking, and challenge friends to multiplayer matches.',
+    btnLabel: 'Play Now →',
+    route: '/gaming',
   },
   {
     icon: '🎵',
     title: 'Music Player',
     desc: 'Stream millions of tracks, create playlists, discover trending artists, and share your favorite songs with your network.',
+    btnLabel: 'Listen Now →',
+    route: '/music',
   },
   {
     icon: '👥',
     title: 'Groups & Events',
     desc: 'Join interest-based communities, create events, invite friends, and RSVP to local and virtual gatherings near you.',
+    btnLabel: 'Join a Group →',
+    route: '/groups',
   },
   {
     icon: '🏪',
     title: 'Creator Profiles',
     desc: 'Build your brand with a professional creator profile. Monetize your content with subscriptions, tips, and paid posts.',
+    btnLabel: 'Become a Creator →',
+    route: '/creator',
   },
   {
     icon: '📹',
     title: 'Video Calls',
     desc: 'HD one-on-one and group video calls with screen sharing, virtual backgrounds, and noise cancellation built in.',
+    btnLabel: 'Start a Call →',
+    route: '/videocalls',
   },
   {
     icon: '🔔',
     title: 'Smart Notifications',
     desc: 'Stay in the loop with personalized alerts. Customize your notification schedule with quiet hours and priority filters.',
+    btnLabel: 'Stay Updated →',
+    route: '/notifications',
   },
   {
     icon: '🔒',
     title: 'Privacy & Safety',
     desc: 'You control your data. Granular privacy settings, block lists, content moderation, and two-factor authentication keep you safe.',
+    btnLabel: 'Learn More →',
+    route: '/privacy',
   },
 ];
 
@@ -148,14 +173,19 @@ export default function LandingPage() {
           </span>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Link to="/login" style={{ color: '#6c63ff', fontWeight: 600, textDecoration: 'none', padding: '8px 16px' }}>
+          <a href="#features" style={{ color: '#6c63ff', fontWeight: 600, textDecoration: 'none', padding: '8px 16px', display: 'none' }} className="nav-features-link">
+            Features
+          </a>
+          <Link to="/about" style={{ color: '#374151', fontWeight: 500, textDecoration: 'none', padding: '8px 12px', fontSize: 14 }}>
+            About
+          </Link>
+          <Link to="/privacy" style={{ color: '#374151', fontWeight: 500, textDecoration: 'none', padding: '8px 12px', fontSize: 14 }}>
+            Privacy
+          </Link>
+          <Link to="/login" className="btn btn-sm btn-outline-pill" style={{ textDecoration: 'none' }}>
             Sign In
           </Link>
-          <Link to="/login" style={{
-            background: 'linear-gradient(135deg,#6c63ff,#f43f5e)', color: '#fff',
-            fontWeight: 700, textDecoration: 'none', padding: '10px 20px',
-            borderRadius: 24, fontSize: 14,
-          }}>
+          <Link to="/login" className="btn btn-sm btn-wf-accent btn-pill" style={{ textDecoration: 'none', fontWeight: 700 }}>
             Get Started Free
           </Link>
         </div>
@@ -181,19 +211,16 @@ export default function LandingPage() {
             Connect with friends, stream live, discover your match, shop the marketplace, and grow your brand — all in one place.
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/login" style={{
-              background: 'linear-gradient(135deg,#6c63ff,#f43f5e)', color: '#fff',
-              fontWeight: 700, textDecoration: 'none', padding: '16px 40px',
-              borderRadius: 32, fontSize: 18, display: 'inline-block',
-            }}>
+            <Link to="/login"
+              className="btn btn-lg btn-wf-accent btn-pill"
+              style={{ textDecoration: 'none', fontSize: 18, padding: '16px 40px' }}
+            >
               Join Free →
             </Link>
-            <a href="#features" style={{
-              background: 'rgba(255,255,255,0.15)', color: '#fff',
-              fontWeight: 600, textDecoration: 'none', padding: '16px 32px',
-              borderRadius: 32, fontSize: 16, border: '1px solid rgba(255,255,255,0.3)',
-              display: 'inline-block',
-            }}>
+            <a href="#features"
+              className="btn btn-lg btn-wf-landing-ghost btn-pill"
+              style={{ fontSize: 16 }}
+            >
               See Features
             </a>
           </div>
@@ -229,11 +256,66 @@ export default function LandingPage() {
                 background: '#fff', borderRadius: 16, padding: 28,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb',
                 transition: 'transform 0.2s, box-shadow 0.2s',
+                display: 'flex', flexDirection: 'column',
               }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>{f.icon}</div>
                 <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px' }}>{f.title}</h3>
-                <p style={{ fontSize: 14, color: '#6b7280', margin: 0, lineHeight: 1.7 }}>{f.desc}</p>
+                <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 20px', lineHeight: 1.7, flex: 1 }}>{f.desc}</p>
+                <Link
+                  to="/login"
+                  state={{ next: f.route }}
+                  className="btn btn-sm btn-wf-primary btn-pill"
+                  style={{ textDecoration: 'none', alignSelf: 'flex-start' }}
+                >
+                  {f.btnLabel}
+                </Link>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── APP SECTION QUICK LINKS ── */}
+      <section style={{ padding: '48px 24px', background: '#fff', borderTop: '1px solid #e5e7eb' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 20 }}>
+            Jump straight in
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+            {[
+              { label: '🏠 Feed', route: '/feed' },
+              { label: '🔴 Live', route: '/live' },
+              { label: '❤️ Dating', route: '/dating' },
+              { label: '🛒 Marketplace', route: '/marketplace' },
+              { label: '🎮 Gaming', route: '/gaming' },
+              { label: '🎵 Music', route: '/music' },
+              { label: '👥 Groups', route: '/groups' },
+              { label: '📅 Events', route: '/events' },
+              { label: '📹 Video Calls', route: '/videocalls' },
+              { label: '💬 Messages', route: '/messages' },
+              { label: '🏪 Creator', route: '/creator' },
+              { label: '🔍 Search', route: '/search' },
+            ].map((item) => (
+              <Link
+                key={item.route}
+                to="/login"
+                state={{ next: item.route }}
+                style={{
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  padding: '10px 18px',
+                  borderRadius: 24,
+                  fontSize: 14,
+                  border: '1px solid #e5e7eb',
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#6c63ff'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#374151'; }}
+              >
+                {item.label}
+              </Link>
             ))}
           </div>
         </div>
@@ -274,9 +356,12 @@ export default function LandingPage() {
       {/* ── TESTIMONIALS ── */}
       <section style={{ padding: '80px 24px', background: '#f9fafb' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <h2 style={{ textAlign: 'center', fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 800, margin: '0 0 48px' }}>
-            What Our Community Says
+          <h2 style={{ textAlign: 'center', fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 800, margin: '0 0 8px' }}>
+            Early Feedback from Design Partners
           </h2>
+          <p style={{ textAlign: 'center', fontSize: 13, color: '#9ca3af', marginBottom: 40 }}>
+            These are previews from early design-phase collaborators — not live user reviews.
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
             {testimonials.map((t) => (
               <div key={t.name} style={{
@@ -327,13 +412,12 @@ export default function LandingPage() {
             Ready to Join LynkApp?
           </h2>
           <p style={{ fontSize: 18, opacity: 0.85, marginBottom: 40 }}>
-            Create your free account today and join hundreds of thousands of people already connecting, creating, and growing on LynkApp.
+            Create your free account today and be among the first to connect, create, and grow on LynkApp. Open beta — no invite needed.
           </p>
-          <Link to="/login" style={{
-            background: 'linear-gradient(135deg,#6c63ff,#f43f5e)', color: '#fff',
-            fontWeight: 700, textDecoration: 'none', padding: '18px 48px',
-            borderRadius: 32, fontSize: 18, display: 'inline-block',
-          }}>
+          <Link to="/login"
+            className="btn btn-lg btn-wf-accent btn-pill"
+            style={{ textDecoration: 'none', fontSize: 18, padding: '18px 48px' }}
+          >
             Create Free Account →
           </Link>
         </div>
