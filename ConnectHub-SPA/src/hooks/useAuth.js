@@ -42,12 +42,15 @@ export function useAuth() {
       return;
     }
 
-    // TIMEOUT-FIX: 3 seconds max — never stay stuck on splash screen
+    // TIMEOUT-FIX: 15 seconds max — mobile-safe; 3s was too aggressive on slow
+    // connections and could log out a legitimate user mid-session.
+    // The timer is cleared immediately when onAuthStateChanged fires (see below),
+    // so real users on fast connections are never affected by this limit.
     const timeoutId = setTimeout(() => {
-      console.warn('[useAuth] Firebase auth timeout — treating as unauthenticated');
+      console.warn('[useAuth] Firebase auth timeout (15s) — treating as unauthenticated');
       setUser(null);
       setLoading(false);
-    }, 3000);
+    }, 15000);
 
     const unsubs = [];
 
