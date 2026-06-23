@@ -1,6 +1,7 @@
 // src/pages/misc/MiscSubPages.jsx
 // Business Analytics, Gaming Library, Gaming Leaderboard, Music Artist,
 // Music Album, Media Video Player, Saved Collections — all in one file
+// Fixed: Added onError image fallbacks to prevent blank areas on broken external images (Jun 2026)
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -89,7 +90,12 @@ export function GamingLibraryPage() {
         {games.map(g => (
           <div key={g.id} onClick={() => showToast(`Opening ${g.title}...`, 'info')} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>
             <div style={{ width: 58, height: 58, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
-              <img src={g.img} alt={g.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={g.img}
+                alt={g.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%">🎮</span>'; }}
+              />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', marginBottom: 2 }}>{g.title}</div>
@@ -251,7 +257,12 @@ export function SavedCollectionsPage() {
         <div style={{ padding: '14px 16px' }}>
           {SAVED_POSTS.map(p => (
             <div key={p.id} onClick={() => navigate(`/post/${p.id}`)} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}>
-              <img src={p.img} alt="" style={{ width: 70, height: 70, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+              <img
+                src={p.img}
+                alt=""
+                style={{ width: 70, height: 70, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+                onError={e => { e.target.onerror = null; e.target.src = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2270%22 height%3D%2270%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23374151%22/%3E%3Ctext x%3D%2250%25%22 y%3D%2255%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2228%22%3E🖼%3C/text%3E%3C/svg%3E'; }}
+              />
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
                   <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{p.emoji}</div>
@@ -300,7 +311,12 @@ export function VideoPlayerPage() {
 
       {/* Video player area */}
       <div style={{ position: 'relative', background: '#000', height: 220 }}>
-        <img src={VIDEO.thumbnail} alt="video" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
+        <img
+          src={VIDEO.thumbnail}
+          alt="video"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
+          onError={e => { e.target.onerror = null; e.target.style.opacity = '0'; e.target.parentNode.style.background = '#1e293b'; }}
+        />
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <button onClick={() => showToast('▶ Playing video...', 'info')} style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', fontSize: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▶</button>
         </div>

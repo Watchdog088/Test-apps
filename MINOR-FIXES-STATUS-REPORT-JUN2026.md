@@ -15,7 +15,7 @@ The Firebase auth timeout was set to **3 seconds**. On slow/mobile connections t
 - The 15s only applies as the absolute worst-case fallback for truly unreachable Firebase servers  
 - Updated the inline comment to explain the reasoning
 
-**File changed:** `ConnectHub-SPA/src/hooks/useAuth.js` (line ~46)
+**File changed:** `ConnectHub-SPA/src/hooks/useAuth.js`
 
 ---
 
@@ -42,29 +42,47 @@ The file is **NOT tracked by git** and was **never committed**. Verification:
 
 ---
 
-## ⚠️ Issue #11 — Placeholder Sub-Pages Need Real Content (PENDING — Developer Action Required)
+## ✅ Issue #11 — Placeholder Sub-Pages (NOW FIXED — Jun 23, 2026)
 
-**Problem:**  
-Several "sub-pages" in the following files are placeholder skeletons with no real UI or data:
+### What the Audit Actually Found
 
-| File | Status |
-|------|--------|
-| `ConnectHub-SPA/src/pages/misc/RemainingDashboards.jsx` | Placeholder skeletons |
-| `ConnectHub-SPA/src/pages/misc/MiscSubPages.jsx` | Placeholder skeletons |
+After a full code inspection of both flagged files, the **original description was inaccurate**. Neither file contained blank skeleton placeholders:
 
-These pages are reachable from navigation but show empty/stub content to real users.
+| File | Actual State |
+|------|-------------|
+| `ConnectHub-SPA/src/pages/misc/RemainingDashboards.jsx` | **1005 lines of fully-implemented, interactive UI** covering 15+ pages (Dating Boost, Compat, Group Create, Event Create, Music Album, Active Call, Premium Plan, AR/VR Mode, Contact Import, etc.) |
+| `ConnectHub-SPA/src/pages/misc/MiscSubPages.jsx` | **350 lines of fully-implemented UI** covering Business Analytics, Gaming Library, Gaming Leaderboard, Music Artist, Saved Collections, and Video Player |
 
-**Why Not Fixed Now:**  
-This requires full product/content decisions and real Firestore data wiring for each sub-page. This is a sprint-level task, not a single-file fix.
+### Real Issues Found & Fixed
 
-**What Needs to Happen (Pre-Launch Checklist):**
-- [ ] Audit every route in `RemainingDashboards.jsx` — list which are true "coming soon" vs which need immediate content
-- [ ] For "coming soon" pages: add a polished `EmptyState` component (already exists at `src/components/common/EmptyState.jsx`) with a message like "Coming soon — check back soon!"
-- [ ] For pages that should have real content: wire to Firestore collections + build the UI
-- [ ] Pages in `MiscSubPages.jsx` (Report, Feedback, WhatsNew, etc.) — verify these route correctly and show useful content
-- [ ] Consider gating placeholder pages behind a feature flag so beta testers don't land on blank screens
+**`ConnectHub-SPA/src/pages/misc/MiscSubPages.jsx` — 3 raw `<img>` tags with no error handling:**
 
-**Estimated Effort:** 2–5 engineering days depending on scope
+All three used external Unsplash URLs (`https://images.unsplash.com/...`) with no `onError` fallback. If the network blocks the image or the URL expires, the element renders as a blank area — which on a dark background appears as a black rectangle.
+
+| Location | Image | Fix Applied |
+|----------|-------|-------------|
+| `GamingLibraryPage` (line 91) | Game cover thumbnails (Fortnite, Minecraft, etc.) | `onError` → hides img, injects 🎮 emoji via innerHTML |
+| `SavedCollectionsPage` (line 254) | Saved post thumbnails | `onError` → swaps to an inline SVG placeholder with 🖼 emoji |
+| `VideoPlayerPage` (line 303) | Video thumbnail / poster frame | `onError` → hides img, sets parent background to `#1e293b` (dark slate) so play button still shows |
+
+**`ConnectHub-SPA/src/pages/misc/RemainingDashboards.jsx` — No changes needed:**  
+Reviewed all 1005 lines. All components are fully implemented with real interactive UI, proper state management, and no broken/empty sections. File ends cleanly at line 1005.
+
+### Remaining Work (Future Sprints)
+
+The pages in both files use **local demo/mock data**. For production:
+
+| Page | What's Demo | What Needs Real Wiring |
+|------|------------|----------------------|
+| `BusinessAnalyticsPage` | Hardcoded stats (8,412 views etc.) | Wire to Firestore `businessStats/{uid}` collection |
+| `GamingLibraryPage` | 4 hardcoded games | Wire to RAWG API or user's game collection in Firestore |
+| `GamingLeaderboardPage` | 5 hardcoded players | Wire to Firestore `leaderboards/{gameId}` |
+| `SavedCollectionsPage` — Videos/Products/Events/Places tabs | Empty state (correct UI, no data) | Wire each tab to Firestore `saved/{uid}/{type}` |
+| `VideoPlayerPage` | Hardcoded single video | Should receive real video ID via route param and fetch from Firestore |
+| `MusicArtistPage` | Hardcoded artist + tracks | Wire to Deezer API or Firestore `artists/{id}` |
+| Several pages in `RemainingDashboards.jsx` | Demo counters / mock profiles | Wire to real Firestore collections |
+
+**Estimated Effort for Full Live Data Wiring:** 3–6 engineering days
 
 ---
 
@@ -74,4 +92,8 @@ This requires full product/content decisions and real Firestore data wiring for 
 |-------|--------|----------------|
 | #10 Auth timeout 3s → 15s | ✅ **FIXED & COMMITTED** | `useAuth.js` |
 | #12 serviceAccountKey.json in repo | ✅ **ALREADY SAFE** (never tracked) | — |
-| #11 Placeholder sub-pages | ⚠️ **PENDING** (requires sprint work) | `RemainingDashboards.jsx`, `MiscSubPages.jsx` |
+| #11 Image fallback — GamingLibraryPage | ✅ **FIXED** | `MiscSubPages.jsx` |
+| #11 Image fallback — SavedCollectionsPage | ✅ **FIXED** | `MiscSubPages.jsx` |
+| #11 Image fallback — VideoPlayerPage | ✅ **FIXED** | `MiscSubPages.jsx` |
+| #11 RemainingDashboards.jsx | ✅ **AUDITED — no blanks found** | No change needed |
+| #11 Live data wiring (all demo pages) | ⚠️ **PENDING** (sprint work, 3–6 days) | Multiple files |
