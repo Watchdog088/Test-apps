@@ -4,6 +4,12 @@
 // BLOCKER-1 FIX: Removed demoMode guard — auth always runs and sets demoMode=false on real login
 // TIMEOUT-FIX: 3-second timeout so app never stays stuck on splash screen
 // NULL-AUTH-FIX: Gracefully handles null auth (missing Firebase config) without crashing
+// BLACK-SCREEN-FIX: loading initialised from the Zustand store so subsequent calls
+//   (PrivateRoute, SmartRoot, AppShell) don't each restart with loading=true, which
+//   caused a cascade of SplashScreen flashes / black screens.
+//   Rule: user===undefined means "Firebase hasn't resolved yet" (loading=true).
+//         user===null means "resolved, not logged in" (loading=false).
+//         user===object means "resolved, logged in" (loading=false).
 
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -22,7 +28,10 @@ export function useAuth() {
     setDemoMode,
   } = useAppStore();
 
-  const [loading, setLoading] = useState(true);
+  // BLACK-SCREEN-FIX: initialise from the shared store instead of always true.
+  // If user is already resolved (not undefined) from a prior useAuth() call on
+  // this page load, skip the loading state entirely — no extra SplashScreen flash.
+  const [loading, setLoading] = useState(() => useAppStore.getState().user === undefined);
 
   useEffect(() => {
     // NULL-AUTH-FIX: If Firebase didn't initialize (missing .env keys), bail out immediately
@@ -97,19 +106,40 @@ export function useAuth() {
         }
 
         // Subscribe to following subcollection
+        // BUG-FIX (Jun 2026): Followers snapshot was opened inside the following
+        // snapshot callback without ever being unsubscribed.  Every time the
+        // following list changed a brand-new Firestore listener was registered,
+        // causing an unbounded memory / connection leak.
+        // Fix: maintain a separate `unsubFollowers` ref that is cancelled before
+        // re-subscribing, and push it into the shared `unsubs` array so the
+        // outer cleanup also tears it down on logout.
         try {
+          let unsubFollowers = null; // tracks the inner follower listener
+
           const followingRef = collection(db, 'users', firebaseUser.uid, 'following');
           const unsubFollowing = onSnapshot(followingRef, (snap) => {
             const ids = snap.docs.map(d => d.id);
             setFollowingIds(ids);
+
+            // Cancel the previous followers listener before creating a new one
+            if (unsubFollowers) {
+              unsubFollowers();
+              unsubFollowers = null;
+            }
+
             const followersRef = collection(db, 'users', firebaseUser.uid, 'followers');
-            onSnapshot(followersRef, (followerSnap) => {
+            unsubFollowers = onSnapshot(followersRef, (followerSnap) => {
               const followerIds = new Set(followerSnap.docs.map(d => d.id));
               const mutualIds = ids.filter(id => followerIds.has(id));
               setFriendIds(mutualIds);
             });
           });
-          unsubs.push(unsubFollowing);
+
+          // Wrap both listeners in a single teardown so the outer cleanup handles them
+          unsubs.push(() => {
+            unsubFollowing();
+            if (unsubFollowers) unsubFollowers();
+          });
         } catch (err) {
           console.warn('[useAuth] Following subscription error:', err);
           try {

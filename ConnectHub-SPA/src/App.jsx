@@ -370,9 +370,11 @@ function SmartRoot() {
 }
 
 export default function App() {
-  const { loading } = useAuth();
-  if (loading) return <SplashScreen />;
-
+  // BLACK-SCREEN-FIX: Removed the top-level useAuth() loading gate.
+  // PrivateRoute and SmartRoot both call useAuth() and handle their own loading
+  // state correctly. Having App ALSO call useAuth() was creating an extra
+  // SplashScreen cycle and registering a redundant Firebase auth listener every
+  // time the component tree re-evaluated. The route guards below are sufficient.
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>

@@ -82,20 +82,24 @@ function ToastRenderer() {
 }
 
 // ── POLISH-08 FIX: Mini Music Player with animated progress bar ──────────────
+// BUG-FIX (Jun 2026): Player now reads isPlaying from the Zustand store so that
+// any page calling setCurrentTrack() / setIsPlaying() controls this UI.
+// Local `playing` state has been replaced with the store value.
 function MiniPlayer({ track, onExpand }) {
-  const [playing, setPlaying] = useState(false);
+  const storeIsPlaying  = useAppStore((s) => s.isPlaying);
+  const setStoreIsPlaying = useAppStore((s) => s.setIsPlaying);
   const [progress, setProgress] = useState(35); // percent
 
   useEffect(() => {
-    if (!playing) return;
+    if (!storeIsPlaying) return;
     const interval = setInterval(() => {
       setProgress(p => {
-        if (p >= 100) { setPlaying(false); return 0; }
+        if (p >= 100) { setStoreIsPlaying(false); return 0; }
         return p + 0.5;
       });
     }, 500);
     return () => clearInterval(interval);
-  }, [playing]);
+  }, [storeIsPlaying]);
 
   return (
     <div onClick={onExpand} style={{
@@ -118,11 +122,12 @@ function MiniPlayer({ track, onExpand }) {
       <div style={{ position:'absolute', bottom:0, left:0, right:0, height:2, background:'rgba(255,255,255,0.06)' }}>
         <div style={{ width:`${progress}%`, height:'100%', background:'linear-gradient(90deg,#6366f1,#ec4899)', transition:'width 0.5s linear' }} />
       </div>
-      <button onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}
+      {/* BUG-FIX: was referencing stale `playing`/`setPlaying` — now uses store */}
+      <button onClick={(e) => { e.stopPropagation(); setStoreIsPlaying(p => !p); }}
         style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#6366f1,#ec4899)',
           border:'none', color:'white', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
-        aria-label={playing ? 'Pause' : 'Play'}>
-        {playing ? '⏸' : '▶'}
+        aria-label={storeIsPlaying ? 'Pause' : 'Play'}>
+        {storeIsPlaying ? '⏸' : '▶'}
       </button>
       <button onClick={(e) => e.stopPropagation()}
         style={{ color:'#64748b', fontSize:18, flexShrink:0, lineHeight:1, minWidth:30, minHeight:36 }}
@@ -402,6 +407,9 @@ export default function AppShell() {
   const { user: firebaseUser } = useAuth();
 
   // ALL useState hooks must come before any conditional return (Rules of Hooks)
+  // SCROLL-FIX: ref used to reset scroll-to-top on every route change
+  const mainRef = useRef(null);
+
   const [showMiniPlayer,   setShowMiniPlayer]   = useState(true);
   const [showFullPlayer,   setShowFullPlayer]   = useState(false);
   const [showInterstitial, setShowInterstitial] = useState(false);
@@ -420,8 +428,11 @@ export default function AppShell() {
   const longPressTimer = useRef(null);
 
   // ── Global More Drawer state from store ────────────────────
-  const moreDrawerOpen    = useAppStore((s) => s.moreDrawerOpen);
-  const setMoreDrawerOpen = useAppStore((s) => s.setMoreDrawerOpen);
+  const moreDrawerOpen     = useAppStore((s) => s.moreDrawerOpen);
+  const setMoreDrawerOpen  = useAppStore((s) => s.setMoreDrawerOpen);
+  // BUG-FIX (Jun 2026): was called via useAppStore.getState() inside JSX (Bug #2).
+  // Moved to top-level hook so it is always reactive and never violates Rules of Hooks.
+  const setCreatePostOpen  = useAppStore((s) => s.setCreatePostOpen);
 
   const hideChrome = CHROME_HIDDEN.some(p => pathname.startsWith(p));
 
@@ -433,8 +444,9 @@ export default function AppShell() {
   }, []);
 
   // GAP-03: Subscribe to live streams from followed creators
+  // BUG-FIX (Jun 2026): auth may be null when Firebase env vars are missing — guard it (Bug #1)
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!auth || !auth.currentUser) return;
     let followingIds = [];
     const loadFollowing = async () => {
       try {
@@ -474,6 +486,15 @@ export default function AppShell() {
     window.addEventListener('offline', onOffline);
     return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline); };
   }, []);
+
+  // SCROLL-FIX: reset the main scroll container to the top on every route change
+  // This prevents the profile page (and any other page) from appearing "cut off"
+  // at the top because the previous page left the scroll position partway down.
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const consent = localStorage.getItem('cookieConsent') !== 'false';
@@ -613,6 +634,7 @@ export default function AppShell() {
 
       {/* ── Main content ── */}
       <main
+        ref={mainRef}
         style={{
           flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch',
           paddingTop: hideChrome ? 0 : 'var(--top-nav-h, 56px)',
@@ -633,12 +655,11 @@ export default function AppShell() {
       {!hideChrome && !isMobile && <SideNav />}
 
       {/* ── Mobile Bottom Tab Bar — only on mobile viewports < 640px ── */}
+      {/* BUG-FIX (Jun 2026): `setCreatePostOpen` is now read from the top-level hook above
+          (no longer calling useAppStore.getState() inside JSX which violated Rules of Hooks) */}
       {!hideChrome && isMobile && (
         <MobileBottomNav
-          onCreatePost={() => {
-            const setCreatePostOpen = useAppStore.getState().setCreatePostOpen;
-            if (setCreatePostOpen) setCreatePostOpen(true);
-          }}
+          onCreatePost={() => setCreatePostOpen(true)}
         />
       )}
 
