@@ -571,6 +571,38 @@ export default function AppShell() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  // FIX #9 (Jun 2026): Read the active track from the store.  Any page/service that calls
+  // setCurrentTrack(track) will automatically show the persistent MiniPlayer here.
+  // RULES-OF-HOOKS FIX (Jun 2026): was placed AFTER the conditional <Navigate> return below,
+  // violating React Rules of Hooks.  Moved here — before any conditional return — so the
+  // hook is ALWAYS called on every render regardless of branch taken.
+  const currentTrack    = useAppStore((s) => s.currentTrack);
+  const storeIsPlaying  = useAppStore((s) => s.isPlaying);
+  const setStoreIsPlaying = useAppStore((s) => s.setIsPlaying);
+  const stopAudio       = useAppStore((s) => s.stopAudio);
+
+  // ── Real HTML5 Audio for music playback ───────────────────────────────────
+  // MUSIC-FIX (Jun 2026): Wire a real <Audio> element so that when any page calls
+  // setCurrentTrack({ url, title, artist, emoji }) the audio actually plays.
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (currentTrack?.url) {
+      if (audioRef.current.src !== currentTrack.url) {
+        audioRef.current.src = currentTrack.url;
+      }
+      if (storeIsPlaying) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    } else {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+  }, [currentTrack, storeIsPlaying]);
+
   // VERIFY-FIX: Gate — unverified email users must verify before accessing the app
   // isAnonymous guard prevents guest/social sign-ins from being blocked
   // NOTE: This MUST come after ALL hooks (useState + useEffect) to comply with React Rules of Hooks
@@ -587,10 +619,6 @@ export default function AppShell() {
       setPwaPrompt(null);
     }
   };
-
-  // FIX #9 (Jun 2026): Read the active track from the store.  Any page/service that calls
-  // setCurrentTrack(track) will automatically show the persistent MiniPlayer here.
-  const currentTrack = useAppStore((s) => s.currentTrack);
 
   // UX-02 FIX: paddingBottom accounts for chrome height (mobile nav or mini player)
   // On mobile (< 640px): MobileBottomNav = 64px; MiniPlayer floats above it at bottom:64px
@@ -740,6 +768,15 @@ export default function AppShell() {
 
       {/* ── BETA FIX (Jun 2026): Cookie Consent Banner — GDPR/CCPA required ── */}
       <CookieConsentBanner />
+
+      {/* ── MUSIC-FIX (Jun 2026): Hidden HTML5 audio element — controlled by Zustand store ── */}
+      {/* Any page calls setCurrentTrack({ url, title, artist, emoji }) to start real playback */}
+      <audio
+        ref={audioRef}
+        onEnded={() => setStoreIsPlaying(false)}
+        preload="none"
+        style={{ display: 'none' }}
+      />
 
       {/* ── Missing #5: Global offline overlay — shows when navigator.onLine = false ── */}
       <OfflineOverlay />
