@@ -26,8 +26,9 @@ import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/f
 import { db, auth } from '@/firebase/config';
 
 const CHROME_HIDDEN = ['/login', '/register', '/onboarding', '/splash'];
-// Music mini-player only shows when a real track is selected by the user
-const DEMO_TRACK = null; // No hardcoded song — populated via Deezer/store
+// DEMO_TRACK removed (Jun 2026 FIX #9): replaced by currentTrack from Zustand store.
+// MusicPage / any audio page calls useAppStore.getState().setCurrentTrack(track) to
+// populate this — the global MiniPlayer then appears automatically.
 
 // ── UX-15 FIX: Toast renderer ────────────────────────────────────────────────
 // BUG-11 FIX: Moved to top:72px so it never overlaps bottom nav or action buttons
@@ -587,11 +588,15 @@ export default function AppShell() {
     }
   };
 
+  // FIX #9 (Jun 2026): Read the active track from the store.  Any page/service that calls
+  // setCurrentTrack(track) will automatically show the persistent MiniPlayer here.
+  const currentTrack = useAppStore((s) => s.currentTrack);
+
   // UX-02 FIX: paddingBottom accounts for chrome height (mobile nav or mini player)
   // On mobile (< 640px): MobileBottomNav = 64px; MiniPlayer floats above it at bottom:64px
   // On desktop (>= 640px): side nav has no bottom footprint; MiniPlayer = 56px if showing
   const mobileNavH = isMobile ? MOBILE_NAV_H : 0;
-  const miniPlayerH = (!isMobile && showMiniPlayer && DEMO_TRACK) ? 56 : 0;
+  const miniPlayerH = (!isMobile && showMiniPlayer && currentTrack) ? 56 : 0;
   const mainPaddingBottom = hideChrome
     ? 0
     : `calc(${mobileNavH + miniPlayerH}px + env(safe-area-inset-bottom, 0px))`;
@@ -663,14 +668,16 @@ export default function AppShell() {
         />
       )}
 
-      {/* ── Persistent Mini Music Player — only shown when a real track is playing ── */}
-      {!hideChrome && showMiniPlayer && DEMO_TRACK && (
-        <MiniPlayer track={DEMO_TRACK} onExpand={() => setShowFullPlayer(true)} />
+      {/* ── Persistent Mini Music Player — shown when a track is active in the store ── */}
+      {/* FIX #9 (Jun 2026): DEMO_TRACK (= null) replaced with currentTrack from Zustand.
+          Call useAppStore.getState().setCurrentTrack(track) from MusicPage to activate. */}
+      {!hideChrome && showMiniPlayer && currentTrack && (
+        <MiniPlayer track={currentTrack} onExpand={() => setShowFullPlayer(true)} />
       )}
 
       {/* ── Full Music Player Modal ── */}
-      {showFullPlayer && DEMO_TRACK && (
-        <FullMusicPlayer track={DEMO_TRACK} onClose={() => setShowFullPlayer(false)} />
+      {showFullPlayer && currentTrack && (
+        <FullMusicPlayer track={currentTrack} onClose={() => setShowFullPlayer(false)} />
       )}
 
       {/* ── More Drawer (Fix #1: slide-in instead of full page, Rec spec) ── */}
@@ -685,12 +692,9 @@ export default function AppShell() {
         />
       )}
 
-      {/* ── Mobile offline banner ── */}
-      {isOffline && (
-        <div className="offline-banner">
-          📡 No connection — reconnecting…
-        </div>
-      )}
+      {/* FIX #8 (Jun 2026): Removed duplicate inline offline-banner div.
+          <OfflineOverlay /> below already manages the full-screen offline state.
+          Keeping two overlapping offline indicators confused users. */}
 
       {/* ── UX-15 FIX: Toast Renderer ── */}
       <ToastRenderer />
