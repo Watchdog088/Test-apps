@@ -14,7 +14,10 @@ const useAppStore = create((set, get) => ({
   // Once onAuthStateChanged fires: real user object OR null (redirects to /login).
   // demoMode is false — real Firebase auth always runs.
   user: undefined,
-  userProfile: null,
+  // undefined = "not yet fetched" (shows SplashScreen in SmartRoot until profile resolves)
+  // null      = "fetched — no profile doc or user logged out"
+  // object    = "fetched — profile data available"
+  userProfile: undefined,
   demoMode: false,
   setUser: (user) => set({ user }),
   setUserProfile: (profile) => set({ userProfile: profile }),

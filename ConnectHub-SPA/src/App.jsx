@@ -297,7 +297,7 @@ const PremiumPage       = lazy(() => import('./pages/premium/PremiumPage'));
 
 function PageLoader() {
   return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', padding:'40px', flexDirection:'column', gap:'16px' }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100dvh', background:'#0a0818', padding:'40px', flexDirection:'column', gap:'16px' }}>
       <div style={{ width:'40px', height:'40px', borderRadius:'50%', border:'3px solid rgba(255,255,255,0.1)', borderTopColor:'#6366f1', animation:'spin 0.8s linear infinite' }} />
       <span style={{ color:'#94a3b8', fontSize:'14px' }}>Loading...</span>
     </div>
@@ -350,22 +350,21 @@ function PrivateRoute({ children }) {
 
 // SmartRoot: shows LandingPage for unauthenticated visitors (AdSense review),
 // redirects ADMIN users → /admin, regular users → /feed.
-// Waits for the Firestore profile to be in the Zustand store before routing
-// so the isAdmin / role field is available (avoids flicker to /feed for admins).
+// BLACK-SCREEN-FIX: Do NOT block on userProfile===undefined. The Zustand store
+// initialises userProfile as undefined, causing an infinite SplashScreen if
+// Firestore is slow or fails. We redirect to /feed immediately once Firebase
+// auth resolves. The admin check is opportunistic — if the profile is already
+// in the store we use it; otherwise the admin navigates to /admin manually.
 function SmartRoot() {
   const { user, loading } = useAuth();
   const userProfile = useAppStore((s) => s.userProfile);
   if (loading) return <SplashScreen />;
   if (!user) return <LandingPage />;
-  // userProfile is `undefined` while the Firestore doc is still being fetched,
-  // and `null` only if the user has no profile doc at all.
-  // Hold on splash until the profile resolves so we know the role.
-  if (userProfile === undefined) return <SplashScreen />;
-  // ── ADMIN AUTO-REDIRECT ──────────────────────────────────────────────────
-  // Checks both the boolean flag (isAdmin) and the role string.
+  // ── ADMIN AUTO-REDIRECT (opportunistic — only if profile already loaded) ──
   if (userProfile?.isAdmin === true || userProfile?.role === 'admin') {
     return <Navigate to="/admin" replace />;
   }
+  // Go straight to /feed — never block on Firestore profile loading.
   return <Navigate to="/feed" replace />;
 }
 

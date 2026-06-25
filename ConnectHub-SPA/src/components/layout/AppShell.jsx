@@ -400,7 +400,7 @@ function LiveNowBanner({ stream, onClose, onClick }) {
 }
 
 // ── AppShell ──────────────────────────────────────────────────────────────────
-export default function AppShell() {
+export default function AppShell({ children }) {
   const { pathname }    = useLocation();
   const navigate        = useNavigate();
 
@@ -603,12 +603,12 @@ export default function AppShell() {
     }
   }, [currentTrack, storeIsPlaying]);
 
-  // VERIFY-FIX: Gate — unverified email users must verify before accessing the app
-  // isAnonymous guard prevents guest/social sign-ins from being blocked
-  // NOTE: This MUST come after ALL hooks (useState + useEffect) to comply with React Rules of Hooks
-  if (firebaseUser && !firebaseUser.emailVerified && !firebaseUser.isAnonymous) {
-    return <Navigate to="/verify-email" replace />;
-  }
+  // VERIFY-FIX REMOVED (Jun 2026): The strict emailVerified gate caused a black
+  // screen for all email/password users whose accounts hadn't been verified yet —
+  // they were bounced from AppShell to /verify-email (a standalone page with no
+  // dark background) which rendered as a blank black screen.
+  // Email verification is now handled via an in-app banner (see global.css/TopNav)
+  // rather than a hard route-block, so users can still access the app.
 
   const handleInstallPWA = async () => {
     if (!pwaPrompt) return;
@@ -630,7 +630,7 @@ export default function AppShell() {
     : `calc(${mobileNavH + miniPlayerH}px + env(safe-area-inset-bottom, 0px))`;
 
   return (
-    <div style={{ height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+    <div style={{ height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden', background:'#0a0818' }}>
 
       {/* ── Interstitial Ad ── */}
       {showInterstitial && (

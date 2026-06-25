@@ -72,11 +72,18 @@ export function useAuth() {
         return;
       }
 
-      // Real user is logged in
+      // Real user is logged in — set user & clear loading IMMEDIATELY so the
+      // app renders instead of staying on the black SplashScreen.
+      // Profile + social data is loaded async in the background below.
+      // BLACK-SCREEN-ROOT-FIX (Jun 2026): previously setLoading(false) was at
+      // the END of this callback, AFTER awaiting getDoc(). If that Firestore
+      // call ever hangs (security-rules denial, network, cold-start), loading
+      // stayed true forever → permanent black splash screen.
       setDemoMode(false);
       setUser(firebaseUser);
+      setLoading(false); // ← MOVED HERE: always unblock the UI immediately
 
-      // Load or create profile doc (requires db to be available)
+      // Load or create profile doc async in the background (non-blocking)
       if (db) {
         const profileRef = doc(db, 'users', firebaseUser.uid);
         try {
@@ -106,6 +113,9 @@ export function useAuth() {
           }
         } catch (err) {
           console.warn('[useAuth] Profile load error:', err);
+          // Unblock SmartRoot — userProfile stays undefined forever otherwise
+          // (SmartRoot uses undefined=loading, null=no-profile, object=loaded)
+          setUserProfile(null);
         }
 
         // Subscribe to following subcollection
@@ -190,7 +200,7 @@ export function useAuth() {
         }
       }
 
-      setLoading(false);
+      // (setLoading(false) was moved above — do not call again here)
     });
 
     return () => {
