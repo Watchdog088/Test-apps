@@ -650,7 +650,55 @@ export default function FeedPage() {
     }
   }, [location.state, posts]);
 
+  // ── AUTO-FLUSH: After creating a post, immediately show it without requiring
+  //    the user to tap the "new posts" pill.
+  //    FIX: React to newBuffer changes so the post appears instantly once
+  //    Firestore delivers it — regardless of network latency.  The old approach
+  //    used a fixed 800 ms timer that was often shorter than Firestore's round-
+  //    trip, leaving the user's own post stuck behind the pill. ──────────────
+  const autoFlushDoneRef = useRef(false);
+  useEffect(() => {
+    if (!location.state?.justPosted || autoFlushDoneRef.current) return;
+
+    // If new posts are already in the buffer, merge them immediately.
+    if (newBuffer.length > 0) {
+      autoFlushDoneRef.current = true;
+      setPosts(prev => {
+        const prevIds = new Set(prev.map(p => p.id));
+        const truly = newBuffer.filter(p => !prevIds.has(p.id));
+        if (truly.length === 0) return prev;
+        const merged = [...truly, ...prev];
+        currentIdsRef.current = new Set(merged.map(p => p.id));
+        return merged;
+      });
+      setNewBuffer([]);
+      window.history.replaceState({}, document.title);
+      return;
+    }
+
+    // Fallback: wait up to 5 s for the post to arrive via Firestore, then
+    // clear the justPosted flag so the pill works normally after that.
+    const timer = setTimeout(() => {
+      autoFlushDoneRef.current = true;
+      window.history.replaceState({}, document.title);
+    }, 5000);
+    return () => clearTimeout(timer);
+  // Re-run when newBuffer changes so we catch the post as soon as it arrives.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.justPosted, newBuffer]);
+
   // ── Initial Firestore load ─────────────────────────────────────────────────
+  // justPostedRef: tracks whether the user just submitted a post so we can
+  // auto-merge the new post into the feed instead of showing the "new posts" pill.
+  const justPostedRef = useRef(false);
+  useEffect(() => {
+    if (location.state?.justPosted) {
+      justPostedRef.current = true;
+      // Clear the router state so a refresh doesn't re-trigger auto-merge
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.justPosted]);
+
   useEffect(() => {
     if (!db) {
       setPosts([]);
@@ -668,7 +716,25 @@ export default function FeedPage() {
         const freshPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
         if (currentIdsRef.current.size > 0) {
           const trueNew = freshPosts.filter(p=>!currentIdsRef.current.has(p.id));
-          if (trueNew.length > 0) { setNewBuffer(trueNew); return; }
+          if (trueNew.length > 0) {
+            // FIX: If the user just posted, auto-merge new posts directly into
+            // the feed (skip the "new posts" pill) so the post appears immediately.
+            if (justPostedRef.current) {
+              justPostedRef.current = false;
+              setPosts(prev => {
+                const prevIds = new Set(prev.map(p => p.id));
+                const truly = trueNew.filter(p => !prevIds.has(p.id));
+                if (truly.length === 0) return prev;
+                const merged = [...truly, ...prev];
+                currentIdsRef.current = new Set(merged.map(p => p.id));
+                return merged;
+              });
+              setLastDoc(snap.docs[snap.docs.length-1]);
+            } else {
+              setNewBuffer(trueNew);
+            }
+            return;
+          }
         }
         setPosts(freshPosts);
         currentIdsRef.current = new Set(freshPosts.map(p=>p.id));
