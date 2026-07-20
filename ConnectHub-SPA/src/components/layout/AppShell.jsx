@@ -688,11 +688,12 @@ export default function AppShell({ children }) {
       {!hideChrome && !isMobile && <SideNav />}
 
       {/* ── Mobile Bottom Tab Bar — only on mobile viewports < 640px ── */}
-      {/* BUG-FIX (Jun 2026): `setCreatePostOpen` is now read from the top-level hook above
-          (no longer calling useAppStore.getState() inside JSX which violated Rules of Hooks) */}
+      {/* CREATE-POST FIX: Navigate directly to /post/create route instead of
+          opening a modal via setCreatePostOpen(true) — no create-post modal
+          exists in AppShell, so the old approach silently did nothing. */}
       {!hideChrome && isMobile && (
         <MobileBottomNav
-          onCreatePost={() => setCreatePostOpen(true)}
+          onCreatePost={() => navigate('/post/create')}
         />
       )}
 
