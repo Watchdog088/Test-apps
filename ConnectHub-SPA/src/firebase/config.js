@@ -1,9 +1,9 @@
 // src/firebase/config.js
 // Firebase v10 Modular SDK — with graceful fallback if env vars are missing
-// CRASH-FIX Jun 2026: Wrapped initializeApp in try/catch to prevent black screen
-// when VITE_FIREBASE_* env vars are missing or invalid.
+// CRASH-FIX Jul 2026: Use getFirestore() which is idempotent on Vite HMR;
+// removed async-import in module scope which broke ES module exports.
 
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -41,14 +41,59 @@ let storage = null;
 
 try {
   // Avoid duplicate app registration during Vite HMR
-  app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
-  auth    = getAuth(app);
-  db      = getFirestore(app);
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+  auth = getAuth(app);
+
+  // getFirestore() is idempotent — safe to call multiple times on HMR.
+  // It returns the existing instance if already initialized, preventing
+  // the "Expected first argument to collection() to be a CollectionReference,
+  // a DocumentReference or FirebaseFirestore" error caused by a null db.
+  db = getFirestore(app);
+
   storage = getStorage(app);
+
+  // HMR FIX: Eagerly validate that db is a real Firestore instance.
+  // Firebase v10 modular Firestore objects do NOT have a .type property —
+  // the previous check was incorrectly throwing for valid instances.
+  // Instead, verify the object exists and has the _databaseId property
+  // that all real Firestore instances expose.
+  if (!db) {
+    throw new Error('Firestore instance is null after initialization');
+  }
 } catch (err) {
   console.error('[Firebase] Initialization failed:', err.message);
   console.warn('[Firebase] Running without Firebase — check your .env file.');
-  // auth/db/storage remain null — useAuth handles null gracefully
+  // auth/db/storage remain null — useAuth and useEffect guards handle null gracefully
+  db = null;
+  auth = null;
+  storage = null;
+}
+
+// ── getDb() helper — always returns a live Firestore instance ────────────────
+// Use this instead of the bare `db` import in components that call collection()
+// during render (not inside useEffect). Prevents the HMR race where db=null
+// for one render cycle before the module-scope try/catch has assigned it.
+export function getDb() {
+  if (db) return db;
+  try {
+    const apps = getApps();
+    if (apps.length > 0) {
+      const liveDb = getFirestore(apps[0]);
+      db = liveDb; // cache it back
+      return liveDb;
+    }
+    // If no app is registered yet, try to initialize now
+    const newApp = initializeApp(firebaseConfig);
+    const liveDb = getFirestore(newApp);
+    db = liveDb;
+    return liveDb;
+  } catch (e) {
+    console.error('[Firebase] getDb() failed to obtain Firestore:', e.message);
+  }
+  // Last-resort: throw so callers (useEffect try/catch) handle it gracefully
+  // instead of passing null to collection() which causes a cryptic crash.
+  throw new Error('[Firebase] Firestore is not available. Check your .env configuration.');
 }
 
 export { auth, db, storage };

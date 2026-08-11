@@ -85,6 +85,38 @@ export default function LoginPage() {
 
   const pwStrength = mode === 'signup' ? getPasswordStrength(password) : null;
 
+  /* ── DEMO-LOGIN: bypass Firebase — sets mock user in Zustand store ── */
+  function handleDemoLogin() {
+    const DEMO_USER = {
+      uid: 'demo-user-001',
+      displayName: 'Demo User',
+      email: 'demo@lynkapp.com',
+      photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+      emailVerified: true,
+      isAnonymous: false,
+    };
+    const DEMO_PROFILE = {
+      uid: 'demo-user-001',
+      displayName: 'Demo User',
+      email: 'demo@lynkapp.com',
+      photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+      bio: 'Exploring LynkApp 👋',
+      postsCount: 12,
+      followersCount: 248,
+      followingCount: 103,
+      following: [],
+      followers: [],
+      interests: ['Tech', 'Music', 'Gaming'],
+      isVerified: false,
+      onboardingComplete: true,
+      role: 'user',
+    };
+    setDemoMode(true);
+    setUser(DEMO_USER);
+    setUserProfile(DEMO_PROFILE);
+    navigate('/feed', { replace: true });
+  }
+
   /* ── Clear any stale demo session on mount (production cleanup) ── */
   useEffect(() => {
     sessionStorage.removeItem('lynk_demo_mode');
@@ -521,6 +553,28 @@ export default function LoginPage() {
               aria-label="Sign in with Face ID or Touch ID">
               <span>🔒</span> Face ID / Touch ID
             </button>
+
+            {/* ── DEMO LOGIN: no account needed ── */}
+            <div style={{ position: 'relative', margin: '4px 0 0' }}>
+              <button
+                onClick={handleDemoLogin}
+                style={{
+                  width: '100%', padding: '13px', borderRadius: '12px',
+                  border: '2px dashed rgba(99,102,241,0.5)',
+                  background: 'rgba(99,102,241,0.08)',
+                  color: '#a5b4fc', fontWeight: 700, fontSize: '14px',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+                aria-label="Try Demo — explore without signing up"
+              >
+                🚀 Try Demo — Explore Without Signing Up
+              </button>
+              <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '11px', color: '#475569' }}>
+                No account required • All features unlocked • Read-only mode
+              </div>
+            </div>
 
           </>
         )}

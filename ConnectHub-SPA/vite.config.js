@@ -12,6 +12,9 @@ export default defineConfig({
   appType: 'spa',  // ensures all unknown routes fall back to index.html (SPA routing)
   plugins: [react()],
   resolve: {
+    // Deduplicate React so only ONE copy is ever loaded — prevents
+    // "Cannot read properties of null (reading 'useRef')" crashes
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
     alias: {
       '@': resolve(__dirname, 'src'),
       '@components': resolve(__dirname, 'src/components'),
@@ -50,5 +53,6 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     open: false,
+    allowedHosts: true, // allow Puppeteer/external tools to connect without host-check errors
   },
 });

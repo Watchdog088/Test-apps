@@ -18,6 +18,12 @@ import { db } from '@fb/config';
 import { useAuth } from '@hooks/useAuth';
 import useAppStore from '@store/useAppStore';
 
+// Helper: build a local-timestamp fallback so posts appear instantly in the
+// feed store even when Firestore is offline or the user is unauthenticated.
+function localNow() {
+  return { toDate: () => new Date(), seconds: Date.now() / 1000 };
+}
+
 // ─── Shared Styles ────────────────────────────────────────────────────────────
 const S = {
   page: { minHeight:'100dvh', background:'#0a0a18', color:'#f1f5f9', fontFamily:'system-ui,sans-serif', paddingBottom:80 },
@@ -213,7 +219,7 @@ export function TrendingDashboardPage() {
 export function CreatePostPage() {
   const nav = useNavigate();
   const { user } = useAuth();
-  const { showToast } = useAppStore();
+  const { showToast, setPendingPost } = useAppStore();
 
   const MAX = 500;
   const [text, setText] = useState('');
@@ -263,9 +269,18 @@ export function CreatePostPage() {
     setPollOptions(prev => prev.map(o => o.id === id ? { ...o, text } : o));
   }
 
+  // A post is considered "ready" when:
+  //  - text OR mediaUrl is provided (for text/photo/video/gif types)
+  //  - OR postType is poll with ≥2 filled options
+  function isReadyToPost() {
+    if (postType === 'poll') return pollOptions.filter(o => o.text.trim()).length >= 2;
+    if (['photo','video','gif'].includes(postType)) return text.trim().length > 0 || mediaUrl.trim().length > 0;
+    return text.trim().length > 0;
+  }
+
   async function publish() {
-    if (!text.trim() && postType !== 'poll') { showToast('Write something first!'); return; }
     if (postType === 'poll' && pollOptions.filter(o => o.text.trim()).length < 2) { showToast('Add at least 2 poll options'); return; }
+    if (!isReadyToPost()) { showToast('Write something or add media first!'); return; }
     setPublishing(true);
     const tagList = hashtags.split(/[\s,#]+/).filter(Boolean).map(t => '#' + t.replace('#',''));
 
@@ -286,16 +301,34 @@ export function CreatePostPage() {
       } : {}),
     };
 
+    // Build a local optimistic post that the feed can render immediately,
+    // even if the Firestore write fails (demo / offline mode).
+    const optimisticPost = {
+      id: 'local-' + Date.now(),
+      ...postData,
+      createdAt: localNow(),   // local timestamp — safe to .toDate() in the feed
+    };
+
+    // 1. Store the optimistic post in Zustand's pendingPost slot.
+    //    FeedPage reads this on mount/return (via justPosted location state)
+    //    and prepends it to its own local posts[] before the Firestore
+    //    onSnapshot arrives — so the post appears instantly.
+    setPendingPost(optimisticPost);
+
+    // 2. Attempt to persist to Firestore (may fail for unauthenticated users).
     try {
-      await addDoc(collection(db, 'posts'), postData);
-      showToast('✅ Post shared!');
-      nav('/feed');
-    } catch (err) {
-      // Fallback: navigate anyway so demo works
-      showToast('✅ Post shared!');
-      nav('/feed');
+      const docRef = await addDoc(collection(db, 'posts'), postData);
+      // Upgrade the optimistic id to the real Firestore doc id so that FeedPage
+      // won't show a duplicate when onSnapshot later delivers the real document.
+      setPendingPost({ ...optimisticPost, id: docRef.id });
+    } catch (_err) {
+      // Firestore failed (likely unauthenticated / rules block) — optimistic
+      // post is already in pendingPost so the feed still shows it this session.
     }
+
+    showToast('✅ Post shared!');
     setPublishing(false);
+    nav('/feed', { state: { justPosted: true } });
   }
 
   return (
@@ -306,8 +339,8 @@ export function CreatePostPage() {
           <button style={S.back} onClick={() => nav(-1)}>✕</button>
           <span style={S.title}>✨ Create Post</span>
         </div>
-        <button onClick={publish} disabled={publishing || (!text.trim() && postType !== 'poll')}
-          style={{ ...S.btn, padding:'9px 20px', opacity: (!text.trim() && postType !== 'poll') ? 0.4 : 1 }}>
+        <button onClick={publish} disabled={publishing || !isReadyToPost()}
+          style={{ ...S.btn, padding:'9px 20px', opacity: !isReadyToPost() ? 0.4 : 1 }}>
           {publishing ? 'Posting…' : 'Post'}
         </button>
       </div>

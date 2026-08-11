@@ -25,9 +25,27 @@ import {
 } from 'firebase/firestore';
 // BUG-2 FIX: arrayRemove added for unlike
 // BUG-4 FIX: deleteDoc added for post deletion
-import { db } from '@fb/config';
+import { db as _dbImport, getDb } from '@fb/config';
+import { getFirestore } from 'firebase/firestore';
+import { getApps } from 'firebase/app';
+// CRASH-FIX Jul 2026 (REVISED v3): getDb() may throw if Firestore init failed.
+// Wrap every fallback in try/catch so db() always returns null (never throws)
+// allowing the useEffect guards ( if (!db()) return; ) to bail out safely.
+function db() {
+  try {
+    const instance = getDb();
+    if (instance) return instance;
+  } catch {}
+  if (_dbImport) return _dbImport;
+  try {
+    const apps = getApps();
+    if (apps.length > 0) return getFirestore(apps[0]);
+  } catch {}
+  return null;
+}
 import { useAuth } from '@hooks/useAuth';
 import useAppStore from '@store/useAppStore';
+// pendingPost: optimistic post set by CreatePostPage before nav(-1)
 import { PostSkeleton } from '@components/common/SkeletonLoader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -159,7 +177,7 @@ function PollCard({ post, user, showToast }) {
     setVoted(optionId);
     setOptions(prev => prev.map(o => o.id === optionId ? { ...o, votes:(o.votes||0)+1 } : o));
     try {
-      await updateDoc(doc(db, 'posts', post.id), {
+      await updateDoc(doc(db(), 'posts', post.id), {
         [`pollVotes.${optionId}`]: increment(1),
         [`pollVoters.${user?.uid||'anon'}`]: optionId,
       });
@@ -218,7 +236,7 @@ function ReportModal({ post, user, onClose, showToast }) {
   async function submit() {
     if (!reason) return;
     try {
-      await addDoc(collection(db, 'reports'), {
+      await addDoc(collection(db(), 'reports'), {
         postId:post.id, reportedBy:user?.uid||'anon',
         reason, reportedAt:serverTimestamp(), status:'pending',
       });
@@ -325,8 +343,8 @@ function PostCard({ post, user, onComment, onOptions, onReport, showToast, navig
 
   // REAL-04: Read persisted reaction on mount
   useEffect(() => {
-    if (!user?.uid || !db || post.id?.startsWith('dp')) return;
-    getDoc(doc(db, 'posts', post.id, 'reactions', user.uid)).then(snap => {
+    if (!user?.uid || !db() || post.id?.startsWith('dp')) return;
+    getDoc(doc(db(), 'posts', post.id, 'reactions', user.uid)).then(snap => {
       if (snap.exists()) setReaction(snap.data().emoji || '❤️');
     }).catch(()=>{});
   }, [post.id, user?.uid]);
@@ -341,7 +359,7 @@ function PostCard({ post, user, onComment, onOptions, onReport, showToast, navig
     if (navigator.vibrate) navigator.vibrate(30);
     if (!post.id?.startsWith('dp') && db) {
       try {
-        await setDoc(doc(db, 'posts', post.id, 'reactions', user?.uid||'anon'), {
+        await setDoc(doc(db(), 'posts', post.id, 'reactions', user?.uid||'anon'), {
           emoji, userId:user?.uid, reactedAt:serverTimestamp(),
         }, { merge:true });
       } catch {}
@@ -361,7 +379,7 @@ function PostCard({ post, user, onComment, onOptions, onReport, showToast, navig
     setSaved(s=>!s);
     if (!post.id?.startsWith('dp') && db) {
       try {
-        await setDoc(doc(db,'users',user?.uid||'anon','saved',post.id),{ postId:post.id, savedAt:serverTimestamp() });
+        await setDoc(doc(db(),'users',user?.uid||'anon','saved',post.id),{ postId:post.id, savedAt:serverTimestamp() });
       } catch {}
     }
     showToast(saved?'Bookmark removed':'🔖 Post saved!');
@@ -460,7 +478,7 @@ function CommentSheet({ post, onClose, user }) {
       setLoading(false);
       return;
     }
-    const q = query(collection(db,'posts',post.id,'comments'), orderBy('createdAt','asc'));
+    const q = query(collection(db(),'posts',post.id,'comments'), orderBy('createdAt','asc'));
     const unsub = onSnapshot(q, snap => {
       setComments(snap.docs.map(d=>({id:d.id,...d.data()})));
       setLoading(false);
@@ -481,8 +499,8 @@ function CommentSheet({ post, onClose, user }) {
     setText('');
     if (!isDemo && db) {
       try {
-        await addDoc(collection(db,'posts',post.id,'comments'), commentData);
-        await updateDoc(doc(db,'posts',post.id), { comments: increment(1) });
+        await addDoc(collection(db(),'posts',post.id,'comments'), commentData);
+        await updateDoc(doc(db(),'posts',post.id), { comments: increment(1) });
       } catch {
         setComments(prev=>[...prev,{...commentData,id:Date.now(),createdAt:{toDate:()=>new Date()}}]);
       }
@@ -560,7 +578,7 @@ export default function FeedPage() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { user }  = useAuth();
-  const { followingIds, friendIds, showToast } = useAppStore();
+  const { followingIds, friendIds, showToast, feedPosts: storePosts, pendingPost, clearPendingPost } = useAppStore();
 
   const [posts, setPosts]               = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -601,8 +619,8 @@ export default function FeedPage() {
 
   // ── Load user profile (interests + new-user flag) ──────────────────────────
   useEffect(() => {
-    if (!user?.uid || !db) return;
-    getDoc(doc(db,'users',user.uid)).then(snap => {
+    if (!user?.uid || !db()) return;
+    getDoc(doc(db(),'users',user.uid)).then(snap => {
       if (snap.exists()) {
         const data = snap.data();
         setUserInterests(data.interests || data.onboardingInterests || []);
@@ -616,8 +634,8 @@ export default function FeedPage() {
 
   // ── REAL-01: Load stories from Firestore ──────────────────────────────────
   useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db,'stories'), orderBy('createdAt','desc'), limit(20));
+    if (!db()) return;
+    const q = query(collection(db(),'stories'), orderBy('createdAt','desc'), limit(20));
     const unsub = onSnapshot(q, snap => {
       if (!snap.empty) {
         const stories = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -629,8 +647,8 @@ export default function FeedPage() {
 
   // ── REAL-02: Load suggested users from Firestore ──────────────────────────
   useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db,'users'), orderBy('followersCount','desc'), limit(8));
+    if (!db()) return;
+    const q = query(collection(db(),'users'), orderBy('followersCount','desc'), limit(8));
     getDocs(q).then(snap => {
       if (!snap.empty) {
         const users = snap.docs
@@ -687,6 +705,25 @@ export default function FeedPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.justPosted, newBuffer]);
 
+  // ── OPTIMISTIC POST FIX: Whenever CreatePostPage drops a pendingPost into
+  //    the Zustand store, inject it into the feed immediately — no dependency
+  //    on location.state so the race with justPostedRef is avoided entirely. ─
+  useEffect(() => {
+    if (!pendingPost) return;
+    setPosts(prev => {
+      const prevIds = new Set(prev.map(p => p.id));
+      if (prevIds.has(pendingPost.id)) return prev;
+      const merged = [pendingPost, ...prev];
+      currentIdsRef.current = new Set(merged.map(p => p.id));
+      return merged;
+    });
+    // Mark loading done so the spinner doesn't hide our optimistic posts
+    setLoading(false);
+    // Clear the pending post so it doesn't get injected again on re-renders
+    clearPendingPost();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPost]);
+
   // ── Initial Firestore load ─────────────────────────────────────────────────
   // justPostedRef: tracks whether the user just submitted a post so we can
   // auto-merge the new post into the feed instead of showing the "new posts" pill.
@@ -700,14 +737,14 @@ export default function FeedPage() {
   }, [location.state?.justPosted]);
 
   useEffect(() => {
-    if (!db) {
+    if (!db()) {
       setPosts([]);
       setLoading(false);
       setHasMore(false);
       return;
     }
 
-    const q = query(collection(db,'posts'), orderBy('createdAt','desc'), limit(PAGE_SIZE));
+    const q = query(collection(db(),'posts'), orderBy('createdAt','desc'), limit(PAGE_SIZE));
     const unsub = onSnapshot(q, snap => {
       if (snap.empty) {
         setPosts([]);
@@ -767,13 +804,13 @@ export default function FeedPage() {
   }, [hasMore, loadingMore, lastDoc]);
 
   async function loadMore() {
-    if (!lastDoc || loadingMore || !hasMore) return;
+    if (!db || !lastDoc || loadingMore || !hasMore) return;
     setLoadingMore(true);
     setLoadError(null);
     let attempt = 0;
     while (attempt < 3) {
       try {
-        const q = query(collection(db,'posts'), orderBy('createdAt','desc'), startAfter(lastDoc), limit(PAGE_SIZE));
+        const q = query(collection(db(),'posts'), orderBy('createdAt','desc'), startAfter(lastDoc), limit(PAGE_SIZE));
         const snap = await getDocs(q);
         const more = snap.docs.map(d=>({id:d.id,...d.data()}));
         setPosts(prev=>[...prev,...more]);
@@ -810,7 +847,7 @@ export default function FeedPage() {
   function hidePost(postId) {
     setHiddenIds(prev=>new Set([...prev,postId]));
     if (user?.uid && db) {
-      setDoc(doc(db,'users',user.uid,'feedPrefs',postId),{ hidden:true, hiddenAt:serverTimestamp() },{merge:true}).catch(()=>{});
+      setDoc(doc(db(),'users',user.uid,'feedPrefs',postId),{ hidden:true, hiddenAt:serverTimestamp() },{merge:true}).catch(()=>{});
     }
   }
 

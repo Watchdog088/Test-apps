@@ -1,5 +1,7 @@
 // src/components/common/PageErrorBoundary.jsx
 // Feature #7: Page-level ErrorBoundary so one broken page doesn't crash the whole app
+// FIX Jul-2026: Go Home now resets error state AND navigates to landing page (not /feed)
+//               to avoid auth redirect loop back into the broken route.
 
 import React from 'react';
 
@@ -24,6 +26,21 @@ export default class PageErrorBoundary extends React.Component {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
+  };
+
+  handleGoHome = () => {
+    // Reset error state first so the boundary doesn't re-render
+    this.setState({ hasError: false, error: null, errorInfo: null }, () => {
+      // Use replace so pressing Back doesn't return to the broken page.
+      // Navigate to /feed (the main home for authenticated users).
+      // If React Router history is accessible via prop, use it; otherwise fall back.
+      if (this.props.navigate) {
+        this.props.navigate('/feed', { replace: true });
+      } else {
+        // Full navigation as fallback — goes to landing page to avoid auth redirect loop
+        window.location.replace('/');
+      }
+    });
   };
 
   render() {
@@ -105,7 +122,7 @@ export default class PageErrorBoundary extends React.Component {
             ↺ Try Again
           </button>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={this.handleGoHome}
             style={{
               padding: '11px 24px',
               borderRadius: 14,

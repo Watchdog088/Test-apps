@@ -470,6 +470,11 @@ export default function App() {
             <Route path="premium"       element={<PremiumPage />} />
 
             {/* ── NEW DASHBOARD ROUTES ── */}
+            {/* CRITICAL-FIX: post/create MUST be before post/:id so the literal
+                path "create" is not swallowed by the dynamic :id param.
+                Moved here from the "REMAINING DASHBOARD ROUTES" block to ensure
+                React Router always matches it before the dynamic route. */}
+            <Route path="post/create"           element={<CreatePostPage />} />
             {/* Post Detail */}
             <Route path="post/:id"              element={<PostDetailPage />} />
             {/* Hashtag feed */}
@@ -530,7 +535,7 @@ export default function App() {
 
             {/* ── NEW REMAINING DASHBOARD ROUTES (May 2026) ── */}
             {/* Feed — Section 2 (May 2026) */}
-            <Route path="post/create"           element={<CreatePostPage />} />
+            {/* NOTE: post/create has been moved earlier (before post/:id) — see above */}
             <Route path="post/:id/comments"     element={<CommentThreadPage />} />
             <Route path="post/:id/edit"         element={<PostEditPage />} />
             <Route path="post/:id/repost"       element={<RepostWithCommentPage />} />

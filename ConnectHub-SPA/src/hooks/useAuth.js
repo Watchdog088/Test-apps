@@ -20,12 +20,38 @@ import {
 import { auth, db } from '@fb/config';
 import useAppStore from '@store/useAppStore';
 
+// ── DEMO USER OBJECT (used when demoMode=true, no Firebase needed) ────────────
+const DEMO_USER = {
+  uid: 'demo-user-001',
+  displayName: 'Demo User',
+  email: 'demo@lynkapp.com',
+  photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+  emailVerified: true,
+  isAnonymous: false,
+};
+const DEMO_PROFILE = {
+  uid: 'demo-user-001',
+  displayName: 'Demo User',
+  email: 'demo@lynkapp.com',
+  photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+  bio: 'Exploring LynkApp 👋',
+  postsCount: 12,
+  followersCount: 248,
+  followingCount: 103,
+  following: [],
+  followers: [],
+  interests: ['Tech', 'Music', 'Gaming'],
+  isVerified: false,
+  onboardingComplete: true,
+  role: 'user',
+};
+
 export function useAuth() {
   const {
     user, setUser, setUserProfile,
     setFollowingIds, setFriendIds,
     setUnreadMessages, setUnreadNotifications,
-    setDemoMode,
+    setDemoMode, demoMode,
   } = useAppStore();
 
   // BLACK-SCREEN-FIX: initialise from the shared store instead of always true.
@@ -33,11 +59,29 @@ export function useAuth() {
   // this page load, skip the loading state entirely — no extra SplashScreen flash.
   const [loading, setLoading] = useState(() => useAppStore.getState().user === undefined);
 
+  // DEMO-MODE-FIX: If demoMode is active, skip Firebase entirely and return demo user
+  useEffect(() => {
+    const currentDemoMode = useAppStore.getState().demoMode;
+    if (currentDemoMode) {
+      setUser(DEMO_USER);
+      setUserProfile(DEMO_PROFILE);
+      setFollowingIds([]);
+      setFriendIds([]);
+      setUnreadMessages(3);
+      setUnreadNotifications(5);
+      setLoading(false);
+      return;
+    }
+    }, [demoMode]); // BUG-FIX Jul 2026: was useAppStore.getState().demoMode - not reactive
+
   useEffect(() => {
     // NULL-AUTH-FIX: If Firebase didn't initialize (missing .env keys), bail out immediately
     if (!auth) {
       console.warn('[useAuth] Firebase auth is null — missing VITE_FIREBASE_* env vars. Running as unauthenticated.');
-      setUser(null);
+      // DEMO-GUARD: Don't wipe the demo user if demoMode is active
+      if (!useAppStore.getState().demoMode) {
+        setUser(null);
+      }
       setLoading(false);
       return;
     }
@@ -48,8 +92,11 @@ export function useAuth() {
     // so real users on fast connections are never affected by this limit.
     const timeoutId = setTimeout(() => {
       console.warn('[useAuth] Firebase auth timeout (15s) — treating as unauthenticated');
-      setUser(null);
-      setLoading(false);
+      // DEMO-GUARD: Don't wipe the demo user on timeout if demoMode is still active
+      if (!useAppStore.getState().demoMode) {
+        setUser(null);
+        setLoading(false);
+      }
     }, 15000);
 
     const unsubs = [];
@@ -62,6 +109,18 @@ export function useAuth() {
       unsubs.length = 0;
 
       if (!firebaseUser) {
+        // DEMO-MODE-GUARD (CRITICAL FIX Aug 2026):
+        // Firebase fires onAuthStateChanged(null) immediately when there is no
+        // real Firebase session — including right after handleDemoLogin() sets
+        // the Zustand demo user.  Without this guard, the null callback
+        // overwrites setUser(DEMO_USER) with setUser(null), causing PrivateRoute
+        // to see no user and redirect back to /login — making the "Try Demo"
+        // button appear broken.  The guard checks the store directly (not the
+        // stale closure value) so it always reflects the latest state.
+        if (useAppStore.getState().demoMode) {
+          setLoading(false);
+          return; // ← Leave the demo user in place; do NOT wipe it
+        }
         setUser(null);
         setUserProfile(null);
         setFollowingIds([]);

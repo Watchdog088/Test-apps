@@ -54,6 +54,14 @@ const useAppStore = create((set, get) => ({
   })),
   setFeedLoading: (v) => set({ feedLoading: v }),
 
+  // ── Pending Post (optimistic post waiting to be injected into FeedPage) ─
+  // CreatePostPage sets this immediately after writing to Firestore so that
+  // FeedPage can prepend it to the local posts list on navigation-return,
+  // before the Firestore onSnapshot delivers the confirmed document.
+  pendingPost: null,
+  setPendingPost: (post) => set({ pendingPost: post }),
+  clearPendingPost: () => set({ pendingPost: null }),
+
   // ── Social Graph (for feed filtering) ─────────────────────
   followingIds: [],
   friendIds: [],
