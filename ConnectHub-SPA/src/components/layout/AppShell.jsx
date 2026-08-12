@@ -16,7 +16,6 @@ import AdUnit          from '@components/ads/AdUnit';
 import adService       from '@services/ad-service';
 import useAppStore     from '@store/useAppStore';
 import { useAuth }     from '@hooks/useAuth';
-import BetaFeedbackModal    from '@components/common/BetaFeedbackModal';
 import BetaWelcomeTooltip   from '@components/common/BetaWelcomeTooltip';
 // BETA FIX (Jun 2026): Cookie consent banner — GDPR/CCPA required
 import CookieConsentBanner  from '@components/common/CookieConsentBanner';
@@ -419,8 +418,6 @@ export default function AppShell({ children }) {
   const [liveNotif,        setLiveNotif]        = useState(null); // GAP-03
   const [isOffline,        setIsOffline]        = useState(!navigator.onLine);
   const [isMobile,         setIsMobile]         = useState(window.innerWidth < 640);
-  // Feature #6: BetaFeedbackModal — shake or long-press
-  const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   // Feature #8: PWA install banner
   const [pwaPrompt,        setPwaPrompt]        = useState(null);
   const [showPwaBanner,    setShowPwaBanner]    = useState(false);
@@ -510,47 +507,6 @@ export default function AppShell({ children }) {
       return () => clearTimeout(t);
     }
   }, [pathname, hideChrome]);
-
-  // ── ITEM-7 FIX (Jun 2026): 3-minute session timer → auto-show BetaFeedbackModal ──
-  useEffect(() => {
-    if (hideChrome) return; // Don't show on login/onboarding pages
-    // Only show once per session (not every page visit)
-    if (sessionStorage.getItem('lynk_beta_feedback_shown')) return;
-    const timer = setTimeout(() => {
-      sessionStorage.setItem('lynk_beta_feedback_shown', '1');
-      setShowBetaFeedback(true);
-    }, 3 * 60 * 1000); // 3 minutes = 180,000ms
-    return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Feature #6: Shake detection → open BetaFeedbackModal ──────────────────
-  useEffect(() => {
-    if (!window.DeviceMotionEvent) return;
-    let lastShake = 0;
-    const threshold = 18;
-    const handleMotion = (e) => {
-      const a = e.accelerationIncludingGravity;
-      if (!a) return;
-      const total = Math.abs(a.x || 0) + Math.abs(a.y || 0) + Math.abs(a.z || 0);
-      if (total > threshold) {
-        const now = Date.now();
-        if (now - lastShake > 2000) {
-          lastShake = now;
-          setShowBetaFeedback(true);
-        }
-      }
-    };
-    window.addEventListener('devicemotion', handleMotion);
-    return () => window.removeEventListener('devicemotion', handleMotion);
-  }, []);
-
-  // ── Feature #6: Long-press (2 s) anywhere → open BetaFeedbackModal ─────────
-  const handleTouchStart = () => {
-    longPressTimer.current = setTimeout(() => setShowBetaFeedback(true), 2000);
-  };
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimer.current);
-  };
 
   // ── Feature #8: PWA install prompt — show after 3+ visits ──────────────────
   useEffect(() => {
@@ -674,9 +630,6 @@ export default function AppShell({ children }) {
           paddingLeft: hideChrome ? 0 : (isMobile ? 0 : 72),
           paddingBottom: mainPaddingBottom,
         }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchEnd}
       >
         {/* Feature #7: PageErrorBoundary — page-level so one crash doesn't kill the whole app */}
         <PageErrorBoundary>
@@ -727,42 +680,6 @@ export default function AppShell({ children }) {
 
       {/* ── UX-15 FIX: Toast Renderer ── */}
       <ToastRenderer />
-
-      {/* ── BETA Jun-2026: Persistent floating feedback FAB — visible on all authenticated pages ── */}
-      {!showBetaFeedback && (
-        <button
-          onClick={() => setShowBetaFeedback(true)}
-          aria-label="Open beta feedback"
-          title="Send feedback"
-          style={{
-            position: 'fixed',
-            bottom: 88,
-            right: 16,
-            zIndex: 280,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg,#6366f1,#ec4899)',
-            border: 'none',
-            boxShadow: '0 4px 18px rgba(99,102,241,0.55)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 20,
-            transition: 'transform 0.2s, box-shadow 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(99,102,241,0.7)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 18px rgba(99,102,241,0.55)'; }}
-        >
-          💬
-        </button>
-      )}
-
-      {/* ── Feature #6: BetaFeedbackModal — shake or long-press trigger ── */}
-      {showBetaFeedback && (
-        <BetaFeedbackModal onClose={() => setShowBetaFeedback(false)} />
-      )}
 
       {/* ── Beta Welcome Tooltip — shown once to every new beta tester ── */}
       <BetaWelcomeTooltip />
