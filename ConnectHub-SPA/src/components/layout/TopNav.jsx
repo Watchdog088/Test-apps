@@ -8,10 +8,8 @@
 // UX-14 FIX: Removed duplicate ☰ button from TopNav — it stays in SideNav only
 // POLISH-11 FIX: Avatar touch target 44×44px
 // BACK-BTN FIX (May 27 2026): Show ← back button on nested sub-routes (depth > 1)
-// BETA-FEEDBACK (May 28 2026): Wire BetaFeedbackModal into TopNav via 🧪 Feedback button
 
-import React, { useState, lazy, Suspense } from 'react';
-const BetaFeedbackModal = lazy(() => import('@components/common/BetaFeedbackModal'));
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '@fb/config';
@@ -74,7 +72,6 @@ export default function TopNav() {
   const location  = useLocation();
   const { user }  = useAuth();
   const { unreadNotifications, setCreatePostOpen, userProfile } = useAppStore();
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const isAdmin = userProfile?.isAdmin === true;
 
   const path = location.pathname;
@@ -157,22 +154,6 @@ export default function TopNav() {
           label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
           badge={unreadNotifications}
         />
-
-        {/* Beta Feedback — unix icon, desktop only */}
-        <UnixIconBtn
-          icon="feedback"
-          onClick={() => setFeedbackOpen(true)}
-          label="Send beta feedback"
-          style={{
-            border: '1px solid rgba(16,185,129,0.30)',
-            display: window.innerWidth < 640 ? 'none' : undefined,
-          }}
-        />
-        {feedbackOpen && (
-          <Suspense fallback={null}>
-            <BetaFeedbackModal onClose={() => setFeedbackOpen(false)} />
-          </Suspense>
-        )}
 
         {/* Admin Panel — unix shield icon, admin only */}
         {isAdmin && (
