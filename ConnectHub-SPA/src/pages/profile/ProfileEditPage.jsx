@@ -47,6 +47,7 @@ export default function ProfileEditPage() {
     location: '',
     website: '',
     pronouns: '',
+    dob: '',           // SPRINT-3 S3-E: DOB for existing users (voluntary, optional)
     interests: [],
     socialLinks: { twitter: '', instagram: '', tiktok: '', youtube: '', website: '' },
     photoURL: '',
@@ -85,6 +86,7 @@ export default function ProfileEditPage() {
             pronouns: data.pronouns || '',
             interests: data.interests || [],
             socialLinks: { twitter: '', instagram: '', tiktok: '', youtube: '', website: '', ...(data.socialLinks || {}) },
+            dob: data.dob || '',
             photoURL: data.photoURL || '',
             coverUrl: data.coverUrl || '',
             isPrivate: data.isPrivate || false,
@@ -198,6 +200,7 @@ export default function ProfileEditPage() {
         location: form.location.trim(),
         website: form.website.trim(),
         pronouns: form.pronouns.trim(),
+        dob: form.dob || null,           // SPRINT-3 S3-E: optional DOB, null for users who skip
         interests: form.interests,
         socialLinks: form.socialLinks,
         photoURL: form.photoURL,
@@ -317,7 +320,7 @@ export default function ProfileEditPage() {
           />
           <div style={{ fontSize: 11, color: '#475569', marginTop: 4, textAlign: 'right' }}>{form.bio.length}/300</div>
         </div>
-        <div style={{ ...S.field, borderBottom: 'none' }}>
+        <div style={S.field}>
           <div style={S.label}>Website</div>
           <input
             value={form.website}
@@ -326,6 +329,20 @@ export default function ProfileEditPage() {
             type="url"
             style={S.inp}
           />
+        </div>
+        {/* SPRINT-3 S3-E: DOB field for existing users — voluntary, optional */}
+        <div style={{ ...S.field, borderBottom: 'none' }}>
+          <div style={S.label}>Date of Birth (optional — used for age-gating features)</div>
+          <input
+            value={form.dob}
+            onChange={e => set('dob', e.target.value)}
+            type="date"
+            max={new Date(Date.now() - 13 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+            style={{ ...S.inp, colorScheme: 'dark' }}
+          />
+          <div style={{ fontSize: 11, color: '#475569', marginTop: 6 }}>
+            🔒 Private — not shown publicly. Required for monetization features (must be 18+).
+          </div>
         </div>
       </div>
 
