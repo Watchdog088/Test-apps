@@ -1,6 +1,8 @@
 // src/pages/admin/AdminSubPages.jsx
 // NEW dashboards added for beta — AdminUsersPage + AdminAnnouncementsPage
 // Route: /admin/users  |  /admin/announcements
+// LIVE-STREAMING GAP FIX (Aug 2026): Added Live Streams + Payouts nav items
+// Route: /admin/streams  |  /admin/payouts
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
