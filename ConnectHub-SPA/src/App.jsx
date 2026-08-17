@@ -671,11 +671,12 @@ export default function App() {
             <Route path="meeting/:roomId/waiting"      element={<MeetingWaitingRoomPage />} />
             <Route path="meeting/:roomId/room"         element={<MeetingRoomPage />} />
             <Route path="wallet"                       element={<WalletPage />} />
-            {/* ── LIVE STREAMING GAP FIX (Aug 2026): Wallet + Admin new routes */}
-            <Route path="wallet/buy-coins"             element={<BuyCoinsPage />} />
-            <Route path="wallet/connect/return"        element={<StripeConnectReturnPage />} />
-            <Route path="admin/streams"                element={<AdminGuard><AdminStreamsMonitorPage /></AdminGuard>} />
-            <Route path="admin/payouts"                element={<AdminGuard><AdminPayoutsPage /></AdminGuard>} />
+          {/* ── LIVE STREAMING GAP FIX (Aug 2026): Wallet + Admin + Auth new routes */}
+          <Route path="wallet/buy-coins"             element={<BuyCoinsPage />} />
+          <Route path="wallet/connect/return"        element={<StripeConnectReturnPage />} />
+          <Route path="admin/streams"                element={<AdminGuard><AdminStreamsMonitorPage /></AdminGuard>} />
+          <Route path="admin/payouts"                element={<AdminGuard><AdminPayoutsPage /></AdminGuard>} />
+          <Route path="auth/phone"                   element={<PhoneAuthPage />} />
             <Route path="notifications/preferences"   element={<NotifPreferencesPage />} />
             <Route path="settings/blocked-users"      element={<BlockedAccountsPage />} />
             <Route path="marketplace/orders/:orderId" element={<OrderDetailPage />} />
