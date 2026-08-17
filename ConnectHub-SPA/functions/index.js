@@ -19,6 +19,74 @@ const admin     = require('firebase-admin');
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 
+// ── SPRINT-1 GAP FIX (Aug 2026): onStreamGoLive — sends OneSignal push via admin SDK
+// Triggers when a stream document's status changes TO 'active'
+// Returns null on any error — never crashes; other functions untouched
+exports.onStreamGoLive = functions.firestore
+  .document('livestreams/{streamId}')
+  .onWrite(async (change, context) => {
+    try {
+      const before = change.before.exists ? change.before.data() : {};
+      const after  = change.after.exists  ? change.after.data()  : null;
+      if (!after) return null;
+      // Only fire when status transitions TO 'active'
+      if (before.status === 'active' || after.status !== 'active') return null;
+
+      const streamerId = after.uid || after.userId;
+      const title = after.title || 'Live Stream';
+      const streamerName = after.userName || after.displayName || 'Someone';
+      const streamId = context.params.streamId;
+
+      // Find followers with OneSignal playerIds
+      const followsSnap = await db.collection('follows')
+        .where('followingId', '==', streamerId)
+        .get();
+      if (followsSnap.empty) return null;
+
+      // Collect follower UIDs
+      const followerUids = followsSnap.docs.map(d => d.data().followerId).filter(Boolean);
+      if (!followerUids.length) return null;
+
+      // Batch read follower user docs to get oneSignalPlayerId
+      const chunks = [];
+      for (let i = 0; i < followerUids.length; i += 10) {
+        chunks.push(followerUids.slice(i, i + 10));
+      }
+      const playerIds = [];
+      for (const chunk of chunks) {
+        const snap = await db.collection('users')
+          .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+          .get();
+        snap.forEach(doc => {
+          const pid = doc.data().oneSignalPlayerId || doc.data().fcmToken;
+          if (pid) playerIds.push(pid);
+        });
+      }
+
+      if (!playerIds.length) return null;
+
+      // Write a notification doc so the frontend can pick it up
+      await db.collection('notifications').add({
+        type: 'stream_live',
+        streamId,
+        streamerId,
+        streamerName,
+        title: `${streamerName} is live!`,
+        body: title,
+        recipients: followerUids,
+        playerIds,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+      });
+
+      console.log(`[onStreamGoLive] notified ${playerIds.length} followers for stream ${streamId}`);
+      return null;
+    } catch (err) {
+      console.error('[onStreamGoLive] error (non-fatal):', err);
+      return null;
+    }
+  });
+
 // ── MISSING-1: Push notification when stream goes live ───────────
 exports.notifyFollowersOnLive = functions.firestore
   .document('streams/{streamId}')

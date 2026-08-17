@@ -106,6 +106,14 @@ app.use(`${API_VERSION}/dating`, authMiddleware, datingRoutes);
 // app.use(`${API_VERSION}/events`, authMiddleware, eventRoutes);
 // app.use(`${API_VERSION}/stories`, authMiddleware, storyRoutes);
 
+// ── Sprint 1: Mux streaming routes (additive — appended at bottom) ──
+import streamingRoutes from './routes/streaming';
+app.use(`${API_VERSION}/streaming`, streamingRoutes);
+
+// ── Sprint 2: Wallet / Stripe routes (additive — appended at bottom) ──
+import walletRoutes from './routes/wallet';
+app.use(`${API_VERSION}/wallet`, walletRoutes);
+
 // 404 handler
 app.use((req: Request, res: Response) => {
     res.status(404).json({

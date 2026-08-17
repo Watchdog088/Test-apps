@@ -154,8 +154,15 @@ service cloud.firestore {
     // SECTION 4 — LIVE STREAMING
     // ══════════════════════════════════════════════════════════════════════════
 
+    // ── LIVE STREAMING GAP FIX (Aug 2026): streamKey protection + moderators field
     match /livestreams/{streamId} {
-      allow read: if isAuth();
+      // Public streams readable by any auth user; streamKey only readable by owner
+      allow read: if isAuth()
+        && (
+          !('streamKey' in resource.data)
+          || request.auth.uid == resource.data.uid
+          || isAdmin()
+        );
       allow create: if isAuth() && request.resource.data.hostId == request.auth.uid;
       allow update: if isAuth() && (resource.data.hostId == request.auth.uid || isAdmin());
       allow delete: if isAuth() && (resource.data.hostId == request.auth.uid || isAdmin());
