@@ -1,6 +1,9 @@
 {
   "dependencies": {
+    "@mux/mux-node": "15.0.0",
     "@sentry/react": "^10.53.1",
+    "@stripe/react-stripe-js": "6.8.1",
+    "@stripe/stripe-js": "9.13.0",
     "@vitejs/plugin-react": "^6.0.2",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
