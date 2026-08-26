@@ -29,5 +29,12 @@ serviceAccountKey.json
 *service_account*.json
 ConnectHub-SPA/serviceAccountKey.json
 
+# ── Google Services / Firebase Config Files ──────────────────────────────────
+# google-services.json grants Firebase access — never commit to any public repo
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
 # ── Build artifacts ───────────────────────────────────────────────────────────
 backend-deploy.zip
