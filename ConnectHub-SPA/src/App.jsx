@@ -4,11 +4,13 @@
 // POLISH-18 FIX: /trending redirects to /feed?filter=trending (no duplicate page)
 // SPRINT-21 FIX: AdminGuard import moved to top-level (was after lazy declarations)
 
-import React, { Suspense, lazy } from 'react';
+// SECTION-2 FIX (Sep 2026): Wire push notifications lifecycle after auth
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './components/common/SplashScreen';
 import { useAuth } from './hooks/useAuth';
+import { initPushNotifications } from './services/push-notifications-service';
 // Sprint 20/21: AdminGuard + BoostListingModal — Firestore isAdmin role guard
 import { AdminGuard } from './pages/marketplace/MarketplaceExtensions';
 // 404 page — replaces wildcard Navigate redirect
@@ -376,10 +378,17 @@ function SmartRoot() {
 
 export default function App() {
   // BLACK-SCREEN-FIX: Removed the top-level useAuth() loading gate.
-  // PrivateRoute and SmartRoot both call useAuth() and handle their own loading
-  // state correctly. Having App ALSO call useAuth() was creating an extra
-  // SplashScreen cycle and registering a redundant Firebase auth listener every
-  // time the component tree re-evaluated. The route guards below are sufficient.
+  // SECTION-2 FIX (Sep 2026 — D1): Init push notifications once user is authenticated.
+  // The service handles permission request, token registration, and Firestore save.
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user) {
+      initPushNotifications().catch((err) =>
+        console.warn('[App] Push notification init failed (non-fatal):', err)
+      );
+    }
+  }, [user]);
+
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
