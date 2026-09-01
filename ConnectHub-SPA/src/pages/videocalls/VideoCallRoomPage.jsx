@@ -1,186 +1,122 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+// src/pages/videocalls/VideoCallRoomPage.jsx
+// SECTION 3 FIX (Sep 2026): Real P2P WebRTC requires a STUN/TURN + signaling server.
+// The previous version faked a "connected" remote video after 2 seconds — shipping
+// a broken feature to the App Store causes rejections and 1-star reviews.
+// Gated with ComingSoonGate until a real WebRTC signaling server (Agora / Daily.co /
+// self-hosted Coturn + Socket.io) is deployed.
+// When the signaling server is ready: remove this file and restore VideoCallRoomPage.real.jsx
+
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import ComingSoonGate from '@components/common/ComingSoonGate';
+
+const WEBRTC_FEATURES = [
+  { icon: '📹', label: 'HD Video Calls' },
+  { icon: '🎤', label: 'Crystal Clear Audio' },
+  { icon: '🖥️', label: 'Screen Sharing' },
+  { icon: '💬', label: 'In-Call Chat' },
+  { icon: '🔄', label: 'Camera Flip' },
+  { icon: '🔒', label: 'End-to-End Encrypted' },
+];
 
 export default function VideoCallRoomPage() {
-  const { roomId } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const [callState, setCallState] = useState('connecting'); // connecting | active | ended
-  const [micOn, setMicOn] = useState(true);
-  const [camOn, setCamOn] = useState(true);
-  const [screenSharing, setScreenSharing] = useState(false);
-  const [callDuration, setCallDuration] = useState(0);
-  const [remoteVideoActive, setRemoteVideoActive] = useState(false);
-
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const localStreamRef = useRef(null);
-  const timerRef = useRef(null);
-
-  // Start local camera
-  useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStreamRef.current = stream;
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-        setTimeout(() => { setCallState('active'); setRemoteVideoActive(true); }, 2000);
-      } catch (err) {
-        console.warn('Camera/mic access denied:', err);
-        setCallState('active');
-      }
-    };
-    startCamera();
-    return () => {
-      localStreamRef.current?.getTracks().forEach(t => t.stop());
-      clearInterval(timerRef.current);
-    };
-  }, []);
-
-  // Duration timer
-  useEffect(() => {
-    if (callState === 'active') {
-      timerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [callState]);
-
-  const formatDuration = (s) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  };
-
-  const toggleMic = () => {
-    setMicOn(prev => {
-      localStreamRef.current?.getAudioTracks().forEach(t => { t.enabled = !prev; });
-      return !prev;
-    });
-  };
-
-  const toggleCam = () => {
-    setCamOn(prev => {
-      localStreamRef.current?.getVideoTracks().forEach(t => { t.enabled = !prev; });
-      return !prev;
-    });
-  };
-
-  const toggleScreenShare = async () => {
-    if (!screenSharing) {
-      try {
-        const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        if (localVideoRef.current) localVideoRef.current.srcObject = screen;
-        setScreenSharing(true);
-        screen.getVideoTracks()[0].onended = () => {
-          if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
-          setScreenSharing(false);
-        };
-      } catch { setScreenSharing(false); }
-    } else {
-      if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
-      setScreenSharing(false);
-    }
-  };
-
-  const endCall = () => {
-    localStreamRef.current?.getTracks().forEach(t => t.stop());
-    setCallState('ended');
-    setTimeout(() => navigate(-1), 2000);
-  };
-
-  if (callState === 'ended') return (
-    <div style={styles.page}>
-      <div style={styles.endedScreen}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>📵</div>
-        <div style={{ fontSize: 22, fontWeight: 700 }}>Call Ended</div>
-        <div style={{ color: '#666', marginTop: 8 }}>Duration: {formatDuration(callDuration)}</div>
-        <button onClick={() => navigate(-1)} style={styles.returnBtn}>Return to Messages</button>
-      </div>
-    </div>
-  );
+  const { roomId } = useParams();
 
   return (
-    <div style={styles.page}>
-      {/* Remote video (full screen) */}
-      <div style={styles.remoteVideo}>
-        {remoteVideoActive
-          ? <video ref={remoteVideoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : (
-            <div style={styles.remoteWaiting}>
-              <div style={{ fontSize: 64 }}>👤</div>
-              <div style={{ fontSize: 16, color: '#aaa', marginTop: 12 }}>
-                {callState === 'connecting' ? 'Connecting...' : 'Waiting for other person...'}
-              </div>
-              {callState === 'connecting' && <div style={styles.connectingDots}><span>●</span><span>●</span><span>●</span></div>}
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #0a0818 0%, #0f0a28 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      {/* Back button */}
+      <div style={{ padding: '16px 16px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 12,
+            color: '#94a3b8',
+            fontSize: 14,
+            fontWeight: 600,
+            padding: '8px 16px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          ← Back
+        </button>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Video Call</div>
+          {roomId && (
+            <div style={{ fontSize: 11, color: '#475569' }}>Room: {roomId}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Coming Soon Gate */}
+      <ComingSoonGate
+        feature="Video Calls (P2P)"
+        eta="Q1 2027"
+        description="Real-time peer-to-peer video calls require a WebRTC signaling server. LynkApp Video Calls are coming — HD video, screen sharing, in-call chat, and end-to-end encryption."
+        preview={WEBRTC_FEATURES}
+        fullPage
+      />
+
+      {/* Feature preview cards */}
+      <div style={{ padding: '0 16px 32px' }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.10em',
+          textTransform: 'uppercase', color: '#475569',
+          marginBottom: 12,
+        }}>
+          PLANNED FEATURES
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+        }}>
+          {WEBRTC_FEATURES.map((f, i) => (
+            <div key={i} style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 14,
+              padding: '14px 12px',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 22 }}>{f.icon}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>{f.label}</span>
             </div>
-          )
-        }
-      </div>
+          ))}
+        </div>
 
-      {/* Local video (PiP) */}
-      <div style={styles.localVideo}>
-        {camOn
-          ? <video ref={localVideoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
-          : <div style={styles.camOff}><span style={{ fontSize: 28 }}>📷</span><span style={{ fontSize: 11, marginTop: 4 }}>Cam Off</span></div>
-        }
-      </div>
-
-      {/* Top bar */}
-      <div style={styles.topBar}>
-        <div style={styles.callInfo}>
-          <div style={{ fontWeight: 700, fontSize: 16 }}>
-            {callState === 'connecting' ? 'Calling...' : `Video Call • ${formatDuration(callDuration)}`}
-          </div>
-          <div style={{ fontSize: 12, color: '#22c55e' }}>
-            {callState === 'active' ? '🟢 Connected' : '🟡 Connecting'}
+        {/* Alternative suggestion */}
+        <div style={{
+          marginTop: 20,
+          background: 'rgba(99,102,241,0.08)',
+          border: '1px solid rgba(99,102,241,0.20)',
+          borderRadius: 16,
+          padding: '14px 16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+        }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>💡</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc', marginBottom: 4 }}>
+              In the meantime
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+              Use the Messages section to start a conversation. Group video calls via third-party 
+              meeting links (Zoom, Google Meet) can be shared in any chat.
+            </div>
           </div>
         </div>
-        <button style={styles.iconBtn} title="Switch camera">🔄</button>
-      </div>
-
-      {/* Bottom controls */}
-      <div style={styles.controls}>
-        <button onClick={toggleMic} style={{ ...styles.ctrlBtn, background: micOn ? 'rgba(255,255,255,0.15)' : '#ef4444' }} title={micOn ? 'Mute' : 'Unmute'}>
-          {micOn ? '🎤' : '🔇'}
-          <span style={styles.ctrlLabel}>{micOn ? 'Mute' : 'Unmute'}</span>
-        </button>
-        <button onClick={toggleCam} style={{ ...styles.ctrlBtn, background: camOn ? 'rgba(255,255,255,0.15)' : '#ef4444' }} title={camOn ? 'Stop Video' : 'Start Video'}>
-          {camOn ? '📹' : '🚫'}
-          <span style={styles.ctrlLabel}>Video</span>
-        </button>
-        <button onClick={endCall} style={{ ...styles.ctrlBtn, background: '#ef4444', transform: 'scale(1.2)' }} title="End Call">
-          📵
-          <span style={styles.ctrlLabel}>End</span>
-        </button>
-        <button onClick={toggleScreenShare} style={{ ...styles.ctrlBtn, background: screenSharing ? '#8b5cf6' : 'rgba(255,255,255,0.15)' }} title="Share Screen">
-          🖥️
-          <span style={styles.ctrlLabel}>Share</span>
-        </button>
-        <button style={{ ...styles.ctrlBtn, background: 'rgba(255,255,255,0.15)' }} title="Chat">
-          💬
-          <span style={styles.ctrlLabel}>Chat</span>
-        </button>
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: { position: 'fixed', inset: 0, background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', overflow: 'hidden' },
-  remoteVideo: { position: 'absolute', inset: 0, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  remoteWaiting: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
-  connectingDots: { display: 'flex', gap: 8, marginTop: 12, fontSize: 20, animation: 'pulse 1.2s infinite' },
-  localVideo: { position: 'absolute', top: 80, right: 16, width: 120, height: 160, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.3)', background: '#222', zIndex: 10 },
-  camOff: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1a1a1a', color: '#666' },
-  topBar: { position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)', zIndex: 20 },
-  callInfo: {},
-  iconBtn: { background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: '50%', width: 40, height: 40, fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  controls: { position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '20px 16px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', zIndex: 20 },
-  ctrlBtn: { border: 'none', color: '#fff', borderRadius: 16, width: 56, height: 56, fontSize: 24, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, transition: 'transform 0.1s' },
-  ctrlLabel: { fontSize: 10, color: '#ddd' },
-  endedScreen: { height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  returnBtn: { marginTop: 20, background: '#8b5cf6', border: 'none', color: '#fff', padding: '12px 24px', borderRadius: 24, fontSize: 15, cursor: 'pointer', fontWeight: 600 },
-};

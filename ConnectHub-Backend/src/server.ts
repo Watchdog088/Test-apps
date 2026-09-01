@@ -57,9 +57,29 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+// SECTION 3 FIX (Sep 2026): Expanded CORS to allow all production origins.
+// Previously only allowed a single FRONTEND_URL — would block lynkapp.com requests
+// if FRONTEND_URL was set to lynkapp-c7db1.web.app, or vice versa.
+const ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://lynkapp.com',
+    'https://www.lynkapp.com',
+    'https://lynkapp-c7db1.web.app',
+    'https://lynkapp-c7db1.firebaseapp.com',
+    process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Capacitor, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
 }));
 
 app.use(compression());

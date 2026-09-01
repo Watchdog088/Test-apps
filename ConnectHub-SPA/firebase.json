@@ -12,7 +12,17 @@
       },
       {
         "source": "**",
-        "headers": [{ "key": "X-Frame-Options", "value": "SAMEORIGIN" }]
+        "headers": [
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=(self), payment=(self)" },
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.firebaseapp.com *.firebase.com *.stripe.com *.mux.com js.stripe.com cdn.onesignal.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com data:; img-src 'self' data: blob: *.googleapis.com *.firebasestorage.app firebasestorage.googleapis.com *.unsplash.com *.pexels.com *.giphy.com res.cloudinary.com *.cloudinary.com api.dicebear.com; media-src 'self' blob: *.firebasestorage.app firebasestorage.googleapis.com *.mux.com stream.mux.com *.cloudinary.com; connect-src 'self' wss: *.googleapis.com *.firebase.com *.firebaseapp.com *.firebaseio.com *.stripe.com *.mux.com *.sentry.io *.onesignal.com *.unsplash.com api.pexels.com api.giphy.com api.rawg.io api.openweathermap.org api.coingecko.com; frame-src *.stripe.com *.youtube.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+          }
+        ]
       }
     ]
   },
