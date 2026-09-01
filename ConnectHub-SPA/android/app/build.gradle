@@ -17,10 +17,27 @@ android {
         // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
+    signingConfigs {
+        release {
+            // Keystore path and credentials loaded from environment variables (never commit to git)
+            // Set these in Codemagic CI or locally before building:
+            //   KEYSTORE_PATH, KEYSTORE_STORE_PASSWORD, KEYSTORE_KEY_ALIAS, KEYSTORE_KEY_PASSWORD
+            storeFile file(System.getenv("KEYSTORE_PATH") ?: "lynkapp-release.keystore")
+            storePassword System.getenv("KEYSTORE_STORE_PASSWORD") ?: ""
+            keyAlias System.getenv("KEYSTORE_KEY_ALIAS") ?: "lynkapp"
+            keyPassword System.getenv("KEYSTORE_KEY_PASSWORD") ?: ""
+        }
+    }
     buildTypes {
         release {
+            // FIX #2: Enable ProGuard/R8 code shrinking for Play Store (was: minifyEnabled false)
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // FIX #1: Wire release signing config (activated once keystore env vars are set)
+            signingConfig signingConfigs.release
+        }
+        debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }

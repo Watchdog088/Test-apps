@@ -38,3 +38,11 @@ GoogleService-Info.plist
 
 # ── Build artifacts ───────────────────────────────────────────────────────────
 backend-deploy.zip
+  
+# ===== SECTION 2 FIX: Android Keystore - NEVER commit these files =====  
+*.keystore  
+*.jks  
+lynkapp-release.keystore  
+keystore.properties  
+ConnectHub-SPA/android/app/lynkapp-release.keystore  
+# ===================================================================== 
