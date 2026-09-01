@@ -17,9 +17,44 @@
             android:launchMode="singleTask"
             android:exported="true">
 
+            <!-- LAUNCHER intent filter — required -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- BLOCKER 4 FIX: Android App Links (Deep Links) for lynkapp.com -->
+            <!-- This enables email verification links, password reset links, and share links
+                 to open directly in the LynkApp instead of the browser.
+                 Requires assetlinks.json at https://lynkapp.com/.well-known/assetlinks.json -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Primary domain -->
+                <data
+                    android:scheme="https"
+                    android:host="lynkapp.com" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- www subdomain -->
+                <data
+                    android:scheme="https"
+                    android:host="www.lynkapp.com" />
+            </intent-filter>
+
+            <!-- Custom URI scheme for deep links (fallback for older Android) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="lynkapp"
+                    android:host="open" />
             </intent-filter>
 
         </activity>
@@ -35,7 +70,36 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
-
+    <!-- Core permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Camera (for photo/video posts, profile pictures, video calls) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Microphone (for voice messages, video calls, live streams) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Storage — read (for uploading photos/videos from gallery) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Android 13+ uses granular media permissions instead of READ_EXTERNAL_STORAGE -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- Location (for nearby friends, marketplace local listings, dating nearby) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Push Notifications (FCM — required for Capacitor push plugin) -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Network state (for offline detection) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Billing (required for Google Play Billing API) -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+
 </manifest>
