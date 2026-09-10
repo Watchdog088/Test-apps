@@ -1,4 +1,5 @@
 // src/main.jsx — App entry point with Sentry error tracking + Capacitor Push Notifications
+// FIXED Sep 2026: (1) Auth-aware token save with retry, (2) BrowserRouter navigation fix
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -58,24 +59,48 @@ async function registerPushNotifications() {
     await PushNotifications.register();
 
     // Step 3: Get the FCM/APNs token and send to your backend
-    PushNotifications.addListener('registration', async (token) => {
-      console.log('[Push] Registration token:', token.value);
+    // FIX: Store token in memory first, then save when auth is ready (handles delayed login)
+    let pendingPushToken = null;
+
+    async function savePushTokenToFirestore(tokenValue) {
       try {
-        // Store token in Firestore for this user
         const { auth, db } = await import('./firebase/config');
         const { doc, updateDoc } = await import('firebase/firestore');
         const uid = auth.currentUser?.uid;
         if (uid) {
           await updateDoc(doc(db, 'users', uid), {
-            pushToken: token.value,
+            pushToken: tokenValue,
             pushPlatform: Capacitor.getPlatform(), // 'android' or 'ios'
             pushTokenUpdatedAt: new Date().toISOString(),
           });
           console.log('[Push] Token saved to Firestore for user:', uid);
+          pendingPushToken = null;
+          return true;
+        } else {
+          // User not yet logged in — store token for later
+          pendingPushToken = tokenValue;
+          console.log('[Push] User not logged in yet — token stored for later save');
+          return false;
         }
       } catch (err) {
         console.error('[Push] Failed to save token to Firestore:', err);
         Sentry.captureException(err);
+        return false;
+      }
+    }
+
+    PushNotifications.addListener('registration', async (token) => {
+      console.log('[Push] Registration token:', token.value);
+      await savePushTokenToFirestore(token.value);
+    });
+
+    // FIX: When user signs in after registration, save any pending token
+    const { auth } = await import('./firebase/config');
+    const { onAuthStateChanged } = await import('firebase/auth');
+    onAuthStateChanged(auth, async (user) => {
+      if (user && pendingPushToken) {
+        console.log('[Push] Auth state changed — saving pending push token for:', user.uid);
+        await savePushTokenToFirestore(pendingPushToken);
       }
     });
 
@@ -96,17 +121,30 @@ async function registerPushNotifications() {
     });
 
     // Step 6: Handle notification taps (app opened from background)
+    // FIX: Use window.location.pathname (BrowserRouter) not window.location.hash (HashRouter)
     PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
       console.log('[Push] Notification tapped:', action.notification.title);
       const data = action.notification.data || {};
       // Route to the relevant screen based on notification type
+      // Using BrowserRouter paths (not hash routes)
       if (data.type === 'message' && data.conversationId) {
-        window.location.hash = `/messages/${data.conversationId}`;
+        window.location.href = `/messages/${data.conversationId}`;
       } else if (data.type === 'match') {
-        window.location.hash = '/dating/matches';
-      } else if (data.type === 'live') {
-        window.location.hash = `/live/watch/${data.streamId}`;
+        window.location.href = '/dating/matches';
+      } else if (data.type === 'live' && data.streamId) {
+        window.location.href = `/live/watch/${data.streamId}`;
+      } else if (data.type === 'friend_request') {
+        window.location.href = '/friends';
+      } else if (data.type === 'like' || data.type === 'comment') {
+        window.location.href = data.postId ? `/post/${data.postId}` : '/feed';
+      } else if (data.type === 'story') {
+        window.location.href = '/stories';
+      } else {
+        // Default: go to notifications page
+        window.location.href = '/notifications';
       }
+      // Clear badge count on Android
+      try { PushNotifications.removeAllDeliveredNotifications(); } catch (_) {}
     });
 
     console.log('[Push] Push notification registration complete ✅');
