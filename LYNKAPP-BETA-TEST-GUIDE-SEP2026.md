@@ -824,15 +824,53 @@ READY FOR CLOSED BETA? YES / NO / NEEDS FIXES FIRST
 ---
 
 ## KNOWN ISSUES TO IGNORE DURING BETA
+**Last verified by code inspection: September 10, 2026**
 
 These are **NOT bugs** — they are known limitations during beta:
-1. ⚠️ Live streaming won't broadcast — needs Mux API keys (Phase 2)
-2. ⚠️ Dating matches won't appear until 2+ real users are swiping
-3. ⚠️ Coin purchases may fail — Play Billing sandbox not yet confirmed
-4. ⚠️ AR/VR shows "Coming Soon" — intentional, not a bug
-5. ⚠️ Gaming live features limited — intentional placeholder
-6. ⚠️ iOS version does not exist yet — Android only in Phase 1
 
 ---
 
-*Guide created: September 10, 2026 | LynkApp Beta v1.0*
+### 1. ⚠️ Live streaming won't broadcast (Phase 2 — needs Mux API keys)
+**Code status:** The entire streaming backend IS written — `ConnectHub-Backend/src/services/mux-service.ts`, `ConnectHub-SPA/src/services/whip-publisher.js`, and `ConnectHub-SPA/src/services/livestream-webrtc.js` all exist. The Mux WHIP publisher, stream creation, and viewer hooks are fully coded.
+**Why it won't work in beta:** `VITE_MUX_TOKEN_ID` and `VITE_MUX_TOKEN_SECRET` env vars are not yet configured in `.env`. Needs a Mux account + API keys set in backend `.env`.
+**What to test instead:** All the Live dashboards, schedule, analytics, moderation, Q&A, VOD, and clips pages fully load. Tap through all tabs and buttons — those work. Only actual live broadcasting requires Mux keys.
+**DO NOT report:** "Live stream won't start" — this is expected in beta.
+
+---
+
+### 2. ⚠️ Dating matches won't appear until 2+ real users are swiping
+**Code status:** The entire dating system — swipe engine, match algorithm, Firestore rules — is fully built (`DatingPage.jsx`, `DatingMatchesPage.jsx`, swipe + match Firestore rules all deployed).
+**Why it appears empty:** Matching requires two real accounts to swipe right on each other. With only 1 tester, the matches collection stays empty.
+**What to test instead:** Set your dating profile, set preferences, swipe on any seeded demo profiles if visible, verify the swipe animation, the "No more profiles" state, and the Safety Center page.
+**DO NOT report:** "I have no matches" — this is normal with 1 tester.
+
+---
+
+### 3. ⚠️ Coin purchases may fail — Google Play Billing plugin not yet installed
+**Code status:** The service logic IS written — `ConnectHub-SPA/src/services/google-play-billing-service.js` (223 lines, full purchase flow). `BuyCoinsPage.jsx` is wired to route Android → Play Billing, iOS → StoreKit, Web → Stripe.
+**Why it won't work in beta:** The npm package `@capacitor-community/in-app-purchases` has NOT been installed yet (`package.json` confirmed). The Play Console in-app products (coins_100, coins_500, etc.) also need to be created.
+**What to test instead:** Open the Buy Coins page and verify the UI loads. On the web version, Stripe purchases work normally.
+**DO NOT report:** "Buy Coins button does nothing on Android" — the billing plugin is pending Phase 2 setup.
+
+---
+
+### 4. ✅ AR/VR shows "Coming Soon" — intentional, not a bug
+**Code status:** `ARVRPage.jsx` intentionally renders `<ComingSoonGate>`. This is a confirmed design decision (DeepAR SDK is mocked). The beautiful Coming Soon UI with feature preview cards is the correct final state for Phase 1.
+**DO NOT report:** "AR/VR doesn't work" — it is deliberately gated.
+
+---
+
+### 5. ⚠️ Gaming live features limited — intentional placeholder
+**Code status:** `GamingPage.jsx` has full UI for gaming discovery, leaderboards, and tournaments. Live multiplayer game sessions are not yet integrated (no real-time game server backend).
+**What to test instead:** Browse games, view leaderboard UI, tap through all gaming tabs and category filters — all UI is functional.
+**DO NOT report:** "Can't play a live game" — real-time multiplayer gaming is Phase 2.
+
+---
+
+### 6. ⚠️ iOS version does not exist yet — Android only in Phase 1
+**Code status:** Confirmed — the `ConnectHub-SPA/ios/` folder does NOT exist. `npx cap add ios` has not been run. A template file (`ios-templates/PrivacyInfo.xcprivacy`) exists for when iOS is created, but there is no Xcode project yet. iOS requires a Mac and Apple Developer Program ($99/year).
+**DO NOT report:** Anything about iOS — it is officially Phase 2.
+
+---
+
+*Guide created: September 10, 2026 | Updated: September 10, 2026 (v1.1 — Known Issues verified by code inspection) | LynkApp Beta v1.0*
