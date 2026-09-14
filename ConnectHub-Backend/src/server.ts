@@ -90,6 +90,11 @@ import marketplaceRoutes from './routes/marketplace';
 // The correct exported function name in sockets/index.ts is `initializeSocket`
 import { initializeSocket } from './sockets';
 
+// ── BullMQ Background Workers (Sep 14, 2026 — Gap Fix #4) ────────────────────
+import { startEmailWorker } from './workers/email-worker';
+import { startPushWorker }  from './workers/push-worker';
+import { scheduleRepeatJobs } from './services/bullmq-queue';
+
 // ── Middleware ────────────────────────────────────────────────────────────────
 import { errorHandler } from './middleware/errorHandler';
 // FIX: cast to `any` to bridge AuthRequest ↔ Request type mismatch
@@ -239,6 +244,14 @@ async function startServer() {
         initializeSocket(httpServer as any);
         console.log('✓ Socket.IO initialized — real-time is LIVE');
 
+        // ── BullMQ Workers — Gap Fix #4 (Sep 14, 2026) ──────────────────────
+        // Start email and push workers so queued jobs are actually processed.
+        // Workers gracefully no-op if Redis is unavailable (dev without Redis).
+        startEmailWorker();
+        startPushWorker();
+        scheduleRepeatJobs(); // weekly payouts + hourly story cleanup
+        console.log('✓ BullMQ workers started (email, push, repeat jobs)');
+
         httpServer.listen(PORT, () => {
             console.log(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -248,6 +261,7 @@ async function startServer() {
 ║  Port:         ${String(PORT).padEnd(10)}                           ║
 ║  Routes:       36 mounted                                 ║
 ║  Socket.IO:    ✓ Enabled                                  ║
+║  BullMQ:       ✓ Workers running                          ║
 ║  API:          /api/v1                                    ║
 ║  Health:       /health                                    ║
 ╚═══════════════════════════════════════════════════════════╝`);
