@@ -742,4 +742,49 @@ router.put('/password', authenticate, changePasswordValidation, async (req, res)
   }
 });
 
+// ── GET /api/v1/users/:userId/saved-posts ────────────────────────────────────
+// Returns paginated list of posts saved by the user.
+// Used by SavedPage and profile saved-posts tab.
+router.get('/:userId/saved-posts', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page  = parseInt(req.query.page  as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip  = (page - 1) * limit;
+
+    const savedPosts = await prisma.savedPost.findMany({
+      where:   { userId },
+      include: {
+        post: {
+          include: {
+            user: {
+              select: {
+                id: true, username: true, firstName: true,
+                lastName: true, avatar: true, isVerified: true,
+              },
+            },
+            _count: {
+              select: { likes: true, comments: true },
+            },
+          },
+        },
+      },
+      orderBy: { savedAt: 'desc' },
+      skip,
+      take: limit,
+    });
+
+    const total = await prisma.savedPost.count({ where: { userId } });
+    const totalPages = Math.ceil(total / limit);
+
+    return res.json({
+      success: true,
+      data: { savedPosts: savedPosts.map((sp: any) => sp.post), total, page, totalPages },
+    });
+  } catch (error) {
+    logger.error('Get saved posts error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 export default router;

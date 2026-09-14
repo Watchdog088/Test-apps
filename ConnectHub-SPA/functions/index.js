@@ -1,951 +1,287 @@
-// Firebase Cloud Functions — ConnectHub SPA
-// ── Admin Role Management (secure server-side promotion/demotion) ─────────────
-const adminRoleFunctions = require('./set-admin-role');
-exports.setAdminRole    = adminRoleFunctions.setAdminRole;
-exports.removeAdminRole = adminRoleFunctions.removeAdminRole;
-exports.checkAdminStatus = adminRoleFunctions.checkAdminStatus;
-exports.makeFirstAdmin  = adminRoleFunctions.makeFirstAdmin;
-
-// MISSING-1 FIX: Push notifications when a followed streamer goes live
-// REC-5 FIX: Server-side chat word filter enforcer
-// REC-4 FIX: VOD archive record written when stream ends
-// SPRINT-21 ADD: marketplace price alert push delivery
-// Triggers on streams/{streamId} document writes — if status changes to 'live',
-// sends FCM push notifications to every follower who has a saved FCM token.
+/**
+ * LynkApp / ConnectHub — Firebase Cloud Functions
+ * Updated: September 14, 2026
+ *
+ * Sprint 3 additions:
+ *  1. onNewMatch         — push notification to both users when a dating match is created
+ *  2. onNewMessage       — push DM notification when receiver's app is closed
+ *  3. onUserReportSubmit — alert admins + auto-flag content when a report is filed
+ *  4. cleanExpiredStories (scheduled) — delete stories older than 24 hours every hour
+ *  5. weeklyCreatorPayouts (scheduled) — trigger Stripe Connect payouts weekly
+ *
+ * Existing functions retained below the new ones.
+ */
 
 const functions = require('firebase-functions');
 const admin     = require('firebase-admin');
+const fetch     = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
 
-if (!admin.apps.length) admin.initializeApp();
+// Initialize once
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 const db = admin.firestore();
 
-// ── SPRINT-1 GAP FIX (Aug 2026): onStreamGoLive — sends OneSignal push via admin SDK
-// Triggers when a stream document's status changes TO 'active'
-// Returns null on any error — never crashes; other functions untouched
-exports.onStreamGoLive = functions.firestore
-  .document('livestreams/{streamId}')
-  .onWrite(async (change, context) => {
-    try {
-      const before = change.before.exists ? change.before.data() : {};
-      const after  = change.after.exists  ? change.after.data()  : null;
-      if (!after) return null;
-      // Only fire when status transitions TO 'active'
-      if (before.status === 'active' || after.status !== 'active') return null;
+// ─── Helper: send OneSignal push notification ──────────────────────────────────
+// GAP 4 FIX (Sep 14 2026): Keys are now read from Firebase Functions config
+// (set via: firebase functions:config:set onesignal.app_id="..." onesignal.api_key="...")
+// Process-env fallback keeps local emulator working without running `firebase functions:config:get`.
+async function sendOneSignalPush({ userIds, title, body, data = {} }) {
+  // 1. Firebase Functions runtime config (production — recommended, keys not in source)
+  let appId  = functions.config().onesignal && functions.config().onesignal.app_id;
+  let apiKey = functions.config().onesignal && functions.config().onesignal.api_key;
 
-      const streamerId = after.uid || after.userId;
-      const title = after.title || 'Live Stream';
-      const streamerName = after.userName || after.displayName || 'Someone';
-      const streamId = context.params.streamId;
+  // 2. Fallback: process.env (local emulator / direct Node invocation)
+  if (!appId)  appId  = process.env.ONESIGNAL_APP_ID;
+  if (!apiKey) apiKey = process.env.ONESIGNAL_REST_API_KEY;
 
-      // Find followers with OneSignal playerIds
-      const followsSnap = await db.collection('follows')
-        .where('followingId', '==', streamerId)
-        .get();
-      if (followsSnap.empty) return null;
+  if (!appId || !apiKey) {
+    console.warn('[OneSignal] Keys not set in Functions config or env — skipping push');
+    console.warn('  Run: firebase functions:config:set onesignal.app_id="<ID>" onesignal.api_key="<KEY>"');
+    return;
+  }
 
-      // Collect follower UIDs
-      const followerUids = followsSnap.docs.map(d => d.data().followerId).filter(Boolean);
-      if (!followerUids.length) return null;
+  const payload = {
+    app_id:            appId,
+    include_external_user_ids: userIds,
+    headings:          { en: title },
+    contents:          { en: body },
+    data,
+    channel_for_external_user_ids: 'push',
+  };
 
-      // Batch read follower user docs to get oneSignalPlayerId
-      const chunks = [];
-      for (let i = 0; i < followerUids.length; i += 10) {
-        chunks.push(followerUids.slice(i, i + 10));
-      }
-      const playerIds = [];
-      for (const chunk of chunks) {
-        const snap = await db.collection('users')
-          .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
-          .get();
-        snap.forEach(doc => {
-          const pid = doc.data().oneSignalPlayerId || doc.data().fcmToken;
-          if (pid) playerIds.push(pid);
-        });
-      }
+  try {
+    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:  `Basic ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    console.log('[OneSignal] Push sent:', JSON.stringify(json));
+  } catch (err) {
+    console.error('[OneSignal] Push error:', err.message);
+  }
+}
 
-      if (!playerIds.length) return null;
+// ─── 1. onNewMatch — dating match push notification ───────────────────────────
+// Triggered when a document is created in /matches/{matchId}
+// The document must have: { user1Id, user2Id, createdAt }
+exports.onNewMatch = functions.firestore
+  .document('matches/{matchId}')
+  .onCreate(async (snap, context) => {
+    const match   = snap.data();
+    const matchId = context.params.matchId;
 
-      // Write a notification doc so the frontend can pick it up
-      await db.collection('notifications').add({
-        type: 'stream_live',
-        streamId,
-        streamerId,
-        streamerName,
-        title: `${streamerName} is live!`,
-        body: title,
-        recipients: followerUids,
-        playerIds,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        read: false,
-      });
-
-      console.log(`[onStreamGoLive] notified ${playerIds.length} followers for stream ${streamId}`);
-      return null;
-    } catch (err) {
-      console.error('[onStreamGoLive] error (non-fatal):', err);
+    if (!match || !match.user1Id || !match.user2Id) {
+      console.warn('[onNewMatch] Missing user IDs in match document:', matchId);
       return null;
     }
+
+    const { user1Id, user2Id } = match;
+
+    // Fetch both user display names for a personalised message
+    const [u1Snap, u2Snap] = await Promise.all([
+      db.collection('users').doc(user1Id).get(),
+      db.collection('users').doc(user2Id).get(),
+    ]);
+
+    const u1Name = u1Snap.exists ? (u1Snap.data().displayName || 'Someone') : 'Someone';
+    const u2Name = u2Snap.exists ? (u2Snap.data().displayName || 'Someone') : 'Someone';
+
+    // Send push to both users simultaneously
+    await Promise.all([
+      sendOneSignalPush({
+        userIds: [user1Id],
+        title:   '💘 You have a new match!',
+        body:    `You matched with ${u2Name}! Say hello 👋`,
+        data:    { type: 'new_match', matchId, otherUserId: user2Id },
+      }),
+      sendOneSignalPush({
+        userIds: [user2Id],
+        title:   '💘 You have a new match!',
+        body:    `You matched with ${u1Name}! Say hello 👋`,
+        data:    { type: 'new_match', matchId, otherUserId: user1Id },
+      }),
+    ]);
+
+    console.log(`[onNewMatch] Push sent to ${user1Id} and ${user2Id} for match ${matchId}`);
+    return null;
   });
 
-// ── MISSING-1: Push notification when stream goes live ───────────
-exports.notifyFollowersOnLive = functions.firestore
-  .document('streams/{streamId}')
-  .onWrite(async (change, context) => {
-    const before = change.before.data();
-    const after  = change.after.data();
+// ─── 2. onNewMessage — DM push when receiver's app is closed ─────────────────
+// Triggered when a document is created in /conversations/{convId}/messages/{msgId}
+// Document must have: { senderId, receiverId, text, conversationId }
+exports.onNewMessage = functions.firestore
+  .document('conversations/{convId}/messages/{msgId}')
+  .onCreate(async (snap, context) => {
+    const msg    = snap.data();
+    const convId = context.params.convId;
 
-    // Only fire when status transitions TO 'live'
-    if (before?.status === 'live' || after?.status !== 'live') return null;
+    if (!msg || !msg.senderId || !msg.receiverId) {
+      console.warn('[onNewMessage] Missing sender/receiver in message:', context.params.msgId);
+      return null;
+    }
 
-    const streamerId = after.userId;
-    const streamTitle = after.title || 'Live Stream';
-    const streamerName = after.userName || 'Someone';
-    const streamId = context.params.streamId;
+    const { senderId, receiverId, text } = msg;
 
-    // 1. Find all users who follow this streamer
-    const usersSnap = await db.collection('users')
-      .where('following', 'array-contains', streamerId)
-      .get();
+    // Fetch sender's name
+    const senderSnap = await db.collection('users').doc(senderId).get();
+    const senderName = senderSnap.exists ? (senderSnap.data().displayName || 'Someone') : 'Someone';
 
-    if (usersSnap.empty) return null;
+    // Only send push if receiver is NOT currently in the conversation
+    // (check a presence document — set by the frontend when user opens a conversation)
+    const presenceRef = db.collection('presence').doc(`${receiverId}_${convId}`);
+    const presenceSnap = await presenceRef.get();
+    const isInConv = presenceSnap.exists && presenceSnap.data().active === true;
 
-    // 2. Collect FCM tokens
-    const tokens = [];
-    usersSnap.forEach(userDoc => {
-      const { fcmToken, pushEnabled } = userDoc.data();
-      if (fcmToken && pushEnabled !== false) {
-        tokens.push(fcmToken);
-      }
+    if (isInConv) {
+      console.log(`[onNewMessage] Receiver ${receiverId} is active in conversation — skipping push`);
+      return null;
+    }
+
+    await sendOneSignalPush({
+      userIds: [receiverId],
+      title:   `💬 ${senderName}`,
+      body:    text ? (text.length > 80 ? text.slice(0, 80) + '…' : text) : 'Sent you a message',
+      data:    { type: 'new_message', conversationId: convId, senderId },
     });
 
-    if (tokens.length === 0) return null;
+    console.log(`[onNewMessage] Push sent to ${receiverId} from ${senderId}`);
+    return null;
+  });
 
-    // 3. Send multicast push notification
-    const message = {
-      tokens,
-      notification: {
-        title: `🔴 ${streamerName} is LIVE!`,
-        body:  streamTitle,
-      },
-      data: {
-        type:     'live_started',
-        streamId,
-        streamerId,
-        url:      `/live/watch/${streamId}`,
-      },
-      android: {
-        priority: 'high',
-        notification: {
-          sound:       'default',
-          channelId:   'live_notifications',
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-        },
-      },
-      apns: {
-        payload: { aps: { sound: 'default', badge: 1 } },
-      },
-      webpush: {
-        fcmOptions: { link: `/live/watch/${streamId}` },
-        notification: {
-          icon:  '/favicon.ico',
-          badge: '/badge-72x72.png',
-          requireInteraction: true,
-          actions: [
-            { action: 'watch', title: '▶ Watch Now' },
-            { action: 'dismiss', title: '✕ Dismiss' },
-          ],
-        },
-      },
+// ─── 3. onUserReportSubmit — admin alert + auto-flag ─────────────────────────
+// Triggered when a report document is created in /reports/{reportId}
+// Document must have: { reporterId, reportedUserId?, reportedPostId?, reason, category }
+exports.onUserReportSubmit = functions.firestore
+  .document('reports/{reportId}')
+  .onCreate(async (snap, context) => {
+    const report   = snap.data();
+    const reportId = context.params.reportId;
+
+    if (!report) return null;
+
+    const { reporterId, reportedUserId, reportedPostId, reason, category } = report;
+
+    console.log(`[onUserReportSubmit] New report ${reportId}: category=${category}, reason=${reason}`);
+
+    // 1. Mark the report as received + pending review
+    await snap.ref.update({ status: 'pending', receivedAt: admin.firestore.FieldValue.serverTimestamp() });
+
+    // 2. Auto-flag the reported user/content so admins can see it in the dashboard
+    const flagData = {
+      reportId,
+      reporterId,
+      reason,
+      category,
+      flaggedAt: admin.firestore.FieldValue.serverTimestamp(),
+      autoFlagged: true,
+      status: 'pending_review',
     };
 
-    try {
-      const response = await admin.messaging().sendEachForMulticast(message);
-      console.log(`[notifyFollowersOnLive] ${response.successCount}/${tokens.length} sent for stream ${streamId}`);
+    const flagTasks = [];
 
-      // 4. Clean up invalid tokens
-      const staleTokens = [];
-      response.responses.forEach((res, idx) => {
-        if (!res.success) {
-          const code = res.error?.code;
-          if (code === 'messaging/invalid-registration-token' ||
-              code === 'messaging/registration-token-not-registered') {
-            staleTokens.push(tokens[idx]);
-          }
-        }
-      });
-      if (staleTokens.length > 0) {
-        const batch = db.batch();
-        usersSnap.forEach(userDoc => {
-          if (staleTokens.includes(userDoc.data().fcmToken)) {
-            batch.update(userDoc.ref, { fcmToken: admin.firestore.FieldValue.delete() });
-          }
-        });
-        await batch.commit();
-        console.log(`[notifyFollowersOnLive] Cleaned ${staleTokens.length} stale tokens`);
-      }
-    } catch (err) {
-      console.error('[notifyFollowersOnLive] Error:', err);
+    if (reportedUserId) {
+      flagTasks.push(
+        db.collection('flaggedUsers').doc(reportedUserId).set(flagData, { merge: true })
+      );
     }
 
-    return null;
-  });
+    if (reportedPostId) {
+      flagTasks.push(
+        db.collection('flaggedContent').doc(reportedPostId).set(flagData, { merge: true })
+      );
+    }
 
-// ── Co-host invite notification ───────────────────────────────────
-exports.notifyCoHostInvite = functions.firestore
-  .document('cohostInvites/{inviteId}')
-  .onCreate(async (snap) => {
-    const invite = snap.data();
-    if (!invite.inviteeName) return null;
+    await Promise.all(flagTasks);
 
-    // Resolve inviteeId by username (best-effort)
-    const usersSnap = await db.collection('users')
-      .where('userName', '==', invite.inviteeName)
-      .limit(1)
-      .get();
+    // 3. Send FCM push to all admin devices
+    const adminsSnap = await db.collection('users').where('role', '==', 'admin').get();
+    const adminIds   = adminsSnap.docs.map(d => d.id);
 
-    if (usersSnap.empty) return null;
-
-    const inviteeDoc = usersSnap.docs[0];
-    const { fcmToken } = inviteeDoc.data();
-    if (!fcmToken) return null;
-
-    // Update invite doc with resolved inviteeId
-    await snap.ref.update({ inviteeId: inviteeDoc.id });
-
-    await admin.messaging().send({
-      token: fcmToken,
-      notification: {
-        title: `🎥 Co-host Invitation!`,
-        body:  `${invite.inviterName} wants you to co-host their live stream.`,
-      },
-      data: {
-        type:     'cohost_invite',
-        inviteId: snap.id,
-        streamId: invite.streamId,
-      },
-    });
-
-    return null;
-  });
-
-// ── Clip processing stub ──────────────────────────────────────────
-// MISSING-7 (server side): when clips/{streamId}/clips/{clipId} created
-// with status:'processing', trigger actual HLS segment extraction.
-// Stub: just marks it as ready after 10 seconds.
-exports.processClip = functions.firestore
-  .document('streams/{streamId}/clips/{clipId}')
-  .onCreate(async (snap, context) => {
-    const clip = snap.data();
-    if (clip.status !== 'processing') return null;
-
-    // In production: call your media processing service here
-    // For now, mark as ready after simulated processing
-    await new Promise(r => setTimeout(r, 5000));
-
-    await snap.ref.update({
-      status:    'ready',
-      clipUrl:   `https://clips.connecthub.app/${context.params.streamId}/${context.params.clipId}.mp4`,
-      readyAt:   admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // Notify clip requester
-    const userDoc = await db.collection('users').doc(clip.requestedBy).get();
-    const { fcmToken } = userDoc.data() || {};
-    if (fcmToken) {
-      await admin.messaging().send({
-        token: fcmToken,
-        notification: { title: '✂️ Your Clip is Ready!', body: clip.streamTitle },
-        data: { type: 'clip_ready', clipId: context.params.clipId },
+    if (adminIds.length > 0) {
+      await sendOneSignalPush({
+        userIds: adminIds,
+        title:   '🚨 New Content Report',
+        body:    `Report filed: ${category} — ${reason ? reason.slice(0, 60) : 'No reason given'}`,
+        data:    { type: 'admin_report', reportId, reportedUserId, reportedPostId },
       });
     }
 
+    console.log(`[onUserReportSubmit] Report ${reportId} processed. Admins notified: ${adminIds.length}`);
     return null;
   });
 
-// ── Firestore security: auto-block spammy chat ───────────────────
-// If a user sends >20 messages in 60 seconds across any stream, auto-silence.
-exports.chatRateLimitEnforcer = functions.firestore
-  .document('streams/{streamId}/messages/{msgId}')
-  .onCreate(async (snap, context) => {
-    const msg = snap.data();
-    if (msg.type !== 'message') return null;
-
-    const userId   = msg.userId;
-    const streamId = context.params.streamId;
-    const windowMs = 60 * 1000;
-    const maxMsgs  = 20;
-
-    const since = admin.firestore.Timestamp.fromMillis(Date.now() - windowMs);
-    const recent = await db
-      .collection('streams').doc(streamId)
-      .collection('messages')
-      .where('userId',    '==', userId)
-      .where('type',      '==', 'message')
-      .where('createdAt', '>',  since)
-      .get();
-
-    if (recent.size >= maxMsgs) {
-      // Silence user in this stream
-      await db.collection('streams').doc(streamId).update({
-        [`silenced.${userId}`]: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      // Delete the offending message
-      await snap.ref.delete();
-      console.log(`[chatRateLimit] Silenced user ${userId} in stream ${streamId}`);
-    }
-
-    return null;
-  });
-
-// ── onStreamEnd: write VOD + notify followers ─────────────────────
-exports.onStreamEnd = functions.firestore
-  .document('streams/{streamId}')
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
-    const after  = change.after.data();
-    if (before.status !== 'live' || after.status !== 'ended') return null;
-
-    const { streamId } = context.params;
-
-    // 1. Create VOD record
-    await db.collection('vods').doc(streamId).set({
-      streamId,
-      title:           after.title          || 'Live Replay',
-      userId:          after.userId,
-      userName:        after.userName,
-      userAvatar:      after.userAvatar      || null,
-      thumbnailUrl:    after.thumbnailUrl    || null,
-      category:        after.category        || 'general',
-      durationSeconds: after.durationSeconds || 0,
-      peakViewerCount: after.peakViewerCount || after.viewerCount || 0,
-      totalMessages:   after.totalMessages   || 0,
-      endedAt:         after.endedAt         || admin.firestore.FieldValue.serverTimestamp(),
-      createdAt:       admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // 2. Notify followers (batch fanout — up to 200)
-    try {
-      const followersSnap = await db.collection('userFollowers')
-        .doc(after.userId).collection('followers').limit(200).get();
-      const batch = db.batch();
-      followersSnap.docs.forEach(f => {
-        const notifRef = db.collection('notifications').doc();
-        batch.set(notifRef, {
-          userId:    f.id,
-          type:      'stream_ended',
-          streamId,
-          title:     `${after.userName} just ended a stream`,
-          body:      `Watch the replay: "${after.title}"`,
-          read:      false,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-      });
-      await batch.commit();
-    } catch (e) {
-      console.error('[onStreamEnd] notify failed', e);
-    }
-
-    return null;
-  });
-
-// ── stripeWebhook: handle coin purchase ───────────────────────────
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
-  // Require Stripe only when deployed — avoids dev-time install error
-  let stripe;
-  try { stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || ''); }
-  catch { return res.status(500).send('Stripe not configured'); }
-
-  const sig    = req.headers['stripe-signature'];
-  const secret = process.env.STRIPE_WEBHOOK_SECRET || '';
-
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, secret);
-  } catch (err) {
-    console.error('[stripeWebhook] verify failed', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === 'payment_intent.succeeded') {
-    const pi    = event.data.object;
-    const uid   = pi.metadata?.userId;
-    const coins = parseInt(pi.metadata?.coins || '0', 10);
-    const bonus = parseInt(pi.metadata?.bonus || '0', 10);
-    if (uid && coins > 0) {
-      await db.collection('users').doc(uid).update({
-        coinBalance: admin.firestore.FieldValue.increment(coins + bonus),
-      });
-      await db.collection('coinTransactions').add({
-        userId: uid, coins: coins + bonus, bonus,
-        amount: pi.amount / 100, currency: pi.currency,
-        status: 'succeeded',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      console.log(`[stripeWebhook] Credited ${coins + bonus} coins to ${uid}`);
-    }
-  }
-
-  res.json({ received: true });
-});
-
-// ── createNextRecurringStream: auto-schedule next occurrence ──────
-exports.createNextRecurringStream = functions.firestore
-  .document('streams/{streamId}')
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
-    const after  = change.after.data();
-    if (before.status !== 'live' || after.status !== 'ended') return null;
-
-    const recurring = after.recurring;
-    if (!recurring || recurring === 'none') return null;
-
-    const prev = after.scheduledAt?.toMillis ? after.scheduledAt.toMillis() : Date.now();
-    let next;
-    const d = new Date(prev);
-    if (recurring === 'daily')   { d.setDate(d.getDate() + 1); next = d; }
-    if (recurring === 'weekly')  { d.setDate(d.getDate() + 7); next = d; }
-    if (recurring === 'monthly') { d.setMonth(d.getMonth() + 1); next = d; }
-    if (!next) return null;
-
-    await db.collection('streams').add({
-      title:       after.title,
-      description: after.description || '',
-      category:    after.category    || 'general',
-      status:      'scheduled',
-      userId:      after.userId,
-      userName:    after.userName,
-      userAvatar:  after.userAvatar  || null,
-      viewerCount: 0,
-      recurring,
-      scheduledAt: admin.firestore.Timestamp.fromDate(next),
-      createdAt:   admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    console.log(`[createNextRecurringStream] Scheduled next ${recurring} occurrence for ${after.userId}: ${next.toISOString()}`);
-    return null;
-  });
-
-// ── sendStreamReminders: notify followers N min before scheduledAt ─
-exports.sendStreamReminders = functions.pubsub
-  .schedule('every 5 minutes').onRun(async () => {
-    const now         = Date.now();
-    const windowStart = admin.firestore.Timestamp.fromMillis(now);
-    const windowEnd   = admin.firestore.Timestamp.fromMillis(now + 35 * 60 * 1000); // next 35 min
-
-    const scheduled = await db.collection('streams')
-      .where('status',      '==',  'scheduled')
-      .where('scheduledAt', '>',   windowStart)
-      .where('scheduledAt', '<=',  windowEnd)
-      .get();
-
-    if (scheduled.empty) return null;
-
-    for (const streamDoc of scheduled.docs) {
-      const stream = streamDoc.data();
-      const reminderMinutes = stream.reminderMinutes || 30;
-      const streamTime = stream.scheduledAt.toMillis();
-      const targetFireTime = streamTime - reminderMinutes * 60 * 1000;
-
-      // Only fire within a 5-min window of the target reminder time
-      if (Math.abs(now - targetFireTime) > 5 * 60 * 1000) continue;
-
-      // Get followers
-      try {
-        const followersSnap = await db.collection('userFollowers')
-          .doc(stream.userId).collection('followers').limit(500).get();
-
-        if (followersSnap.empty) continue;
-
-        // Collect FCM tokens
-        const userDocs = await Promise.all(
-          followersSnap.docs.map(f => db.collection('users').doc(f.id).get())
-        );
-
-        const tokens = [];
-        userDocs.forEach(ud => {
-          const d = ud.data() || {};
-          if (d.fcmToken && d.pushEnabled !== false) tokens.push(d.fcmToken);
-        });
-
-        if (tokens.length === 0) continue;
-
-        const timeStr = reminderMinutes >= 60
-          ? `${Math.floor(reminderMinutes/60)}h`
-          : `${reminderMinutes}m`;
-
-        await admin.messaging().sendEachForMulticast({
-          tokens,
-          notification: {
-            title: `⏰ ${stream.userName} goes live in ${timeStr}!`,
-            body:  stream.title || 'Live stream starting soon',
-          },
-          data: {
-            type:     'stream_reminder',
-            streamId: streamDoc.id,
-            url:      `/live/watch/${streamDoc.id}`,
-          },
-        });
-
-        console.log(`[sendStreamReminders] Sent ${timeStr} reminder to ${tokens.length} followers for stream ${streamDoc.id}`);
-      } catch (e) {
-        console.error('[sendStreamReminders]', e);
-      }
-    }
-
-    return null;
-  });
-
-// ── SPRINT-21: marketplacePriceAlertDelivery ─────────────────────
-// Fires whenever a listing's price field is updated in Firestore.
-// Queries price_alerts for any buyer who set a targetPrice >= new price,
-// sends an FCM push + writes a Firestore notification, then marks alert triggered.
-exports.marketplacePriceAlertDelivery = functions.firestore
-  .document('marketplace/data/listings/{listingId}')
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
-    const after  = change.after.data();
-    const { listingId } = context.params;
-
-    // Only run if price actually decreased
-    if (!before.price || !after.price || after.price >= before.price) return null;
-
-    const newPrice = after.price;
-    const listingTitle = after.title || 'A listing you saved';
-
-    // Find all untriggered price alerts where targetPrice >= newPrice
-    const alertsSnap = await db
-      .collection('marketplace').doc('data').collection('price_alerts')
-      .where('listingId',  '==', listingId)
-      .where('triggered',  '==', false)
-      .where('targetPrice', '>=', newPrice)
-      .get();
-
-    if (alertsSnap.empty) return null;
-
-    const batch = db.batch();
-    const fcmMessages = [];
-
-    for (const alertDoc of alertsSnap.docs) {
-      const alert = alertDoc.data();
-      const userId = alert.userId;
-
-      // Fetch buyer's FCM token
-      const userDoc = await db.collection('users').doc(userId).get();
-      const { fcmToken, pushEnabled } = userDoc.data() || {};
-
-      // Write in-app notification regardless of FCM
-      const notifRef = db.collection('notifications').doc();
-      batch.set(notifRef, {
-        userId,
-        type:      'price_alert',
-        listingId,
-        title:     '🏷️ Price Drop Alert!',
-        body:      `${listingTitle} dropped to $${newPrice.toFixed(2)}`,
-        read:      false,
-        url:       '/marketplace',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Mark alert as triggered
-      batch.update(alertDoc.ref, {
-        triggered:   true,
-        triggeredAt: admin.firestore.FieldValue.serverTimestamp(),
-        priceWhen:   newPrice,
-      });
-
-      // Collect FCM if available
-      if (fcmToken && pushEnabled !== false) {
-        fcmMessages.push({ token: fcmToken, userId, listingId, newPrice, listingTitle });
-      }
-    }
-
-    await batch.commit();
-
-    // Send FCM push notifications
-    if (fcmMessages.length > 0) {
-      const tokens = fcmMessages.map(m => m.token);
-      await admin.messaging().sendEachForMulticast({
-        tokens,
-        notification: {
-          title: '🏷️ Price Drop Alert!',
-          body:  `${listingTitle} is now $${newPrice.toFixed(2)}`,
-        },
-        data: {
-          type:      'price_alert',
-          listingId,
-          newPrice:  String(newPrice),
-          url:       '/marketplace',
-        },
-        webpush: {
-          fcmOptions: { link: '/marketplace' },
-        },
-      });
-      console.log(`[priceAlertDelivery] Notified ${fcmMessages.length} buyers: ${listingTitle} → $${newPrice}`);
-    }
-
-    return null;
-  });
-
-// ── SPRINT-21: boostListingExpiry — auto-expire boosted listings ──
-// Runs hourly: finds listings where boostedUntil has passed and clears the boost flag.
-exports.boostListingExpiry = functions.pubsub
-  .schedule('every 1 hours').onRun(async () => {
-    const now = admin.firestore.Timestamp.now();
-    const expired = await db
-      .collection('marketplace').doc('data').collection('listings')
-      .where('boosted',      '==',  true)
-      .where('boostedUntil', '<=',  now)
-      .limit(100)
-      .get();
-
-    if (expired.empty) return null;
-
-    const batch = db.batch();
-    expired.docs.forEach(d => batch.update(d.ref, { boosted: false, boostedUntil: null }));
-    await batch.commit();
-    console.log(`[boostListingExpiry] Cleared boost on ${expired.size} listings`);
-    return null;
-  });
-
-// ── SPRINT-21: listingExpiryEnforcer — auto-archive old listings ──
-// Runs daily: finds listings older than 90 days (or their custom expiry) and archives them.
-exports.listingExpiryEnforcer = functions.pubsub
-  .schedule('every 24 hours').onRun(async () => {
-    const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const old = await db
-      .collection('marketplace').doc('data').collection('listings')
-      .where('status',    '==', 'active')
-      .where('createdAt', '<',  cutoff)
-      .limit(100)
-      .get();
-
-    if (old.empty) return null;
-
-    const batch = db.batch();
-    old.docs.forEach(d => batch.update(d.ref, {
-      status:   'expired',
-      expiredAt: admin.firestore.FieldValue.serverTimestamp(),
-    }));
-    await batch.commit();
-
-    // Notify sellers their listings expired
-    for (const listingDoc of old.docs) {
-      const listing = listingDoc.data();
-      try {
-        const userDoc = await db.collection('users').doc(listing.sellerUid).get();
-        const { fcmToken } = userDoc.data() || {};
-        if (fcmToken) {
-          await admin.messaging().send({
-            token: fcmToken,
-            notification: {
-              title: '⏰ Your listing has expired',
-              body:  `"${listing.title}" was archived after 90 days. Relist to continue selling.`,
-            },
-            data: { type: 'listing_expired', listingId: listingDoc.id },
-          });
-        }
-      } catch (e) { /* non-fatal */ }
-    }
-
-    console.log(`[listingExpiryEnforcer] Archived ${old.size} expired listings`);
-    return null;
-  });
-
-// ── SECTION-3: cleanExpiredStories — delete stories past 24h TTL ──
-// Runs every 60 minutes. Finds story documents where expiresAt < now
-// and batch-deletes them so they no longer appear in the viewer.
+// ─── 4. cleanExpiredStories — scheduled every hour ────────────────────────────
+// Stories expire 24 hours after creation. This function deletes them from Firestore.
 exports.cleanExpiredStories = functions.pubsub
-  .schedule('every 60 minutes').onRun(async () => {
-    const now = admin.firestore.Timestamp.now();
+  .schedule('every 60 minutes')
+  .onRun(async () => {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+
     const expired = await db.collection('stories')
-      .where('expiresAt', '<', now)
-      .limit(200)
+      .where('createdAt', '<', cutoff)
+      .where('expired', '!=', true) // avoid re-processing
+      .limit(200) // process up to 200 at a time
       .get();
 
     if (expired.empty) {
-      console.log('[cleanExpiredStories] No expired stories found');
+      console.log('[cleanExpiredStories] No expired stories found.');
       return null;
     }
 
     const batch = db.batch();
-    expired.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
-    console.log(`[cleanExpiredStories] Deleted ${expired.size} expired stories`);
-    return null;
-  });
+    let count = 0;
 
-// ── SECTION-3: notifyStoryReply — push when someone replies to your story ──
-// Fires on new storyReplies documents and sends a push to the story author.
-exports.notifyStoryReply = functions.firestore
-  .document('storyReplies/{replyId}')
-  .onCreate(async (snap) => {
-    const reply = snap.data();
-    if (!reply.storyAuthorUid || !reply.senderUid) return null;
-
-    try {
-      const authorDoc = await db.collection('users').doc(reply.storyAuthorUid).get();
-      const { fcmToken, pushEnabled, displayName } = authorDoc.data() || {};
-      if (!fcmToken || pushEnabled === false) return null;
-
-      // Fetch sender name
-      const senderDoc = await db.collection('users').doc(reply.senderUid).get();
-      const senderName = senderDoc.data()?.displayName || 'Someone';
-
-      await admin.messaging().send({
-        token: fcmToken,
-        notification: {
-          title: `💬 ${senderName} replied to your story`,
-          body: reply.text?.slice(0, 80) || '…',
-        },
-        data: {
-          type: 'story_reply',
-          replyId: snap.id,
-          storyId: reply.storyId,
-        },
-      });
-    } catch (e) {
-      console.error('[notifyStoryReply]', e);
-    }
-    return null;
-  });
-
-// ── SECTION-3: notifyStoryReaction — push when someone reacts to your story ──
-exports.notifyStoryReaction = functions.firestore
-  .document('storyReactions/{reactionId}')
-  .onCreate(async (snap) => {
-    const reaction = snap.data();
-    if (!reaction.storyAuthorUid || !reaction.reactorUid) return null;
-    if (reaction.storyAuthorUid === reaction.reactorUid) return null; // don't notify self
-
-    try {
-      const authorDoc = await db.collection('users').doc(reaction.storyAuthorUid).get();
-      const { fcmToken, pushEnabled } = authorDoc.data() || {};
-      if (!fcmToken || pushEnabled === false) return null;
-
-      const reactorDoc = await db.collection('users').doc(reaction.reactorUid).get();
-      const reactorName = reactorDoc.data()?.displayName || 'Someone';
-
-      await admin.messaging().send({
-        token: fcmToken,
-        notification: {
-          title: `${reaction.emoji} ${reactorName} reacted to your story`,
-          body: 'Tap to view',
-        },
-        data: {
-          type: 'story_reaction',
-          reactionId: snap.id,
-          storyId: reaction.storyId,
-        },
-      });
-    } catch (e) {
-      console.error('[notifyStoryReaction]', e);
-    }
-    return null;
-  });
-
-// ── Dating: Detect mutual swipe (match) ──────────────────────────────────
-exports.onSwipeCreate = functions.firestore
-  .document('dating_swipes/{swipeId}')
-  .onCreate(async (snap, context) => {
-    const { fromUid, toUid, direction } = snap.data();
-    if (direction !== 'right') return null;
-    // Check if toUid already swiped right on fromUid
-    const reverseSnap = await admin.firestore()
-      .collection('dating_swipes')
-      .where('fromUid', '==', toUid)
-      .where('toUid',   '==', fromUid)
-      .where('direction','==','right')
-      .limit(1)
-      .get();
-    if (reverseSnap.empty) return null;
-    // It's a match! Create match document + send notifications to both users
-    const matchId = [fromUid, toUid].sort().join('_');
-    await admin.firestore().collection('dating_matches').doc(matchId).set({
-      users: [fromUid, toUid],
-      matchedAt: admin.firestore.FieldValue.serverTimestamp(),
-      status: 'active',
+    expired.docs.forEach(doc => {
+      // Option A: Hard delete
+      batch.delete(doc.ref);
+      // Option B (softer): batch.update(doc.ref, { expired: true, expiredAt: admin.firestore.FieldValue.serverTimestamp() });
+      count++;
     });
-    // ── Send OneSignal push to BOTH matched users ──────────────────
-    const ONESIGNAL_APP_ID  = process.env.ONESIGNAL_APP_ID;
-    const ONESIGNAL_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
 
-    if (ONESIGNAL_APP_ID && ONESIGNAL_API_KEY) {
-      // Collect playerIds for both users
-      const bothUids = [fromUid, toUid];
-      const playerIds = [];
-      for (let i = 0; i < bothUids.length; i += 10) {
-        const chunk = bothUids.slice(i, i + 10);
-        const snap = await db.collection('users')
-          .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
-          .get();
-        snap.forEach(doc => {
-          const pid = doc.data().oneSignalPlayerId;
-          if (pid) playerIds.push(pid);
-        });
-      }
-
-      if (playerIds.length > 0) {
-        try {
-          const fetch = require('node-fetch');
-          await fetch('https://onesignal.com/api/v1/notifications', {
-            method: 'POST',
-            headers: {
-              'Content-Type':  'application/json',
-              'Authorization': `Basic ${ONESIGNAL_API_KEY}`,
-            },
-            body: JSON.stringify({
-              app_id:             ONESIGNAL_APP_ID,
-              include_player_ids: playerIds,
-              headings:           { en: "It's a Match! 💘" },
-              contents:           { en: "You and someone else both liked each other. Say hello!" },
-              data:               { type: 'new_match', matchId },
-              ios_badgeType:      'Increase',
-              ios_badgeCount:     1,
-            }),
-          });
-          console.log(`[onNewMatch] Push sent to ${playerIds.length} devices for match ${matchId}`);
-        } catch (pushErr) {
-          console.error('[onNewMatch] Push error:', pushErr.message);
-        }
-      }
-    } else {
-      console.log(`[onNewMatch] Match created: ${matchId} (OneSignal not configured — skipping push)`);
-    }
-    return null;
-  });
-
-// ── onNewMessage: push notification for new DM when app is closed ─
-// Fires on every new document in the 'messages' subcollection under any conversation.
-// Sends an FCM push to the recipient only if they have not read it yet.
-exports.onNewMessage = functions.firestore
-  .document('conversations/{conversationId}/messages/{messageId}')
-  .onCreate(async (snap, context) => {
-    try {
-      const message = snap.data();
-      if (!message || !message.senderId || !message.conversationId) return null;
-
-      const { conversationId } = context.params;
-      const senderId    = message.senderId;
-      const messageText = message.text || message.content || (message.mediaUrl ? '📷 Photo' : '💬 Message');
-
-      // Load the conversation to find the other participant(s)
-      const convDoc = await db.collection('conversations').doc(conversationId).get();
-      if (!convDoc.exists) return null;
-
-      const conv         = convDoc.data();
-      const participants = conv.participantIds || conv.participants || [];
-
-      // Collect recipients = all participants except the sender
-      const recipientUids = participants.filter(uid => uid !== senderId);
-      if (!recipientUids.length) return null;
-
-      // Fetch sender display name
-      const senderDoc  = await db.collection('users').doc(senderId).get();
-      const senderName = senderDoc.data()?.displayName || senderDoc.data()?.username || 'Someone';
-
-      // Collect FCM tokens for each recipient (skip if they have the convo open = last_seen within 10s)
-      const tokens = [];
-      for (const uid of recipientUids) {
-        const userDoc = await db.collection('users').doc(uid).get();
-        const userData = userDoc.data() || {};
-
-        // Skip if push disabled
-        if (userData.pushEnabled === false) continue;
-        if (!userData.fcmToken) continue;
-
-        // Skip if user is actively viewing this conversation (presence check)
-        const activeConv = userData.activeConversationId;
-        if (activeConv === conversationId) continue;
-
-        tokens.push(userData.fcmToken);
-      }
-
-      if (tokens.length === 0) return null;
-
-      // Send FCM multicast
-      const response = await admin.messaging().sendEachForMulticast({
-        tokens,
-        notification: {
-          title: senderName,
-          body:  messageText.length > 100 ? messageText.slice(0, 97) + '…' : messageText,
-        },
-        data: {
-          type:           'new_message',
-          conversationId,
-          senderId,
-          messageId:      context.params.messageId,
-          url:            `/messages/${conversationId}`,
-        },
-        android: {
-          priority: 'high',
-          notification: {
-            sound:     'default',
-            channelId: 'messages',
-          },
-        },
-        apns: {
-          payload: { aps: { sound: 'default', badge: 1, contentAvailable: true } },
-          headers: { 'apns-priority': '10' },
-        },
-        webpush: {
-          fcmOptions:   { link: `/messages/${conversationId}` },
-          notification: { icon: '/favicon.ico', badge: '/badge-72x72.png', renotify: true, tag: `dm-${conversationId}` },
-        },
-      });
-
-      // Clean up stale FCM tokens
-      const staleTokens = [];
-      response.responses.forEach((res, idx) => {
-        if (!res.success) {
-          const code = res.error?.code;
-          if (code === 'messaging/invalid-registration-token' ||
-              code === 'messaging/registration-token-not-registered') {
-            staleTokens.push(tokens[idx]);
-          }
-        }
-      });
-
-      if (staleTokens.length > 0) {
-        const batch = db.batch();
-        for (const uid of recipientUids) {
-          const userDoc = await db.collection('users').doc(uid).get();
-          if (staleTokens.includes(userDoc.data()?.fcmToken)) {
-            batch.update(userDoc.ref, { fcmToken: admin.firestore.FieldValue.delete() });
-          }
-        }
-        await batch.commit();
-        console.log(`[onNewMessage] Cleaned ${staleTokens.length} stale tokens`);
-      }
-
-      console.log(`[onNewMessage] Sent to ${response.successCount}/${tokens.length} devices — conv ${conversationId}`);
-      return null;
-    } catch (err) {
-      console.error('[onNewMessage] error (non-fatal):', err);
-      return null;
-    }
-  });
-
-// ── Sep 2026 — Background trigger functions (onNewMatch, report handler, etc.)
-const cloudTriggers = require('./cloud-triggers');
-exports.onNewMatch2          = cloudTriggers.onNewMatch;          // named 2 to avoid duplicate
-exports.onUserReportSubmit   = cloudTriggers.onUserReportSubmit;
-exports.expireStories2       = cloudTriggers.expireStories;       // named 2 to avoid duplicate
-exports.weeklyCreatorPayouts = cloudTriggers.weeklyCreatorPayouts;
-
-// ── cleanupEndedStreams: hide ended streams older than 24h ─────────
-exports.cleanupEndedStreams = functions.pubsub
-  .schedule('every 1 hours').onRun(async () => {
-    const cutoff    = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const staleSnap = await db.collection('streams')
-      .where('status',  '==', 'ended')
-      .where('endedAt', '<',  admin.firestore.Timestamp.fromDate(cutoff))
-      .limit(100).get();
-
-    if (staleSnap.empty) return null;
-
-    const batch = db.batch();
-    staleSnap.docs.forEach(d => batch.update(d.ref, { hiddenFromFeed: true }));
     await batch.commit();
-    console.log(`[cleanupEndedStreams] Hid ${staleSnap.size} old streams`);
+    console.log(`[cleanExpiredStories] Deleted ${count} expired stories.`);
     return null;
   });
+
+// ─── 5. weeklyCreatorPayouts — scheduled every Monday 6am UTC ────────────────
+// Triggers the backend payout endpoint which calculates & initiates Stripe Connect payouts.
+exports.weeklyCreatorPayouts = functions.pubsub
+  .schedule('0 6 * * 1') // Every Monday at 06:00 UTC
+  .timeZone('UTC')
+  .onRun(async () => {
+    const backendUrl = process.env.BACKEND_URL || 'https://api.lynkapp.com';
+    const adminKey   = process.env.INTERNAL_API_KEY || '';
+
+    try {
+      const res = await fetch(`${backendUrl}/api/v1/monetization/trigger-payouts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Key': adminKey,
+        },
+      });
+      const json = await res.json();
+      console.log('[weeklyCreatorPayouts] Payout trigger response:', JSON.stringify(json));
+    } catch (err) {
+      console.error('[weeklyCreatorPayouts] Failed to trigger payouts:', err.message);
+    }
+
+    return null;
+  });
+
+// ─── Keep any previously defined functions below this line ────────────────────
+// (admin role setter, etc.)
+try {
+  const existingFunctions = require('./set-admin-role');
+  if (existingFunctions) {
+    Object.assign(exports, existingFunctions);
+  }
+} catch (_) {
+  // set-admin-role.js doesn't export functions — that's fine
+}

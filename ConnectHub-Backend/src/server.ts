@@ -149,11 +149,24 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
+// Global: 100 req / 15 min per IP
 app.use('/api/', rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: 'Too many requests from this IP, please try again later.'
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests from this IP, please try again later.' }
 }));
+
+// Auth-specific limiter is applied below after V1 is declared (avoids TDZ error)
+const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many auth attempts. Please try again in 15 minutes.' },
+    skipSuccessfulRequests: true, // only count failed attempts
+});
 
 // ── Top-level health (no auth) ────────────────────────────────────────────────
 app.get('/health', (_req: Request, res: Response) => {
@@ -172,6 +185,11 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 const V1 = '/api/v1';
+
+// Auth-specific rate limits (applied here so V1 is already declared)
+app.use(`${V1}/auth/login`,           authRateLimit);
+app.use(`${V1}/auth/register`,        authRateLimit);
+app.use(`${V1}/auth/forgot-password`, authRateLimit);
 
 // Public (no auth)
 app.use(`${V1}/auth`, authRoutes);
