@@ -1,36 +1,44 @@
-/**
- * Creator Studio — Section 21
- * Auto-generated REST route — Firestore is primary; REST is fallback/admin layer
- */
-import { Router, Request, Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import express from 'express';
+import { prisma } from '../config/database';
+import { authenticate } from '../middleware/auth';
+import logger from '../config/logger';
+const router = express.Router();
 
-const router = Router();
+// GET /api/v1/creator/profile
+router.get('/profile', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    let profile = await prisma.creatorProfile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.creatorProfile.create({ data: { userId } });
+    res.json({ success: true, data: { profile } });
+  } catch (error) { logger.error('Get creator profile error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
+// PUT /api/v1/creator/profile
+router.put('/profile', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { bio, categories, socialLinks, portfolioUrl, rates } = req.body;
+    const profile = await prisma.creatorProfile.upsert({
+      where: { userId },
+      update: { bio, categories, socialLinks, portfolioUrl, rates, updatedAt: new Date() },
+      create: { userId, bio, categories, socialLinks, portfolioUrl, rates },
+    });
+    res.json({ success: true, data: { profile } });
+  } catch (error) { logger.error('Update creator profile error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
-// GET /creator/stats
-router.get('/stats', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, stats: { views: 0, followers: 0, revenue: 0, posts: 0 } });
-});
-// GET /creator/content
-router.get('/content', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, content: [] });
-});
-// POST /creator/content
-router.post('/content', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.status(201).json({ success: true, content: { id: `crt_${Date.now()}`, ...req.body } });
-});
-// GET /creator/monetization
-router.get('/monetization', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, monetization: { enabled: false, earnings: 0 } });
-});
-// PUT /creator/monetization
-router.put('/monetization', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, monetization: req.body });
-});
-// GET /creator/analytics
-router.get('/analytics', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, analytics: { daily: [], weekly: [], monthly: [] } });
+// GET /api/v1/creator/analytics
+router.get('/analytics', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const [posts, followers, totalLikes] = await Promise.all([
+      prisma.post.count({ where: { authorId: userId } }),
+      prisma.follow.count({ where: { followingId: userId } }),
+      prisma.like.count({ where: { post: { authorId: userId } } }),
+    ]);
+    res.json({ success: true, data: { posts, followers, totalLikes } });
+  } catch (error) { logger.error('Creator analytics error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
 });
 
 export default router;

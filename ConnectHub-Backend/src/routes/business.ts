@@ -1,36 +1,41 @@
-/**
- * Business Tools — Section 22
- * Auto-generated REST route — Firestore is primary; REST is fallback/admin layer
- */
-import { Router, Request, Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import express from 'express';
+import { prisma } from '../config/database';
+import { authenticate } from '../middleware/auth';
+import logger from '../config/logger';
+const router = express.Router();
 
-const router = Router();
+// GET /api/v1/business/profile
+router.get('/profile', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    let profile = await prisma.businessProfile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.businessProfile.create({ data: { userId } });
+    res.json({ success: true, data: { profile } });
+  } catch (error) { logger.error('Get business profile error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
+// PUT /api/v1/business/profile
+router.put('/profile', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { businessName, description, category, website, phone, address } = req.body;
+    const profile = await prisma.businessProfile.upsert({
+      where: { userId },
+      update: { businessName, description, category, website, phone, address, updatedAt: new Date() },
+      create: { userId, businessName, description, category, website, phone, address },
+    });
+    res.json({ success: true, data: { profile } });
+  } catch (error) { logger.error('Update business profile error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
-// GET /business/profile
-router.get('/profile', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, profile: null });
-});
-// POST /business/profile
-router.post('/profile', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.status(201).json({ success: true, profile: { id: `biz_${Date.now()}`, ...req.body } });
-});
-// PUT /business/profile
-router.put('/profile', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, profile: req.body });
-});
-// GET /business/analytics
-router.get('/analytics', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, analytics: { reach: 0, engagement: 0, leads: 0 } });
-});
-// POST /business/ads
-router.post('/ads', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.status(201).json({ success: true, ad: { id: `ad_${Date.now()}`, ...req.body } });
-});
-// GET /business/ads
-router.get('/ads', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, ads: [] });
+// GET /api/v1/business/analytics
+router.get('/analytics', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const profileViews = await prisma.profileView.count({ where: { profileUserId: userId } });
+    const followers = await prisma.follow.count({ where: { followingId: userId } });
+    res.json({ success: true, data: { profileViews, followers } });
+  } catch (error) { logger.error('Business analytics error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
 });
 
 export default router;

@@ -827,4 +827,160 @@ router.delete('/:postId/comments/:commentId', authenticate, async (req: any, res
   }
 });
 
+// ── POST /posts/:postId/share ─────────────────────────────────────────────────
+// Increments sharesCount and records the share in PostEngagement.
+router.post('/:postId/share', authenticate, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = (req as any).user.id;
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    // Upsert engagement record — mark as shared
+    await (prisma.postEngagement as any).upsert({
+      where:  { userId_postId: { userId, postId } },
+      update: { shared: true, updatedAt: new Date() },
+      create: { userId, postId, shared: true },
+    }).catch(() => {
+      // If unique constraint doesn't exist, just create
+      return (prisma.postEngagement as any).create({ data: { userId, postId, shared: true } });
+    });
+
+    // Increment sharesCount on the post
+    const updated = await prisma.post.update({
+      where: { id: postId },
+      data:  { sharesCount: { increment: 1 } },
+      select: { id: true, sharesCount: true },
+    });
+
+    return res.json({ success: true, sharesCount: updated.sharesCount });
+  } catch (err: any) {
+    logger.error('[POST /posts/:postId/share]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to share post' });
+  }
+});
+
+// ── POST /posts/:postId/save ──────────────────────────────────────────────────
+// Toggles save state and increments/decrements savesCount.
+router.post('/:postId/save', authenticate, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = (req as any).user.id;
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    // Check existing save
+    const existing = await (prisma.postEngagement as any).findFirst({
+      where: { userId, postId },
+    });
+
+    const isSaved = existing?.saved === true;
+
+    if (existing) {
+      await (prisma.postEngagement as any).update({
+        where: { id: existing.id },
+        data:  { saved: !isSaved, updatedAt: new Date() },
+      });
+    } else {
+      await (prisma.postEngagement as any).create({
+        data: { userId, postId, saved: true },
+      });
+    }
+
+    const updated = await prisma.post.update({
+      where: { id: postId },
+      data:  { savesCount: { increment: isSaved ? -1 : 1 } },
+      select: { id: true, savesCount: true },
+    });
+
+    return res.json({ success: true, saved: !isSaved, savesCount: Math.max(0, updated.savesCount) });
+  } catch (err: any) {
+    logger.error('[POST /posts/:postId/save]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to save post' });
+  }
+});
+
+// ── GET /posts/:postId/likes ──────────────────────────────────────────────────
+// Returns paginated list of users who liked this post.
+router.get('/:postId/likes', authenticate, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const page  = parseInt(String(req.query.page  || '1'));
+    const limit = parseInt(String(req.query.limit || '20'));
+    const skip  = (page - 1) * limit;
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true, likesCount: true } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    const engagements = await (prisma.postEngagement as any).findMany({
+      where:  { postId, liked: true },
+      skip,
+      take:   limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, username: true, firstName: true, lastName: true, avatar: true, isVerified: true },
+        },
+      },
+    });
+
+    const users = engagements.map((e: any) => e.user).filter(Boolean);
+
+    return res.json({
+      success: true,
+      data:    users,
+      total:   post.likesCount,
+      page,
+      totalPages: Math.ceil(post.likesCount / limit),
+    });
+  } catch (err: any) {
+    logger.error('[GET /posts/:postId/likes]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to fetch likes' });
+  }
+});
+
+// ── DELETE /posts/:postId/comments/:commentId ─────────────────────────────────
+// Allows the comment owner OR the post owner OR an admin to delete a comment.
+router.delete('/:postId/comments/:commentId', authenticate, async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const requesterId = (req as any).user.id;
+    const requesterRole = (req as any).user.role || 'user';
+
+    const comment = await (prisma.comment as any).findUnique({
+      where: { id: commentId },
+      select: { id: true, userId: true, postId: true },
+    });
+
+    if (!comment) return res.status(404).json({ success: false, message: 'Comment not found' });
+    if (comment.postId !== postId) return res.status(400).json({ success: false, message: 'Comment does not belong to this post' });
+
+    // Check the post owner
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { userId: true } });
+
+    const isOwner    = comment.userId === requesterId;
+    const isPostOwner = post?.userId === requesterId;
+    const isAdmin    = ['admin', 'moderator'].includes(requesterRole);
+
+    if (!isOwner && !isPostOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'You do not have permission to delete this comment' });
+    }
+
+    await (prisma.comment as any).delete({ where: { id: commentId } });
+
+    // Decrement comment count on the post
+    await prisma.post.update({
+      where: { id: postId },
+      data:  { commentsCount: { decrement: 1 } },
+    }).catch(() => {}); // Non-fatal if column doesn't exist
+
+    return res.json({ success: true, message: 'Comment deleted' });
+  } catch (err: any) {
+    logger.error('[DELETE /posts/:postId/comments/:commentId]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to delete comment' });
+  }
+});
+
 export default router;

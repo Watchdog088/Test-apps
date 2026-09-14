@@ -1,32 +1,34 @@
-/**
- * Media Hub — Section 17
- * Auto-generated REST route — Firestore is primary; REST is fallback/admin layer
- */
-import { Router, Request, Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import express from 'express';
+import { prisma } from '../config/database';
+import { authenticate } from '../middleware/auth';
+import logger from '../config/logger';
+const router = express.Router();
 
-const router = Router();
+// GET /api/v1/media — list media items for current user
+router.get('/', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const type   = (req.query.type as string) || undefined; // image|video|audio
+    const page   = parseInt(req.query.page as string) || 1;
+    const limit  = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const skip   = (page - 1) * limit;
+    const where: any = { userId };
+    if (type) where.type = type;
+    const [items, total] = await Promise.all([
+      prisma.mediaItem.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: limit }),
+      prisma.mediaItem.count({ where }),
+    ]);
+    res.json({ success: true, data: { items, total, page, totalPages: Math.ceil(total / limit) } });
+  } catch (error) { logger.error('Get media error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
-
-// GET /media/feed
-router.get('/feed', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, media: [] });
-});
-// GET /media/:id
-router.get('/:id', (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, media: { id: req.params.id } });
-});
-// POST /media — upload metadata
-router.post('/', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.status(201).json({ success: true, media: { id: `med_${Date.now()}`, ...req.body } });
-});
-// DELETE /media/:id
-router.delete('/:id', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, message: 'Media deleted' });
-});
-// POST /media/:id/like
-router.post('/:id/like', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, liked: true });
+// DELETE /api/v1/media/:id
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    await prisma.mediaItem.deleteMany({ where: { id: req.params.id, userId } });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) { logger.error('Delete media error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
 });
 
 export default router;

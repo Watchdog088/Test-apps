@@ -1,41 +1,37 @@
-/**
- * Help & Support — Section 24
- * Auto-generated REST route — Firestore is primary; REST is fallback/admin layer
- */
-import { Router, Request, Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import express from 'express';
+import { prisma } from '../config/database';
+import { authenticate } from '../middleware/auth';
+import logger from '../config/logger';
+const router = express.Router();
 
-const router = Router();
+// GET /api/v1/help/faq
+router.get('/faq', async (_req, res) => {
+  res.json({ success: true, data: { faqs: [
+    { id: '1', question: 'How do I reset my password?', answer: 'Go to Settings > Security > Change Password.' },
+    { id: '2', question: 'How do I become a creator?', answer: 'Go to your profile and tap "Become a Creator".' },
+    { id: '3', question: 'How does the dating feature work?', answer: 'Swipe right to like, left to pass. Matches can message each other.' },
+    { id: '4', question: 'How do I cancel premium?', answer: 'Go to Settings > Premium > Cancel Subscription.' },
+  ] } });
+});
 
+// POST /api/v1/help/tickets
+router.post('/tickets', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { subject, description, category } = req.body;
+    if (!subject || !description) return res.status(400).json({ success: false, message: 'subject and description required' });
+    const ticket = await prisma.supportTicket.create({ data: { userId, subject, description, category: category || 'general', status: 'open' } });
+    res.status(201).json({ success: true, data: { ticket } });
+  } catch (error) { logger.error('Create ticket error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
+});
 
-// GET /help/articles
-router.get('/articles', (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, articles: [] });
-});
-// GET /help/articles/:id
-router.get('/articles/:id', (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, article: { id: req.params.id } });
-});
-// GET /help/faq
-router.get('/faq', (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, faq: [] });
-});
-// POST /help/tickets
-router.post('/tickets', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  const { subject, description, category } = req.body;
-  res.status(201).json({ success: true, ticket: { id: `tkt_${Date.now()}`, subject, description, category, status: 'open', createdAt: new Date().toISOString() } });
-});
-// GET /help/tickets
-router.get('/tickets', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, tickets: [] });
-});
-// GET /help/tickets/:id
-router.get('/tickets/:id', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, ticket: { id: req.params.id, status: 'open' } });
-});
-// POST /help/tickets/:id/reply
-router.post('/tickets/:id/reply', authMiddleware as any, (req: Request, res: Response, next: NextFunction) => {
-  res.json({ success: true, message: 'Reply sent', ticketId: req.params.id });
+// GET /api/v1/help/tickets — user's own tickets
+router.get('/tickets', authenticate, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const tickets = await prisma.supportTicket.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
+    res.json({ success: true, data: { tickets } });
+  } catch (error) { logger.error('Get tickets error:', error); res.status(500).json({ success: false, message: 'Internal server error' }); }
 });
 
 export default router;
