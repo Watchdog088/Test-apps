@@ -22,6 +22,22 @@ import path from 'path';
 dotenv.config();
 
 // ── Core Routes ───────────────────────────────────────────────────────────────
+// Sentry error tracking (must be the VERY FIRST import)
+// Install: npm i @sentry/node @sentry/tracing
+// Gracefully skip if SENTRY_DSN is not configured
+let Sentry: any = null;
+try {
+  if (process.env.SENTRY_DSN) {
+    Sentry = require('@sentry/node');
+    Sentry.init({
+      dsn:              process.env.SENTRY_DSN,
+      environment:      process.env.NODE_ENV || 'production',
+      tracesSampleRate: 0.1,
+    });
+    console.log('✓ Sentry error tracking initialized');
+  }
+} catch { /* Sentry package not installed — server continues without it */ }
+
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import postRoutes from './routes/posts';
@@ -66,6 +82,9 @@ import { consentRoutes } from './routes/consent';
 import contentControlRoutes from './routes/content-control';
 import videoMusicRoutes from './routes/video-music';
 import enterpriseRoutes from './routes/enterprise';
+// ── New routes added Sep 2026 ─────────────────────────────────────
+import authExtRoutes    from './routes/auth-extensions';
+import marketplaceRoutes from './routes/marketplace';
 
 // ── WebSocket handlers (FIX: was commented out — real-time was dead) ─────────
 // The correct exported function name in sockets/index.ts is `initializeSocket`
@@ -197,6 +216,10 @@ app.use(`${V1}/consent`,        authMiddleware, consentRoutes);
 app.use(`${V1}/content-control`,authMiddleware, contentControlRoutes);
 app.use(`${V1}/video-music`,    authMiddleware, videoMusicRoutes);
 app.use(`${V1}/enterprise`,     authMiddleware, enterpriseRoutes);
+
+// Sep 2026 — newly wired routes
+app.use(`${V1}/auth`,        authExtRoutes);          // refresh-token, google/apple sync, delete-account
+app.use(`${V1}/marketplace`, authMiddleware, marketplaceRoutes); // listings CRUD + reviews
 
 // 404
 app.use((req: Request, res: Response) => {

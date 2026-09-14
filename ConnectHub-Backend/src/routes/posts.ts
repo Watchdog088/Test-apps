@@ -655,6 +655,101 @@ router.get('/:postId/comments', authenticate, async (req, res) => {
   }
 });
 
+// ── POST /api/v1/posts/:postId/share ──────────────────────────────
+// Increments the sharesCount and records the engagement.
+router.post('/:postId/share', authenticate, async (req: any, res: any) => {
+  try {
+    const { postId } = req.params;
+    const userId: string = req.user?.uid || req.user?.id;
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    // Record share engagement (allow duplicates — a user can share many times)
+    await prisma.postEngagement.create({
+      data: { postId, userId, type: 'share' },
+    });
+    await prisma.post.update({
+      where: { id: postId },
+      data: { sharesCount: { increment: 1 } },
+    });
+
+    logger.info(`Post ${postId} shared by ${userId}`);
+    return res.json({ success: true, message: 'Post shared successfully' });
+  } catch (error) {
+    logger.error('Share post error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// ── POST /api/v1/posts/:postId/save  (toggle) ─────────────────────
+// Save or un-save a post. Returns { isSaved: boolean }.
+router.post('/:postId/save', authenticate, async (req: any, res: any) => {
+  try {
+    const { postId } = req.params;
+    const userId: string = req.user?.uid || req.user?.id;
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    const existing = await prisma.postEngagement.findUnique({
+      where: { postId_userId_type: { postId, userId, type: 'save' } },
+    });
+
+    if (existing) {
+      // Un-save
+      await prisma.postEngagement.delete({ where: { id: existing.id } });
+      await prisma.post.update({ where: { id: postId }, data: { savesCount: { decrement: 1 } } });
+      return res.json({ success: true, isSaved: false, message: 'Post removed from saved' });
+    } else {
+      // Save
+      await prisma.postEngagement.create({ data: { postId, userId, type: 'save' } });
+      await prisma.post.update({ where: { id: postId }, data: { savesCount: { increment: 1 } } });
+      return res.json({ success: true, isSaved: true, message: 'Post saved successfully' });
+    }
+  } catch (error) {
+    logger.error('Save post error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// ── GET /api/v1/posts/:postId/likes ───────────────────────────────
+// Returns a paginated list of users who liked a post.
+router.get('/:postId/likes', authenticate, async (req: any, res: any) => {
+  try {
+    const { postId } = req.params;
+    const page  = parseInt(req.query.page  as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const skip  = (page - 1) * limit;
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+
+    const engagements = await (prisma as any).postEngagement.findMany({
+      where: { postId, type: 'like' },
+      include: {
+        user: {
+          select: { id: true, username: true, firstName: true, lastName: true, avatar: true, isVerified: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        users: engagements.map((e: any) => e.user),
+        pagination: { currentPage: page, hasMore: engagements.length === limit },
+      },
+    });
+  } catch (error) {
+    logger.error('Get post likes error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 // ── DELETE /api/v1/posts/:postId/comments/:commentId ──────────────
 // Allows the comment author OR the post owner OR an admin to delete
 // a specific comment. Returns 404 if comment/post not found,

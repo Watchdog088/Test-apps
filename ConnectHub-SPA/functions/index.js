@@ -925,6 +925,13 @@ exports.onNewMessage = functions.firestore
     }
   });
 
+// ── Sep 2026 — Background trigger functions (onNewMatch, report handler, etc.)
+const cloudTriggers = require('./cloud-triggers');
+exports.onNewMatch2          = cloudTriggers.onNewMatch;          // named 2 to avoid duplicate
+exports.onUserReportSubmit   = cloudTriggers.onUserReportSubmit;
+exports.expireStories2       = cloudTriggers.expireStories;       // named 2 to avoid duplicate
+exports.weeklyCreatorPayouts = cloudTriggers.weeklyCreatorPayouts;
+
 // ── cleanupEndedStreams: hide ended streams older than 24h ─────────
 exports.cleanupEndedStreams = functions.pubsub
   .schedule('every 1 hours').onRun(async () => {
