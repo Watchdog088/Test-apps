@@ -135,6 +135,81 @@ router.post('/webhook/mux', async (req: Request, res: Response) => {
   }
 });
 
+// ── GET /api/v1/streaming/active ─────────────────────────────────
+// Returns all currently active/live streams from Mux.
+// The Live Browse page calls this to show who is live right now.
+// Falls back to a mock list when Mux is not configured so the
+// UI never breaks in development / demo mode.
+router.get('/active', async (req: Request, res: Response) => {
+  try {
+    if (!isMuxConfigured()) {
+      // Demo fallback — keeps the browse page working locally
+      return res.json({
+        success: true,
+        data: {
+          streams: [],
+          total:   0,
+          source:  'demo',
+          message: 'Mux not configured — no live streams available',
+        },
+      });
+    }
+
+    // Instantiate Mux client directly (same credentials used by mux-service.ts)
+    const Mux = require('@mux/mux-node');
+    const muxClient = new Mux(
+      process.env.MUX_TOKEN_ID     as string,
+      process.env.MUX_TOKEN_SECRET as string,
+    );
+
+    // Fetch live streams from Mux with status = 'active'
+    const { data: liveStreams } = await muxClient.video.liveStreams.list({
+      status: 'active',
+    });
+
+    // Shape the response so the frontend only gets the fields it needs
+    const streams = (liveStreams || []).map((s: any) => ({
+      id:            s.id,
+      playbackId:    s.playback_ids?.[0]?.id   || null,
+      thumbnailUrl:  s.playback_ids?.[0]?.id
+        ? `https://image.mux.com/${s.playback_ids[0].id}/thumbnail.jpg?time=0`
+        : null,
+      streamKey:     undefined,          // never expose the stream key
+      status:        s.status,
+      createdAt:     s.created_at,
+      latencyMode:   s.latency_mode      || 'standard',
+      reconnectWindow: s.reconnect_window || 60,
+      maxContinuousDuration: s.max_continuous_duration || 43200,
+      // Custom metadata stored when the stream was created
+      title:         s.passthrough ? (() => {
+        try { return JSON.parse(s.passthrough).title; } catch { return null; }
+      })() : null,
+      userId:        s.passthrough ? (() => {
+        try { return JSON.parse(s.passthrough).userId; } catch { return null; }
+      })() : null,
+      category:      s.passthrough ? (() => {
+        try { return JSON.parse(s.passthrough).category; } catch { return null; }
+      })() : null,
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        streams,
+        total:  streams.length,
+        source: 'mux',
+      },
+    });
+  } catch (err: any) {
+    console.error('[streaming/active]', err.message);
+    return res.status(500).json({
+      success: false,
+      error:   'Failed to fetch active streams',
+      detail:  process.env.NODE_ENV === 'development' ? err.message : undefined,
+    });
+  }
+});
+
 // ── GET /api/v1/streaming/status ─────────────────────────────────
 // Health check — confirms Mux is configured.
 router.get('/status', (req: Request, res: Response) => {

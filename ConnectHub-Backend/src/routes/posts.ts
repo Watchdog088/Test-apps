@@ -655,4 +655,81 @@ router.get('/:postId/comments', authenticate, async (req, res) => {
   }
 });
 
+// ── DELETE /api/v1/posts/:postId/comments/:commentId ──────────────
+// Allows the comment author OR the post owner OR an admin to delete
+// a specific comment. Returns 404 if comment/post not found,
+// 403 if the caller is not authorised.
+router.delete('/:postId/comments/:commentId', authenticate, async (req: any, res: any) => {
+  try {
+    const { postId, commentId } = req.params;
+    const requesterId: string   = req.user?.uid || req.user?.id;
+
+    if (!requesterId) {
+      return res.status(401).json({ success: false, message: 'Unauthorised' });
+    }
+
+    // 1. Verify the post exists
+    const post = await prisma.post.findUnique({
+      where:  { id: postId },
+      select: { id: true, userId: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    // 2. Load the comment
+    const comment = await prisma.comment.findUnique({
+      where:  { id: commentId },
+      select: { id: true, userId: true, postId: true },
+    });
+
+    if (!comment || comment.postId !== postId) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    // 3. Permission check:
+    //    • comment author can always delete their own comment
+    //    • post owner can delete any comment on their post
+    //    • admin role can delete any comment
+    const isCommentAuthor = comment.userId === requesterId;
+    const isPostOwner     = post.userId    === requesterId;
+    const isAdmin         = req.user?.role === 'admin' || req.user?.isAdmin === true;
+
+    if (!isCommentAuthor && !isPostOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this comment',
+      });
+    }
+
+    // 4. Delete the comment (cascade handles nested replies if schema uses onDelete: Cascade)
+    await prisma.comment.delete({ where: { id: commentId } });
+
+    // 5. Decrement post comment count (best-effort, non-fatal)
+    try {
+      await prisma.post.update({
+        where: { id: postId },
+        data:  { commentCount: { decrement: 1 } },
+      });
+    } catch (_) { /* ignore if column doesn't exist yet */ }
+
+    logger.info(`Comment ${commentId} deleted by ${requesterId} (author=${isCommentAuthor}, postOwner=${isPostOwner}, admin=${isAdmin})`);
+
+    return res.json({
+      success:   true,
+      message:   'Comment deleted successfully',
+      commentId,
+      postId,
+    });
+
+  } catch (error: any) {
+    logger.error('Delete comment error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
 export default router;

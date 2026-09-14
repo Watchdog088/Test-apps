@@ -765,9 +765,164 @@ exports.onSwipeCreate = functions.firestore
       matchedAt: admin.firestore.FieldValue.serverTimestamp(),
       status: 'active',
     });
-    // Send push notifications via OneSignal (optional - requires OneSignal Admin API)
-    console.log(`Match created: ${matchId}`);
+    // ── Send OneSignal push to BOTH matched users ──────────────────
+    const ONESIGNAL_APP_ID  = process.env.ONESIGNAL_APP_ID;
+    const ONESIGNAL_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
+
+    if (ONESIGNAL_APP_ID && ONESIGNAL_API_KEY) {
+      // Collect playerIds for both users
+      const bothUids = [fromUid, toUid];
+      const playerIds = [];
+      for (let i = 0; i < bothUids.length; i += 10) {
+        const chunk = bothUids.slice(i, i + 10);
+        const snap = await db.collection('users')
+          .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+          .get();
+        snap.forEach(doc => {
+          const pid = doc.data().oneSignalPlayerId;
+          if (pid) playerIds.push(pid);
+        });
+      }
+
+      if (playerIds.length > 0) {
+        try {
+          const fetch = require('node-fetch');
+          await fetch('https://onesignal.com/api/v1/notifications', {
+            method: 'POST',
+            headers: {
+              'Content-Type':  'application/json',
+              'Authorization': `Basic ${ONESIGNAL_API_KEY}`,
+            },
+            body: JSON.stringify({
+              app_id:             ONESIGNAL_APP_ID,
+              include_player_ids: playerIds,
+              headings:           { en: "It's a Match! 💘" },
+              contents:           { en: "You and someone else both liked each other. Say hello!" },
+              data:               { type: 'new_match', matchId },
+              ios_badgeType:      'Increase',
+              ios_badgeCount:     1,
+            }),
+          });
+          console.log(`[onNewMatch] Push sent to ${playerIds.length} devices for match ${matchId}`);
+        } catch (pushErr) {
+          console.error('[onNewMatch] Push error:', pushErr.message);
+        }
+      }
+    } else {
+      console.log(`[onNewMatch] Match created: ${matchId} (OneSignal not configured — skipping push)`);
+    }
     return null;
+  });
+
+// ── onNewMessage: push notification for new DM when app is closed ─
+// Fires on every new document in the 'messages' subcollection under any conversation.
+// Sends an FCM push to the recipient only if they have not read it yet.
+exports.onNewMessage = functions.firestore
+  .document('conversations/{conversationId}/messages/{messageId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const message = snap.data();
+      if (!message || !message.senderId || !message.conversationId) return null;
+
+      const { conversationId } = context.params;
+      const senderId    = message.senderId;
+      const messageText = message.text || message.content || (message.mediaUrl ? '📷 Photo' : '💬 Message');
+
+      // Load the conversation to find the other participant(s)
+      const convDoc = await db.collection('conversations').doc(conversationId).get();
+      if (!convDoc.exists) return null;
+
+      const conv         = convDoc.data();
+      const participants = conv.participantIds || conv.participants || [];
+
+      // Collect recipients = all participants except the sender
+      const recipientUids = participants.filter(uid => uid !== senderId);
+      if (!recipientUids.length) return null;
+
+      // Fetch sender display name
+      const senderDoc  = await db.collection('users').doc(senderId).get();
+      const senderName = senderDoc.data()?.displayName || senderDoc.data()?.username || 'Someone';
+
+      // Collect FCM tokens for each recipient (skip if they have the convo open = last_seen within 10s)
+      const tokens = [];
+      for (const uid of recipientUids) {
+        const userDoc = await db.collection('users').doc(uid).get();
+        const userData = userDoc.data() || {};
+
+        // Skip if push disabled
+        if (userData.pushEnabled === false) continue;
+        if (!userData.fcmToken) continue;
+
+        // Skip if user is actively viewing this conversation (presence check)
+        const activeConv = userData.activeConversationId;
+        if (activeConv === conversationId) continue;
+
+        tokens.push(userData.fcmToken);
+      }
+
+      if (tokens.length === 0) return null;
+
+      // Send FCM multicast
+      const response = await admin.messaging().sendEachForMulticast({
+        tokens,
+        notification: {
+          title: senderName,
+          body:  messageText.length > 100 ? messageText.slice(0, 97) + '…' : messageText,
+        },
+        data: {
+          type:           'new_message',
+          conversationId,
+          senderId,
+          messageId:      context.params.messageId,
+          url:            `/messages/${conversationId}`,
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound:     'default',
+            channelId: 'messages',
+          },
+        },
+        apns: {
+          payload: { aps: { sound: 'default', badge: 1, contentAvailable: true } },
+          headers: { 'apns-priority': '10' },
+        },
+        webpush: {
+          fcmOptions:   { link: `/messages/${conversationId}` },
+          notification: { icon: '/favicon.ico', badge: '/badge-72x72.png', renotify: true, tag: `dm-${conversationId}` },
+        },
+      });
+
+      // Clean up stale FCM tokens
+      const staleTokens = [];
+      response.responses.forEach((res, idx) => {
+        if (!res.success) {
+          const code = res.error?.code;
+          if (code === 'messaging/invalid-registration-token' ||
+              code === 'messaging/registration-token-not-registered') {
+            staleTokens.push(tokens[idx]);
+          }
+        }
+      });
+
+      if (staleTokens.length > 0) {
+        const batch = db.batch();
+        for (const uid of recipientUids) {
+          const userDoc = await db.collection('users').doc(uid).get();
+          if (staleTokens.includes(userDoc.data()?.fcmToken)) {
+            batch.update(userDoc.ref, { fcmToken: admin.firestore.FieldValue.delete() });
+          }
+        }
+        await batch.commit();
+        console.log(`[onNewMessage] Cleaned ${staleTokens.length} stale tokens`);
+      }
+
+      console.log(`[onNewMessage] Sent to ${response.successCount}/${tokens.length} devices — conv ${conversationId}`);
+      return null;
+    } catch (err) {
+      console.error('[onNewMessage] error (non-fatal):', err);
+      return null;
+    }
   });
 
 // ── cleanupEndedStreams: hide ended streams older than 24h ─────────
