@@ -16,6 +16,9 @@ node_modules
 # Specific known env files — explicitly blocked
 ConnectHub-Frontend/.env
 ConnectHub-Backend/.env
+ConnectHub-Backend/.env.production
+ConnectHub-Backend/.env.staging
+ConnectHub-Backend/.env.local
 ConnectHub-SPA/.env
 ConnectHub-SPA/.env.production
 ConnectHub-SPA/.env.local
