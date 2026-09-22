@@ -1,0 +1,2 @@
+
+An error occurred (InvalidKeyPair.Duplicate) when calling the CreateKeyPair operation: The keypair already exists
