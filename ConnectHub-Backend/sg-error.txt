@@ -1,0 +1,2 @@
+
+An error occurred (InvalidParameterValue) when calling the CreateSecurityGroup operation: Value (LynkApp Backend \u0393Çö API port 5000 + SSH 22 + HTTP 80 + HTTPS 443) for parameter GroupDescription is invalid. Character sets beyond ASCII are not supported.
